@@ -6,4 +6,14 @@
     <RootNamespace>HoU.GuildBot.BLL</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Shared\Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="JetBrains.Annotations.NetStandard">
+      <HintPath>C:\Users\Stefan\.nuget\packages\jetbrains.annotations\10.2.1\lib\netstandard1.0\JetBrains.Annotations.NetStandard.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>

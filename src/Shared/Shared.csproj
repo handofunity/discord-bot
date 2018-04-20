@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <AssemblyName>HoU.GuildBot.Shared</AssemblyName>
+    <RootNamespace>HoU.GuildBot.Shared</RootNamespace>
   </PropertyGroup>
 
 </Project>
