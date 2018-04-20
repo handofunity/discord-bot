@@ -43,6 +43,7 @@
 
             try
             {
+                Console.WriteLine("Connecting to Discord...");
                 _client.Connected += () =>
                 {
                     _client.MessageReceived += Client_MessageReceived;
@@ -63,6 +64,11 @@
                 Console.WriteLine(e);
                 Console.ResetColor();
             }
+        }
+
+        async Task IDiscordAccess.SetCurrentGame(string gameName)
+        {
+            await _client.SetGameAsync(gameName).ConfigureAwait(false);
         }
 
         #endregion

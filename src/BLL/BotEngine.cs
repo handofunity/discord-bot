@@ -1,6 +1,7 @@
 ﻿namespace HoU.GuildBot.BLL
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using JetBrains.Annotations;
     using Shared.BLL;
@@ -48,18 +49,26 @@
             // Listen to calls
             await Task.Delay(-1).ConfigureAwait(false);
         }
-        
-        private static async Task ConnectedHandler()
+
+        #endregion
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////
+        #region Event Handler
+
+        private async Task ConnectedHandler()
         {
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine("Connected to Discord.");
             Console.ResetColor();
-            await Task.CompletedTask;
+
+            await _discordAccess.SetCurrentGame("serving Hand of Unity").ConfigureAwait(false);
+
+            await Task.CompletedTask.ConfigureAwait(false);
         }
 
         private async Task DisconnectedHandler(string lastBotToken, Exception exception)
         {
-            Console.ForegroundColor = ConsoleColor.DarkYellow;
+            Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("Lost connection to Discord.");
             Console.ResetColor();
             if (exception != null)
@@ -69,7 +78,8 @@
                 Console.ResetColor();
             }
 
-            // Try to reconnect
+            Console.WriteLine("Connecting to Discord in 10 seconds...");
+            await Task.Delay(10_000, CancellationToken.None).ConfigureAwait(false);
             await Connect(lastBotToken).ConfigureAwait(false);
         }
 

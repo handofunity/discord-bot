@@ -1,8 +1,9 @@
 ﻿namespace HoU.GuildBot.ConsoleHost
 {
     using System;
-    using System.Diagnostics;
     using System.IO;
+    using System.Threading;
+    using System.Threading.Tasks;
     using BLL;
     using DAL;
     using Microsoft.Extensions.Configuration;
@@ -31,14 +32,12 @@
             {
                 BotToken = configuration["discord:botToken"]
             };
-
-            // Run
+            
+            // Resolve bot engine
             var botEngine = serviceProvider.GetService<IBotEngine>();
+
+            // Actually run
             botEngine.Run(arguments).GetAwaiter().GetResult();
-#if DEBUG
-            Console.WriteLine("Press any key to exit...");
-            Console.ReadKey();
-#endif
         }
     }
 }
