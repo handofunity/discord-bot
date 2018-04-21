@@ -1,10 +1,13 @@
 ﻿namespace HoU.GuildBot.DAL
 {
     using System;
+    using System.Linq;
     using System.Threading.Tasks;
     using Discord;
+    using Discord.Commands;
     using Discord.WebSocket;
     using JetBrains.Annotations;
+    using Microsoft.Extensions.Logging;
     using Shared.DAL;
 
     [UsedImplicitly]
@@ -13,16 +16,20 @@
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region Fields
 
+        private readonly ILogger<DiscordAccess> _logger;
         private readonly DiscordSocketClient _client;
+        private readonly CommandService _commands;
 
         #endregion
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region Constructors
 
-        public DiscordAccess()
+        public DiscordAccess(ILogger<DiscordAccess> logger)
         {
+            _logger = logger;
             _client = new DiscordSocketClient();
+            _commands = new CommandService();
         }
 
         #endregion
@@ -43,11 +50,12 @@
 
             try
             {
-                Console.WriteLine("Connecting to Discord...");
-                _client.Connected += () =>
+                _logger.LogInformation("Connecting to Discord...");
+                _client.Connected += async () =>
                 {
+                    await _commands.AddModulesAsync(typeof(DiscordAccess).Assembly).ConfigureAwait(false);
                     _client.MessageReceived += Client_MessageReceived;
-                    return connectedHandler();
+                    await connectedHandler().ConfigureAwait(false);
                 };
                 _client.Disconnected += exception =>
                 {
@@ -60,9 +68,7 @@
             }
             catch (Exception e)
             {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine(e);
-                Console.ResetColor();
+                _logger.LogError(e, "Unexpected error while connecting to Discord.");
             }
         }
 
@@ -76,11 +82,37 @@
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region Event Handler
 
-        private static async Task Client_MessageReceived(SocketMessage message)
+        private async Task Client_MessageReceived(SocketMessage message)
         {
-            if (message.Content == "hou!ping")
+            SocketUserMessage userMessage;
+            if ((userMessage = message as SocketUserMessage) == null)
+                // If the message is not a user message, we don't need to handle it
+                return;
+
+            if (userMessage.Author.Id == _client.CurrentUser.Id || userMessage.Author.IsBot)
+                // If the message is from this bot, or any other bot, we don't need to handle it
+                return;
+
+            if (_client.DMChannels.Contains(userMessage.Channel))
+                // We don't reply to direct messages
+                return;
+
+            var argPos = 0;
+            if (userMessage.HasStringPrefix("hou!", ref argPos, StringComparison.OrdinalIgnoreCase) // Take action when the prefix is at the beginning
+             || userMessage.HasMentionPrefix(_client.CurrentUser, ref argPos)) // Take action when the bot is mentioned
             {
-                await message.Channel.SendMessageAsync("Pong!").ConfigureAwait(false);
+                var context = new SocketCommandContext(_client, userMessage);
+                var result = await _commands.ExecuteAsync(context, argPos).ConfigureAwait(false);
+                if (!result.IsSuccess && result.Error != CommandError.UnknownCommand)
+                {
+                    var embedBuilder = new EmbedBuilder()
+                                       .WithColor(Color.Red)
+                                       .WithTitle("Error during command execution")
+                                       .WithDescription(result.ErrorReason);
+                    var embed = embedBuilder.Build();
+                    _logger.LogWarning(result.ErrorReason);
+                    await userMessage.Channel.SendMessageAsync(string.Empty, false, embed).ConfigureAwait(false);
+                }
             }
         }
 
