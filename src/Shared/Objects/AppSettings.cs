@@ -1,6 +1,6 @@
 ﻿namespace HoU.GuildBot.Shared.Objects
 {
-    public class BotEngineArguments
+    public class AppSettings
     {
         public string BotToken { get; set; }
     }

@@ -45,12 +45,14 @@
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region IBotEngine Members
 
-        async Task IBotEngine.Run(BotEngineArguments arguments)
+        async Task IBotEngine.Run(AppSettings settings)
         {
-            // Create connection to Discord
-            await Connect(arguments.BotToken).ConfigureAwait(false);
+            _logger.LogInformation("Starting bot...");
 
-            // Listen to calls
+            // Create connection to Discord
+            await Connect(settings.BotToken).ConfigureAwait(false);
+
+            // Listen to calls and block the current thread
             await Task.Delay(-1).ConfigureAwait(false);
         }
 

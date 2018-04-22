@@ -1,8 +1,7 @@
 ﻿namespace HoU.GuildBot.Core
 {
-#if DEBUG
-    using System.Diagnostics;
-#endif
+    using System;
+    using System.IO;
     using BLL;
     using DAL;
     using Microsoft.Extensions.Configuration;
@@ -12,57 +11,72 @@
     using Shared.DAL;
     using Shared.Objects;
 
-    public static class Runner
+    public class Runner
     {
-        public static void Run(string configurationBasePath)
-        {
-            // Prepare IoC
-            var serviceProvider = new ServiceCollection()
-                                  .RegisterBLL()
-                                  .RegisterDAL()
-                                  .RegisterLogging()
-                                  .BuildServiceProvider();
+        private ILogger<Runner> _logger;
 
-            // Retrieve arguments
+        public void Run(string environment)
+        {
+            // Retrieve settings
             var builder = new ConfigurationBuilder()
-                          .SetBasePath(configurationBasePath)
-                          .AddJsonFile("appsettings.json");
+                          .SetBasePath(Directory.GetCurrentDirectory())
+                          .AddJsonFile($"appsettings.{environment}.json");
             var configuration = builder.Build();
-            var arguments = new BotEngineArguments
+            var settingsSection = configuration.GetSection("AppSettings");
+            var settings = new AppSettings
             {
-                BotToken = configuration["discord:botToken"]
+                BotToken = settingsSection[nameof(AppSettings.BotToken)]
             };
+
+            var runtimeInformation = new RuntimeInformation(environment, DateTime.Now.ToUniversalTime());
+
+            // Prepare IoC
+            var serviceCollection = new ServiceCollection()
+                .AddSingleton(runtimeInformation);
+            RegisterLogging(serviceCollection, environment);
+            RegisterDAL(serviceCollection);
+            RegisterBLL(serviceCollection);
+            var serviceProvider = serviceCollection.BuildServiceProvider();
+
+            _logger = serviceProvider.GetService<ILogger<Runner>>();
 
             // Resolve bot engine
             var botEngine = serviceProvider.GetService<IBotEngine>();
 
             // Actually run
-            botEngine.Run(arguments).GetAwaiter().GetResult();
+            botEngine.Run(settings).GetAwaiter().GetResult();
         }
 
-        private static IServiceCollection RegisterBLL(this IServiceCollection serviceCollection)
+        public void NotifyShutdown(string message)
+        {
+            _logger.LogCritical("Unexpected shutdown: " + message);
+        }
+
+        private static void RegisterBLL(IServiceCollection serviceCollection)
         {
             serviceCollection.AddSingleton<IBotEngine, BotEngine>();
-            return serviceCollection;
         }
 
-        private static IServiceCollection RegisterDAL(this IServiceCollection serviceCollection)
+        private static void RegisterDAL(IServiceCollection serviceCollection)
         {
             serviceCollection.AddSingleton<IDiscordAccess, DiscordAccess>();
-            return serviceCollection;
         }
 
-        private static IServiceCollection RegisterLogging(this IServiceCollection serviceCollection)
+        private static void RegisterLogging(IServiceCollection serviceCollection, string environment)
         {
             serviceCollection.AddLogging(configure =>
             {
-#if DEBUG
-                if (Debugger.IsAttached)
-                    configure.AddDebug();
-                configure.AddConsole();
-#endif
+                switch (environment)
+                {
+                    case "Development":
+                        configure.AddDebug();
+                        configure.AddConsole();
+                        break;
+                    case "Production":
+                        // Currently no logging for production
+                        break;
+                }
             });
-            return serviceCollection;
         }
     }
 }

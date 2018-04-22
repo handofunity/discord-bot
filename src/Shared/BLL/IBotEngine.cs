@@ -5,6 +5,6 @@
 
     public interface IBotEngine
     {
-        Task Run(BotEngineArguments arguments);
+        Task Run(AppSettings settings);
     }
 }

@@ -5,9 +5,6 @@
     <RootNamespace>HoU.GuildBot.WebHost</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Content Remove="appsettings.json" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="JetBrains.Annotations" Version="11.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.6" />
   </ItemGroup>
@@ -21,8 +18,14 @@
     <Folder Include="wwwroot\" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="appsettings.json">
+    <Content Update="appsettings.Development.json">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </None>
+    </Content>
+    <Content Update="appsettings.json">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Content>
+    <Content Update="appsettings.Production.json">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 </Project>

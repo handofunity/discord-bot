@@ -17,6 +17,7 @@
         #region Fields
 
         private readonly ILogger<DiscordAccess> _logger;
+        private readonly IServiceProvider _serviceProvider;
         private readonly DiscordSocketClient _client;
         private readonly CommandService _commands;
 
@@ -25,9 +26,11 @@
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region Constructors
 
-        public DiscordAccess(ILogger<DiscordAccess> logger)
+        public DiscordAccess(ILogger<DiscordAccess> logger,
+                             IServiceProvider serviceProvider)
         {
             _logger = logger;
+            _serviceProvider = serviceProvider;
             _client = new DiscordSocketClient();
             _commands = new CommandService();
         }
@@ -102,7 +105,7 @@
              || userMessage.HasMentionPrefix(_client.CurrentUser, ref argPos)) // Take action when the bot is mentioned
             {
                 var context = new SocketCommandContext(_client, userMessage);
-                var result = await _commands.ExecuteAsync(context, argPos).ConfigureAwait(false);
+                var result = await _commands.ExecuteAsync(context, argPos, _serviceProvider).ConfigureAwait(false);
                 if (!result.IsSuccess && result.Error != CommandError.UnknownCommand)
                 {
                     var embedBuilder = new EmbedBuilder()
