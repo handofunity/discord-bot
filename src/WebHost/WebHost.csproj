@@ -3,6 +3,7 @@
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <AssemblyName>HoU.GuildBot.WebHost</AssemblyName>
     <RootNamespace>HoU.GuildBot.WebHost</RootNamespace>
+    <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="JetBrains.Annotations" Version="11.1.0" />
@@ -17,6 +18,12 @@
   <ItemGroup>
     <Folder Include="wwwroot\" />
   </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel" Version="2.0.2" />
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.Server.IISIntegration" Version="2.0.2" />
+    </ItemGroup>
   <ItemGroup>
     <Content Update="appsettings.Development.json">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
@@ -28,4 +35,13 @@
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="web.config" CopyToPublishDirectory="Always" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <DotNetCliToolReference Include="Amazon.ElasticBeanstalk.Tools" Version="1.1.3" />
+  </ItemGroup>
 </Project>
+

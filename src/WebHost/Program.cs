@@ -1,6 +1,7 @@
 ﻿namespace HoU.GuildBot.WebHost
 {
     using System;
+    using System.IO;
     using System.Threading.Tasks;
     using Core;
     using Microsoft.AspNetCore;
@@ -32,6 +33,9 @@
 
         private static IWebHost BuildWebHost(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
+                   .UseKestrel()
+                   .UseContentRoot(Directory.GetCurrentDirectory())
+                   .UseIISIntegration()
                    .UseStartup<Startup>()
                    .Build();
 
