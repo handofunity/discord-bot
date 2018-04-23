@@ -28,7 +28,10 @@
                 BotToken = settingsSection[nameof(AppSettings.BotToken)]
             };
 
-            var runtimeInformation = new RuntimeInformation(environment, DateTime.Now.ToUniversalTime());
+            var runtimeInformation = new RuntimeInformation(
+                environment,
+                DateTime.Now.ToUniversalTime(),
+                new Version(0, 1, 4));
 
             // Prepare IoC
             var serviceCollection = new ServiceCollection()
