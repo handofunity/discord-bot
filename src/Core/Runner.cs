@@ -58,8 +58,11 @@
                 DateTime.Now.ToUniversalTime(),
                 BotVersion);
             var botInformationProvider = new BotInformationProvider(runtimeInformation);
-            serviceCollection.AddSingleton<IBotInformationProvider>(botInformationProvider);
-            serviceCollection.AddSingleton<IBotEngine, BotEngine>();
+
+            serviceCollection
+                .AddSingleton<IBotInformationProvider>(botInformationProvider)
+                .AddSingleton<IBotEngine, BotEngine>()
+                .AddSingleton<ISpamGuard, SpamGuard>();
         }
 
         private static void RegisterDAL(IServiceCollection serviceCollection)

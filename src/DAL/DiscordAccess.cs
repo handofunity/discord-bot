@@ -8,7 +8,9 @@
     using Discord.WebSocket;
     using JetBrains.Annotations;
     using Microsoft.Extensions.Logging;
+    using Shared.BLL;
     using Shared.DAL;
+    using Shared.Enums;
 
     [UsedImplicitly]
     public class DiscordAccess : IDiscordAccess
@@ -18,6 +20,7 @@
 
         private readonly ILogger<DiscordAccess> _logger;
         private readonly IServiceProvider _serviceProvider;
+        private readonly ISpamGuard _spamGuard;
         private readonly DiscordSocketClient _client;
         private readonly CommandService _commands;
 
@@ -27,10 +30,12 @@
         #region Constructors
 
         public DiscordAccess(ILogger<DiscordAccess> logger,
-                             IServiceProvider serviceProvider)
+                             IServiceProvider serviceProvider,
+                             ISpamGuard spamGuard)
         {
             _logger = logger;
             _serviceProvider = serviceProvider;
+            _spamGuard = spamGuard;
             _client = new DiscordSocketClient();
             _commands = new CommandService();
         }
@@ -100,6 +105,37 @@
                 // We don't reply to direct messages
                 return;
 
+            // Check for spam
+            var checkResult = _spamGuard.CheckForSpam(userMessage.Author.Id, userMessage.Channel.Id, userMessage.Content);
+            switch (checkResult)
+            {
+                case SpamCheckResult.SoftLimitHit:
+                {
+                    var g = _client.Guilds.Single(m => m.TextChannels.Contains(userMessage.Channel));
+                    var leaderRole = g.Roles.Single(m => m.Name == "Leader");
+                    var officerRole = g.Roles.Single(m => m.Name == "Officer");
+                    var embedBuilder = new EmbedBuilder()
+                                       .WithColor(Color.DarkPurple)
+                                       .WithTitle("Spam warning")
+                                       .WithDescription("Please refrain from further spamming in this channel.");
+                    var embed = embedBuilder.Build();
+                    await userMessage.Channel.SendMessageAsync($"{userMessage.Author.Mention} - {leaderRole.Mention} and {officerRole.Mention} have been notified.", false, embed).ConfigureAwait(false);
+                    return;
+                }
+                case SpamCheckResult.BetweenSoftAndHardLimit:
+                {
+                    return;
+                }
+                case SpamCheckResult.HardLimitHit:
+                {
+                    var g = _client.Guilds.Single(m => m.TextChannels.Contains(userMessage.Channel));
+                    var guildUser = g.GetUser(userMessage.Author.Id);
+                    await guildUser.KickAsync("Excesive spam.", RequestOptions.Default).ConfigureAwait(false);
+                    return;
+                }
+            }
+
+            // If the message is no spam, process message
             var argPos = 0;
             if (userMessage.HasStringPrefix("hou!", ref argPos, StringComparison.OrdinalIgnoreCase) // Take action when the prefix is at the beginning
              || userMessage.HasMentionPrefix(_client.CurrentUser, ref argPos)) // Take action when the bot is mentioned
