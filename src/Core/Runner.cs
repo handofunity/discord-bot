@@ -13,6 +13,8 @@
 
     public class Runner
     {
+        private static readonly Version BotVersion = new Version(0, 1, 6);
+
         private ILogger<Runner> _logger;
 
         public void Run(string environment)
@@ -28,17 +30,11 @@
                 BotToken = settingsSection[nameof(AppSettings.BotToken)]
             };
 
-            var runtimeInformation = new RuntimeInformation(
-                environment,
-                DateTime.Now.ToUniversalTime(),
-                new Version(0, 1, 5));
-
             // Prepare IoC
-            var serviceCollection = new ServiceCollection()
-                .AddSingleton(runtimeInformation);
+            var serviceCollection = new ServiceCollection();
             RegisterLogging(serviceCollection, environment);
             RegisterDAL(serviceCollection);
-            RegisterBLL(serviceCollection);
+            RegisterBLL(serviceCollection, environment);
             var serviceProvider = serviceCollection.BuildServiceProvider();
 
             _logger = serviceProvider.GetService<ILogger<Runner>>();
@@ -55,8 +51,14 @@
             _logger.LogCritical("Unexpected shutdown: " + message);
         }
 
-        private static void RegisterBLL(IServiceCollection serviceCollection)
+        private static void RegisterBLL(IServiceCollection serviceCollection, string environment)
         {
+            var runtimeInformation = new RuntimeInformation(
+                environment,
+                DateTime.Now.ToUniversalTime(),
+                BotVersion);
+            var botInformationProvider = new BotInformationProvider(runtimeInformation);
+            serviceCollection.AddSingleton<IBotInformationProvider>(botInformationProvider);
             serviceCollection.AddSingleton<IBotEngine, BotEngine>();
         }
 
