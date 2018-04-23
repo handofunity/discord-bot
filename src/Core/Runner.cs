@@ -31,7 +31,7 @@
             var runtimeInformation = new RuntimeInformation(
                 environment,
                 DateTime.Now.ToUniversalTime(),
-                new Version(0, 1, 4));
+                new Version(0, 1, 5));
 
             // Prepare IoC
             var serviceCollection = new ServiceCollection()
