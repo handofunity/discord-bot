@@ -6,6 +6,9 @@
 
     public abstract class ModuleBaseHoU : ModuleBase<SocketCommandContext>
     {
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////
+        #region Protected Methods
+
         protected static Embed BuildEmbedFromData(EmbedData ed)
         {
             var builder = new EmbedBuilder();
@@ -25,5 +28,7 @@
 
             return builder.Build();
         }
+
+        #endregion
     }
 }
