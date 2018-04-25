@@ -4,7 +4,9 @@
     {
         public string Title { get; set; }
 
-        public (byte R, byte G, byte B)? Color { get; set; }
+        public RGB? Color { get; set; }
+
+        public string Description { get; set; }
 
         public EmbedField[] Fields { get; set; }
     }

@@ -13,12 +13,14 @@
             _runtimeInformation = runtimeInformation;
         }
 
+        string IBotInformationProvider.GetEnvironmentName() => _runtimeInformation.Environment;
+
         EmbedData IBotInformationProvider.GetData()
         {
             return new EmbedData
             {
                 Title = "Bot information",
-                Color = (230, 126, 34),
+                Color = Colors.Orange,
                 Fields = new []
                 {
                     new EmbedField("Environment", _runtimeInformation.Environment, true), 

@@ -36,7 +36,7 @@
         {
             var data = _botInformationProvider.GetData();
             var embed = BuildEmbedFromData(data);
-            await ReplyAsync(string.Empty, false, embed);
+            await ReplyAsync(string.Empty, false, embed).ConfigureAwait(false);
         }
 
         #endregion

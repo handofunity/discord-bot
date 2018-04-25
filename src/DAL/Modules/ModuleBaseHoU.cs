@@ -1,5 +1,6 @@
 ﻿namespace HoU.GuildBot.DAL.Modules
 {
+    using System.Threading.Tasks;
     using Discord;
     using Discord.Commands;
     using Shared.Objects;
@@ -16,6 +17,8 @@
                 builder.Title = ed.Title;
             if (ed.Color != null)
                 builder.Color = new Color(ed.Color.Value.R, ed.Color.Value.G, ed.Color.Value.B);
+            if (ed.Description != null)
+                builder.Description = ed.Description;
             if (ed.Fields != null)
             {
                 foreach (var fd in ed.Fields)
@@ -27,6 +30,11 @@
             }
 
             return builder.Build();
+        }
+
+        protected async Task NotifyUserAboutInvalidCommandUsage(string usageError)
+        {
+            await ReplyAsync($"**{Context.User.Username}**: {usageError}").ConfigureAwait(false);
         }
 
         #endregion

@@ -62,7 +62,8 @@
             serviceCollection
                 .AddSingleton<IBotInformationProvider>(botInformationProvider)
                 .AddSingleton<IBotEngine, BotEngine>()
-                .AddSingleton<ISpamGuard, SpamGuard>();
+                .AddSingleton<ISpamGuard, SpamGuard>()
+                .AddSingleton<IIgnoreGuard, IgnoreGuard>();
         }
 
         private static void RegisterDAL(IServiceCollection serviceCollection)

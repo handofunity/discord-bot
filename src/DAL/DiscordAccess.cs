@@ -21,6 +21,7 @@
         private readonly ILogger<DiscordAccess> _logger;
         private readonly IServiceProvider _serviceProvider;
         private readonly ISpamGuard _spamGuard;
+        private readonly IIgnoreGuard _ignoreGuard;
         private readonly DiscordSocketClient _client;
         private readonly CommandService _commands;
 
@@ -31,11 +32,13 @@
 
         public DiscordAccess(ILogger<DiscordAccess> logger,
                              IServiceProvider serviceProvider,
-                             ISpamGuard spamGuard)
+                             ISpamGuard spamGuard,
+                             IIgnoreGuard ignoreGuard)
         {
             _logger = logger;
             _serviceProvider = serviceProvider;
             _spamGuard = spamGuard;
+            _ignoreGuard = ignoreGuard;
             _client = new DiscordSocketClient();
             _commands = new CommandService();
         }
@@ -81,12 +84,21 @@
             return false;
         }
 
+        private bool ShouldIgnore(SocketMessage userMessage)
+        {
+            return _ignoreGuard.ShouldIgnoreMessage(userMessage.Author.Id)
+                && !userMessage.Content.Contains("notice me"); // Required to disable ignore duration early
+        }
+
         private async Task ProcessMessage(SocketUserMessage userMessage)
         {
             var argPos = 0;
             if (userMessage.HasStringPrefix("hou!", ref argPos, StringComparison.OrdinalIgnoreCase) // Take action when the prefix is at the beginning
              || userMessage.HasMentionPrefix(_client.CurrentUser, ref argPos)) // Take action when the bot is mentioned
             {
+                // If the message is a command, check for ignore-entries
+                if (ShouldIgnore(userMessage)) return;
+
                 var context = new SocketCommandContext(_client, userMessage);
                 var result = await _commands.ExecuteAsync(context, argPos, _serviceProvider).ConfigureAwait(false);
                 if (!result.IsSuccess && result.Error != CommandError.UnknownCommand)
@@ -155,22 +167,19 @@
 
         private async Task Client_MessageReceived(SocketMessage message)
         {
+            // If the message is not a user message, we don't need to handle it
             SocketUserMessage userMessage;
-            if ((userMessage = message as SocketUserMessage) == null)
-                // If the message is not a user message, we don't need to handle it
-                return;
+            if ((userMessage = message as SocketUserMessage) == null) return;
 
-            if (userMessage.Author.Id == _client.CurrentUser.Id || userMessage.Author.IsBot)
-                // If the message is from this bot, or any other bot, we don't need to handle it
-                return;
+            // If the message is from this bot, or any other bot, we don't need to handle it
+            if (userMessage.Author.Id == _client.CurrentUser.Id || userMessage.Author.IsBot) return;
 
-            if (_client.DMChannels.Contains(userMessage.Channel))
-                // We don't reply to direct messages
-                return;
-
+            // We don't reply to direct messages
+            if (_client.DMChannels.Contains(userMessage.Channel)) return;
+            
             // Check for spam
             if (await IsSpam(userMessage).ConfigureAwait(false)) return;
-
+            
             // If the message is no spam, process message
             await ProcessMessage(userMessage).ConfigureAwait(false);
         }
