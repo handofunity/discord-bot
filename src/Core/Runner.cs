@@ -2,6 +2,7 @@
 {
     using System;
     using System.IO;
+    using AWS.Logger.AspNetCore;
     using BLL;
     using DAL;
     using Microsoft.Extensions.Configuration;
@@ -32,7 +33,7 @@
 
             // Prepare IoC
             var serviceCollection = new ServiceCollection();
-            RegisterLogging(serviceCollection, environment);
+            RegisterLogging(serviceCollection, configuration, environment);
             RegisterDAL(serviceCollection);
             RegisterBLL(serviceCollection, environment);
             var serviceProvider = serviceCollection.BuildServiceProvider();
@@ -71,7 +72,7 @@
             serviceCollection.AddSingleton<IDiscordAccess, DiscordAccess>();
         }
 
-        private static void RegisterLogging(IServiceCollection serviceCollection, string environment)
+        private void RegisterLogging(IServiceCollection serviceCollection, IConfigurationRoot configuration, string environment)
         {
             serviceCollection.AddLogging(configure =>
             {
@@ -82,10 +83,15 @@
                         configure.AddConsole();
                         break;
                     case "Production":
-                        // Currently no logging for production
+                        configure.AddProvider(GetAwsProvider(configuration));
                         break;
                 }
             });
+        }
+
+        private ILoggerProvider GetAwsProvider(IConfigurationRoot configuration)
+        {
+            return new AWSLoggerProvider(configuration.GetAWSLoggingConfigSection());
         }
     }
 }
