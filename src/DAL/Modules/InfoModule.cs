@@ -4,6 +4,7 @@
     using Discord.Commands;
     using JetBrains.Annotations;
     using Preconditions;
+    using Shared.Attributes;
     using Shared.BLL;
     using Shared.Enums;
 
@@ -31,6 +32,11 @@
         #region Commands
 
         [Command("info")]
+        [Name("Get bot information")]
+        [Summary("Gets information about the current bot instance.")]
+        [Alias("information")]
+        [RequireContext(ContextType.Guild)]
+        [ResponseContext(ResponseType.AlwaysSameChannel)]
         [RolePrecondition(Role.Developer | Role.Leader)]
         public async Task InfoAsync()
         {

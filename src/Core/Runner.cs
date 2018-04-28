@@ -14,7 +14,7 @@
 
     public class Runner
     {
-        private static readonly Version BotVersion = new Version(0, 2, 0);
+        private static readonly Version BotVersion = new Version(0, 3, 0);
 
         private ILogger<Runner> _logger;
 
@@ -28,11 +28,17 @@
             var settingsSection = configuration.GetSection("AppSettings");
             var settings = new AppSettings
             {
-                BotToken = settingsSection[nameof(AppSettings.BotToken)]
+                BotToken = settingsSection[nameof(AppSettings.BotToken)],
+                HandOfUnityGuildId = ulong.Parse(settingsSection[nameof(AppSettings.HandOfUnityGuildId)])
             };
+            if (string.IsNullOrWhiteSpace(settings.BotToken))
+                throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.BotToken)}' cannot be empty.");
+            if (settings.HandOfUnityGuildId == 0)
+                throw new InvalidOperationException($"AppSettings '{nameof(AppSettings.HandOfUnityGuildId)}' must be a correct ID.");
 
             // Prepare IoC
             var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton(settings);
             RegisterLogging(serviceCollection, configuration, environment);
             RegisterDAL(serviceCollection);
             RegisterBLL(serviceCollection, environment);
@@ -44,7 +50,7 @@
             var botEngine = serviceProvider.GetService<IBotEngine>();
 
             // Actually run
-            botEngine.Run(settings).GetAwaiter().GetResult();
+            botEngine.Run().GetAwaiter().GetResult();
         }
 
         public void NotifyShutdown(string message)
@@ -61,10 +67,13 @@
             var botInformationProvider = new BotInformationProvider(runtimeInformation);
 
             serviceCollection
-                .AddSingleton<IBotInformationProvider>(botInformationProvider)
                 .AddSingleton<IBotEngine, BotEngine>()
                 .AddSingleton<ISpamGuard, SpamGuard>()
-                .AddSingleton<IIgnoreGuard, IgnoreGuard>();
+                .AddSingleton<IIgnoreGuard, IgnoreGuard>()
+                .AddSingleton<ICommandRegistry, CommandRegistry>()
+                .AddSingleton<IGuildUserRegistry, GuildUserRegistry>()
+                .AddSingleton<IBotInformationProvider>(botInformationProvider)
+                .AddSingleton<IHelpProvider, HelpProvider>();
         }
 
         private static void RegisterDAL(IServiceCollection serviceCollection)
@@ -72,26 +81,27 @@
             serviceCollection.AddSingleton<IDiscordAccess, DiscordAccess>();
         }
 
-        private void RegisterLogging(IServiceCollection serviceCollection, IConfigurationRoot configuration, string environment)
+        private static void RegisterLogging(IServiceCollection serviceCollection, IConfiguration configuration, string environment)
         {
-            serviceCollection.AddLogging(configure =>
+            serviceCollection.AddLogging(builder =>
             {
+                builder.AddConfiguration(configuration.GetSection("Logging"));
                 switch (environment)
                 {
                     case "Development":
-                        configure.AddDebug();
-                        configure.AddConsole();
+                        builder.AddDebug();
                         break;
                     case "Production":
-                        configure.AddProvider(GetAwsProvider(configuration));
+                        builder.AddProvider(GetAwsProvider(configuration));
                         break;
                 }
             });
         }
 
-        private ILoggerProvider GetAwsProvider(IConfigurationRoot configuration)
+        private static ILoggerProvider GetAwsProvider(IConfiguration configuration)
         {
-            return new AWSLoggerProvider(configuration.GetAWSLoggingConfigSection());
+            return new AWSLoggerProvider(configuration.GetAWSLoggingConfigSection(),
+                (level, message, exception) => $"[{level}]: {exception ?? message}");
         }
     }
 }

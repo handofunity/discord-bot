@@ -4,6 +4,7 @@
     using Discord.Commands;
     using JetBrains.Annotations;
     using Preconditions;
+    using Shared.Attributes;
     using Shared.BLL;
     using Shared.Enums;
 
@@ -31,15 +32,27 @@
         #region Commands
 
         [Command("ignore me")]
+        [Name("Ignore commands")]
+        [Summary("Requests the bot instance to ignore further commands from the user for a certain duration.")]
+        [Remarks("The minimum ignore duration is 3 minutes, the maximum ignore duration is 60 minutes.")]
+        [Alias("ignoreme")]
+        [RequireContext(ContextType.DM | ContextType.Guild)]
+        [ResponseContext(ResponseType.AlwaysPrivate)]
         [RolePrecondition(Role.Developer)]
         public async Task IgnoreMeAsync([Remainder] string remainder)
         {
             var result = _ignoreGuard.TryAddToIgnoreList(Context.User.Id, Context.User.Username, remainder);
             var embed = BuildEmbedFromData(result);
-            await ReplyAsync(string.Empty, false, embed).ConfigureAwait(false);
+            await ReplyPrivateAsync(string.Empty, embed).ConfigureAwait(false);
         }
 
         [Command("notice me")]
+        [Name("Stop ignoring commands")]
+        [Summary("Requests the bot instance to accept commands from the current user again.")]
+        [Remarks("If the user was not ignored by the bot, he won't receive any message. The bot will only respond during the ignored time.")]
+        [Alias("noticeme")]
+        [RequireContext(ContextType.DM | ContextType.Guild)]
+        [ResponseContext(ResponseType.AlwaysPrivate)]
         [RolePrecondition(Role.Developer)]
         public async Task NoticeMeAsync()
         {
@@ -47,7 +60,7 @@
             if (result != null)
             {
                 var embed = BuildEmbedFromData(result);
-                await ReplyAsync(string.Empty, false, embed).ConfigureAwait(false);
+                await ReplyPrivateAsync(string.Empty, embed).ConfigureAwait(false);
             }
         }
 

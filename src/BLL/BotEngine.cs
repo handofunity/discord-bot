@@ -7,7 +7,6 @@
     using Microsoft.Extensions.Logging;
     using Shared.BLL;
     using Shared.DAL;
-    using Shared.Objects;
 
     [UsedImplicitly]
     public class BotEngine : IBotEngine
@@ -24,7 +23,7 @@
         #region Constructors
 
         public BotEngine(ILogger<BotEngine> logger,
-                        IDiscordAccess discordAccess)
+                         IDiscordAccess discordAccess)
         {
             _logger = logger;
             _discordAccess = discordAccess;
@@ -35,9 +34,9 @@
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region Private Methods
 
-        private async Task Connect(string botToken)
+        private async Task Connect()
         {
-            await _discordAccess.Connect(botToken, ConnectedHandler, DisconnectedHandler).ConfigureAwait(false);
+            await _discordAccess.Connect(ConnectedHandler, DisconnectedHandler).ConfigureAwait(false);
         }
 
         #endregion
@@ -45,12 +44,12 @@
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region IBotEngine Members
 
-        async Task IBotEngine.Run(AppSettings settings)
+        async Task IBotEngine.Run()
         {
             _logger.LogInformation("Starting bot...");
 
             // Create connection to Discord
-            await Connect(settings.BotToken).ConfigureAwait(false);
+            await Connect().ConfigureAwait(false);
 
             // Listen to calls and block the current thread
             await Task.Delay(-1).ConfigureAwait(false);
@@ -65,12 +64,10 @@
         {
             _logger.LogInformation("Connected to Discord.");
 
-            await _discordAccess.SetCurrentGame("serving Hand of Unity").ConfigureAwait(false);
-
-            await Task.CompletedTask.ConfigureAwait(false);
+            await _discordAccess.SetCurrentGame("Hand of Unity | hou!help").ConfigureAwait(false);
         }
 
-        private async Task DisconnectedHandler(string lastBotToken, Exception exception)
+        private async Task DisconnectedHandler(Exception exception)
         {
             _logger.LogWarning("Lost connection to Discord.");
             if (exception != null)
@@ -80,7 +77,7 @@
 
             _logger.LogInformation("Connecting to Discord in 10 seconds...");
             await Task.Delay(10_000, CancellationToken.None).ConfigureAwait(false);
-            await Connect(lastBotToken).ConfigureAwait(false);
+            await Connect().ConfigureAwait(false);
         }
 
         #endregion

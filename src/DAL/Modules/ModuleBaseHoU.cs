@@ -12,6 +12,8 @@
 
         protected static Embed BuildEmbedFromData(EmbedData ed)
         {
+            if (ed == null)
+                return null;
             var builder = new EmbedBuilder();
             if (ed.Title != null)
                 builder.Title = ed.Title;
@@ -32,9 +34,17 @@
             return builder.Build();
         }
 
-        protected async Task NotifyUserAboutInvalidCommandUsage(string usageError)
+        protected async Task ReplyPrivateAsync(string message, Embed embed = null)
         {
-            await ReplyAsync($"**{Context.User.Username}**: {usageError}").ConfigureAwait(false);
+            if (Context.IsPrivate)
+            {
+                await ReplyAsync(message, false, embed).ConfigureAwait(false);
+            }
+            else
+            {
+                var privateChannel = await Context.User.GetOrCreateDMChannelAsync().ConfigureAwait(false);
+                await privateChannel.SendMessageAsync(message, false, embed).ConfigureAwait(false);
+            }
         }
 
         #endregion

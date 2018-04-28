@@ -3,5 +3,7 @@
     public class AppSettings
     {
         public string BotToken { get; set; }
+
+        public ulong HandOfUnityGuildId { get; set; }
     }
 }
