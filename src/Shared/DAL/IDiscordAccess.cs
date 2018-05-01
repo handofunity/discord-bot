@@ -45,6 +45,6 @@
         /// <exception cref="ArgumentNullException"><paramref name="message"/> is <b>null</b>.</exception>
         /// <exception cref="ArgumentException"><paramref name="message"/> is empty or only whitespaces.</exception>
         /// <returns>An awaitable <see cref="Task"/>.</returns>
-        Task Log(string message);
+        Task LogToDiscord(string message);
     }
 }

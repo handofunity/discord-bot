@@ -58,10 +58,12 @@
             _ignoreGuard = ignoreGuard;
             _commandRegistry = commandRegistry;
             _guildUserUserRegistry = guildUserUserRegistry;
-            _client = new DiscordSocketClient();
             _commands = new CommandService();
+            _client = new DiscordSocketClient();
             _pendingMessages = new Queue<string>();
-            _commands.Log += Commands_Log;
+
+            _client.Log += Log;
+            _commands.Log += Log;
         }
 
         #endregion
@@ -115,20 +117,20 @@
                     }
                     catch (Discord.Net.HttpException e) when (e.HttpCode == HttpStatusCode.Forbidden)
                     {
-                        await LogInternal(
+                        await LogToDiscordInternal(
                                 $"{leaderRole.Mention}, {officerRole.Mention}: Failed to kick user {guildUser.Mention}, because the bot is not permitted to kick a user with a higher rank.")
                             .ConfigureAwait(false);
                         return true;
                     }
                     catch (Exception e)
                     {
-                        await LogInternal(
+                        await LogToDiscordInternal(
                                 $"{leaderRole.Mention}, {officerRole.Mention}: Failed to kick user {guildUser.Mention} due to an unexpected error: {e.Message}")
                             .ConfigureAwait(false);
                         return true;
                     }
 
-                    await LogInternal($"{leaderRole.Mention}, {officerRole.Mention}:Kicked user {guildUser.Mention} from the server due to excesive spam.").ConfigureAwait(false);
+                    await LogToDiscordInternal($"{leaderRole.Mention}, {officerRole.Mention}:Kicked user {guildUser.Mention} from the server due to excesive spam.").ConfigureAwait(false);
                     return true;
                 }
             }
@@ -219,7 +221,7 @@
             return r;
         }
 
-        private async Task LogInternal(string message)
+        private async Task LogToDiscordInternal(string message)
         {
             var g = GetGuild();
             var lc = g.GetTextChannel(_appSettings.LoggingChannelId);
@@ -313,14 +315,14 @@
             await _client.SetGameAsync(gameName).ConfigureAwait(false);
         }
 
-        async Task IDiscordAccess.Log(string message)
+        async Task IDiscordAccess.LogToDiscord(string message)
         {
             if (message == null)
                 throw new ArgumentNullException(nameof(message));
             if (string.IsNullOrWhiteSpace(message))
                 throw new ArgumentException(nameof(message));
 
-            await LogInternal(message).ConfigureAwait(false);
+            await LogToDiscordInternal(message).ConfigureAwait(false);
         }
 
         async Task IDiscordAccess.AssignRole(ulong userId, Role role)
@@ -328,7 +330,7 @@
             var gu = GetGuildUserById(userId);
             var r = GetRoleByName(role.ToString());
             await gu.AddRoleAsync(r).ConfigureAwait(false);
-            await LogInternal($"Assigned role '{role}' to {gu.Username}.").ConfigureAwait(false);
+            await LogToDiscordInternal($"Assigned role '{role}' to {gu.Username}.").ConfigureAwait(false);
         }
 
         async Task IDiscordAccess.RevokeRole(ulong userId, Role role)
@@ -336,7 +338,7 @@
             var gu = GetGuildUserById(userId);
             var r = GetRoleByName(role.ToString());
             await gu.RemoveRoleAsync(r).ConfigureAwait(false);
-            await LogInternal($"Revoked role '{role}' from {gu.Username}.").ConfigureAwait(false);
+            await LogToDiscordInternal($"Revoked role '{role}' from {gu.Username}.").ConfigureAwait(false);
         }
 
         #endregion
@@ -344,7 +346,7 @@
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region Event Handler
 
-        private Task Commands_Log(LogMessage arg)
+        private Task Log(LogMessage arg)
         {
             switch (arg.Severity)
             {
@@ -384,7 +386,7 @@
             while (_pendingMessages.Count > 0)
             {
                 var pm = _pendingMessages.Dequeue();
-                await LogInternal(pm).ConfigureAwait(false);
+                await LogToDiscordInternal(pm).ConfigureAwait(false);
             }
         }
 

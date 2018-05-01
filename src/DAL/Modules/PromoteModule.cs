@@ -53,7 +53,7 @@
             if (result.CanPromote)
             {
                 // Log promotion
-                await _discordAccess.Log(result.LogMessage).ConfigureAwait(false);
+                await _discordAccess.LogToDiscord(result.LogMessage).ConfigureAwait(false);
 
                 // Announce promotion
                 var g = Context.Guild.GetTextChannel(_appSettings.PromotionAnnouncementChannelId);

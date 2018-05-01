@@ -68,10 +68,10 @@
             _logger.LogInformation("Connected to Discord.");
             
             await _discordAccess.SetCurrentGame("Hand of Unity | hou!help").ConfigureAwait(false);
-            await _discordAccess.Log($"Bot started in the environment **{_botInformationProvider.GetEnvironmentName()}**.");
+            await _discordAccess.LogToDiscord($"Bot started in the environment **{_botInformationProvider.GetEnvironmentName()}**.");
         }
 
-        private async Task DisconnectedHandler(Exception exception)
+        private Task DisconnectedHandler(Exception exception)
         {
             _logger.LogWarning("Lost connection to Discord.");
             if (exception != null)
@@ -79,9 +79,7 @@
                 _logger.LogError(exception, "Connection losted due to unexpected error.");
             }
 
-            _logger.LogInformation("Connecting to Discord in 10 seconds...");
-            await Task.Delay(10_000, CancellationToken.None).ConfigureAwait(false);
-            await Connect().ConfigureAwait(false);
+            return Task.CompletedTask;
         }
 
         #endregion
