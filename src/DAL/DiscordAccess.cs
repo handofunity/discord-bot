@@ -62,8 +62,8 @@
             _client = new DiscordSocketClient();
             _pendingMessages = new Queue<string>();
 
-            _client.Log += Log;
-            _commands.Log += Log;
+            _client.Log += LogClient;
+            _commands.Log += LogCommands;
         }
 
         #endregion
@@ -251,6 +251,33 @@
             return g.Roles.Single(m => m.Name == name);
         }
 
+        private void LogInternal(string prefix, LogMessage msg)
+        {
+            switch (msg.Severity)
+            {
+                case LogSeverity.Critical:
+                    _logger.LogCritical(msg.Exception, prefix + msg.Message);
+                    break;
+                case LogSeverity.Error:
+                    _logger.LogError(msg.Exception, prefix + msg.Message);
+                    break;
+                case LogSeverity.Warning:
+                    _logger.LogWarning(msg.Exception, prefix + msg.Message);
+                    break;
+                case LogSeverity.Info:
+                    _logger.LogInformation(msg.Exception, prefix + msg.Message);
+                    break;
+                case LogSeverity.Verbose:
+                    _logger.LogTrace(msg.Exception, prefix + msg.Message);
+                    break;
+                case LogSeverity.Debug:
+                    _logger.LogDebug(msg.Exception, prefix + msg.Message);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
         #endregion
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -346,32 +373,15 @@
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region Event Handler
 
-        private Task Log(LogMessage arg)
+        private Task LogClient(LogMessage arg)
         {
-            switch (arg.Severity)
-            {
-                case LogSeverity.Critical:
-                    _logger.LogCritical(arg.Exception, arg.Message);
-                    break;
-                case LogSeverity.Error:
-                    _logger.LogError(arg.Exception, arg.Message);
-                    break;
-                case LogSeverity.Warning:
-                    _logger.LogWarning(arg.Exception, arg.Message);
-                    break;
-                case LogSeverity.Info:
-                    _logger.LogInformation(arg.Exception, arg.Message);
-                    break;
-                case LogSeverity.Verbose:
-                    _logger.LogTrace(arg.Exception, arg.Message);
-                    break;
-                case LogSeverity.Debug:
-                    _logger.LogDebug(arg.Exception, arg.Message);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+            LogInternal($"{nameof(DiscordSocketClient)}: ", arg);
+            return Task.CompletedTask;
+        }
 
+        private Task LogCommands(LogMessage arg)
+        {
+            LogInternal($"{nameof(CommandService)}: ", arg);
             return Task.CompletedTask;
         }
 
