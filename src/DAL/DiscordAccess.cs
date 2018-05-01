@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Net;
     using System.Threading.Tasks;
     using Discord;
     using Discord.Commands;
@@ -14,6 +15,7 @@
     using Shared.BLL;
     using Shared.DAL;
     using Shared.Enums;
+    using Shared.Exceptions;
     using Shared.Objects;
     using CommandInfo = Discord.Commands.CommandInfo;
 
@@ -29,9 +31,12 @@
         private readonly ISpamGuard _spamGuard;
         private readonly IIgnoreGuard _ignoreGuard;
         private readonly ICommandRegistry _commandRegistry;
-        private readonly IGuildUserRegistry _guildUserRegistry;
+        private readonly IGuildUserRegistry _guildUserUserRegistry;
         private readonly DiscordSocketClient _client;
         private readonly CommandService _commands;
+        private readonly Queue<string> _pendingMessages;
+
+        private bool _guildAvailable;
 
         #endregion
 
@@ -44,7 +49,7 @@
                              ISpamGuard spamGuard,
                              IIgnoreGuard ignoreGuard,
                              ICommandRegistry commandRegistry,
-                             IGuildUserRegistry guildUserRegistry)
+                             IGuildUserRegistry guildUserUserRegistry)
         {
             _logger = logger;
             _appSettings = appSettings;
@@ -52,9 +57,10 @@
             _spamGuard = spamGuard;
             _ignoreGuard = ignoreGuard;
             _commandRegistry = commandRegistry;
-            _guildUserRegistry = guildUserRegistry;
+            _guildUserUserRegistry = guildUserUserRegistry;
             _client = new DiscordSocketClient();
             _commands = new CommandService();
+            _pendingMessages = new Queue<string>();
             _commands.Log += Commands_Log;
         }
 
@@ -69,13 +75,17 @@
             if (userMessage.Channel is IPrivateChannel)
                 return false;
             var checkResult = _spamGuard.CheckForSpam(userMessage.Author.Id, userMessage.Channel.Id, userMessage.Content);
+            if (checkResult == SpamCheckResult.NoSpam)
+                return false;
+
+            var g = _client.Guilds.Single(m => m.TextChannels.Contains(userMessage.Channel));
+            var leaderRole = g.Roles.Single(m => m.Name == "Leader");
+            var officerRole = g.Roles.Single(m => m.Name == "Officer");
+
             switch (checkResult)
             {
                 case SpamCheckResult.SoftLimitHit:
                 {
-                    var g = _client.Guilds.Single(m => m.TextChannels.Contains(userMessage.Channel));
-                    var leaderRole = g.Roles.Single(m => m.Name == "Leader");
-                    var officerRole = g.Roles.Single(m => m.Name == "Officer");
                     var embedBuilder = new EmbedBuilder()
                                        .WithColor(Color.DarkPurple)
                                        .WithTitle("Spam warning")
@@ -92,9 +102,27 @@
                 }
                 case SpamCheckResult.HardLimitHit:
                 {
-                    var g = _client.Guilds.Single(m => m.TextChannels.Contains(userMessage.Channel));
                     var guildUser = g.GetUser(userMessage.Author.Id);
-                    await guildUser.KickAsync("Excesive spam.", RequestOptions.Default).ConfigureAwait(false);
+                    try
+                    {
+                        await guildUser.KickAsync("Excesive spam.", RequestOptions.Default).ConfigureAwait(false);
+                    }
+                    catch (Discord.Net.HttpException e) when (e.HttpCode == HttpStatusCode.Forbidden)
+                    {
+                        await LogInternal(
+                                $"{leaderRole.Mention}, {officerRole.Mention}: Failed to kick user {guildUser.Mention}, because the bot is not permitted to kick a user with a higher rank.")
+                            .ConfigureAwait(false);
+                        return true;
+                    }
+                    catch (Exception e)
+                    {
+                        await LogInternal(
+                                $"{leaderRole.Mention}, {officerRole.Mention}: Failed to kick user {guildUser.Mention} due to an unexpected error: {e.Message}")
+                            .ConfigureAwait(false);
+                        return true;
+                    }
+
+                    await LogInternal($"{leaderRole.Mention}, {officerRole.Mention}:Kicked user {guildUser.Mention} from the server due to excesive spam.").ConfigureAwait(false);
                     return true;
                 }
             }
@@ -185,6 +213,24 @@
             return r;
         }
 
+        private async Task LogInternal(string message)
+        {
+            var g = _client.GetGuild(_appSettings.HandOfUnityGuildId);
+            var lc = g.GetTextChannel(_appSettings.LoggingChannelId);
+            if (lc == null)
+            {
+                // Channel can be null because the guild is currently unavailable.
+                // In this case, store the messages in a queue and send them later.
+                // Otherwise throw.
+                if (_guildAvailable)
+                    throw new ChannelNotFoundException(_appSettings.LoggingChannelId);
+                _pendingMessages.Enqueue(message);
+                return;
+            }
+
+            await lc.SendMessageAsync(message).ConfigureAwait(false);
+        }
+
         #endregion
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -249,6 +295,16 @@
             await _client.SetGameAsync(gameName).ConfigureAwait(false);
         }
 
+        async Task IDiscordAccess.Log(string message)
+        {
+            if (message == null)
+                throw new ArgumentNullException(nameof(message));
+            if (string.IsNullOrWhiteSpace(message))
+                throw new ArgumentException(nameof(message));
+
+            await LogInternal(message).ConfigureAwait(false);
+        }
+
         #endregion
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -283,14 +339,19 @@
             return Task.CompletedTask;
         }
 
-        private Task Client_GuildAvailable(SocketGuild guild)
+        private async Task Client_GuildAvailable(SocketGuild guild)
         {
             if (guild.Id != _appSettings.HandOfUnityGuildId)
-                return Task.CompletedTask;
+                return;
 
-            _guildUserRegistry.AddGuildUsers(guild.Users.Select(m => (m.Id, SocketRoleToRole(m.Roles))));
+            _guildAvailable = true;
+            _guildUserUserRegistry.AddGuildUsers(guild.Users.Select(m => (m.Id, SocketRoleToRole(m.Roles))));
 
-            return Task.CompletedTask;
+            while (_pendingMessages.Count > 0)
+            {
+                var pm = _pendingMessages.Dequeue();
+                await LogInternal(pm).ConfigureAwait(false);
+            }
         }
 
         private Task Client_GuildUnavailable(SocketGuild guild)
@@ -298,7 +359,8 @@
             if (guild.Id != _appSettings.HandOfUnityGuildId)
                 return Task.CompletedTask;
 
-            _guildUserRegistry.RemoveGuildUsers(guild.Users.Select(m => m.Id));
+            _guildAvailable = false;
+            _guildUserUserRegistry.RemoveGuildUsers(guild.Users.Select(m => m.Id));
 
             return Task.CompletedTask;
         }
@@ -308,7 +370,7 @@
             if (guildUser.Guild.Id != _appSettings.HandOfUnityGuildId)
                 return Task.CompletedTask;
 
-            _guildUserRegistry.AddGuildUser(guildUser.Id, SocketRoleToRole(guildUser.Roles));
+            _guildUserUserRegistry.AddGuildUser(guildUser.Id, SocketRoleToRole(guildUser.Roles));
 
             return Task.CompletedTask;
         }
@@ -318,7 +380,7 @@
             if (guildUser.Guild.Id != _appSettings.HandOfUnityGuildId)
                 return Task.CompletedTask;
 
-            _guildUserRegistry.RemoveGuildUser(guildUser.Id);
+            _guildUserUserRegistry.RemoveGuildUser(guildUser.Id);
 
             return Task.CompletedTask;
         }
@@ -332,7 +394,7 @@
             if (oldGuildUser.Id != newGuildUser.Id)
                 return Task.CompletedTask;
 
-            _guildUserRegistry.UpdateGuildUser(newGuildUser.Id, SocketRoleToRole(newGuildUser.Roles));
+            _guildUserUserRegistry.UpdateGuildUser(newGuildUser.Id, SocketRoleToRole(newGuildUser.Roles));
 
             return Task.CompletedTask;
         }

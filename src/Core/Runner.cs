@@ -14,7 +14,7 @@
 
     public class Runner
     {
-        private static readonly Version BotVersion = new Version(0, 3, 0);
+        private static readonly Version BotVersion = new Version(0, 4, 0);
 
         private ILogger<Runner> _logger;
 
@@ -29,12 +29,15 @@
             var settings = new AppSettings
             {
                 BotToken = settingsSection[nameof(AppSettings.BotToken)],
-                HandOfUnityGuildId = ulong.Parse(settingsSection[nameof(AppSettings.HandOfUnityGuildId)])
+                HandOfUnityGuildId = ulong.Parse(settingsSection[nameof(AppSettings.HandOfUnityGuildId)]),
+                LoggingChannelId = ulong.Parse(settingsSection[nameof(AppSettings.LoggingChannelId)])
             };
             if (string.IsNullOrWhiteSpace(settings.BotToken))
                 throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.BotToken)}' cannot be empty.");
             if (settings.HandOfUnityGuildId == 0)
                 throw new InvalidOperationException($"AppSettings '{nameof(AppSettings.HandOfUnityGuildId)}' must be a correct ID.");
+            if (settings.LoggingChannelId == 0)
+                throw new InvalidOperationException($"AppSettings '{nameof(AppSettings.LoggingChannelId)}' must be a correct ID.");
 
             // Prepare IoC
             var serviceCollection = new ServiceCollection();

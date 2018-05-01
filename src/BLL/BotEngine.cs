@@ -16,6 +16,7 @@
 
         private readonly ILogger<BotEngine> _logger;
         private readonly IDiscordAccess _discordAccess;
+        private readonly IBotInformationProvider _botInformationProvider;
 
         #endregion
 
@@ -23,10 +24,12 @@
         #region Constructors
 
         public BotEngine(ILogger<BotEngine> logger,
-                         IDiscordAccess discordAccess)
+                         IDiscordAccess discordAccess,
+                         IBotInformationProvider botInformationProvider)
         {
             _logger = logger;
             _discordAccess = discordAccess;
+            _botInformationProvider = botInformationProvider;
         }
 
         #endregion
@@ -63,8 +66,9 @@
         private async Task ConnectedHandler()
         {
             _logger.LogInformation("Connected to Discord.");
-
+            
             await _discordAccess.SetCurrentGame("Hand of Unity | hou!help").ConfigureAwait(false);
+            await _discordAccess.Log($"Bot started in the environment **{_botInformationProvider.GetEnvironmentName()}**.");
         }
 
         private async Task DisconnectedHandler(Exception exception)
