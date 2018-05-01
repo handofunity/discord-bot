@@ -54,7 +54,7 @@
                         continue;
                     }
 
-                    if (ci.AllowedRoles == Role.Undefined)
+                    if (ci.AllowedRoles == Role.NoRole)
                     {
                         _logger.LogDebug($"Didn't add command '{ci.Name}' because the allowed roles are undefined.");
                         continue;
@@ -72,7 +72,7 @@
 
         CommandInfo[] ICommandRegistry.GetAvailableCommands(Role userRoles)
         {
-            return _commands.Where(m => (m.AllowedRoles & userRoles) != Role.Undefined).ToArray();
+            return _commands.Where(m => (m.AllowedRoles & userRoles) != Role.NoRole).ToArray();
         }
 
         #endregion

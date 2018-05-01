@@ -2,6 +2,7 @@
 {
     using System;
     using System.Threading.Tasks;
+    using Enums;
 
     public interface IDiscordAccess
     {
@@ -20,6 +21,22 @@
         /// <param name="gameName">The game name.</param>
         /// <returns>An awaitable <see cref="Task"/>.</returns>
         Task SetCurrentGame(string gameName);
+
+        /// <summary>
+        /// Assigns the <paramref name="role"/> to the <paramref name="userId"/>.
+        /// </summary>
+        /// <param name="userId">The ID of the user to assign the <paramref name="role"/> to.</param>
+        /// <param name="role">The role to assign.</param>
+        /// <returns>An awaitable <see cref="Task"/>.</returns>
+        Task AssignRole(ulong userId, Role role);
+
+        /// <summary>
+        /// Revokes the <paramref name="role"/> from the <paramref name="userId"/>.
+        /// </summary>
+        /// <param name="userId">The ID of the user to revoke the <paramref name="role"/> from.</param>
+        /// <param name="role">The role to revoke.</param>
+        /// <returns>An awaitable <see cref="Task"/>.</returns>
+        Task RevokeRole(ulong userId, Role role);
 
         /// <summary>
         /// Logs the <paramref name="message"/> in the dedicated logging channel on Discord.

@@ -7,5 +7,7 @@
         public ulong HandOfUnityGuildId { get; set; }
 
         public ulong LoggingChannelId { get; set; }
+
+        public ulong PromotionAnnouncementChannelId { get; set; }
     }
 }

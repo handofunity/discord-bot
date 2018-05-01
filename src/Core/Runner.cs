@@ -30,7 +30,8 @@
             {
                 BotToken = settingsSection[nameof(AppSettings.BotToken)],
                 HandOfUnityGuildId = ulong.Parse(settingsSection[nameof(AppSettings.HandOfUnityGuildId)]),
-                LoggingChannelId = ulong.Parse(settingsSection[nameof(AppSettings.LoggingChannelId)])
+                LoggingChannelId = ulong.Parse(settingsSection[nameof(AppSettings.LoggingChannelId)]),
+                PromotionAnnouncementChannelId = ulong.Parse(settingsSection[nameof(AppSettings.PromotionAnnouncementChannelId)])
             };
             if (string.IsNullOrWhiteSpace(settings.BotToken))
                 throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.BotToken)}' cannot be empty.");
@@ -38,6 +39,8 @@
                 throw new InvalidOperationException($"AppSettings '{nameof(AppSettings.HandOfUnityGuildId)}' must be a correct ID.");
             if (settings.LoggingChannelId == 0)
                 throw new InvalidOperationException($"AppSettings '{nameof(AppSettings.LoggingChannelId)}' must be a correct ID.");
+            if (settings.PromotionAnnouncementChannelId == 0)
+                throw new InvalidOperationException($"AppSettings '{nameof(AppSettings.PromotionAnnouncementChannelId)}' must be a correct ID.");
 
             // Prepare IoC
             var serviceCollection = new ServiceCollection();
@@ -75,6 +78,7 @@
                 .AddSingleton<IIgnoreGuard, IgnoreGuard>()
                 .AddSingleton<ICommandRegistry, CommandRegistry>()
                 .AddSingleton<IGuildUserRegistry, GuildUserRegistry>()
+                .AddSingleton<IGuildUserPromoter, GuildUserPromoter>()
                 .AddSingleton<IBotInformationProvider>(botInformationProvider)
                 .AddSingleton<IHelpProvider, HelpProvider>();
         }

@@ -5,7 +5,7 @@
     [Flags]
     public enum Role
     {
-        Undefined = 0,
+        NoRole = 0,
         /// <summary>
         /// Only users with the role <see cref="Developer"/> may use these commands.
         /// </summary>
@@ -29,6 +29,10 @@
         /// <summary>
         /// Any user who is a guild member may use these commands.
         /// </summary>
-        AnyGuildMember = Leader | Officer | Member | Recruit
+        AnyGuildMember = Leader | Officer | Member | Recruit,
+        /// <summary>
+        /// Not a guild member, but a <see cref="Guest"/> role.
+        /// </summary>
+        Guest = 32
     }
 }

@@ -7,5 +7,6 @@
         public static readonly RGB LightGreen = new RGB(201, 255, 158);
         public static readonly RGB Orange = new RGB(230, 126, 34);
         public static readonly RGB LightOrange = new RGB(255, 194, 145);
+        public static readonly RGB BrightBlue = new RGB(0, 128, 255);
     }
 }

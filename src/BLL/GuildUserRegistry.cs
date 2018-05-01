@@ -79,7 +79,7 @@
         {
             return _guildUserRoles.TryGetValue(userId, out var roles)
                        ? roles
-                       : Role.Undefined;
+                       : Role.NoRole;
         }
 
         #endregion

@@ -69,6 +69,12 @@
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region Private Methods
 
+        /// <summary>
+        /// Gets the "Hand of Unity" <see cref="SocketGuild"/> object.
+        /// </summary>
+        /// <returns>A <see cref="SocketGuild"/> instance for "Hand of Unity".</returns>
+        private SocketGuild GetGuild() => _client.GetGuild(_appSettings.HandOfUnityGuildId);
+
         private async Task<bool> IsSpam(SocketMessage userMessage)
         {
             // If the message was received on a direct message channel, it's never spam
@@ -78,9 +84,9 @@
             if (checkResult == SpamCheckResult.NoSpam)
                 return false;
 
-            var g = _client.Guilds.Single(m => m.TextChannels.Contains(userMessage.Channel));
-            var leaderRole = g.Roles.Single(m => m.Name == "Leader");
-            var officerRole = g.Roles.Single(m => m.Name == "Officer");
+            var g = GetGuild();
+            var leaderRole = GetRoleByName("Leader", g);
+            var officerRole = GetRoleByName("Officer", g);
 
             switch (checkResult)
             {
@@ -189,7 +195,7 @@
 
                 // Get required role
                 var requiredRoles = ci.Preconditions.OfType<RolePreconditionAttribute>().SingleOrDefault();
-                var rr = requiredRoles?.AllowedRoles ?? Role.Undefined;
+                var rr = requiredRoles?.AllowedRoles ?? Role.NoRole;
 
                 // Create POCO
                 return new Shared.Objects.CommandInfo(ci.Name, ci.Aliases.ToArray(), rt, resp, rr)
@@ -203,7 +209,7 @@
 
         private static Role SocketRoleToRole(IReadOnlyCollection<SocketRole> roles)
         {
-            var r = Role.Undefined;
+            var r = Role.NoRole;
             foreach (var socketRole in roles)
             {
                 if (Enum.TryParse(socketRole.Name, out Role role))
@@ -215,7 +221,7 @@
 
         private async Task LogInternal(string message)
         {
-            var g = _client.GetGuild(_appSettings.HandOfUnityGuildId);
+            var g = GetGuild();
             var lc = g.GetTextChannel(_appSettings.LoggingChannelId);
             if (lc == null)
             {
@@ -229,6 +235,18 @@
             }
 
             await lc.SendMessageAsync(message).ConfigureAwait(false);
+        }
+
+        private SocketGuildUser GetGuildUserById(ulong userId)
+        {
+            var g = GetGuild();
+            return g.GetUser(userId);
+        }
+
+        private IRole GetRoleByName(string name, SocketGuild guild = null)
+        {
+            var g = guild ?? GetGuild();
+            return g.Roles.Single(m => m.Name == name);
         }
 
         #endregion
@@ -303,6 +321,22 @@
                 throw new ArgumentException(nameof(message));
 
             await LogInternal(message).ConfigureAwait(false);
+        }
+
+        async Task IDiscordAccess.AssignRole(ulong userId, Role role)
+        {
+            var gu = GetGuildUserById(userId);
+            var r = GetRoleByName(role.ToString());
+            await gu.AddRoleAsync(r).ConfigureAwait(false);
+            await LogInternal($"Assigned role '{role}' to {gu.Username}.").ConfigureAwait(false);
+        }
+
+        async Task IDiscordAccess.RevokeRole(ulong userId, Role role)
+        {
+            var gu = GetGuildUserById(userId);
+            var r = GetRoleByName(role.ToString());
+            await gu.RemoveRoleAsync(r).ConfigureAwait(false);
+            await LogInternal($"Revoked role '{role}' from {gu.Username}.").ConfigureAwait(false);
         }
 
         #endregion

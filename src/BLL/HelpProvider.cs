@@ -38,7 +38,7 @@
         private CommandInfo[] GetAvailableCommands(ulong userId)
         {
             var userRoles = _guildUserRegistry.GetGuildUserRoles(userId);
-            return userRoles == Role.Undefined
+            return userRoles == Role.NoRole
                        ? new CommandInfo[0]
                        : _commandRegistry.GetAvailableCommands(userRoles);
         }

@@ -34,7 +34,7 @@
         {
             var gur = (IGuildUserRegistry)services.GetService(typeof(IGuildUserRegistry));
             var userRoles = gur.GetGuildUserRoles(context.User.Id);
-            var isAllowed = (AllowedRoles & userRoles) != Role.Undefined;
+            var isAllowed = (AllowedRoles & userRoles) != Role.NoRole;
             return Task.FromResult(isAllowed
                                        ? PreconditionResult.FromSuccess()
                                        : PreconditionResult.FromError($"**{context.User.Username}**: This command is not available for your current roles."));
