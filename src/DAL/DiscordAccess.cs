@@ -7,6 +7,7 @@
     using System.Threading.Tasks;
     using Discord;
     using Discord.Commands;
+    using Discord.Net;
     using Discord.WebSocket;
     using JetBrains.Annotations;
     using Microsoft.Extensions.Logging;
@@ -251,31 +252,44 @@
             return g.Roles.Single(m => m.Name == name);
         }
 
-        private void LogInternal(string prefix, LogMessage msg)
+        private LogLevel ToLogLevel(LogSeverity severity)
         {
-            switch (msg.Severity)
+            switch (severity)
             {
                 case LogSeverity.Critical:
-                    _logger.LogCritical(msg.Exception, prefix + msg.Message);
-                    break;
+                    return LogLevel.Critical;
                 case LogSeverity.Error:
-                    _logger.LogError(msg.Exception, prefix + msg.Message);
-                    break;
+                    return LogLevel.Error;
                 case LogSeverity.Warning:
-                    _logger.LogWarning(msg.Exception, prefix + msg.Message);
-                    break;
+                    return LogLevel.Warning;
                 case LogSeverity.Info:
-                    _logger.LogInformation(msg.Exception, prefix + msg.Message);
-                    break;
+                    return LogLevel.Information;
                 case LogSeverity.Verbose:
-                    _logger.LogTrace(msg.Exception, prefix + msg.Message);
-                    break;
+                    return LogLevel.Trace;
                 case LogSeverity.Debug:
-                    _logger.LogDebug(msg.Exception, prefix + msg.Message);
-                    break;
+                    return LogLevel.Debug;
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    throw new ArgumentOutOfRangeException(nameof(severity), severity, null);
             }
+        }
+
+        private void LogInternal(string prefix, LogMessage msg)
+        {
+            var handled = false;
+            // Handle special cases
+            if (msg.Exception?.InnerException is WebSocketClosedException wsce)
+            {
+                // In case of WebSocketClosedException, check for expected behavior, give the exception more meaning and log only the inner exception data
+                if (wsce.CloseCode == 1001)
+                {
+                    _logger.Log(ToLogLevel(msg.Severity), 0, prefix + $"The server sent close 1001 [Going away]: {(string.IsNullOrWhiteSpace(wsce.Reason) ? "<no further reason specified>" : wsce.Reason)}", null, null);
+                    handled = true;
+                }
+            }
+
+            // Default log
+            if (!handled)
+                _logger.Log(ToLogLevel(msg.Severity), 0, prefix + msg.Message, msg.Exception, null);
         }
 
         #endregion
@@ -283,14 +297,18 @@
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region IDiscordAccess Members
 
-        async Task IDiscordAccess.Connect(Func<Task> connectedHandler, Func<Exception, Task> disconnectedHandler)
+        async Task IDiscordAccess.Connect(Func<Task> connectedHandler)
         {
             Func<Task> ClientConnected()
             {
                 return async () =>
                 {
-                    await _commands.AddModulesAsync(typeof(DiscordAccess).Assembly).ConfigureAwait(false);
-                    RegisterCommands();
+                    if (!_commandRegistry.CommandsRegistered)
+                    {
+                        // Load modules and register commands only once
+                        await _commands.AddModulesAsync(typeof(DiscordAccess).Assembly).ConfigureAwait(false);
+                        RegisterCommands();
+                    }
                     _client.MessageReceived += Client_MessageReceived;
                     await connectedHandler().ConfigureAwait(false);
                 };
@@ -301,18 +319,16 @@
                 return exception =>
                 {
                     _client.MessageReceived -= Client_MessageReceived;
-                    return disconnectedHandler(exception);
+                    return Task.CompletedTask;
                 };
             }
 
             if (connectedHandler == null)
                 throw new ArgumentNullException(nameof(connectedHandler));
-            if (disconnectedHandler == null)
-                throw new ArgumentNullException(nameof(disconnectedHandler));
 
             try
             {
-                _logger.LogInformation("Connecting to Discord...");
+                _logger.LogInformation("Establishing initial Discord connection...");
                 _client.Connected -= ClientConnected();
                 _client.Connected += ClientConnected();
                 _client.Disconnected -= ClientDisconnected();

@@ -1,7 +1,5 @@
 ﻿namespace HoU.GuildBot.BLL
 {
-    using System;
-    using System.Threading;
     using System.Threading.Tasks;
     using JetBrains.Annotations;
     using Microsoft.Extensions.Logging;
@@ -39,7 +37,7 @@
 
         private async Task Connect()
         {
-            await _discordAccess.Connect(ConnectedHandler, DisconnectedHandler).ConfigureAwait(false);
+            await _discordAccess.Connect(ConnectedHandler).ConfigureAwait(false);
         }
 
         #endregion
@@ -65,21 +63,10 @@
 
         private async Task ConnectedHandler()
         {
-            _logger.LogInformation("Connected to Discord.");
-            
             await _discordAccess.SetCurrentGame("Hand of Unity | hou!help").ConfigureAwait(false);
             await _discordAccess.LogToDiscord($"Bot started in the environment **{_botInformationProvider.GetEnvironmentName()}**.");
-        }
 
-        private Task DisconnectedHandler(Exception exception)
-        {
-            _logger.LogWarning("Lost connection to Discord.");
-            if (exception != null)
-            {
-                _logger.LogError(exception, "Connection losted due to unexpected error.");
-            }
-
-            return Task.CompletedTask;
+            _logger.LogInformation("Bot ready.");
         }
 
         #endregion

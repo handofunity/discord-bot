@@ -16,6 +16,7 @@
 
         private readonly ILogger<CommandRegistry> _logger;
         private readonly IList<CommandInfo> _commands;
+        private bool _commandsRegistered;
 
         #endregion
 
@@ -33,8 +34,11 @@
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region ICommandRegistry Members
 
+        bool ICommandRegistry.CommandsRegistered => _commandsRegistered;
+
         void ICommandRegistry.RegisterAndValidateCommands(CommandInfo[] commands)
         {
+            _commandsRegistered = true;
             _commands.Clear();
             using (_logger.BeginScope("Command Validation"))
             {
