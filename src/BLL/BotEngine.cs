@@ -15,6 +15,7 @@
         private readonly ILogger<BotEngine> _logger;
         private readonly IDiscordAccess _discordAccess;
         private readonly IBotInformationProvider _botInformationProvider;
+        private bool _isFirstConnect;
 
         #endregion
 
@@ -28,6 +29,7 @@
             _logger = logger;
             _discordAccess = discordAccess;
             _botInformationProvider = botInformationProvider;
+            _isFirstConnect = true;
         }
 
         #endregion
@@ -64,7 +66,12 @@
         private async Task ConnectedHandler()
         {
             await _discordAccess.SetCurrentGame("Hand of Unity | hou!help").ConfigureAwait(false);
-            await _discordAccess.LogToDiscord($"Bot started in the environment **{_botInformationProvider.GetEnvironmentName()}**.");
+
+            if (_isFirstConnect)
+            {
+                _isFirstConnect = false;
+                await _discordAccess.LogToDiscord($"Bot started on **{_botInformationProvider.GetEnvironmentName()}** in version {_botInformationProvider.GetFormatedVersion()}.");
+            }
 
             _logger.LogInformation("Bot ready.");
         }

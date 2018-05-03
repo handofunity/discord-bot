@@ -5,6 +5,7 @@
     public interface IBotInformationProvider
     {
         string GetEnvironmentName();
+        string GetFormatedVersion();
         EmbedData GetData();
     }
 }

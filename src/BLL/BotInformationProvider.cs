@@ -15,6 +15,8 @@
 
         string IBotInformationProvider.GetEnvironmentName() => _runtimeInformation.Environment;
 
+        string IBotInformationProvider.GetFormatedVersion() => _runtimeInformation.Version.ToString(3);
+
         EmbedData IBotInformationProvider.GetData()
         {
             return new EmbedData

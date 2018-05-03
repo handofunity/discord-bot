@@ -116,7 +116,7 @@
                     {
                         await guildUser.KickAsync("Excesive spam.", RequestOptions.Default).ConfigureAwait(false);
                     }
-                    catch (Discord.Net.HttpException e) when (e.HttpCode == HttpStatusCode.Forbidden)
+                    catch (HttpException e) when (e.HttpCode == HttpStatusCode.Forbidden)
                     {
                         await LogToDiscordInternal(
                                 $"{leaderRole.Mention}, {officerRole.Mention}: Failed to kick user {guildUser.Mention}, because the bot is not permitted to kick a user with a higher rank.")
@@ -302,6 +302,26 @@
             _logger.Log(ToLogLevel(msg.Severity), 0, prefix + msg.Message, msg.Exception, FormatLogMessage);
         }
 
+        private async Task SendWelcomeMessage(SocketGuildUser guildUser)
+        {
+            var privateChannel = await guildUser.GetOrCreateDMChannelAsync().ConfigureAwait(false);
+            try
+            {
+                await privateChannel.SendMessageAsync("Welcome to the Hand of Unity Discord. " +
+                                                      "As default, vision/use of our text and voice channels is granted to people with guest permissions only (hence why the Discord seems empty). " +
+                                                      "If you would like to access our actual guild areas to participate then please contact Narys or type in the public lobby.")
+                                    .ConfigureAwait(false);
+            }
+            catch (HttpException e) when (e.DiscordCode == 50007)
+            {
+                _logger.LogDebug($"Couldn't send welcome message to '{guildUser.Username}', because private messages are probably blocked.");
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"Couldn't send welcome message to '{guildUser.Username}' due to an unexpected error: {e}");
+            }
+        }
+
         #endregion
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -443,25 +463,8 @@
                 return;
 
             var isNew = _guildUserUserRegistry.AddGuildUser(guildUser.Id, SocketRoleToRole(guildUser.Roles));
-            if (!isNew) return; // If the user was on the server before, don't send him a welcome message
-
-            // If the user is truly a new user, send him a welcome message on the private channel
-            var privateChannel = await guildUser.GetOrCreateDMChannelAsync().ConfigureAwait(false);
-            try
-            {
-                await privateChannel.SendMessageAsync("Welcome to the Hand of Unity Discord. " +
-                                                      "As default, vision/use of our text and voice channels is granted to people with guest permissions only (hence why the Discord seems empty). " +
-                                                      "If you would like to access our actual guild areas to participate then please contact Narys or type in the public lobby.")
-                                    .ConfigureAwait(false);
-            }
-            catch (HttpException e) when (e.DiscordCode == 50007)
-            {
-                _logger.LogDebug($"Couldn't send welcome message to '{guildUser.Username}', because private messages are probably blocked.");
-            }
-            catch (Exception e)
-            {
-                _logger.LogError($"Couldn't send welcome message to '{guildUser.Username}' due to an unexpected error: {e}");
-            }
+            if (isNew)
+                await SendWelcomeMessage(guildUser).ConfigureAwait(false);
         }
 
         private Task Client_UserLeft(SocketGuildUser guildUser)
