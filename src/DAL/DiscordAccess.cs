@@ -275,21 +275,31 @@
 
         private void LogInternal(string prefix, LogMessage msg)
         {
+            // Locals
             var handled = false;
+            string FormatLogMessage(string m, Exception e)
+            {
+                if (m != null && e != null)
+                    return $"{m}: {e}";
+                return e?.ToString() ?? m;
+            }
+
             // Handle special cases
             if (msg.Exception?.InnerException is WebSocketClosedException wsce)
             {
                 // In case of WebSocketClosedException, check for expected behavior, give the exception more meaning and log only the inner exception data
                 if (wsce.CloseCode == 1001)
                 {
-                    _logger.Log(ToLogLevel(msg.Severity), 0, prefix + $"The server sent close 1001 [Going away]: {(string.IsNullOrWhiteSpace(wsce.Reason) ? "<no further reason specified>" : wsce.Reason)}", null, null);
+                    _logger.Log(ToLogLevel(msg.Severity), 0, prefix + $"The server sent close 1001 [Going away]: {(string.IsNullOrWhiteSpace(wsce.Reason) ? "<no further reason specified>" : wsce.Reason)}", null, FormatLogMessage);
                     handled = true;
                 }
             }
 
+            // If the log message has been handled, don't call the default log
+            if (handled) return;
+
             // Default log
-            if (!handled)
-                _logger.Log(ToLogLevel(msg.Severity), 0, prefix + msg.Message, msg.Exception, null);
+            _logger.Log(ToLogLevel(msg.Severity), 0, prefix + msg.Message, msg.Exception, FormatLogMessage);
         }
 
         #endregion
@@ -427,14 +437,31 @@
             return Task.CompletedTask;
         }
 
-        private Task Client_UserJoined(SocketGuildUser guildUser)
+        private async Task Client_UserJoined(SocketGuildUser guildUser)
         {
             if (guildUser.Guild.Id != _appSettings.HandOfUnityGuildId)
-                return Task.CompletedTask;
+                return;
 
-            _guildUserUserRegistry.AddGuildUser(guildUser.Id, SocketRoleToRole(guildUser.Roles));
+            var isNew = _guildUserUserRegistry.AddGuildUser(guildUser.Id, SocketRoleToRole(guildUser.Roles));
+            if (!isNew) return; // If the user was on the server before, don't send him a welcome message
 
-            return Task.CompletedTask;
+            // If the user is truly a new user, send him a welcome message on the private channel
+            var privateChannel = await guildUser.GetOrCreateDMChannelAsync().ConfigureAwait(false);
+            try
+            {
+                await privateChannel.SendMessageAsync("Welcome to the Hand of Unity Discord. " +
+                                                      "As default, vision/use of our text and voice channels is granted to people with guest permissions only (hence why the Discord seems empty). " +
+                                                      "If you would like to access our actual guild areas to participate then please contact Narys or type in the public lobby.")
+                                    .ConfigureAwait(false);
+            }
+            catch (HttpException e) when (e.DiscordCode == 50007)
+            {
+                _logger.LogDebug($"Couldn't send welcome message to '{guildUser.Username}', because private messages are probably blocked.");
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"Couldn't send welcome message to '{guildUser.Username}' due to an unexpected error: {e}");
+            }
         }
 
         private Task Client_UserLeft(SocketGuildUser guildUser)

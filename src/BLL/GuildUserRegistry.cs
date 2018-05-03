@@ -60,9 +60,11 @@
             }
         }
 
-        void IGuildUserRegistry.AddGuildUser(ulong userId, Role roles)
+        bool IGuildUserRegistry.AddGuildUser(ulong userId, Role roles)
         {
             _guildUserRoles.AddOrUpdate(userId, uid => roles, (uid, oldRoles) => roles);
+            // For now, always return true (until the database is added)
+            return true;
         }
 
         void IGuildUserRegistry.RemoveGuildUser(ulong userId)
