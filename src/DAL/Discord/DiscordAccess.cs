@@ -1,14 +1,14 @@
-﻿namespace HoU.GuildBot.DAL
+﻿namespace HoU.GuildBot.DAL.Discord
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
     using System.Threading.Tasks;
-    using Discord;
-    using Discord.Commands;
-    using Discord.Net;
-    using Discord.WebSocket;
+    using global::Discord;
+    using global::Discord.Commands;
+    using global::Discord.Net;
+    using global::Discord.WebSocket;
     using JetBrains.Annotations;
     using Microsoft.Extensions.Logging;
     using Preconditions;
@@ -18,7 +18,7 @@
     using Shared.Enums;
     using Shared.Exceptions;
     using Shared.Objects;
-    using CommandInfo = Discord.Commands.CommandInfo;
+    using CommandInfo = global::Discord.Commands.CommandInfo;
 
     [UsedImplicitly]
     public class DiscordAccess : IDiscordAccess

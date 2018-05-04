@@ -1,9 +1,8 @@
-﻿namespace HoU.GuildBot.DAL.Preconditions
+﻿namespace HoU.GuildBot.DAL.Discord.Preconditions
 {
     using System;
-    using System.Linq;
     using System.Threading.Tasks;
-    using Discord.Commands;
+    using global::Discord.Commands;
     using Shared.BLL;
     using Shared.Enums;
 

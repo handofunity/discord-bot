@@ -5,6 +5,7 @@
     using AWS.Logger.AspNetCore;
     using BLL;
     using DAL;
+    using DAL.Discord;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;

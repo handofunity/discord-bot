@@ -1,7 +1,7 @@
-﻿namespace HoU.GuildBot.DAL.Modules
+﻿namespace HoU.GuildBot.DAL.Discord.Modules
 {
     using System.Threading.Tasks;
-    using Discord.Commands;
+    using global::Discord.Commands;
     using JetBrains.Annotations;
     using Preconditions;
     using Shared.Attributes;
