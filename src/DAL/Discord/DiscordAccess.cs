@@ -437,6 +437,7 @@
                 return;
 
             _guildAvailable = true;
+            _logger.LogInformation($"Guild '{guild.Name}' is available.");
 #pragma warning disable CS4014 // Fire & forget
             Task.Run(() => _guildUserUserRegistry.AddGuildUsers(guild.Users.Select(m => (m.Id, SocketRoleToRole(m.Roles))).ToArray())).ConfigureAwait(false);
 #pragma warning restore CS4014 // Fire & forget

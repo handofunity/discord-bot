@@ -52,6 +52,7 @@
 
         async Task IGuildUserRegistry.AddGuildUsers((ulong UserId, Role Roles)[] guildUsers)
         {
+            _logger.LogInformation($"Adding {guildUsers.Length} users to the registry.");
             foreach (var (userId, roles) in guildUsers)
             {
                 _guildUserRoles.AddOrUpdate(userId, uid => roles, (uid, oldRoles) => roles);

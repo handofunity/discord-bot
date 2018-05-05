@@ -1,10 +1,12 @@
 ﻿namespace HoU.GuildBot.DAL.Database
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
     using JetBrains.Annotations;
     using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.Logging;
     using Model;
     using Shared.DAL;
     using Shared.Objects;
@@ -15,6 +17,7 @@
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region Fields
 
+        private readonly ILogger<DatabaseAccess> _logger;
         private readonly AppSettings _appSettings;
 
         #endregion
@@ -22,8 +25,10 @@
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region Constructors
 
-        public DatabaseAccess(AppSettings appSettings)
+        public DatabaseAccess(ILogger<DatabaseAccess> logger,
+                              AppSettings appSettings)
         {
+            _logger = logger;
             _appSettings = appSettings;
         }
 
@@ -41,21 +46,29 @@
 
         async Task IDatabaseAccess.AddUsers(IEnumerable<ulong> userIDs)
         {
-            using (var entities = GetEntities())
+            _logger.LogInformation("Adding missing users to database");
+            try
             {
-                var existingUserIDs = await entities.User.Select(m => m.DiscordUserID).ToArrayAsync().ConfigureAwait(false);
-                var missingUserIDs = userIDs.Except(existingUserIDs.Select(m => (ulong)m));
-
-                // Add missing users
-                foreach (var missingUserID in missingUserIDs)
+                using (var entities = GetEntities())
                 {
-                    entities.User.Add(new User
-                    {
-                        DiscordUserID = missingUserID
-                    });
-                }
+                    var existingUserIDs = await entities.User.Select(m => m.DiscordUserID).ToArrayAsync().ConfigureAwait(false);
+                    var missingUserIDs = userIDs.Except(existingUserIDs.Select(m => (ulong)m));
 
-                await entities.SaveChangesAsync().ConfigureAwait(false);
+                    // Add missing users
+                    foreach (var missingUserID in missingUserIDs)
+                    {
+                        entities.User.Add(new User
+                        {
+                            DiscordUserID = missingUserID
+                        });
+                    }
+
+                    await entities.SaveChangesAsync().ConfigureAwait(false);
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogCritical(e, "Unexpected error while adding users");
             }
         }
 
