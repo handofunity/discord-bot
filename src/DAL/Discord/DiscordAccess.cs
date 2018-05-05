@@ -59,6 +59,7 @@
             _ignoreGuard = ignoreGuard;
             _commandRegistry = commandRegistry;
             _guildUserUserRegistry = guildUserUserRegistry;
+            _guildUserUserRegistry.DiscordAccess = this;
             _commands = new CommandService();
             _client = new DiscordSocketClient();
             _pendingMessages = new Queue<string>();
@@ -412,6 +413,12 @@
             var r = GetRoleByName(role.ToString());
             await gu.RemoveRoleAsync(r).ConfigureAwait(false);
             await LogToDiscordInternal($"Revoked role '{role}' from {gu.Username}.").ConfigureAwait(false);
+        }
+
+        bool IDiscordAccess.IsUserOnline(ulong userID)
+        {
+            var gu = GetGuildUserById(userID);
+            return gu.Status != UserStatus.Offline;
         }
 
         #endregion

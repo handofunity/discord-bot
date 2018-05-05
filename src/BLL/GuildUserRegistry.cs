@@ -1,5 +1,6 @@
 ﻿namespace HoU.GuildBot.BLL
 {
+    using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
@@ -9,6 +10,7 @@
     using Shared.BLL;
     using Shared.DAL;
     using Shared.Enums;
+    using Shared.Objects;
 
     [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
     public class GuildUserRegistry : IGuildUserRegistry
@@ -19,6 +21,7 @@
         private readonly ILogger<GuildUserRegistry> _logger;
         private readonly IDatabaseAccess _databaseAccess;
         private readonly ConcurrentDictionary<ulong, Role> _guildUserRoles;
+        private IDiscordAccess _discordAccess;
 
         #endregion
 
@@ -49,6 +52,11 @@
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region IGuildUserRegistry Members
+
+        IDiscordAccess IGuildUserRegistry.DiscordAccess
+        {
+            set => _discordAccess = value;
+        }
 
         async Task IGuildUserRegistry.AddGuildUsers((ulong UserId, Role Roles)[] guildUsers)
         {
@@ -92,6 +100,27 @@
             return _guildUserRoles.TryGetValue(userId, out var roles)
                        ? roles
                        : Role.NoRole;
+        }
+
+        EmbedData IGuildUserRegistry.GetGuildMembers()
+        {
+            if (_discordAccess == null)
+                throw new InvalidOperationException($"{nameof(IGuildUserRegistry.DiscordAccess)} must be set.");
+
+            var guildMembers = _guildUserRoles.Where(m => (Role.AnyGuildMember & m.Value) != Role.NoRole).Select(m => m.Key).ToArray();
+            var total = guildMembers.Length;
+            var online = guildMembers.Count(guildMember => _discordAccess.IsUserOnline(guildMember));
+
+            return new EmbedData
+            {
+                Title = "Guild members",
+                Color = Colors.LightGreen,
+                Fields = new []
+                {
+                    new EmbedField("Total", total.ToString(), true), 
+                    new EmbedField("Online", online.ToString(), true) 
+                }
+            };
         }
 
         #endregion

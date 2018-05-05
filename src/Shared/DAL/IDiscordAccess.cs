@@ -45,5 +45,12 @@
         /// <exception cref="ArgumentException"><paramref name="message"/> is empty or only whitespaces.</exception>
         /// <returns>An awaitable <see cref="Task"/>.</returns>
         Task LogToDiscord(string message);
+
+        /// <summary>
+        /// Checks if the user with the <paramref name="userID"/> is currently online.
+        /// </summary>
+        /// <param name="userID">The ID of the user to check.</param>
+        /// <returns><b>True</b>, if the user is online, otherwise <b>false</b>.</returns>
+        bool IsUserOnline(ulong userID);
     }
 }

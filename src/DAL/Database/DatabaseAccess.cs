@@ -46,29 +46,27 @@
 
         async Task IDatabaseAccess.AddUsers(IEnumerable<ulong> userIDs)
         {
-            _logger.LogInformation("Adding missing users to database");
-            try
+            using (var entities = GetEntities())
             {
-                using (var entities = GetEntities())
+                var existingUserIDs = await entities.User.Select(m => m.DiscordUserID).ToArrayAsync().ConfigureAwait(false);
+                var missingUserIDs = userIDs.Except(existingUserIDs.Select(m => (ulong)m)).ToArray();
+
+                if (!missingUserIDs.Any())
+                    return;
+
+                _logger.LogInformation("Adding missing users to database...");
+                var added = 0;
+                foreach (var missingUserID in missingUserIDs)
                 {
-                    var existingUserIDs = await entities.User.Select(m => m.DiscordUserID).ToArrayAsync().ConfigureAwait(false);
-                    var missingUserIDs = userIDs.Except(existingUserIDs.Select(m => (ulong)m));
-
-                    // Add missing users
-                    foreach (var missingUserID in missingUserIDs)
+                    entities.User.Add(new User
                     {
-                        entities.User.Add(new User
-                        {
-                            DiscordUserID = missingUserID
-                        });
-                    }
-
-                    await entities.SaveChangesAsync().ConfigureAwait(false);
+                        DiscordUserID = missingUserID
+                    });
+                    added++;
                 }
-            }
-            catch (Exception e)
-            {
-                _logger.LogCritical(e, "Unexpected error while adding users");
+
+                await entities.SaveChangesAsync().ConfigureAwait(false);
+                _logger.LogInformation($"Added {added} missing users to the database.");
             }
         }
 
