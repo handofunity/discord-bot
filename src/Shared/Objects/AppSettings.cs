@@ -9,5 +9,7 @@
         public ulong LoggingChannelId { get; set; }
 
         public ulong PromotionAnnouncementChannelId { get; set; }
+
+        public string ConnectionString { get; set; }
     }
 }

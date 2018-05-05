@@ -1,0 +1,1 @@
+﻿{"ContextClassName":"HoUEntities","DefaultDacpacSchema":null,"IdReplace":false,"IncludeConnectionString":false,"OutputPath":"Database\\Model","ProjectRootNamespace":"HoU.GuildBot.DAL","SelectedToBeGenerated":0,"Tables":["hou.User"],"UseDatabaseNames":true,"UseFluentApiOnly":false,"UseHandleBars":false,"UseInflector":false}

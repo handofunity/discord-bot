@@ -437,7 +437,9 @@
                 return;
 
             _guildAvailable = true;
-            _guildUserUserRegistry.AddGuildUsers(guild.Users.Select(m => (m.Id, SocketRoleToRole(m.Roles))));
+#pragma warning disable CS4014 // Fire & forget
+            Task.Run(() => _guildUserUserRegistry.AddGuildUsers(guild.Users.Select(m => (m.Id, SocketRoleToRole(m.Roles))).ToArray())).ConfigureAwait(false);
+#pragma warning restore CS4014 // Fire & forget
 
             while (_pendingMessages.Count > 0)
             {
@@ -457,14 +459,21 @@
             return Task.CompletedTask;
         }
 
-        private async Task Client_UserJoined(SocketGuildUser guildUser)
+        private Task Client_UserJoined(SocketGuildUser guildUser)
         {
             if (guildUser.Guild.Id != _appSettings.HandOfUnityGuildId)
-                return;
+                return Task.CompletedTask;
 
-            var isNew = _guildUserUserRegistry.AddGuildUser(guildUser.Id, SocketRoleToRole(guildUser.Roles));
-            if (isNew)
-                await SendWelcomeMessage(guildUser).ConfigureAwait(false);
+#pragma warning disable CS4014 // Fire & forget
+            Task.Run(async () =>
+            {
+                var isNew = await _guildUserUserRegistry.AddGuildUser(guildUser.Id, SocketRoleToRole(guildUser.Roles)).ConfigureAwait(false);
+                if (isNew)
+                    await SendWelcomeMessage(guildUser).ConfigureAwait(false);
+            }).ConfigureAwait(false);
+#pragma warning restore CS4014 // Fire & forget
+
+            return Task.CompletedTask;
         }
 
         private Task Client_UserLeft(SocketGuildUser guildUser)

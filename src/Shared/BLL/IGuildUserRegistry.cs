@@ -1,6 +1,7 @@
 ﻿namespace HoU.GuildBot.Shared.BLL
 {
     using System.Collections.Generic;
+    using System.Threading.Tasks;
     using Enums;
 
     public interface IGuildUserRegistry
@@ -9,7 +10,8 @@
         /// Adds a list of users to the registry.
         /// </summary>
         /// <param name="guildUsers">A list of guild users.</param>
-        void AddGuildUsers(IEnumerable<(ulong UserId, Role Roles)> guildUsers);
+        /// <returns>An awaitable <see cref="Task"/>.</returns>
+        Task AddGuildUsers((ulong UserId, Role Roles)[] guildUsers);
 
         /// <summary>
         /// Removes all users from registry.
@@ -23,7 +25,7 @@
         /// <param name="userId">The ID of the user who should be added.</param>
         /// <param name="roles">The roles of the added user.</param>
         /// <returns><b>True</b>, if the user was never in the registry, otherwise <b>false</b>.</returns>
-        bool AddGuildUser(ulong userId, Role roles);
+        Task<bool> AddGuildUser(ulong userId, Role roles);
 
         /// <summary>
         /// Removes a user from the registry.

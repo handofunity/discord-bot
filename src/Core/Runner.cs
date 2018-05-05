@@ -4,7 +4,7 @@
     using System.IO;
     using AWS.Logger.AspNetCore;
     using BLL;
-    using DAL;
+    using DAL.Database;
     using DAL.Discord;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
@@ -15,7 +15,7 @@
 
     public class Runner
     {
-        private static readonly Version BotVersion = new Version(0, 4, 3);
+        private static readonly Version BotVersion = new Version(0, 5, 0);
 
         private ILogger<Runner> _logger;
 
@@ -26,22 +26,7 @@
                           .SetBasePath(Directory.GetCurrentDirectory())
                           .AddJsonFile($"appsettings.{environment}.json");
             var configuration = builder.Build();
-            var settingsSection = configuration.GetSection("AppSettings");
-            var settings = new AppSettings
-            {
-                BotToken = settingsSection[nameof(AppSettings.BotToken)],
-                HandOfUnityGuildId = ulong.Parse(settingsSection[nameof(AppSettings.HandOfUnityGuildId)]),
-                LoggingChannelId = ulong.Parse(settingsSection[nameof(AppSettings.LoggingChannelId)]),
-                PromotionAnnouncementChannelId = ulong.Parse(settingsSection[nameof(AppSettings.PromotionAnnouncementChannelId)])
-            };
-            if (string.IsNullOrWhiteSpace(settings.BotToken))
-                throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.BotToken)}' cannot be empty.");
-            if (settings.HandOfUnityGuildId == 0)
-                throw new InvalidOperationException($"AppSettings '{nameof(AppSettings.HandOfUnityGuildId)}' must be a correct ID.");
-            if (settings.LoggingChannelId == 0)
-                throw new InvalidOperationException($"AppSettings '{nameof(AppSettings.LoggingChannelId)}' must be a correct ID.");
-            if (settings.PromotionAnnouncementChannelId == 0)
-                throw new InvalidOperationException($"AppSettings '{nameof(AppSettings.PromotionAnnouncementChannelId)}' must be a correct ID.");
+            var settings = LoadAppSettings(configuration);
 
             // Prepare IoC
             var serviceCollection = new ServiceCollection();
@@ -65,6 +50,34 @@
             _logger.LogCritical("Unexpected shutdown: " + message);
         }
 
+        private static AppSettings LoadAppSettings(IConfigurationRoot configuration)
+        {
+            // Read
+            var settingsSection = configuration.GetSection("AppSettings");
+            var settings = new AppSettings
+            {
+                BotToken = settingsSection[nameof(AppSettings.BotToken)],
+                HandOfUnityGuildId = ulong.Parse(settingsSection[nameof(AppSettings.HandOfUnityGuildId)]),
+                LoggingChannelId = ulong.Parse(settingsSection[nameof(AppSettings.LoggingChannelId)]),
+                PromotionAnnouncementChannelId = ulong.Parse(settingsSection[nameof(AppSettings.PromotionAnnouncementChannelId)]),
+                ConnectionString = settingsSection[nameof(AppSettings.ConnectionString)]
+            };
+
+            // Validate
+            if (string.IsNullOrWhiteSpace(settings.BotToken))
+                throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.BotToken)}' cannot be empty.");
+            if (settings.HandOfUnityGuildId == 0)
+                throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.HandOfUnityGuildId)}' must be a correct ID.");
+            if (settings.LoggingChannelId == 0)
+                throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.LoggingChannelId)}' must be a correct ID.");
+            if (settings.PromotionAnnouncementChannelId == 0)
+                throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.PromotionAnnouncementChannelId)}' must be a correct ID.");
+            if (string.IsNullOrWhiteSpace(settings.ConnectionString))
+                throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.ConnectionString)}' cannot be empty.");
+
+            return settings;
+        }
+
         private static void RegisterBLL(IServiceCollection serviceCollection, string environment)
         {
             var runtimeInformation = new RuntimeInformation(
@@ -86,6 +99,7 @@
 
         private static void RegisterDAL(IServiceCollection serviceCollection)
         {
+            serviceCollection.AddSingleton<IDatabaseAccess, DatabaseAccess>();
             serviceCollection.AddSingleton<IDiscordAccess, DiscordAccess>();
         }
 
