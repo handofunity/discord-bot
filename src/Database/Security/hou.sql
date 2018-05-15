@@ -1,5 +1,2 @@
 ﻿CREATE SCHEMA [hou]
     AUTHORIZATION [dbo];
-
-
-

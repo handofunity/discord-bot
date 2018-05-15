@@ -23,8 +23,9 @@
     <SqlServerVerification>False</SqlServerVerification>
     <IncludeCompositeObjects>True</IncludeCompositeObjects>
     <TargetDatabaseSet>True</TargetDatabaseSet>
-    <DacVersion>0.1.0</DacVersion>
-    <DacDescription>Initial database version</DacDescription>
+    <DacVersion>0.2.0</DacVersion>
+    <DacDescription>Added schema [config]
+Added table [config].[Message]</DacDescription>
     <DefaultCollation>Latin1_General_CI_AS</DefaultCollation>
     <Recovery>SIMPLE</Recovery>
     <TargetFrameworkProfile />
@@ -68,16 +69,21 @@
     <Folder Include="hou\" />
     <Folder Include="hou\Tables\" />
     <Folder Include="Scripts" />
+    <Folder Include="config" />
+    <Folder Include="config\Tables" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Database_LOCAL.publish.xml" />
     <None Include="SqlSchemaCompare.scmp" />
     <None Include="Scripts\GrantPermissions.sql" />
     <None Include="Scripts\CreateUser.sql" />
+    <Build Include="Security\config.sql" />
+    <None Include="Scripts\AddMessage_FirstServerJoinWelcome.sql" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="Security\hou.sql" />
     <Build Include="hou\Tables\User.sql" />
+    <Build Include="config\Tables\Message.sql" />
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="Script.PostDeployment.sql" />
