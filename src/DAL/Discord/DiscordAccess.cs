@@ -84,7 +84,8 @@
             // If the message was received on a direct message channel, it's never spam
             if (userMessage.Channel is IPrivateChannel)
                 return false;
-            var checkResult = _spamGuard.CheckForSpam(userMessage.Author.Id, userMessage.Channel.Id, userMessage.Content);
+            
+            var checkResult = _spamGuard.CheckForSpam(userMessage.Author.Id, userMessage.Channel.Id, userMessage.Content, userMessage.Attachments?.Count ?? 0);
             if (checkResult == SpamCheckResult.NoSpam)
                 return false;
 

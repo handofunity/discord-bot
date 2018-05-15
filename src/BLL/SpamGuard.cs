@@ -19,8 +19,14 @@
             _recentMessage = new Queue<string>(25);
         }
 
-        SpamCheckResult ISpamGuard.CheckForSpam(ulong userId, ulong channelId, string message)
+        SpamCheckResult ISpamGuard.CheckForSpam(ulong userId, ulong channelId, string message, int attachmentsCount)
         {
+            if (string.IsNullOrEmpty(message) && attachmentsCount > 0)
+            {
+                // Attachment upload without optional comment
+                return SpamCheckResult.NoSpam;
+            }
+
             var builtMessage = $"{{{userId}}}-{{{channelId}}}-{{{message}}}";
 
             // If the maximum size is hit, remove the oldest message

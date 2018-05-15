@@ -4,6 +4,6 @@
 
     public interface ISpamGuard
     {
-        SpamCheckResult CheckForSpam(ulong userId, ulong channelId, string message);
+        SpamCheckResult CheckForSpam(ulong userId, ulong channelId, string message, int attachmentsCount);
     }
 }
