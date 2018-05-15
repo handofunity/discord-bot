@@ -46,7 +46,7 @@
         [Remarks("Users can be promoted up to the rank one below the current user. If successful, the promotion will be announced.")]
         [RequireContext(ContextType.Guild)]
         [ResponseContext(ResponseType.MultipleChannels)]
-        [RolePrecondition(Role.Leader | Role.Officer)]
+        [RolePrecondition(Role.Leader | Role.SeniorOfficer)]
         public async Task PromoteAsync(SocketGuildUser guildUser)
         {
             var result = await _guildUserPromoter.TryPromote((Context.User.Id, Context.User.Mention), (guildUser.Id, guildUser.Mention)).ConfigureAwait(false);

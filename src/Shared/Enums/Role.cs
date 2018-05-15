@@ -15,24 +15,28 @@
         /// </summary>
         Leader = 2,
         /// <summary>
+        /// Only users with the role <see cref="SeniorOfficer"/> may use these commands.
+        /// </summary>
+        SeniorOfficer = 4,
+        /// <summary>
         /// Only users with the role <see cref="Officer"/> may use these commands.
         /// </summary>
-        Officer = 4,
+        Officer = 8,
         /// <summary>
         /// Only users with the role <see cref="Member"/> may use these commands.
         /// </summary>
-        Member = 8,
+        Member = 16,
         /// <summary>
         /// Only users with the role <see cref="Recruit"/> may use these commands.
         /// </summary>
-        Recruit = 16,
+        Recruit = 32,
         /// <summary>
         /// Any user who is a guild member may use these commands.
         /// </summary>
-        AnyGuildMember = Leader | Officer | Member | Recruit,
+        AnyGuildMember = Leader | SeniorOfficer | Officer | Member | Recruit,
         /// <summary>
         /// Not a guild member, but a <see cref="Guest"/> role.
         /// </summary>
-        Guest = 32
+        Guest = 64
     }
 }
