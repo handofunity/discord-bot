@@ -66,7 +66,8 @@
                 .AddSingleton<IGuildUserRegistry, GuildUserRegistry>()
                 .AddSingleton<IGuildUserPromoter, GuildUserPromoter>()
                 .AddSingleton<IBotInformationProvider>(botInformationProvider)
-                .AddSingleton<IHelpProvider, HelpProvider>();
+                .AddSingleton<IHelpProvider, HelpProvider>()
+                .AddSingleton<IMessageProvider, MessageProvider>();
         }
 
         private static void RegisterDAL(IServiceCollection serviceCollection)

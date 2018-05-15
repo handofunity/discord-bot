@@ -33,6 +33,7 @@
         private readonly IIgnoreGuard _ignoreGuard;
         private readonly ICommandRegistry _commandRegistry;
         private readonly IGuildUserRegistry _guildUserUserRegistry;
+        private readonly IMessageProvider _messageProvider;
         private readonly DiscordSocketClient _client;
         private readonly CommandService _commands;
         private readonly Queue<string> _pendingMessages;
@@ -50,7 +51,8 @@
                              ISpamGuard spamGuard,
                              IIgnoreGuard ignoreGuard,
                              ICommandRegistry commandRegistry,
-                             IGuildUserRegistry guildUserUserRegistry)
+                             IGuildUserRegistry guildUserUserRegistry,
+                             IMessageProvider messageProvider)
         {
             _logger = logger;
             _appSettings = appSettings;
@@ -59,6 +61,7 @@
             _ignoreGuard = ignoreGuard;
             _commandRegistry = commandRegistry;
             _guildUserUserRegistry = guildUserUserRegistry;
+            _messageProvider = messageProvider;
             _guildUserUserRegistry.DiscordAccess = this;
             _commands = new CommandService();
             _client = new DiscordSocketClient();
@@ -304,15 +307,13 @@
             _logger.Log(ToLogLevel(msg.Severity), 0, prefix + msg.Message, msg.Exception, FormatLogMessage);
         }
 
-        private async Task SendWelcomeMessage(SocketGuildUser guildUser)
+        private async Task SendWelcomeMessage(IUser guildUser)
         {
+            var message = await _messageProvider.GetMessage(Constants.MessageNames.FirstServerJoinWelcome).ConfigureAwait(false);
             var privateChannel = await guildUser.GetOrCreateDMChannelAsync().ConfigureAwait(false);
             try
             {
-                await privateChannel.SendMessageAsync("Welcome to the Hand of Unity Discord. " +
-                                                      "As default, vision/use of our text and voice channels is granted to people with guest permissions only (hence why the Discord seems empty). " +
-                                                      "If you would like to access our actual guild areas to participate then please contact Narys or type in the public lobby.")
-                                    .ConfigureAwait(false);
+                await privateChannel.SendMessageAsync(message).ConfigureAwait(false);
             }
             catch (HttpException e) when (e.DiscordCode == 50007)
             {

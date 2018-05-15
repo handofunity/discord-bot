@@ -20,5 +20,26 @@
         /// <returns><b>True</b>, if the user was added, otherwise <b>false</b>.</returns>
         /// <remarks>If the user ID is already present on the database, it won't be added and the return value will be false.</remarks>
         Task<bool> AddUser(ulong userID);
+
+        /// <summary>
+        /// Gets all messages listed on the database.
+        /// </summary>
+        /// <returns>An array of tupples, containing the message name (key), a description and the current content.</returns>
+        Task<(string Name, string Description, string Content)[]> GetAllMessages();
+
+        /// <summary>
+        /// Gets the current content for a message with a specific <paramref name="name"/>.
+        /// </summary>
+        /// <param name="name">The name (key) of the message.</param>
+        /// <returns>The message content, if found, otherwise <b>null</b>.</returns>
+        Task<string> GetMessageContent(string name);
+
+        /// <summary>
+        /// Sets the <paramref name="content"/> for a message with a specific <paramref name="name"/>.
+        /// </summary>
+        /// <param name="name">The name (key) of the message.</param>
+        /// <param name="content">The new content of the message.</param>
+        /// <returns><b>true</b>, if the <paramref name="name"/> exists, otherwise <b>false</b>.</returns>
+        Task<bool> SetMessageContent(string name, string content);
     }
 }

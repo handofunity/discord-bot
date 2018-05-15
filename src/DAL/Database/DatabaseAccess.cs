@@ -90,6 +90,38 @@
             }
         }
 
+        async Task<(string Name, string Description, string Content)[]> IDatabaseAccess.GetAllMessages()
+        {
+            using (var entities = GetEntities())
+            {
+                var local = await entities.Message.ToArrayAsync().ConfigureAwait(false);
+                return local.Select(m => (m.Name, m.Description, m.Content)).ToArray();
+            }
+        }
+
+        async Task<string> IDatabaseAccess.GetMessageContent(string name)
+        {
+            using (var entities = GetEntities())
+            {
+                var match = await entities.Message.SingleOrDefaultAsync(m => m.Name == name).ConfigureAwait(false);
+                return match?.Content;
+            }
+        }
+
+        async Task<bool> IDatabaseAccess.SetMessageContent(string name, string content)
+        {
+            using (var entities = GetEntities())
+            {
+                var match = await entities.Message.SingleOrDefaultAsync(m => m.Name == name).ConfigureAwait(false);
+                if (match == null)
+                    return false;
+
+                match.Content = content;
+                await entities.SaveChangesAsync().ConfigureAwait(false);
+                return true;
+            }
+        }
+
         #endregion
     }
 }
