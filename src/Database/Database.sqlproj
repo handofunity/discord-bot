@@ -84,6 +84,7 @@ Added table [config].[Message]</DacDescription>
     <Build Include="Security\hou.sql" />
     <Build Include="hou\Tables\User.sql" />
     <Build Include="config\Tables\Message.sql" />
+    <Build Include="hou\Tables\Vacation.sql" />
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="Script.PostDeployment.sql" />

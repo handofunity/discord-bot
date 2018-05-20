@@ -15,6 +15,7 @@
         private readonly ILogger<BotEngine> _logger;
         private readonly IDiscordAccess _discordAccess;
         private readonly IBotInformationProvider _botInformationProvider;
+        private readonly IPrivacyProvider _privacyProvider;
         private bool _isFirstConnect;
 
         #endregion
@@ -24,11 +25,13 @@
 
         public BotEngine(ILogger<BotEngine> logger,
                          IDiscordAccess discordAccess,
-                         IBotInformationProvider botInformationProvider)
+                         IBotInformationProvider botInformationProvider,
+                         IPrivacyProvider privacyProvider)
         {
             _logger = logger;
             _discordAccess = discordAccess;
             _botInformationProvider = botInformationProvider;
+            _privacyProvider = privacyProvider;
             _isFirstConnect = true;
         }
 
@@ -71,6 +74,8 @@
             {
                 _isFirstConnect = false;
                 await _discordAccess.LogToDiscord($"Bot started on **{_botInformationProvider.GetEnvironmentName()}** in version {_botInformationProvider.GetFormatedVersion()}.");
+                // Start privacy provider clean up
+                _privacyProvider.Start();
             }
 
             _logger.LogInformation("Bot ready.");

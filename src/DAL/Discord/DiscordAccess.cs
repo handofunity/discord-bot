@@ -35,6 +35,7 @@
         private readonly ICommandRegistry _commandRegistry;
         private readonly IGuildUserRegistry _guildUserUserRegistry;
         private readonly IMessageProvider _messageProvider;
+        private readonly IPrivacyProvider _privacyProvider;
         private readonly DiscordSocketClient _client;
         private readonly CommandService _commands;
         private readonly Queue<string> _pendingMessages;
@@ -67,7 +68,8 @@
                              IIgnoreGuard ignoreGuard,
                              ICommandRegistry commandRegistry,
                              IGuildUserRegistry guildUserUserRegistry,
-                             IMessageProvider messageProvider)
+                             IMessageProvider messageProvider,
+                             IPrivacyProvider privacyProvider)
         {
             _logger = logger;
             _appSettings = appSettings;
@@ -77,6 +79,7 @@
             _commandRegistry = commandRegistry;
             _guildUserUserRegistry = guildUserUserRegistry;
             _messageProvider = messageProvider;
+            _privacyProvider = privacyProvider;
             _guildUserUserRegistry.DiscordAccess = this;
             _commands = new CommandService();
             _client = new DiscordSocketClient();
@@ -438,6 +441,8 @@
             return gu.Status != UserStatus.Offline;
         }
 
+        Dictionary<ulong, string> IDiscordAccess.GetUserNames(IEnumerable<ulong> userIDs) => userIDs.Select(GetGuildUserById).ToDictionary(gu => gu.Id, gu => gu.Username);
+
         #endregion
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -507,6 +512,7 @@
                 return Task.CompletedTask;
 
             _guildUserUserRegistry.RemoveGuildUser(guildUser.Id);
+            Task.Run(() => _privacyProvider.DeleteUserRelatedData(guildUser.Id)).ConfigureAwait(false);
 
             return Task.CompletedTask;
         }

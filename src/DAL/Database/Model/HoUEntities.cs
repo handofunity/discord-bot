@@ -5,6 +5,7 @@ namespace HoU.GuildBot.DAL.Database.Model
     public partial class HoUEntities : DbContext
     {
         public virtual DbSet<User> User { get; set; }
+        public virtual DbSet<Vacation> Vacation { get; set; }
         public virtual DbSet<Message> Message { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -34,6 +35,13 @@ namespace HoU.GuildBot.DAL.Database.Model
                       .IsUnique();
 
                 entity.Property(m => m.UserID).ValueGeneratedOnAdd();
+            });
+            modelBuilder.Entity<Vacation>(entity =>
+            {
+                entity.HasOne(m => m.User)
+                      .WithMany(m => m.Vacations);
+
+                entity.Property(m => m.VacationID).ValueGeneratedOnAdd();
             });
         }
     }

@@ -39,6 +39,12 @@
 
         private HoUEntities GetEntities() => new HoUEntities(_appSettings.ConnectionString);
 
+        private async Task<int?> GetInternalUserId(HoUEntities entities, ulong discordUserId)
+        {
+            var user = await entities.User.SingleOrDefaultAsync(m => m.DiscordUserID == discordUserId).ConfigureAwait(false);
+            return user?.UserID;
+        }
+
         #endregion
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -54,7 +60,7 @@
                 if (!missingUserIDs.Any())
                     return;
 
-                _logger.LogInformation("Adding missing users to database...");
+                _logger.LogInformation($"Adding {missingUserIDs.Length} missing users to the database...");
                 var added = 0;
                 foreach (var missingUserID in missingUserIDs)
                 {
@@ -119,6 +125,130 @@
                 match.Content = content;
                 await entities.SaveChangesAsync().ConfigureAwait(false);
                 return true;
+            }
+        }
+
+        async Task<bool> IDatabaseAccess.AddVacation(ulong userID, DateTime start, DateTime end, string note)
+        {
+            using (var entities = GetEntities())
+            {
+                var internalUserId = await GetInternalUserId(entities, userID).ConfigureAwait(false);
+                if (internalUserId == null)
+                    return false;
+
+                // Check if colliding entry exists
+                var collisions = await entities.Vacation
+                                               .AnyAsync(m => m.UserID == internalUserId
+                                                           && end >= m.Start
+                                                           && start <= m.End)
+                                               .ConfigureAwait(false);
+                if (collisions)
+                    return false;
+
+                // If no colliding entry exists, we can add the entry
+                entities.Vacation.Add(new Vacation
+                {
+                    UserID = (int)internalUserId,
+                    Start = start,
+                    End = end,
+                    Note = string.IsNullOrWhiteSpace(note) ? null : note.Substring(0, Math.Min(note.Length, 1024))
+                });
+                await entities.SaveChangesAsync().ConfigureAwait(false);
+                return true;
+            }
+        }
+
+        async Task<bool> IDatabaseAccess.DeleteVacation(ulong userID, DateTime start, DateTime end)
+        {
+            using (var entities = GetEntities())
+            {
+                var internalUserId = await GetInternalUserId(entities, userID).ConfigureAwait(false);
+                if (internalUserId == null)
+                    return false;
+
+                // Find the maching vacation
+                var match = await entities.Vacation
+                                          .SingleOrDefaultAsync(m => m.UserID == internalUserId
+                                                                  && m.Start == start
+                                                                  && m.End == end)
+                                          .ConfigureAwait(false);
+                if (match == null)
+                    return false;
+
+                entities.Vacation.Remove(match);
+                await entities.SaveChangesAsync().ConfigureAwait(false);
+                return true;
+            }
+        }
+
+        async Task IDatabaseAccess.DeletePastVacations()
+        {
+            using (var entities = GetEntities())
+            {
+                // Get past vacations - we don't need to keep those in the database
+                var pastVacations = await entities.Vacation.Where(m => m.End < DateTime.Today).ToArrayAsync().ConfigureAwait(false);
+                if (!pastVacations.Any())
+                    return;
+                // If any vacations in the past are still in the database, delete them
+                entities.Vacation.RemoveRange(pastVacations);
+                await entities.SaveChangesAsync().ConfigureAwait(false);
+            }
+        }
+
+        async Task IDatabaseAccess.DeleteVacations(ulong userID)
+        {
+            using (var entities = GetEntities())
+            {
+                var internalUserId = await GetInternalUserId(entities, userID).ConfigureAwait(false);
+                if (internalUserId == null)
+                    return; // Cannot delete anything if we cannot find the user in the database
+                var vacations = await entities.Vacation.Where(m => m.UserID == internalUserId).ToArrayAsync().ConfigureAwait(false);
+                if (!vacations.Any())
+                    return;
+                // If the user has any vacations in the database, delete them
+                entities.Vacation.RemoveRange(vacations);
+                await entities.SaveChangesAsync().ConfigureAwait(false);
+            }
+        }
+
+        async Task<(ulong UserID, DateTime Start, DateTime End, string Note)[]> IDatabaseAccess.GetVacations()
+        {
+            using (var entities = GetEntities())
+            {
+                var localItems = await entities.Vacation
+                                               .Where(m => m.End >= DateTime.Today)
+                                               .Join(entities.User, vacation => vacation.UserID, user => user.UserID, (vacation, user) => new {user.DiscordUserID, vacation.Start, vacation.End, vacation.Note})
+                                               .ToArrayAsync()
+                                               .ConfigureAwait(false);
+                return localItems.Select(m => ((ulong)m.DiscordUserID, m.Start, m.End, m.Note)).ToArray();
+            }
+        }
+
+        async Task<(ulong UserID, DateTime Start, DateTime End, string Note)[]> IDatabaseAccess.GetVacations(ulong userID)
+        {
+            using (var entities = GetEntities())
+            {
+                var localItems = await entities.Vacation
+                                               .Where(m => m.End >= DateTime.Today)
+                                               .Join(entities.User, vacation => vacation.UserID, user => user.UserID, (vacation, user) => new { user.DiscordUserID, vacation.Start, vacation.End, vacation.Note })
+                                               .Where(m => m.DiscordUserID == userID)
+                                               .ToArrayAsync()
+                                               .ConfigureAwait(false);
+                return localItems.Select(m => ((ulong)m.DiscordUserID, m.Start, m.End, m.Note)).ToArray();
+            }
+        }
+
+        async Task<(ulong UserID, DateTime Start, DateTime End, string Note)[]> IDatabaseAccess.GetVacations(DateTime date)
+        {
+            using (var entities = GetEntities())
+            {
+                var localItems = await entities.Vacation
+                                               .Where(m => date >= m.Start
+                                                        && date <= m.End)
+                                               .Join(entities.User, vacation => vacation.UserID, user => user.UserID, (vacation, user) => new { user.DiscordUserID, vacation.Start, vacation.End, vacation.Note })
+                                               .ToArrayAsync()
+                                               .ConfigureAwait(false);
+                return localItems.Select(m => ((ulong)m.DiscordUserID, m.Start, m.End, m.Note)).ToArray();
             }
         }
 

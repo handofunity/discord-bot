@@ -1,5 +1,6 @@
 ﻿namespace HoU.GuildBot.Shared.DAL
 {
+    using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
 
@@ -41,5 +42,57 @@
         /// <param name="content">The new content of the message.</param>
         /// <returns><b>true</b>, if the <paramref name="name"/> exists, otherwise <b>false</b>.</returns>
         Task<bool> SetMessageContent(string name, string content);
+
+        /// <summary>
+        /// Adds a vacation duration for a specific <paramref name="userID"/>, if the vacation is not colliding with another vacation of the same user.
+        /// </summary>
+        /// <param name="userID">The users ID.</param>
+        /// <param name="start">The start date of the vacation.</param>
+        /// <param name="end">The end date of the vacation.</param>
+        /// <param name="note">An optional note for the vacation.</param>
+        /// <returns><b>True</b>, if the vacation could be added without any collisions, otherwise <b>false</b>.</returns>
+        Task<bool> AddVacation(ulong userID, DateTime start, DateTime end, string note);
+
+        /// <summary>
+        /// Deletes a matching vacation for the <paramref name="userID"/>, <paramref name="start"/> and <paramref name="end"/>.
+        /// </summary>
+        /// <param name="userID">The users ID.</param>
+        /// <param name="start">The start date of the vacation.</param>
+        /// <param name="end">The end date of the vacation.</param>
+        /// <returns><b>True</b>, if a matching vacation was found and deleted, otherwise <b>false</b>.</returns>
+        Task<bool> DeleteVacation(ulong userID, DateTime start, DateTime end);
+        
+        /// <summary>
+        /// Deletes all vacations that are in the past.
+        /// </summary>
+        /// <returns>An awaitable <see cref="Task"/>.</returns>
+        Task DeletePastVacations();
+
+        /// <summary>
+        /// Deletes all vacations having a relation with the <paramref name="userID"/>.
+        /// </summary>
+        /// <param name="userID">The ID of the user.</param>
+        /// <returns>An awaitable <see cref="Task"/>.</returns>
+        Task DeleteVacations(ulong userID);
+
+        /// <summary>
+        /// Gets all upcoming vacations.
+        /// </summary>
+        /// <returns>An array of tupples, containing the user ID, the vacation start and end, as well as an optional note.</returns>
+        Task<(ulong UserID, DateTime Start, DateTime End, string Note)[]> GetVacations();
+
+        /// <summary>
+        /// Gets all vacations for a specific <paramref name="userID"/>.
+        /// </summary>
+        /// <param name="userID">The ID of the user to get the vacations for.</param>
+        /// <returns>An array of tupples, containing the user ID, the vacation start and end, as well as an optional note.</returns>
+        Task<(ulong UserID, DateTime Start, DateTime End, string Note)[]> GetVacations(ulong userID);
+
+        /// <summary>
+        /// Gets all vacations for a specific <paramref name="date"/>.
+        /// </summary>
+        /// <param name="date">The date to get the vacations for.</param>
+        /// <returns>An array of tupples, containing the user ID, the vacation start and end, as well as an optional note.</returns>
+        Task<(ulong UserID, DateTime Start, DateTime End, string Note)[]> GetVacations(DateTime date);
     }
 }

@@ -1,6 +1,7 @@
 ﻿namespace HoU.GuildBot.Shared.DAL
 {
     using System;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
     using Enums;
 
@@ -52,5 +53,12 @@
         /// <param name="userID">The ID of the user to check.</param>
         /// <returns><b>True</b>, if the user is online, otherwise <b>false</b>.</returns>
         bool IsUserOnline(ulong userID);
+
+        /// <summary>
+        /// Gets the user names for the given <paramref name="userIDs"/>.
+        /// </summary>
+        /// <param name="userIDs">The user IDs to get the names for.</param>
+        /// <returns>A mapping from a userID to a display name.</returns>
+        Dictionary<ulong, string> GetUserNames(IEnumerable<ulong> userIDs);
     }
 }
