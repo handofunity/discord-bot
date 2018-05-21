@@ -23,9 +23,8 @@
     <SqlServerVerification>False</SqlServerVerification>
     <IncludeCompositeObjects>True</IncludeCompositeObjects>
     <TargetDatabaseSet>True</TargetDatabaseSet>
-    <DacVersion>0.2.0</DacVersion>
-    <DacDescription>Added schema [config]
-Added table [config].[Message]</DacDescription>
+    <DacVersion>0.3.0</DacVersion>
+    <DacDescription>Added table [hou].[Vacation]</DacDescription>
     <DefaultCollation>Latin1_General_CI_AS</DefaultCollation>
     <Recovery>SIMPLE</Recovery>
     <TargetFrameworkProfile />
