@@ -32,6 +32,10 @@
 
         async Task<(bool Success, string Response, string LogMessage)> IGameRoleProvider.SetGameRole((ulong UserID, string Mention) user, Game game, string className)
         {
+            var canChangeRole = _discordAccess.CanManageRolesForUser(user.UserID);
+            if (!canChangeRole)
+                return (false, $"{user.Mention}: The bot is not allowed to change your role.", null);
+
             var gameRoles = _discordAccess.GetClassNamesForGame(game);
             if (gameRoles.All(m => m != className))
                 return (false, $"Class name '{className}' is not valid for {game}.", null);

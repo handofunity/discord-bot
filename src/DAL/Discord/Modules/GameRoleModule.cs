@@ -4,12 +4,14 @@
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
     using global::Discord.Commands;
+    using JetBrains.Annotations;
     using Preconditions;
     using Shared.Attributes;
     using Shared.BLL;
     using Shared.DAL;
     using Shared.Enums;
 
+    [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
     public class GameRoleModule : ModuleBaseHoU
     {
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -43,7 +45,7 @@
         [Alias("setgamerole")]
         [RequireContext(ContextType.DM |ContextType.Guild)]
         [ResponseContext(ResponseType.AlwaysSameChannel)]
-        [RolePrecondition(Role.Recruit | Role.Member)]
+        [RolePrecondition(Role.AnyGuildMember)]
         public async Task SetGameRoleAsync([Remainder] string messageContent)
         {
             var regex = new Regex("^(?<game>\\w+) +(?<className>\\w+)$");

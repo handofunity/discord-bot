@@ -4,7 +4,6 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
-    using System.Text.RegularExpressions;
     using System.Threading.Tasks;
     using global::Discord;
     using global::Discord.Commands;
@@ -465,6 +464,13 @@
             var role = GetRoleByName($"{className} ({game})");
             var gu = GetGuildUserById(userID);
             await gu.AddRoleAsync(role).ConfigureAwait(false);
+        }
+
+        bool IDiscordAccess.CanManageRolesForUser(ulong userID)
+        {
+            var gu = GetGuildUserById(userID);
+            var botUser = GetGuildUserById(_client.CurrentUser.Id);
+            return botUser.Roles.Max(m => m.Position) > gu.Roles.Max(m => m.Position);
         }
 
         #endregion

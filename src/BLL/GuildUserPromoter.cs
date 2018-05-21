@@ -37,22 +37,18 @@
         async Task<GuildMemberPromotionResult> IGuildUserPromoter.TryPromote((ulong UserId, string Mention) promoter,
                                                                              (ulong UserId, string Mention) toBePromoted)
         {
-            var promoterRoles = _guildUserRegistry.GetGuildUserRoles(promoter.UserId);
+            var canChangeRole = _discordAccess.CanManageRolesForUser(toBePromoted.UserId);
+            if (!canChangeRole)
+                return new GuildMemberPromotionResult($"{promoter.Mention}:The bot is not allowed to change the role for {toBePromoted.Mention}.");
+
             var toBePromotedRoles = _guildUserRegistry.GetGuildUserRoles(toBePromoted.UserId);
 
             // Check if the person to be promoted can be promoted by the promoter
-            if (promoterRoles.HasFlag(Role.Leader) && toBePromotedRoles.HasFlag(Role.Leader))
-                return new GuildMemberPromotionResult($"{promoter.Mention}: A **{Role.Leader}** cannot promote a **{Role.Leader}**.");
-            if (promoterRoles.HasFlag(Role.SeniorOfficer) && toBePromotedRoles.HasFlag(Role.SeniorOfficer))
-                return new GuildMemberPromotionResult($"{promoter.Mention}: A **Senior Officer** cannot promote a **Senior Officer**.");
-            if (promoterRoles.HasFlag(Role.SeniorOfficer) && toBePromotedRoles.HasFlag(Role.Leader))
-                return new GuildMemberPromotionResult($"{promoter.Mention}: A **Senior Officer** cannot promote a **{Role.Leader}**.");
-            if (promoterRoles.HasFlag(Role.Leader) && toBePromotedRoles.HasFlag(Role.SeniorOfficer))
-                return new GuildMemberPromotionResult($"{promoter.Mention}: A **{Role.Leader}** cannot promote a **Senior Officer** any further with this command.");
-            if (promoterRoles.HasFlag(Role.Leader) && toBePromotedRoles.HasFlag(Role.Member))
-                return new GuildMemberPromotionResult($"{promoter.Mention}: A **{Role.Leader}** cannot promote a **{Role.Member}** any further with this command.");
-            if (promoterRoles.HasFlag(Role.SeniorOfficer) && toBePromotedRoles.HasFlag(Role.Member))
-                return new GuildMemberPromotionResult($"{promoter.Mention}: A **Senior Officer** cannot promote a **{Role.Member}** any further with this command.");
+            if (toBePromotedRoles.HasFlag(Role.Leader)
+             || toBePromotedRoles.HasFlag(Role.SeniorOfficer)
+             || toBePromotedRoles.HasFlag(Role.Officer)
+             || toBePromotedRoles.HasFlag(Role.Member))
+                return new GuildMemberPromotionResult($"{promoter.Mention}: This person cannot be promoted any further with this command.");
 
             // If the promotion is possible, calculate the new role and the role to remove
             var oldRole = Role.NoRole;

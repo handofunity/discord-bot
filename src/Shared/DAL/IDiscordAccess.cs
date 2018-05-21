@@ -85,5 +85,12 @@
         /// <param name="className">The <paramref name="game"/> related class name.</param>
         /// <returns>An awaitable <see cref="Task"/>.</returns>
         Task SetCurrentGameRole(ulong userID, Game game, string className);
+
+        /// <summary>
+        /// Checks if the bot can manage roles for a specific <paramref name="userID"/>, depending on the guilds role configuration.
+        /// </summary>
+        /// <param name="userID">The ID of the user to change roles for.</param>
+        /// <returns><b>True</b>, if the bot can manage roles for the user, otherwise <b>false</b>.</returns>
+        bool CanManageRolesForUser(ulong userID);
     }
 }
