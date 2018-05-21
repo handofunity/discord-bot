@@ -60,5 +60,30 @@
         /// <param name="userIDs">The user IDs to get the names for.</param>
         /// <returns>A mapping from a userID to a display name.</returns>
         Dictionary<ulong, string> GetUserNames(IEnumerable<ulong> userIDs);
+
+        /// <summary>
+        /// Gets an array of class names available in a <paramref name="game"/>.
+        /// </summary>
+        /// <param name="game">The game to get the class names for.</param>
+        /// <exception cref="ArgumentException"><paramref name="game"/> equals <see cref="Game.Undefined"/>.</exception>
+        /// <returns>The classed.</returns>
+        string[] GetClassNamesForGame(Game game);
+
+        /// <summary>
+        /// Revokes all current roles related with the <paramref name="userID"/> for the given <paramref name="game"/>.
+        /// </summary>
+        /// <param name="userID">The user ID.</param>
+        /// <param name="game">The game.</param>
+        /// <returns>An awaitable <see cref="Task"/>.</returns>
+        Task RevokeCurrentGameRoles(ulong userID, Game game);
+
+        /// <summary>
+        /// Sets the current role related with the <paramref name="userID"/> for the given <paramref name="game"/> to a specific <paramref name="className"/>.
+        /// </summary>
+        /// <param name="userID">The user ID.</param>
+        /// <param name="game">The game.</param>
+        /// <param name="className">The <paramref name="game"/> related class name.</param>
+        /// <returns>An awaitable <see cref="Task"/>.</returns>
+        Task SetCurrentGameRole(ulong userID, Game game, string className);
     }
 }

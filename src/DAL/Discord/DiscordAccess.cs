@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
+    using System.Text.RegularExpressions;
     using System.Threading.Tasks;
     using global::Discord;
     using global::Discord.Commands;
@@ -442,6 +443,29 @@
         }
 
         Dictionary<ulong, string> IDiscordAccess.GetUserNames(IEnumerable<ulong> userIDs) => userIDs.Select(GetGuildUserById).ToDictionary(gu => gu.Id, gu => gu.Username);
+
+        string[] IDiscordAccess.GetClassNamesForGame(Shared.Enums.Game game)
+        {
+            if (game == Shared.Enums.Game.Undefined)
+                throw new ArgumentException(nameof(game));
+
+            var g = GetGuild();
+            return g.Roles.Where(m => m.Name.Contains($" ({game})")).Select(m => m.Name.Split(' ')[0]).ToArray();
+        }
+
+        async Task IDiscordAccess.RevokeCurrentGameRoles(ulong userID, Shared.Enums.Game game)
+        {
+            var gu = GetGuildUserById(userID);
+            var gameRelatedRoles = gu.Roles.Where(m => m.Name.Contains($" ({game})"));
+            await gu.RemoveRolesAsync(gameRelatedRoles).ConfigureAwait(false);
+        }
+
+        async Task IDiscordAccess.SetCurrentGameRole(ulong userID, Shared.Enums.Game game, string className)
+        {
+            var role = GetRoleByName($"{className} ({game})");
+            var gu = GetGuildUserById(userID);
+            await gu.AddRoleAsync(role).ConfigureAwait(false);
+        }
 
         #endregion
 
