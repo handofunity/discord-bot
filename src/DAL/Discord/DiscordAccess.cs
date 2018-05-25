@@ -348,7 +348,9 @@
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region IDiscordAccess Members
 
-        async Task IDiscordAccess.Connect(Func<Task> connectedHandler)
+        bool IDiscordAccess.IsConnected => _client.ConnectionState == ConnectionState.Connected;
+
+        async Task IDiscordAccess.Connect(Func<Task> connectedHandler, Func<Task> disconnectedHandler)
         {
             Func<Task> ClientConnected()
             {
@@ -367,10 +369,10 @@
 
             Func<Exception, Task> ClientDisconnected()
             {
-                return exception =>
+                return async exception =>
                 {
                     _client.MessageReceived -= Client_MessageReceived;
-                    return Task.CompletedTask;
+                    await disconnectedHandler().ConfigureAwait(false);
                 };
             }
 

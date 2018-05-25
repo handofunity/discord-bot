@@ -1,5 +1,6 @@
 ﻿namespace HoU.GuildBot.BLL
 {
+    using System;
     using System.Threading.Tasks;
     using JetBrains.Annotations;
     using Microsoft.Extensions.Logging;
@@ -42,7 +43,7 @@
 
         private async Task Connect()
         {
-            await _discordAccess.Connect(ConnectedHandler).ConfigureAwait(false);
+            await _discordAccess.Connect(ConnectedHandler, DisconnectedHandler).ConfigureAwait(false);
         }
 
         #endregion
@@ -79,6 +80,22 @@
             }
 
             _logger.LogInformation("Bot ready.");
+        }
+
+        private async Task DisconnectedHandler()
+        {
+            // The Discord connection might get lost, but should reconnect automatically.
+            // In rare cases, the reconnect doesn't work and the bot will just idle.
+            // Therefore, after a disconnect, we grant the connection 30 seconds to recover.
+            await Task.Delay(TimeSpan.FromSeconds(30)).ConfigureAwait(false);
+            if (_discordAccess.IsConnected)
+                return;
+            // If it doesn't recover during this period of time, we'll kill the process.
+            _logger.LogWarning("Failed to recover connection to Discord. Killing the process.");
+            // Give the logger some time to log the message
+            await Task.Delay(TimeSpan.FromSeconds(5)).ConfigureAwait(false);
+            // Finally kill the process to start over
+            Environment.Exit(1);
         }
 
         #endregion
