@@ -41,7 +41,7 @@
         public async Task GuildMembersAsync()
         {
             var data = _guildUserRegistry.GetGuildMembers();
-            var embed = BuildEmbedFromData(data);
+            var embed = data.ToEmbed();
             await ReplyAsync(string.Empty, false, embed).ConfigureAwait(false);
         }
 

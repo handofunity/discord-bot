@@ -116,7 +116,7 @@
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region IHelpProvider Members
 
-        (string Message, EmbedData Embed) IHelpProvider.GetHelp(ulong userId, string helpRequest)
+        (string Message, EmbedData EmbedData) IHelpProvider.GetHelp(ulong userId, string helpRequest)
         {
             return helpRequest == null
                        ? ListAvailableCommands(userId)

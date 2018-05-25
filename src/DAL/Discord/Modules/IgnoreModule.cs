@@ -42,7 +42,7 @@
         public async Task IgnoreMeAsync([Remainder] string remainder)
         {
             var result = _ignoreGuard.TryAddToIgnoreList(Context.User.Id, Context.User.Username, remainder);
-            var embed = BuildEmbedFromData(result);
+            var embed = result.ToEmbed();
             await ReplyPrivateAsync(string.Empty, embed).ConfigureAwait(false);
         }
 
@@ -59,7 +59,7 @@
             var result = _ignoreGuard.TryRemoveFromIgnoreList(Context.User.Id, Context.User.Username);
             if (result != null)
             {
-                var embed = BuildEmbedFromData(result);
+                var embed = result.ToEmbed();
                 await ReplyPrivateAsync(string.Empty, embed).ConfigureAwait(false);
             }
         }

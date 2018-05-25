@@ -42,7 +42,7 @@
         public async Task HelpAsync([Remainder] string helpRequest = null)
         {
             var data = _helpProvider.GetHelp(Context.User.Id, helpRequest);
-            var embed = BuildEmbedFromData(data.Embed);
+            var embed = data.EmbedData.ToEmbed();
             await ReplyPrivateAsync(data.Message, embed).ConfigureAwait(false);
         }
 

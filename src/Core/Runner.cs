@@ -64,7 +64,6 @@
                 .AddSingleton<IIgnoreGuard, IgnoreGuard>()
                 .AddSingleton<ICommandRegistry, CommandRegistry>()
                 .AddSingleton<IGuildUserRegistry, GuildUserRegistry>()
-                .AddSingleton<IGuildUserPromoter, GuildUserPromoter>()
                 .AddSingleton<IBotInformationProvider>(botInformationProvider)
                 .AddSingleton<IHelpProvider, HelpProvider>()
                 .AddSingleton<IMessageProvider, MessageProvider>()

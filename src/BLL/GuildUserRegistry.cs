@@ -4,6 +4,7 @@
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Text;
     using System.Threading.Tasks;
     using JetBrains.Annotations;
     using Microsoft.Extensions.Logging;
@@ -90,9 +91,39 @@
             RemoveGuildUser(userId);
         }
 
-        void IGuildUserRegistry.UpdateGuildUser(ulong userId, Role roles)
+        GuildMemberUpdatedResult IGuildUserRegistry.UpdateGuildUser(ulong userId, string mention, Role oldRoles, Role newRoles)
         {
-            _guildUserRoles.AddOrUpdate(userId, uid => roles, (uid, oldRoles) => roles);
+            _guildUserRoles.AddOrUpdate(userId, uid => newRoles, (uid, currentRegisteredRoles) => newRoles);
+
+            // Check if the role change was a promotion
+            Role promotedTo;
+            if (!oldRoles.HasFlag(Role.Recruit)
+             && !oldRoles.HasFlag(Role.Member) // Demotion from Member to Recruit should never happen, but just in case
+             && newRoles.HasFlag(Role.Recruit))
+            {
+                promotedTo = Role.Recruit;
+            }
+            else if (!oldRoles.HasFlag(Role.Member)
+                  && newRoles.HasFlag(Role.Member))
+            {
+                promotedTo = Role.Member;
+            }
+            else
+            {
+                return new GuildMemberUpdatedResult();
+            }
+
+            // Return result for announcement and logging the promotion
+            var description = $"Congratulations {mention}, you've been promoted to the rank **{promotedTo}**.";
+            if (promotedTo == Role.Recruit)
+                description += " Welcome aboard!";
+            var a = new EmbedData
+            {
+                Title = "Promotion",
+                Color = Colors.BrightBlue,
+                Description = description
+            };
+            return new GuildMemberUpdatedResult(a, $"{mention} has been promoted to **{promotedTo}**.");
         }
 
         Role IGuildUserRegistry.GetGuildUserRoles(ulong userId)

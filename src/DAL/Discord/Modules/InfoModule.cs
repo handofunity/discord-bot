@@ -41,7 +41,7 @@
         public async Task InfoAsync()
         {
             var data = _botInformationProvider.GetData();
-            var embed = BuildEmbedFromData(data);
+            var embed = data.ToEmbed();
             await ReplyAsync(string.Empty, false, embed).ConfigureAwait(false);
         }
 

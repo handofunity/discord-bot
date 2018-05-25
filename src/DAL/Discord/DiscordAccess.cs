@@ -421,22 +421,6 @@
             await LogToDiscordInternal(message).ConfigureAwait(false);
         }
 
-        async Task IDiscordAccess.AssignRole(ulong userId, Role role)
-        {
-            var gu = GetGuildUserById(userId);
-            var r = GetRoleByName(role.ToString());
-            await gu.AddRoleAsync(r).ConfigureAwait(false);
-            await LogToDiscordInternal($"Assigned role '{role}' to {gu.Username}.").ConfigureAwait(false);
-        }
-
-        async Task IDiscordAccess.RevokeRole(ulong userId, Role role)
-        {
-            var gu = GetGuildUserById(userId);
-            var r = GetRoleByName(role.ToString());
-            await gu.RemoveRoleAsync(r).ConfigureAwait(false);
-            await LogToDiscordInternal($"Revoked role '{role}' from {gu.Username}.").ConfigureAwait(false);
-        }
-
         bool IDiscordAccess.IsUserOnline(ulong userID)
         {
             var gu = GetGuildUserById(userID);
@@ -549,18 +533,26 @@
             return Task.CompletedTask;
         }
 
-        private Task Client_GuildMemberUpdated(SocketGuildUser oldGuildUser, SocketGuildUser newGuildUser)
+        private async Task Client_GuildMemberUpdated(SocketGuildUser oldGuildUser, SocketGuildUser newGuildUser)
         {
             if (oldGuildUser.Guild.Id != _appSettings.HandOfUnityGuildId)
-                return Task.CompletedTask;
+                return;
             if (newGuildUser.Guild.Id != _appSettings.HandOfUnityGuildId)
-                return Task.CompletedTask;
+                return;
             if (oldGuildUser.Id != newGuildUser.Id)
-                return Task.CompletedTask;
+                return;
 
-            _guildUserUserRegistry.UpdateGuildUser(newGuildUser.Id, SocketRoleToRole(newGuildUser.Roles));
+            var result = _guildUserUserRegistry.UpdateGuildUser(newGuildUser.Id, newGuildUser.Mention, SocketRoleToRole(oldGuildUser.Roles), SocketRoleToRole(newGuildUser.Roles));
+            if (result.IsPromotion)
+            {
+                // Log promotion
+                await LogToDiscordInternal(result.LogMessage).ConfigureAwait(false);
 
-            return Task.CompletedTask;
+                // Announce promotion
+                var g = GetGuild().GetTextChannel(_appSettings.PromotionAnnouncementChannelId);
+                var embed = result.AnnouncementData.ToEmbed();
+                await g.SendMessageAsync(string.Empty, false, embed).ConfigureAwait(false);
+            }
         }
 
         private async Task Client_MessageReceived(SocketMessage message)

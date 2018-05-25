@@ -4,6 +4,6 @@
 
     public interface IHelpProvider
     {
-        (string Message, EmbedData Embed) GetHelp(ulong userId, string helpRequest);
+        (string Message, EmbedData EmbedData) GetHelp(ulong userId, string helpRequest);
     }
 }

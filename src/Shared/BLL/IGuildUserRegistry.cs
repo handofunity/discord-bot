@@ -45,8 +45,11 @@
         /// Updates a user in the registry.
         /// </summary>
         /// <param name="userId">The ID of the user to update.</param>
-        /// <param name="roles">The updated roles.</param>
-        void UpdateGuildUser(ulong userId, Role roles);
+        /// <param name="mention">The mention related to the <paramref name="userId"/>.</param>
+        /// <param name="oldRoles">The previous roles.</param>
+        /// <param name="newRoles">The updated roles.</param>
+        /// <returns>A <see cref="GuildMemberUpdatedResult"/>.</returns>
+        GuildMemberUpdatedResult UpdateGuildUser(ulong userId, string mention, Role oldRoles, Role newRoles);
 
         /// <summary>
         /// Gets all roles for a given <paramref name="userId"/>.

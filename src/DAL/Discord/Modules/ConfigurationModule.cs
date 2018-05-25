@@ -51,7 +51,7 @@
         public async Task ListAllMessagesAsync()
         {
             var data = await _messageProvider.ListAllMessages().ConfigureAwait(false);
-            var embed = BuildEmbedFromData(data);
+            var embed = data.ToEmbed();
             await ReplyAsync(string.Empty, false, embed).ConfigureAwait(false);
         }
 
