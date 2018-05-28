@@ -16,12 +16,12 @@
             Runner = new Runner();
         }
 
-        public static void Main(string[] args)
+        public static void Main()
         {
             try
             {
                 Task.Run(() => Startup.EnvironmentConfigured += Startup_EnvironmentConfigured);
-                var host = BuildWebHost(args);
+                var host = BuildWebHost();
                 host.WaitForShutdown();
             }
             catch (Exception e)
@@ -31,8 +31,8 @@
             Runner.NotifyShutdown("no reason specified");
         }
 
-        private static IWebHost BuildWebHost(string[] args) =>
-            WebHost.CreateDefaultBuilder(args)
+        private static IWebHost BuildWebHost() =>
+            WebHost.CreateDefaultBuilder()
                    .UseKestrel()
                    .UseContentRoot(Directory.GetCurrentDirectory())
                    .UseIISIntegration()

@@ -354,16 +354,22 @@
         {
             Func<Task> ClientConnected()
             {
-                return async () =>
+                return () =>
                 {
-                    if (!_commandRegistry.CommandsRegistered)
+#pragma warning disable CS4014 // Fire & Forget
+                    Task.Run(async () =>
                     {
-                        // Load modules and register commands only once
-                        await _commands.AddModulesAsync(typeof(DiscordAccess).Assembly).ConfigureAwait(false);
-                        RegisterCommands();
-                    }
-                    _client.MessageReceived += Client_MessageReceived;
-                    await connectedHandler().ConfigureAwait(false);
+                        if (!_commandRegistry.CommandsRegistered)
+                        {
+                            // Load modules and register commands only once
+                            await _commands.AddModulesAsync(typeof(DiscordAccess).Assembly).ConfigureAwait(false);
+                            RegisterCommands();
+                        }
+                        _client.MessageReceived += Client_MessageReceived;
+                        await connectedHandler().ConfigureAwait(false);
+                    });
+#pragma warning restore CS4014 // Fire & Forget
+                    return Task.CompletedTask;
                 };
             }
 

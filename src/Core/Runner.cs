@@ -2,20 +2,20 @@
 {
     using System;
     using System.IO;
-    using AWS.Logger.AspNetCore;
     using BLL;
     using DAL.Database;
     using DAL.Discord;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
+    using NLog.Extensions.Logging;
     using Shared.BLL;
     using Shared.DAL;
     using Shared.Objects;
 
     public class Runner
     {
-        private static readonly Version BotVersion = new Version(0, 8, 0);
+        private static readonly Version BotVersion = new Version(0, 9, 0);
 
         private ILogger<Runner> _logger;
 
@@ -89,16 +89,10 @@
                         builder.AddDebug();
                         break;
                     case "Production":
-                        builder.AddProvider(GetAwsProvider(configuration));
+                        builder.AddNLog();
                         break;
                 }
             });
-        }
-
-        private static ILoggerProvider GetAwsProvider(IConfiguration configuration)
-        {
-            return new AWSLoggerProvider(configuration.GetAWSLoggingConfigSection(),
-                (level, message, exception) => $"[{level}]: {exception ?? message}");
         }
     }
 }

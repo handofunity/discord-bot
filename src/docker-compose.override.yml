@@ -1,8 +1,8 @@
 version: '3.4'
 
 services:
-  webhost:
+  guildbot:
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=Production
     ports:
       - "80"

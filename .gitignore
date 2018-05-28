@@ -291,5 +291,5 @@ __pycache__/
 *.Development.json
 *.Production.json
 
-# AWS
-aws-ecs-tools-defaults.json
+# Logs
+logs/
