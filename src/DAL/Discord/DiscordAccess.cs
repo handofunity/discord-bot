@@ -356,7 +356,7 @@
             {
                 return () =>
                 {
-#pragma warning disable CS4014 // Fire & Forget
+                    // Fire & Forget
                     Task.Run(async () =>
                     {
                         if (!_commandRegistry.CommandsRegistered)
@@ -368,17 +368,23 @@
                         _client.MessageReceived += Client_MessageReceived;
                         await connectedHandler().ConfigureAwait(false);
                     });
-#pragma warning restore CS4014 // Fire & Forget
+                    // Return immediately
                     return Task.CompletedTask;
                 };
             }
 
             Func<Exception, Task> ClientDisconnected()
             {
-                return async exception =>
+                return exception =>
                 {
-                    _client.MessageReceived -= Client_MessageReceived;
-                    await disconnectedHandler().ConfigureAwait(false);
+                    // Fire & Forget
+                    Task.Run(async () =>
+                    {
+                        _client.MessageReceived -= Client_MessageReceived;
+                        await disconnectedHandler().ConfigureAwait(false);
+                    });
+                    // Return immediately
+                    return Task.CompletedTask;
                 };
             }
 
