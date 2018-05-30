@@ -4,5 +4,8 @@ services:
   guildbot:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
-    ports:
-      - "80"
+    volumes:
+      - type: volume
+        source: hou-guildbot-logs-volume
+        target: /app/logs
+    restart: unless-stopped
