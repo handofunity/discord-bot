@@ -6,9 +6,13 @@ $settings = Get-IniContent $absoluteSettingsPath
 $sourceImage = "$($settings['Image']['SourceName']):$($settings['Image']['SourceTag'])"
 $targetImage = "$($settings['Network']['RegistryHost']):$($settings['Network']['RegistryPort'])/$($settings['Image']['TargetName']):$($settings['Image']['TargetTag'])"
 # Docker tag
-Start-Process "docker" -ArgumentList "tag $($sourceImage) $($targetImage)" -Wait
+Start-Process "docker" -ArgumentList "tag $($sourceImage) $($targetImage)" -Wait -NoNewWindow
+# Docker login
+Start-Process "docker" -ArgumentList "login $($settings['Network']['RegistryHost']):$($settings['Network']['RegistryPort'])" -Wait
 # Docker push
 Start-Process "docker" -ArgumentList "push $($targetImage)" -Wait
+# Docker logout
+Start-Process "docker" -ArgumentList "logout $($settings['Network']['RegistryHost']):$($settings['Network']['RegistryPort'])" -Wait -NoNewWindow
 
 function Get-IniContent {
     [CmdletBinding()]  
