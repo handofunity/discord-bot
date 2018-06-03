@@ -17,6 +17,16 @@ Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-co
 EndProject
 Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "Database", "Database\Database.sqlproj", "{48626D11-DB3D-498B-8377-2B05574BADD4}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{7C5985D2-B635-446A-B88E-8861934FA5E8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Server", "Server", "{C2C85CDC-5841-41FE-BEBF-F69D3DC73004}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Client", "Client", "{0AA96E33-DA9B-4928-861E-856F59AEF913}"
+	ProjectSection(SolutionItems) = preProject
+		Tools\Client\settings.houguildbot.ini = Tools\Client\settings.houguildbot.ini
+		Tools\Client\settings.template.ini = Tools\Client\settings.template.ini
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -56,6 +66,10 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{C2C85CDC-5841-41FE-BEBF-F69D3DC73004} = {7C5985D2-B635-446A-B88E-8861934FA5E8}
+		{0AA96E33-DA9B-4928-861E-856F59AEF913} = {7C5985D2-B635-446A-B88E-8861934FA5E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C7630397-E143-4730-BFC2-10369461D941}

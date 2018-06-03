@@ -9,3 +9,7 @@ services:
         source: hou-guildbot-logs-volume
         target: /app/logs
     restart: unless-stopped
+
+volumes:
+  hou-guildbot-logs-volume:
+    external: true

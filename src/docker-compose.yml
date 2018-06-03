@@ -2,7 +2,7 @@ version: '3.4'
 
 services:
   guildbot:
-    image: houguildbot:0.9.0
+    image: houguildbot:latest
     build:
       context: .
       dockerfile: WebHost/Dockerfile
