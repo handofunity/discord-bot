@@ -21,9 +21,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{7C5985D2
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Server", "Server", "{C2C85CDC-5841-41FE-BEBF-F69D3DC73004}"
 	ProjectSection(SolutionItems) = preProject
+		Tools\Server\pull-houguildbot.sh = Tools\Server\pull-houguildbot.sh
+		Tools\Server\run-houguildbot.sh = Tools\Server\run-houguildbot.sh
 		Tools\Server\run-registry.sh = Tools\Server\run-registry.sh
 		Tools\Server\settings.registry.production.ini = Tools\Server\settings.registry.production.ini
 		Tools\Server\settings.registry.template.ini = Tools\Server\settings.registry.template.ini
+		Tools\Server\stop-houguildbot.sh = Tools\Server\stop-houguildbot.sh
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Client", "Client", "{0AA96E33-DA9B-4928-861E-856F59AEF913}"
