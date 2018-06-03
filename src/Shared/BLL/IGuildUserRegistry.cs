@@ -64,5 +64,11 @@
         /// <exception cref="InvalidOperationException"><see cref="DiscordAccess"/> is <b>null</b>.</exception>
         /// <returns>Data for all guild members.</returns>
         EmbedData GetGuildMembers();
+
+        /// <summary>
+        /// Gets an array of all current guild members user ids.
+        /// </summary>
+        /// <returns>An array of user IDs.</returns>
+        ulong[] GetGuildMemberUserIds();
     }
 }

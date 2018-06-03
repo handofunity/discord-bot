@@ -69,7 +69,8 @@
                 .AddSingleton<IMessageProvider, MessageProvider>()
                 .AddSingleton<IVacationProvider, VacationProvider>()
                 .AddSingleton<IPrivacyProvider, PrivacyProvider>()
-                .AddSingleton<IGameRoleProvider, GameRoleProvider>();
+                .AddSingleton<IGameRoleProvider, GameRoleProvider>()
+                .AddSingleton<IGuildUserInspector, GuildUserInspector>();
         }
 
         private static void RegisterDAL(IServiceCollection serviceCollection)

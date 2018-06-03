@@ -4,7 +4,6 @@
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Text;
     using System.Threading.Tasks;
     using JetBrains.Annotations;
     using Microsoft.Extensions.Logging;
@@ -41,6 +40,11 @@
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region Private Methods
+
+        private ulong[] GetGuildMembersUserIds()
+        {
+            return _guildUserRoles.Where(m => (Role.AnyGuildMember & m.Value) != Role.NoRole).Select(m => m.Key).ToArray();
+        }
 
         private void RemoveGuildUser(ulong userId)
         {
@@ -138,7 +142,7 @@
             if (_discordAccess == null)
                 throw new InvalidOperationException($"{nameof(IGuildUserRegistry.DiscordAccess)} must be set.");
 
-            var guildMembers = _guildUserRoles.Where(m => (Role.AnyGuildMember & m.Value) != Role.NoRole).Select(m => m.Key).ToArray();
+            var guildMembers = GetGuildMembersUserIds();
             var total = guildMembers.Length;
             var online = guildMembers.Count(guildMember => _discordAccess.IsUserOnline(guildMember));
 
@@ -153,6 +157,8 @@
                 }
             };
         }
+
+        ulong[] IGuildUserRegistry.GetGuildMemberUserIds() => GetGuildMembersUserIds();
 
         #endregion
     }

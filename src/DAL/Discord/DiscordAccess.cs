@@ -34,6 +34,7 @@
         private readonly IIgnoreGuard _ignoreGuard;
         private readonly ICommandRegistry _commandRegistry;
         private readonly IGuildUserRegistry _guildUserUserRegistry;
+        private readonly IGuildUserInspector _guildUserInspector;
         private readonly IMessageProvider _messageProvider;
         private readonly IPrivacyProvider _privacyProvider;
         private readonly DiscordSocketClient _client;
@@ -68,6 +69,7 @@
                              IIgnoreGuard ignoreGuard,
                              ICommandRegistry commandRegistry,
                              IGuildUserRegistry guildUserUserRegistry,
+                             IGuildUserInspector guildUserInspector,
                              IMessageProvider messageProvider,
                              IPrivacyProvider privacyProvider)
         {
@@ -78,9 +80,11 @@
             _ignoreGuard = ignoreGuard;
             _commandRegistry = commandRegistry;
             _guildUserUserRegistry = guildUserUserRegistry;
+            _guildUserInspector = guildUserInspector;
             _messageProvider = messageProvider;
             _privacyProvider = privacyProvider;
             _guildUserUserRegistry.DiscordAccess = this;
+            _guildUserInspector.DiscordAccess = this;
             _commands = new CommandService();
             _client = new DiscordSocketClient();
             _pendingMessages = new Queue<string>();
@@ -343,6 +347,21 @@
             }
         }
 
+        private async Task UpdateGuildUserRoles(ulong userID, string mention, Role oldRoles, Role newRoles)
+        {
+            var result = _guildUserUserRegistry.UpdateGuildUser(userID, mention, oldRoles, newRoles);
+            if (result.IsPromotion)
+            {
+                // Log promotion
+                await LogToDiscordInternal(result.LogMessage).ConfigureAwait(false);
+
+                // Announce promotion
+                var g = GetGuild().GetTextChannel(_appSettings.PromotionAnnouncementChannelId);
+                var embed = result.AnnouncementData.ToEmbed();
+                await g.SendMessageAsync(string.Empty, false, embed).ConfigureAwait(false);
+            }
+        }
+
         #endregion
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -545,26 +564,43 @@
             return Task.CompletedTask;
         }
 
-        private async Task Client_GuildMemberUpdated(SocketGuildUser oldGuildUser, SocketGuildUser newGuildUser)
+        private Task Client_GuildMemberUpdated(SocketGuildUser oldGuildUser, SocketGuildUser newGuildUser)
         {
             if (oldGuildUser.Guild.Id != _appSettings.HandOfUnityGuildId)
-                return;
+                return Task.CompletedTask;
             if (newGuildUser.Guild.Id != _appSettings.HandOfUnityGuildId)
-                return;
+                return Task.CompletedTask;
             if (oldGuildUser.Id != newGuildUser.Id)
-                return;
+                return Task.CompletedTask;
 
-            var result = _guildUserUserRegistry.UpdateGuildUser(newGuildUser.Id, newGuildUser.Mention, SocketRoleToRole(oldGuildUser.Roles), SocketRoleToRole(newGuildUser.Roles));
-            if (result.IsPromotion)
+            // Fire & Forget
+            Task.Run(async () =>
             {
-                // Log promotion
-                await LogToDiscordInternal(result.LogMessage).ConfigureAwait(false);
+                // Handle possible role change
+                var oldRoles = SocketRoleToRole(oldGuildUser.Roles);
+                var newRoles = SocketRoleToRole(newGuildUser.Roles);
+                if (oldRoles != newRoles)
+                {
+                    await UpdateGuildUserRoles(newGuildUser.Id, newGuildUser.Mention, oldRoles, newRoles).ConfigureAwait(false);
+                }
 
-                // Announce promotion
-                var g = GetGuild().GetTextChannel(_appSettings.PromotionAnnouncementChannelId);
-                var embed = result.AnnouncementData.ToEmbed();
-                await g.SendMessageAsync(string.Empty, false, embed).ConfigureAwait(false);
-            }
+                // Handle possible status change
+                if (oldGuildUser.Status != newGuildUser.Status)
+                {
+                    bool IsOnlineStatus(UserStatus status)
+                    {
+                        return status == UserStatus.Online
+                            || status == UserStatus.DoNotDisturb
+                            || status == UserStatus.AFK
+                            || status == UserStatus.Idle;
+                    }
+
+                    var wasOnline = IsOnlineStatus(oldGuildUser.Status);
+                    var isOnline = IsOnlineStatus(newGuildUser.Status);
+                    await _guildUserInspector.UpdateLastSeenInfo(newGuildUser.Id, wasOnline, isOnline).ConfigureAwait(false);
+                }
+            });
+            return Task.CompletedTask;
         }
 
         private async Task Client_MessageReceived(SocketMessage message)
