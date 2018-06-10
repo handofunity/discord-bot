@@ -67,7 +67,7 @@
             var vacationAdded = await _databaseAccess.AddVacation(userID, start, end, note?.Trim()).ConfigureAwait(false);
             return vacationAdded
                        ? "Vacation added successfully."
-                       : "Failed to add vacation. Vacation might collide with an existing vacation or the user ID couldn't be determined.";
+                       : "Failed to add vacation. Vacation collides with an existing vacation.";
         }
 
         async Task<string> IVacationProvider.DeleteVacation(ulong userID, DateTime start, DateTime end)
@@ -75,7 +75,7 @@
             var vacationDeleted = await _databaseAccess.DeleteVacation(userID, start, end).ConfigureAwait(false);
             return vacationDeleted
                        ? "Vacation deleted successfully."
-                       : "Failed to delete vacation. Matching vacation was not found or the user ID couldn't be determined.";
+                       : "Failed to delete vacation. Matching vacation was not found.";
         }
 
         async Task<string> IVacationProvider.GetVacations()

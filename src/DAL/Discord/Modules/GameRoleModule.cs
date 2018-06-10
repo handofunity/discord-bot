@@ -1,6 +1,6 @@
 ﻿namespace HoU.GuildBot.DAL.Discord.Modules
 {
-    using System;
+    using System.Linq;
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
     using global::Discord.Commands;
@@ -37,7 +37,7 @@
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region Commands
 
-        [Command("set game role")]
+        [Command("set game role", RunMode = RunMode.Async)]
         [Name("Set a game related role")]
         [Summary("Sets a game related role for the calling user.")]
         [Remarks("Syntax: _set game role GAME CLASS_ e.g.: _set game role AoC Ranger_\r\n" +
@@ -56,10 +56,11 @@
                 return;
             }
 
-            if (!Enum.TryParse(match.Groups["game"].Value, true, out Game game)
-             || game == Game.Undefined)
+            var v = match.Groups["game"].Value;
+            var game = _gameRoleProvider.Games.SingleOrDefault(m => m.ShortName == v || m.LongName == v);
+            if (game == null)
             {
-                await ReplyAsync("Couldn't parse game from message content.").ConfigureAwait(false);
+                await ReplyAsync($"{Context.User.Mention}: Couldn't find a matching game for '{v}'.").ConfigureAwait(false);
                 return;
             }
             var className = match.Groups["className"].Value;

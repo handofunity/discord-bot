@@ -41,9 +41,21 @@
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region Private Methods
 
+        private static bool HasGuildMemberRole(Role roles)
+        {
+            return (Role.AnyGuildMember & roles) != Role.NoRole;
+        }
+
         private ulong[] GetGuildMembersUserIds()
         {
-            return _guildUserRoles.Where(m => (Role.AnyGuildMember & m.Value) != Role.NoRole).Select(m => m.Key).ToArray();
+            return _guildUserRoles.Where(m => HasGuildMemberRole(m.Value)).Select(m => m.Key).ToArray();
+        }
+
+        private Role GetGuildUserRoles(ulong userId)
+        {
+            return _guildUserRoles.TryGetValue(userId, out var roles)
+                       ? roles
+                       : Role.NoRole;
         }
 
         private void RemoveGuildUser(ulong userId)
@@ -61,6 +73,12 @@
         IDiscordAccess IGuildUserRegistry.DiscordAccess
         {
             set => _discordAccess = value;
+        }
+
+        bool IGuildUserRegistry.IsGuildMember(ulong userID)
+        {
+            var roles = GetGuildUserRoles(userID);
+            return HasGuildMemberRole(roles);
         }
 
         async Task IGuildUserRegistry.AddGuildUsers((ulong UserId, Role Roles)[] guildUsers)
@@ -130,12 +148,7 @@
             return new GuildMemberUpdatedResult(a, $"{mention} has been promoted to **{promotedTo}**.");
         }
 
-        Role IGuildUserRegistry.GetGuildUserRoles(ulong userId)
-        {
-            return _guildUserRoles.TryGetValue(userId, out var roles)
-                       ? roles
-                       : Role.NoRole;
-        }
+        Role IGuildUserRegistry.GetGuildUserRoles(ulong userId) => GetGuildUserRoles(userId);
 
         EmbedData IGuildUserRegistry.GetGuildMembers()
         {

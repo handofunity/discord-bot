@@ -3,7 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using Enums;
+    using Objects;
 
     public interface IDiscordAccess
     {
@@ -52,12 +52,11 @@
         Dictionary<ulong, string> GetUserNames(IEnumerable<ulong> userIDs);
 
         /// <summary>
-        /// Gets an array of class names available in a <paramref name="game"/>.
+        /// Gets the available class names for the <paramref name="game"/>.
         /// </summary>
         /// <param name="game">The game to get the class names for.</param>
-        /// <exception cref="ArgumentException"><paramref name="game"/> equals <see cref="Game.Undefined"/>.</exception>
-        /// <returns>The classed.</returns>
-        string[] GetClassNamesForGame(Game game);
+        /// <exception cref="ArgumentNullException"><paramref name="game"/> is <b>null</b>.</exception>
+        void GetClassNamesForGame(AvailableGame game);
 
         /// <summary>
         /// Revokes all current roles related with the <paramref name="userID"/> for the given <paramref name="game"/>.
@@ -65,7 +64,7 @@
         /// <param name="userID">The user ID.</param>
         /// <param name="game">The game.</param>
         /// <returns>An awaitable <see cref="Task"/>.</returns>
-        Task RevokeCurrentGameRoles(ulong userID, Game game);
+        Task RevokeCurrentGameRoles(ulong userID, AvailableGame game);
 
         /// <summary>
         /// Sets the current role related with the <paramref name="userID"/> for the given <paramref name="game"/> to a specific <paramref name="className"/>.
@@ -74,7 +73,7 @@
         /// <param name="game">The game.</param>
         /// <param name="className">The <paramref name="game"/> related class name.</param>
         /// <returns>An awaitable <see cref="Task"/>.</returns>
-        Task SetCurrentGameRole(ulong userID, Game game, string className);
+        Task SetCurrentGameRole(ulong userID, AvailableGame game, string className);
 
         /// <summary>
         /// Checks if the bot can manage roles for a specific <paramref name="userID"/>, depending on the guilds role configuration.

@@ -39,10 +39,19 @@
 
         private HoUEntities GetEntities() => new HoUEntities(_appSettings.ConnectionString);
 
-        private async Task<int?> GetInternalUserId(HoUEntities entities, ulong discordUserId)
+        private static async Task<int> GetInternalUserId(HoUEntities entities, ulong discordUserId)
         {
             var user = await entities.User.SingleOrDefaultAsync(m => m.DiscordUserID == discordUserId).ConfigureAwait(false);
-            return user?.UserID;
+            if (user == null)
+            {
+                user = new User
+                {
+                    DiscordUserID = discordUserId
+                };
+                entities.User.Add(user);
+                await entities.SaveChangesAsync().ConfigureAwait(false);
+            }
+            return user.UserID;
         }
 
         #endregion
@@ -133,8 +142,6 @@
             using (var entities = GetEntities())
             {
                 var internalUserId = await GetInternalUserId(entities, userID).ConfigureAwait(false);
-                if (internalUserId == null)
-                    return false;
 
                 // Check if colliding entry exists
                 var collisions = await entities.Vacation
@@ -148,7 +155,7 @@
                 // If no colliding entry exists, we can add the entry
                 entities.Vacation.Add(new Vacation
                 {
-                    UserID = (int)internalUserId,
+                    UserID = internalUserId,
                     Start = start,
                     End = end,
                     Note = string.IsNullOrWhiteSpace(note) ? null : note.Substring(0, Math.Min(note.Length, 1024))
@@ -163,8 +170,6 @@
             using (var entities = GetEntities())
             {
                 var internalUserId = await GetInternalUserId(entities, userID).ConfigureAwait(false);
-                if (internalUserId == null)
-                    return false;
 
                 // Find the maching vacation
                 var match = await entities.Vacation
@@ -200,8 +205,6 @@
             using (var entities = GetEntities())
             {
                 var internalUserId = await GetInternalUserId(entities, userID).ConfigureAwait(false);
-                if (internalUserId == null)
-                    return; // Cannot delete anything if we cannot find the user in the database
                 var vacations = await entities.Vacation.Where(m => m.UserID == internalUserId).ToArrayAsync().ConfigureAwait(false);
                 if (!vacations.Any())
                     return;
@@ -249,6 +252,73 @@
                                                .ToArrayAsync()
                                                .ConfigureAwait(false);
                 return localItems.Select(m => ((ulong)m.DiscordUserID, m.Start, m.End, m.Note)).ToArray();
+            }
+        }
+
+        async Task<AvailableGame[]> IDatabaseAccess.GetAvailableGames()
+        {
+            using (var entities = GetEntities())
+            {
+                var localItems = await entities.Game.ToArrayAsync().ConfigureAwait(false);
+                return localItems.Select(m => new AvailableGame
+                {
+                    LongName = m.LongName,
+                    ShortName = m.ShortName
+                }).ToArray();
+            }
+        }
+
+        async Task IDatabaseAccess.UpdateUserInfoLastSeen(ulong userID, DateTime lastSeen)
+        {
+            using (var entities = GetEntities())
+            {
+                var internalUserID = await GetInternalUserId(entities, userID).ConfigureAwait(false);
+                var existingInfo = await entities.UserInfo.SingleOrDefaultAsync(m => m.UserID == internalUserID).ConfigureAwait(false);
+                if (existingInfo != null)
+                {
+                    existingInfo.LastSeen = lastSeen;
+                    await entities.SaveChangesAsync().ConfigureAwait(false);
+                    return;
+                }
+
+                // Create new user info
+                entities.UserInfo.Add(new UserInfo {UserID = internalUserID, LastSeen = lastSeen});
+                await entities.SaveChangesAsync().ConfigureAwait(false);
+            }
+        }
+
+        async Task<(ulong UserID, DateTime? LastSeen)[]> IDatabaseAccess.GetLastSeenInfoForUsers(ulong[] userIDs)
+        {
+            if (userIDs == null)
+                throw new ArgumentNullException(nameof(userIDs));
+            if (userIDs.Length == 0)
+                throw new ArgumentException("Parameter cannot be empty.", nameof(userIDs));
+
+            var result = new List<(ulong UserID, DateTime? LastSeen)>();
+            using (var entities = GetEntities())
+            {
+                foreach (var userID in userIDs)
+                {
+                    var internalUserID = await GetInternalUserId(entities, userID).ConfigureAwait(false);
+                    var ui = await entities.UserInfo.SingleOrDefaultAsync(m => m.UserID == internalUserID).ConfigureAwait(false);
+                    result.Add((userID, ui?.LastSeen));
+                }
+            }
+
+            return result.ToArray();
+        }
+
+        async Task IDatabaseAccess.DeleteUserInfo(ulong userID)
+        {
+            using (var entities = GetEntities())
+            {
+                var internalUserID = await GetInternalUserId(entities, userID).ConfigureAwait(false);
+                var ui = await entities.UserInfo.SingleOrDefaultAsync(m => m.UserID == internalUserID).ConfigureAwait(false);
+                if (ui != null)
+                {
+                    entities.UserInfo.Remove(ui);
+                    await entities.SaveChangesAsync().ConfigureAwait(false);
+                }
             }
         }
 

@@ -23,8 +23,10 @@
     <SqlServerVerification>False</SqlServerVerification>
     <IncludeCompositeObjects>True</IncludeCompositeObjects>
     <TargetDatabaseSet>True</TargetDatabaseSet>
-    <DacVersion>0.3.0</DacVersion>
-    <DacDescription>Added table [hou].[Vacation]</DacDescription>
+    <DacVersion>1.0.0</DacVersion>
+    <DacDescription>Added table [config].[Game]
+Added initial games
+Added table [hou].[UserInfo]</DacDescription>
     <DefaultCollation>Latin1_General_CI_AS</DefaultCollation>
     <Recovery>SIMPLE</Recovery>
     <TargetFrameworkProfile />
@@ -78,12 +80,15 @@
     <None Include="Scripts\CreateUser.sql" />
     <Build Include="Security\config.sql" />
     <None Include="Scripts\AddMessage_FirstServerJoinWelcome.sql" />
+    <None Include="Scripts\AddInitialGames.sql" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="Security\hou.sql" />
     <Build Include="hou\Tables\User.sql" />
     <Build Include="config\Tables\Message.sql" />
     <Build Include="hou\Tables\Vacation.sql" />
+    <Build Include="config\Tables\Game.sql" />
+    <Build Include="hou\Tables\UserInfo.sql" />
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="Script.PostDeployment.sql" />

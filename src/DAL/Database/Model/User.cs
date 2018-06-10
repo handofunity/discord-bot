@@ -10,6 +10,7 @@ namespace HoU.GuildBot.DAL.Database.Model
         public int UserID { get; set; }
         public decimal DiscordUserID { get; set; }
 
+        public UserInfo UserInfo { get; set; }
         public List<Vacation> Vacations { get; set; }
     }
 }

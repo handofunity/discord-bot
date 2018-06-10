@@ -57,9 +57,10 @@
             }
 
             // Fetch data for offline members
-            // TODO: Call _databaseAccess
-            var i = 0;
-            data.AddRange(ids.Except(data.Select(m => m.UserID)).Select(m => (m, usernames[m], false, (DateTime?)DateTime.Today.AddMinutes(i++))));
+            var missingUserIDs = ids.Except(data.Select(m => m.UserID));
+            var lastSeenData = await _databaseAccess.GetLastSeenInfoForUsers(missingUserIDs.ToArray()).ConfigureAwait(false);
+            var noInfoFallback = new DateTime(2018, 1, 1);
+            data.AddRange(lastSeenData.Select(m => (m.UserID, usernames[m.UserID], false, m.LastSeen ?? (DateTime?)noInfoFallback)));
 
             // Format
             var result = string.Join(Environment.NewLine,
@@ -82,7 +83,11 @@
             if (!(wasOnline && !isOnline))
                 return; // If the user does not change from online to offline, we can return here
 
-            // TODO: Call _databaseAccess
+            // Only save status for guild members, not guests
+            if (!_guildUserRegistry.IsGuildMember(userID))
+                return;
+
+            await _databaseAccess.UpdateUserInfoLastSeen(userID, DateTime.UtcNow).ConfigureAwait(false);
         }
 
         #endregion

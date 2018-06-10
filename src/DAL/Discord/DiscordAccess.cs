@@ -37,6 +37,7 @@
         private readonly IGuildUserInspector _guildUserInspector;
         private readonly IMessageProvider _messageProvider;
         private readonly IPrivacyProvider _privacyProvider;
+        private readonly IGameRoleProvider _gameRoleProvider;
         private readonly DiscordSocketClient _client;
         private readonly CommandService _commands;
         private readonly Queue<string> _pendingMessages;
@@ -71,7 +72,8 @@
                              IGuildUserRegistry guildUserUserRegistry,
                              IGuildUserInspector guildUserInspector,
                              IMessageProvider messageProvider,
-                             IPrivacyProvider privacyProvider)
+                             IPrivacyProvider privacyProvider,
+                             IGameRoleProvider gameRoleProvider)
         {
             _logger = logger;
             _appSettings = appSettings;
@@ -83,8 +85,10 @@
             _guildUserInspector = guildUserInspector;
             _messageProvider = messageProvider;
             _privacyProvider = privacyProvider;
+            _gameRoleProvider = gameRoleProvider;
             _guildUserUserRegistry.DiscordAccess = this;
             _guildUserInspector.DiscordAccess = this;
+            _gameRoleProvider.DiscordAccess = this;
             _commands = new CommandService();
             _client = new DiscordSocketClient();
             _pendingMessages = new Queue<string>();
@@ -362,6 +366,8 @@
             }
         }
 
+        private static bool IsOnline(IGuildUser gu) => gu.Status != UserStatus.Offline && gu.Status != UserStatus.Invisible;
+
         #endregion
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -384,8 +390,8 @@
                             await _commands.AddModulesAsync(typeof(DiscordAccess).Assembly).ConfigureAwait(false);
                             RegisterCommands();
                         }
-                        _client.MessageReceived += Client_MessageReceived;
                         await connectedHandler().ConfigureAwait(false);
+                        _client.MessageReceived += Client_MessageReceived;
                     });
                     // Return immediately
                     return Task.CompletedTask;
@@ -455,30 +461,32 @@
         bool IDiscordAccess.IsUserOnline(ulong userID)
         {
             var gu = GetGuildUserById(userID);
-            return gu.Status != UserStatus.Offline;
+            return IsOnline(gu);
         }
 
         Dictionary<ulong, string> IDiscordAccess.GetUserNames(IEnumerable<ulong> userIDs) => userIDs.Select(GetGuildUserById).ToDictionary(gu => gu.Id, gu => gu.Username);
 
-        string[] IDiscordAccess.GetClassNamesForGame(Shared.Enums.Game game)
+        void IDiscordAccess.GetClassNamesForGame(AvailableGame game)
         {
-            if (game == Shared.Enums.Game.Undefined)
-                throw new ArgumentException(nameof(game));
+            if (game == null)
+                throw new ArgumentNullException(nameof(game));
 
             var g = GetGuild();
-            return g.Roles.Where(m => m.Name.Contains($" ({game})")).Select(m => m.Name.Split(' ')[0]).ToArray();
+            var roles = g.Roles.Where(m => m.Name.Contains($" ({game.ShortName})")).Select(m => m.Name.Split(' ')[0]).ToArray();
+            game.ClassNames.Clear();
+            game.ClassNames.AddRange(roles);
         }
 
-        async Task IDiscordAccess.RevokeCurrentGameRoles(ulong userID, Shared.Enums.Game game)
+        async Task IDiscordAccess.RevokeCurrentGameRoles(ulong userID, AvailableGame game)
         {
             var gu = GetGuildUserById(userID);
-            var gameRelatedRoles = gu.Roles.Where(m => m.Name.Contains($" ({game})"));
+            var gameRelatedRoles = gu.Roles.Where(m => m.Name.Contains($" ({game.ShortName})"));
             await gu.RemoveRolesAsync(gameRelatedRoles).ConfigureAwait(false);
         }
 
-        async Task IDiscordAccess.SetCurrentGameRole(ulong userID, Shared.Enums.Game game, string className)
+        async Task IDiscordAccess.SetCurrentGameRole(ulong userID, AvailableGame game, string className)
         {
-            var role = GetRoleByName($"{className} ({game})");
+            var role = GetRoleByName($"{className} ({game.ShortName})");
             var gu = GetGuildUserById(userID);
             await gu.AddRoleAsync(role).ConfigureAwait(false);
         }
@@ -515,7 +523,16 @@
             _guildAvailable = true;
             _logger.LogInformation($"Guild '{guild.Name}' is available.");
 #pragma warning disable CS4014 // Fire & forget
-            Task.Run(() => _guildUserUserRegistry.AddGuildUsers(guild.Users.Select(m => (m.Id, SocketRoleToRole(m.Roles))).ToArray())).ConfigureAwait(false);
+            Task.Run(async () =>
+            {
+                await _guildUserUserRegistry.AddGuildUsers(guild.Users.Select(m => (m.Id, SocketRoleToRole(m.Roles))).ToArray()).ConfigureAwait(false);
+                
+                if (_gameRoleProvider.Games.Count == 0)
+                {
+                    // Load games only once
+                    await _gameRoleProvider.LoadAvailableGames().ConfigureAwait(false);
+                }
+            }).ConfigureAwait(false);
 #pragma warning restore CS4014 // Fire & forget
 
             while (_pendingMessages.Count > 0)
@@ -587,16 +604,8 @@
                 // Handle possible status change
                 if (oldGuildUser.Status != newGuildUser.Status)
                 {
-                    bool IsOnlineStatus(UserStatus status)
-                    {
-                        return status == UserStatus.Online
-                            || status == UserStatus.DoNotDisturb
-                            || status == UserStatus.AFK
-                            || status == UserStatus.Idle;
-                    }
-
-                    var wasOnline = IsOnlineStatus(oldGuildUser.Status);
-                    var isOnline = IsOnlineStatus(newGuildUser.Status);
+                    var wasOnline = IsOnline(oldGuildUser);
+                    var isOnline = IsOnline(newGuildUser);
                     await _guildUserInspector.UpdateLastSeenInfo(newGuildUser.Id, wasOnline, isOnline).ConfigureAwait(false);
                 }
             });

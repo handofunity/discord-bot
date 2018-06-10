@@ -43,6 +43,7 @@
 
         async Task IPrivacyProvider.DeleteUserRelatedData(ulong userID)
         {
+            await _databaseAccess.DeleteUserInfo(userID).ConfigureAwait(false);
             await _databaseAccess.DeleteVacations(userID).ConfigureAwait(false);
         }
 

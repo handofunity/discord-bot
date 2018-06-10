@@ -1,6 +1,5 @@
 ﻿namespace HoU.GuildBot.Shared.BLL
 {
-    using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using DAL;
@@ -13,6 +12,13 @@
         /// Sets the <see cref="IDiscordAccess"/> instance.
         /// </summary>
         IDiscordAccess DiscordAccess { set; }
+
+        /// <summary>
+        /// Checks if the user with the given <paramref name="userID"/> is a guild member.
+        /// </summary>
+        /// <param name="userID">The ID of the user to check.</param>
+        /// <returns><b>True</b>, if the user is a guild member, otherwise <b>false</b>.</returns>
+        bool IsGuildMember(ulong userID);
 
         /// <summary>
         /// Adds a list of users to the registry.

@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using Objects;
 
     public interface IDatabaseAccess
     {
@@ -94,5 +95,35 @@
         /// <param name="date">The date to get the vacations for.</param>
         /// <returns>An array of tupples, containing the user ID, the vacation start and end, as well as an optional note.</returns>
         Task<(ulong UserID, DateTime Start, DateTime End, string Note)[]> GetVacations(DateTime date);
+
+        /// <summary>
+        /// Gets all available games.
+        /// </summary>
+        /// <returns>An array of available games.</returns>
+        Task<AvailableGame[]> GetAvailableGames();
+
+        /// <summary>
+        /// Updates the <paramref name="lastSeen"/> info for the given <paramref name="userID"/>.
+        /// </summary>
+        /// <param name="userID">The ID of the user to update the last seen info for.</param>
+        /// <param name="lastSeen">The timestamp to use as info.</param>
+        /// <returns>An awaitable <see cref="Task"/>.</returns>
+        Task UpdateUserInfoLastSeen(ulong userID, DateTime lastSeen);
+
+        /// <summary>
+        /// Gets the last seen info for the given <paramref name="userIDs"/>.
+        /// </summary>
+        /// <param name="userIDs">The user IDs to fetch the last seen info for.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="userIDs"/> is <b>null</b>.</exception>
+        /// <exception cref="ArgumentException"><paramref name="userIDs"/> is empty.</exception>
+        /// <returns>An array of tipples, containing the user ID and the last seen timestamp. The timestamp is <b>null</b>, if no info is available.</returns>
+        Task<(ulong UserID, DateTime? LastSeen)[]> GetLastSeenInfoForUsers(ulong[] userIDs);
+
+        /// <summary>
+        /// Deletes the user info related to the <paramref name="userID"/>.
+        /// </summary>
+        /// <param name="userID">The ID of the user.</param>
+        /// <returns>An awaitable <see cref="Task"/>.</returns>
+        Task DeleteUserInfo(ulong userID);
     }
 }
