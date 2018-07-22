@@ -6,6 +6,7 @@
     using JetBrains.Annotations;
     using Shared.BLL;
     using Shared.DAL;
+    using Shared.StrongTypes;
 
     [UsedImplicitly]
     public class VacationProvider : IVacationProvider
@@ -13,6 +14,7 @@
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region Fields
 
+        private readonly IUserStore _userStore;
         private readonly IDatabaseAccess _databaseAccess;
         private readonly IDiscordAccess _discordAccess;
 
@@ -21,9 +23,11 @@
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region Constructors
 
-        public VacationProvider(IDatabaseAccess databaseAccess,
+        public VacationProvider(IUserStore userStore,
+                                IDatabaseAccess databaseAccess,
                                 IDiscordAccess discordAccess)
         {
+            _userStore = userStore;
             _databaseAccess = databaseAccess;
             _discordAccess = discordAccess;
         }
@@ -33,7 +37,7 @@
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region Private Methods
 
-        private string FormatVacations((ulong UserID, DateTime Start, DateTime End, string Note)[] vacations)
+        private string FormatVacations((DiscordUserID UserID, DateTime Start, DateTime End, string Note)[] vacations)
         {
             var names = _discordAccess.GetUserNames(vacations.Select(m => m.UserID).Distinct());
             var orderedVacations =
@@ -54,7 +58,7 @@
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region IVacationProvider Members
 
-        async Task<string> IVacationProvider.AddVacation(ulong userID, DateTime start, DateTime end, string note)
+        async Task<string> IVacationProvider.AddVacation(DiscordUserID userID, DateTime start, DateTime end, string note)
         {
             // Check start and end
             if (start < DateTime.Today)
@@ -64,15 +68,17 @@
             if (end > DateTime.Today.AddYears(1))
                 return "End date cannot be more than 12 months into the future.";
 
-            var vacationAdded = await _databaseAccess.AddVacation(userID, start, end, note?.Trim()).ConfigureAwait(false);
+            var user = await _userStore.GetUser(userID).ConfigureAwait(false);
+            var vacationAdded = await _databaseAccess.AddVacation(user, start, end, note?.Trim()).ConfigureAwait(false);
             return vacationAdded
                        ? "Vacation added successfully."
                        : "Failed to add vacation. Vacation collides with an existing vacation.";
         }
 
-        async Task<string> IVacationProvider.DeleteVacation(ulong userID, DateTime start, DateTime end)
+        async Task<string> IVacationProvider.DeleteVacation(DiscordUserID userID, DateTime start, DateTime end)
         {
-            var vacationDeleted = await _databaseAccess.DeleteVacation(userID, start, end).ConfigureAwait(false);
+            var user = await _userStore.GetUser(userID).ConfigureAwait(false);
+            var vacationDeleted = await _databaseAccess.DeleteVacation(user, start, end).ConfigureAwait(false);
             return vacationDeleted
                        ? "Vacation deleted successfully."
                        : "Failed to delete vacation. Matching vacation was not found.";
@@ -86,9 +92,10 @@
                        : FormatVacations(vacations);
         }
 
-        async Task<string> IVacationProvider.GetVacations(ulong userID)
+        async Task<string> IVacationProvider.GetVacations(DiscordUserID userID)
         {
-            var vacations = await _databaseAccess.GetVacations(userID).ConfigureAwait(false);
+            var user = await _userStore.GetUser(userID).ConfigureAwait(false);
+            var vacations = await _databaseAccess.GetVacations(user).ConfigureAwait(false);
             return vacations.Length == 0
                        ? "No current or upcoming vacations."
                        : FormatVacations(vacations);

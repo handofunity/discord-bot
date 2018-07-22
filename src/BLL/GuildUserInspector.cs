@@ -8,6 +8,7 @@
     using Shared.BLL;
     using Shared.DAL;
     using Shared.Objects;
+    using Shared.StrongTypes;
 
     [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
     public class GuildUserInspector : IGuildUserInspector
@@ -16,6 +17,7 @@
         #region Fields
 
         private readonly IGuildUserRegistry _guildUserRegistry;
+        private readonly IUserStore _userStore;
         private readonly IDatabaseAccess _databaseAccess;
         private IDiscordAccess _discordAccess;
 
@@ -25,9 +27,11 @@
         #region Constructors
 
         public GuildUserInspector(IGuildUserRegistry guildUserRegistry,
+                                  IUserStore userStore,
                                   IDatabaseAccess databaseAccess)
         {
             _guildUserRegistry = guildUserRegistry;
+            _userStore = userStore;
             _databaseAccess = databaseAccess;
         }
 
@@ -45,10 +49,12 @@
         {
             var ids = _guildUserRegistry.GetGuildMemberUserIds();
             // LastSeen = null equals the user is currently online
-            var data = new List<(ulong UserID, string Username, bool IsOnline, DateTime? LastSeen)>(ids.Length);
+            var data = new List<(DiscordUserID UserID, string Username, bool IsOnline, DateTime? LastSeen)>(ids.Length);
+
+            // Fetch all user names
+            var usernames = _discordAccess.GetUserNames(ids);
 
             // Fetch data for online members
-            var usernames = _discordAccess.GetUserNames(ids);
             foreach (var userID in ids)
             {
                 var isOnline = _discordAccess.IsUserOnline(userID);
@@ -57,10 +63,19 @@
             }
 
             // Fetch data for offline members
-            var missingUserIDs = ids.Except(data.Select(m => m.UserID));
-            var lastSeenData = await _databaseAccess.GetLastSeenInfoForUsers(missingUserIDs.ToArray()).ConfigureAwait(false);
+            var missingUserIDs = ids.Except(data.Select(m => m.UserID)).ToArray();
+            var missingUsers = new List<User>();
+            foreach (var discordUserID in missingUserIDs)
+            {
+                missingUsers.Add(await _userStore.GetUser(discordUserID).ConfigureAwait(false));
+            }
+            var lastSeenData = await _databaseAccess.GetLastSeenInfoForUsers(missingUsers.ToArray()).ConfigureAwait(false);
             var noInfoFallback = new DateTime(2018, 1, 1);
-            data.AddRange(lastSeenData.Select(m => (m.UserID, usernames[m.UserID], false, m.LastSeen ?? (DateTime?)noInfoFallback)));
+            foreach (var lsd in lastSeenData)
+            {
+                var user = missingUsers.Single(m => m.InternalUserID == lsd.UserID);
+                data.Add((user.DiscordUserID, usernames[user.DiscordUserID], false, lsd.LastSeen ?? (DateTime?)noInfoFallback));
+            }
 
             // Format
             var result = string.Join(Environment.NewLine,
@@ -77,7 +92,7 @@
             }).ConfigureAwait(false);
         }
 
-        async Task IGuildUserInspector.UpdateLastSeenInfo(ulong userID, bool wasOnline, bool isOnline)
+        async Task IGuildUserInspector.UpdateLastSeenInfo(DiscordUserID userID, bool wasOnline, bool isOnline)
         {
             // We're only updating the info when the user goes offline
             if (!(wasOnline && !isOnline))
@@ -87,7 +102,8 @@
             if (!_guildUserRegistry.IsGuildMember(userID))
                 return;
 
-            await _databaseAccess.UpdateUserInfoLastSeen(userID, DateTime.UtcNow).ConfigureAwait(false);
+            var user = await _userStore.GetUser(userID).ConfigureAwait(false);
+            await _databaseAccess.UpdateUserInfoLastSeen(user, DateTime.UtcNow).ConfigureAwait(false);
         }
 
         #endregion

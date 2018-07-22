@@ -18,6 +18,7 @@
     using Shared.Enums;
     using Shared.Exceptions;
     using Shared.Objects;
+    using Shared.StrongTypes;
     using CommandInfo = global::Discord.Commands.CommandInfo;
 
     [UsedImplicitly]
@@ -38,6 +39,7 @@
         private readonly IMessageProvider _messageProvider;
         private readonly IPrivacyProvider _privacyProvider;
         private readonly IGameRoleProvider _gameRoleProvider;
+        private readonly IUserStore _userStore;
         private readonly DiscordSocketClient _client;
         private readonly CommandService _commands;
         private readonly Queue<string> _pendingMessages;
@@ -73,7 +75,8 @@
                              IGuildUserInspector guildUserInspector,
                              IMessageProvider messageProvider,
                              IPrivacyProvider privacyProvider,
-                             IGameRoleProvider gameRoleProvider)
+                             IGameRoleProvider gameRoleProvider,
+                             IUserStore userStore)
         {
             _logger = logger;
             _appSettings = appSettings;
@@ -86,6 +89,7 @@
             _messageProvider = messageProvider;
             _privacyProvider = privacyProvider;
             _gameRoleProvider = gameRoleProvider;
+            _userStore = userStore;
             _guildUserUserRegistry.DiscordAccess = this;
             _guildUserInspector.DiscordAccess = this;
             _gameRoleProvider.DiscordAccess = this;
@@ -271,10 +275,10 @@
             await lc.SendMessageAsync(message).ConfigureAwait(false);
         }
 
-        private SocketGuildUser GetGuildUserById(ulong userId)
+        private SocketGuildUser GetGuildUserById(DiscordUserID userId)
         {
             var g = GetGuild();
-            return g.GetUser(userId);
+            return g.GetUser((ulong)userId);
         }
 
         private IRole GetRoleByName(string name, SocketGuild guild = null)
@@ -351,7 +355,7 @@
             }
         }
 
-        private async Task UpdateGuildUserRoles(ulong userID, string mention, Role oldRoles, Role newRoles)
+        private async Task UpdateGuildUserRoles(DiscordUserID userID, string mention, Role oldRoles, Role newRoles)
         {
             var result = _guildUserUserRegistry.UpdateGuildUser(userID, mention, oldRoles, newRoles);
             if (result.IsPromotion)
@@ -458,13 +462,13 @@
             await LogToDiscordInternal(message).ConfigureAwait(false);
         }
 
-        bool IDiscordAccess.IsUserOnline(ulong userID)
+        bool IDiscordAccess.IsUserOnline(DiscordUserID userID)
         {
             var gu = GetGuildUserById(userID);
             return IsOnline(gu);
         }
 
-        Dictionary<ulong, string> IDiscordAccess.GetUserNames(IEnumerable<ulong> userIDs) => userIDs.Select(GetGuildUserById).ToDictionary(gu => gu.Id, gu => gu.Username);
+        Dictionary<DiscordUserID, string> IDiscordAccess.GetUserNames(IEnumerable<DiscordUserID> userIDs) => userIDs.Select(GetGuildUserById).ToDictionary(gu => (DiscordUserID)gu.Id, gu => gu.Username);
 
         void IDiscordAccess.GetClassNamesForGame(AvailableGame game)
         {
@@ -477,24 +481,24 @@
             game.ClassNames.AddRange(roles);
         }
 
-        async Task IDiscordAccess.RevokeCurrentGameRoles(ulong userID, AvailableGame game)
+        async Task IDiscordAccess.RevokeCurrentGameRoles(DiscordUserID userID, AvailableGame game)
         {
             var gu = GetGuildUserById(userID);
             var gameRelatedRoles = gu.Roles.Where(m => m.Name.Contains($" ({game.ShortName})"));
             await gu.RemoveRolesAsync(gameRelatedRoles).ConfigureAwait(false);
         }
 
-        async Task IDiscordAccess.SetCurrentGameRole(ulong userID, AvailableGame game, string className)
+        async Task IDiscordAccess.SetCurrentGameRole(DiscordUserID userID, AvailableGame game, string className)
         {
             var role = GetRoleByName($"{className} ({game.ShortName})");
             var gu = GetGuildUserById(userID);
             await gu.AddRoleAsync(role).ConfigureAwait(false);
         }
 
-        bool IDiscordAccess.CanManageRolesForUser(ulong userID)
+        bool IDiscordAccess.CanManageRolesForUser(DiscordUserID userID)
         {
             var gu = GetGuildUserById(userID);
-            var botUser = GetGuildUserById(_client.CurrentUser.Id);
+            var botUser = GetGuildUserById((DiscordUserID)_client.CurrentUser.Id);
             return botUser.Roles.Max(m => m.Position) > gu.Roles.Max(m => m.Position);
         }
 
@@ -525,7 +529,13 @@
 #pragma warning disable CS4014 // Fire & forget
             Task.Run(async () =>
             {
-                await _guildUserUserRegistry.AddGuildUsers(guild.Users.Select(m => (m.Id, SocketRoleToRole(m.Roles))).ToArray()).ConfigureAwait(false);
+                if (!_userStore.IsInitialized)
+                {
+                    // Initialize user store only once
+                    await _userStore.Initialize().ConfigureAwait(false);
+                }
+
+                await _guildUserUserRegistry.AddGuildUsers(guild.Users.Select(m => ((DiscordUserID)m.Id, SocketRoleToRole(m.Roles))).ToArray()).ConfigureAwait(false);
                 
                 if (_gameRoleProvider.Games.Count == 0)
                 {
@@ -548,7 +558,7 @@
                 return Task.CompletedTask;
 
             _guildAvailable = false;
-            _guildUserUserRegistry.RemoveGuildUsers(guild.Users.Select(m => m.Id));
+            _guildUserUserRegistry.RemoveGuildUsers(guild.Users.Select(m => (DiscordUserID)m.Id));
 
             return Task.CompletedTask;
         }
@@ -561,7 +571,7 @@
 #pragma warning disable CS4014 // Fire & forget
             Task.Run(async () =>
             {
-                var isNew = await _guildUserUserRegistry.AddGuildUser(guildUser.Id, SocketRoleToRole(guildUser.Roles)).ConfigureAwait(false);
+                var isNew = await _guildUserUserRegistry.AddGuildUser((DiscordUserID)guildUser.Id, SocketRoleToRole(guildUser.Roles)).ConfigureAwait(false);
                 if (isNew)
                     await SendWelcomeMessage(guildUser).ConfigureAwait(false);
             }).ConfigureAwait(false);
@@ -575,8 +585,13 @@
             if (guildUser.Guild.Id != _appSettings.HandOfUnityGuildId)
                 return Task.CompletedTask;
 
-            _guildUserUserRegistry.RemoveGuildUser(guildUser.Id);
-            Task.Run(() => _privacyProvider.DeleteUserRelatedData(guildUser.Id)).ConfigureAwait(false);
+            _guildUserUserRegistry.RemoveGuildUser((DiscordUserID)guildUser.Id);
+            // Fire & Forget
+            Task.Run(async () =>
+            {
+                var user = await _userStore.GetUser((DiscordUserID)guildUser.Id).ConfigureAwait(false);
+                await _privacyProvider.DeleteUserRelatedData(user).ConfigureAwait(false);
+            }).ConfigureAwait(false);
 
             return Task.CompletedTask;
         }
@@ -598,7 +613,7 @@
                 var newRoles = SocketRoleToRole(newGuildUser.Roles);
                 if (oldRoles != newRoles)
                 {
-                    await UpdateGuildUserRoles(newGuildUser.Id, newGuildUser.Mention, oldRoles, newRoles).ConfigureAwait(false);
+                    await UpdateGuildUserRoles((DiscordUserID)newGuildUser.Id, newGuildUser.Mention, oldRoles, newRoles).ConfigureAwait(false);
                 }
 
                 // Handle possible status change
@@ -606,7 +621,7 @@
                 {
                     var wasOnline = IsOnline(oldGuildUser);
                     var isOnline = IsOnline(newGuildUser);
-                    await _guildUserInspector.UpdateLastSeenInfo(newGuildUser.Id, wasOnline, isOnline).ConfigureAwait(false);
+                    await _guildUserInspector.UpdateLastSeenInfo((DiscordUserID)newGuildUser.Id, wasOnline, isOnline).ConfigureAwait(false);
                 }
             });
             return Task.CompletedTask;

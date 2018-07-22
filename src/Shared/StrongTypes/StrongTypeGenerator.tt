@@ -1,0 +1,579 @@
+﻿<#@ template debug="false" hostspecific="True" language="C#"
+#><#@assembly name="EnvDTE"
+#><#@assembly name="System.Core"
+#><#@assembly name="System.Xml"
+#><#@assembly name="System.Xml.Linq"
+#><#@import namespace="System.Collections.Generic"
+#><#@import namespace="System.Linq"
+#><#@import namespace="System.Linq.Expressions"
+#><#@import namespace="System.Reflection"
+#><#@import namespace="System.Text"
+#><#@import namespace="System.Xml.Linq"
+#><#@import namespace="System.Xml.Schema"
+#><#@ import namespace="Microsoft.VisualStudio.TextTemplating"
+#><#
+Host.SetFileExtension(".cs");
+
+// Prepare namespace
+var hostServiceProvider = (IServiceProvider)Host;
+if (hostServiceProvider == null)
+	throw new ArgumentNullException("Could not obtain IServiceProvider");
+var dte = (EnvDTE.DTE) hostServiceProvider.GetService(typeof(EnvDTE.DTE));
+if (dte == null)
+	throw new ArgumentNullException("Could not obtain DTE from host");
+var templateProjectItem = dte.Solution.FindProjectItem(Host.TemplateFile);
+var defaultNamespace = templateProjectItem.ContainingProject.Properties.Item("DefaultNamespace").Value.ToString();
+
+/***********************************/
+/*             HEADER              */
+/***********************************/
+#>using System;
+using System.CodeDom.Compiler;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.Serialization;
+using System.Security.Permissions;
+using System.Xml;
+using System.Xml.Schema;
+using System.Xml.Serialization;
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable InheritdocConsiderUsage
+// ReSharper disable RedundantNameQualifier
+// ReSharper disable HeuristicUnreachableCode
+// ReSharper disable ReferenceEqualsWithValueType
+// ReSharper disable ConditionIsAlwaysTrueOrFalse
+// ReSharper disable NonReadonlyMemberInGetHashCode
+// ReSharper disable RedundantCast.0
+
+<# var ns = defaultNamespace + ".StrongTypes"; #>
+namespace <#= ns #>
+{
+<#
+
+/***********************************/
+/*            CONTENT              */
+/***********************************/
+var configurationFilePath = Host.ResolvePath("StrongTypesConfiguration.xml");
+var configDoc = XDocument.Load(configurationFilePath);
+var schemaSet = LoadSchemaSet(Host, configDoc);
+configDoc.Validate(schemaSet, OnSchemaValidationError);
+XNamespace xmlNamespace = "https://www.github.com/Herdo/strongtypes";
+var strongTypes = configDoc.Root.Descendants(xmlNamespace + "strongType").ToArray();
+var first = true;
+foreach (XElement strongType in strongTypes)
+{
+	var typeName = strongType.Attribute("name").Value;
+	var internalType = strongType.Attribute("internalType").Value;
+
+	XElement validateElement = strongType.Element(xmlNamespace + "validate");
+	bool validate = validateElement == null ? false : (bool)validateElement;
+	XElement formatStringElement = strongType.Element(xmlNamespace + "formatString");
+	string formatString = formatStringElement == null ? null : formatStringElement.Value;
+	XElement customDescriptionElement = strongType.Element(xmlNamespace + "customDescription");
+	XCData customDescriptionValue = customDescriptionElement == null ? null : (XCData)customDescriptionElement.FirstNode;
+	string customDescription = customDescriptionValue == null ? null : customDescriptionValue.Value;
+	XElement[] excludeOperatorElements = strongType.Elements(xmlNamespace + "excludeOperator").ToArray();
+	string[] excludeOperators = excludeOperatorElements.Length == 0 ? null : excludeOperatorElements.Select(m => m.Value).ToArray();
+	
+	if(first)
+	{
+		first = false;
+	}
+	else
+	{
+#>
+
+<#
+	}
+#>
+	/// <summary>
+	/// <#= CustomDescriptionText(typeName, customDescription) #>
+	/// </summary>
+	[GeneratedCode("Herdo.StrongTypes.StrongTypeGenerator", "1.0.0")]
+	[Serializable]
+	public partial struct <#= typeName #><#= BuildDerivation(typeName) #>
+	{
+		/// <summary>
+		/// Actual backing field which holds the value.
+		/// </summary>
+		/// <remarks>This field is basically readonly, but must be non-readonly due to the XML-deserialization which will be called from outside the constructor.</remarks>
+		private <#= internalType #> _value;
+
+		[ExcludeFromCodeCoverage]
+		private <#= typeName #>(<#= internalType #> value)
+	    {
+	        _value = <#= AddValidation(validate, "value") #>;
+	    }
+
+		[ExcludeFromCodeCoverage]
+		private <#= typeName #>(SerializationInfo info, StreamingContext context)
+		{
+<#
+			var callInputCtor = string.Format("({0})info.GetValue(\"v\", typeof({0}))", internalType);
+#>
+            _value = <#= AddValidation(validate, callInputCtor) #>;
+		}
+
+	    /// <summary>
+	    /// Converts the weak type into a <see cref="<#= typeName #>"/> instance.
+	    /// </summary>
+	    /// <param name="value">The value to convert.</param>
+	    /// <returns>A new instance of the strong type.</returns>
+		[ExcludeFromCodeCoverage]
+	    public static explicit operator <#= typeName #>(<#= internalType #> value)
+	    {
+	        return new <#= typeName #>(value);
+	    }
+
+	    /// <summary>
+	    /// Converts the strong type into a <see cref="<#= internalType #>"/> value.
+	    /// </summary>
+	    /// <param name="value">The instance to convert.</param>
+	    /// <returns>The converted value.</returns>
+		[ExcludeFromCodeCoverage]
+	    public static explicit operator <#= internalType #>(<#= typeName #> value)
+	    {
+	        return value._value;
+	    }
+
+		/// <summary>
+        /// Returns a value indicating whether this instance and a specified <see cref="<#= typeName #>"/> object represent the same value.
+        /// </summary>
+        /// <param name="other">An object to compare to this instance.</param>
+        /// <returns><b>true</b> if <paramref name="other"/> is equal to this instance; otherwise, <b>false</b>.</returns>
+		[ExcludeFromCodeCoverage]
+		public bool Equals(<#= typeName #> other)
+		{
+			if (ReferenceEquals(null, other)) return false;
+			if (ReferenceEquals(this, other)) return true;
+			return _value == other._value;
+		}
+		
+		/// <summary>
+        /// Returns a value indicating whether this instance and a specified object represent the same value.
+        /// </summary>
+        /// <param name="other">An object to compare to this instance.</param>
+        /// <returns><b>true</b> if <paramref name="other"/> is equal to this instance; otherwise, <b>false</b>.</returns>
+		[ExcludeFromCodeCoverage]
+		public override bool Equals(object other)
+		{
+			if (ReferenceEquals(null, other)) return false;
+			if (ReferenceEquals(this, other)) return true;
+			return Equals((<#= typeName #>)other);
+		}
+
+		/// <summary>
+        /// Returns the hash code for this instance.
+        /// </summary>
+        /// <returns>A hash code for the current <see cref="<#= typeName #>"/>.</returns>
+		[ExcludeFromCodeCoverage]
+		public override int GetHashCode()
+		{
+			if (Equals(null, _value))
+				return 0;
+			return _value.GetHashCode();
+		}
+
+		/// <summary>
+        /// Compares this instance to a specified <see cref="<#= typeName #>"/> and returns an indication of their relative values.
+        /// </summary>
+        /// <param name="other">A <see cref="<#= typeName #>"/> to compare to.</param>
+        /// <returns>A signed integer that indicates the relative order of this instance and <paramref name="other"/>.</returns>
+		[ExcludeFromCodeCoverage]
+		public int CompareTo(<#= typeName #> other)
+		{
+			if (Equals(null, _value))
+				return 1;
+			return _value.CompareTo(other._value);
+		}
+<# if (HasOperator(Type.GetType(internalType), excludeOperators, Expression.Equal)) { #>
+
+        /// <summary>
+        /// Checks if both operands are equal.
+        /// </summary>
+        /// <param name="first">The first operand.</param>
+        /// <param name="second">The second operand.</param>
+        /// <returns><b>True</b>, if both operands are equal; otherwise, <b>false</b>.</returns>
+        [ExcludeFromCodeCoverage]
+        public static bool operator ==(<#= typeName #> first, <#= typeName #> second)
+	    {
+	        if (ReferenceEquals(first, second))
+	            return true;
+
+	        return first._value == second._value;
+	    }
+<# } #>
+<# if (HasOperator(Type.GetType(internalType), excludeOperators, Expression.NotEqual)) { #>
+
+        /// <summary>
+        /// Checks if both operands are not equal.
+        /// </summary>
+        /// <param name="first">The first operand.</param>
+        /// <param name="second">The second operand.</param>
+        /// <returns><b>False</b>, if both operands are equal; otherwise, <b>true</b>.</returns>
+        [ExcludeFromCodeCoverage]
+        public static bool operator !=(<#= typeName #> first, <#= typeName #> second)
+	    {
+	        return !(first == second);
+	    }
+<# } #>
+<# if (HasOperator(Type.GetType(internalType), excludeOperators, Expression.LessThan)) { #>
+		
+	    /// <summary>
+	    /// Checks if the first operand is less than the second one.
+	    /// </summary>
+        /// <param name="first">The first operand.</param>
+        /// <param name="second">The second operand.</param>
+	    /// <returns><b>True</b>, if the <paramref name="first"/> operand is less than the <paramref name="second"/>; otherwise, <b>false</b>.</returns>
+        [ExcludeFromCodeCoverage]
+        public static bool operator <(<#= typeName #> first, <#= typeName #> second)
+	    {
+	        return first._value < second._value;
+	    }
+<# } #>
+<# if (HasOperator(Type.GetType(internalType), excludeOperators, Expression.GreaterThan)) { #>
+
+	    /// <summary>
+	    /// Checks if the first operand is greater than the second one.
+	    /// </summary>
+        /// <param name="first">The first operand.</param>
+        /// <param name="second">The second operand.</param>
+	    /// <returns><b>True</b>, if the <paramref name="first"/> operand is greater than the <paramref name="second"/>; otherwise, <b>false</b>.</returns>
+        [ExcludeFromCodeCoverage]
+        public static bool operator >(<#= typeName #> first, <#= typeName #> second)
+	    {
+	        return first._value > second._value;
+	    }
+<# } #>
+<# if (HasOperator(Type.GetType(internalType), excludeOperators, Expression.LessThanOrEqual)) { #>
+
+	    /// <summary>
+	    /// Checks if the first operand is less than or equal to the second operand.
+	    /// </summary>
+        /// <param name="first">The first operand.</param>
+        /// <param name="second">The second operand.</param>
+	    /// <returns><b>True</b>, if the <paramref name="first"/> operand is less than or equal to the <paramref name="second"/>; otherwise, <b>false</b>.</returns>
+        [ExcludeFromCodeCoverage]
+        public static bool operator <=(<#= typeName #> first, <#= typeName #> second)
+	    {
+	        return first._value <= second._value;
+	    }
+<# } #>
+<# if (HasOperator(Type.GetType(internalType), excludeOperators, Expression.GreaterThanOrEqual)) { #>
+
+        /// <summary>
+        /// Checks if the first operand is greater than or equal to the second operand.
+        /// </summary>
+        /// <param name="first">The first operand.</param>
+        /// <param name="second">The second operand.</param>
+	    /// <returns><b>True</b>, if the <paramref name="first"/> operand is greater than or equal to the <paramref name="second"/>; otherwise, <b>false</b>.</returns>
+        [ExcludeFromCodeCoverage]
+        public static bool operator >=(<#= typeName #> first, <#= typeName #> second)
+	    {
+	        return first._value >= second._value;
+        }
+<# } #>
+<# if (HasOperator(Type.GetType(internalType), excludeOperators, Expression.Add)) { #>
+
+        /// <summary>
+        /// Adds the two summands.
+        /// </summary>
+        /// <param name="summand1">The left operand.</param>
+        /// <param name="summand2">The right operand.</param>
+        /// <exception cref="InvalidCastException">The validation of the sum failed.</exception>
+        /// <returns>The sum.</returns>
+        [ExcludeFromCodeCoverage]
+        public static <#= typeName #> operator +(<#= typeName #> summand1, <#= typeName #> summand2)
+        {
+            return (<#= typeName #>) (summand1._value + summand2._value);
+        }
+<# } #>
+<# if (HasOperator(Type.GetType(internalType), excludeOperators, Expression.Subtract)) { #>
+
+        /// <summary>
+        /// Substracts the <paramref name="subtrahend"/> from the <paramref name="minuend"/>.
+        /// </summary>
+        /// <param name="minuend">The left operand.</param>
+        /// <param name="subtrahend">The right operand.</param>
+        /// <exception cref="InvalidCastException">The validation of the difference value failed.</exception>
+        /// <returns>The difference value.</returns>
+        [ExcludeFromCodeCoverage]
+        public static <#= typeName #> operator -(<#= typeName #> minuend, <#= typeName #> subtrahend)
+        {
+            return (<#= typeName #>)(minuend._value - subtrahend._value);
+        }
+<# } #>
+<# if (HasOperator(Type.GetType(internalType), excludeOperators, Expression.Increment)) { #>
+
+        /// <summary>
+        /// Increments the <paramref name="value"/> by 1.
+        /// </summary>
+        /// <param name="value">The value to increment.</param>
+        /// <exception cref="InvalidCastException">The validation of the incremented value failed.</exception>
+        /// <returns>The incremented value.</returns>
+        [ExcludeFromCodeCoverage]
+        public static <#= typeName #> operator ++(<#= typeName #> value)
+	    {
+	        return (<#= typeName #>) (++value._value);
+        }
+<# } #>
+<# if (HasOperator(Type.GetType(internalType), excludeOperators, Expression.Decrement)) { #>
+
+        /// <summary>
+        /// Decrements the <paramref name="value"/> by 1.
+        /// </summary>
+        /// <param name="value">The value to decrement.</param>
+        /// <exception cref="InvalidCastException">The validation of the decremented value failed.</exception>
+        /// <returns>The decremented value.</returns>
+        [ExcludeFromCodeCoverage]
+        public static <#= typeName #> operator --(<#= typeName #> value)
+	    {
+	        return (<#= typeName #>) (--value._value);
+        }
+<# } #>
+
+		/// <summary>
+        /// Returns a string that represents the current object.
+        /// </summary>
+        /// <returns>A string that represents the current object.</returns>
+		[ExcludeFromCodeCoverage]
+	    public override string ToString()
+	    {
+	        if ((object) _value == null)
+	            return null;
+	        return <#= FormatStringOutput(internalType, formatString) #>;
+	    }
+		<# if (validate) { #>
+		
+		[ExcludeFromCodeCoverage]
+		private static <#= internalType #> Validate(<#= internalType #> value)
+		{
+			if (!IsValid(value, out var validationError))
+				throw new InvalidCastException("Invalid cast into the strong type. The validation failed. Error: " + validationError);
+			return value;
+		}
+		<# } if (Type.GetType(internalType) == typeof(System.DateTime)) { #>
+		
+		[ExcludeFromCodeCoverage]
+		private static XmlDateTimeSerializationMode GetSerializationMode(DateTime value)
+		{
+		    switch (value.Kind)
+		    {
+		        case DateTimeKind.Utc:
+                    return XmlDateTimeSerializationMode.Utc;
+		        case DateTimeKind.Local:
+                    return XmlDateTimeSerializationMode.Local;
+		        default:
+		            return XmlDateTimeSerializationMode.Unspecified;
+            }
+		}
+		<# } #>
+		
+		[ExcludeFromCodeCoverage]
+		[SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.SerializationFormatter)]
+		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context)
+		{
+			info.AddValue("v", _value);
+		}
+		
+		[ExcludeFromCodeCoverage]
+		XmlSchema IXmlSerializable.GetSchema()
+	    {
+	        return null;
+	    }
+		
+		[ExcludeFromCodeCoverage]
+	    void IXmlSerializable.ReadXml(XmlReader reader)
+	    {
+<#
+			var callInputReadXml = CreateReadXmlCallInput(internalType);
+#>
+	        _value = <#= AddValidation(validate, callInputReadXml) #>;
+	    }
+		
+		[ExcludeFromCodeCoverage]
+	    void IXmlSerializable.WriteXml(XmlWriter writer)
+	    {
+            writer.WriteString(<#= ConvertValueToXml(internalType) #>);
+	    }
+	}
+<#
+}
+
+/***********************************/
+/*             FOOTER              */
+/***********************************/
+#>}<#+
+/***********************************/
+/*             HELPER              */
+/***********************************/
+private static XmlSchemaSet LoadSchemaSet(ITextTemplatingEngineHost host, XDocument doc)
+{
+	const string expectedSchemaNamespaceName = "https://www.github.com/Herdo/strongtypes";
+	XNamespace xsiNamespace = "http://www.w3.org/2001/XMLSchema-instance";
+	var schemas = doc.Root.Attribute(xsiNamespace + "schemaLocation").Value;
+	var split = schemas.Split(' ');
+	string relativeSchemaNamespaceLocation = null;
+	for (var i = 0; i < split.Length; i += 2)
+	{
+		var schemaNamespace = split[i];
+		if (schemaNamespace != expectedSchemaNamespaceName)
+			continue;
+		relativeSchemaNamespaceLocation = split[i + 1];
+		break;
+	}
+	if (relativeSchemaNamespaceLocation == null)
+		throw new InvalidOperationException("The XML-Schema couldn't be determined.");
+
+	var schemaPath = host.ResolvePath(relativeSchemaNamespaceLocation);
+	var schemaSet = new XmlSchemaSet();
+	schemaSet.Add(expectedSchemaNamespaceName, schemaPath);
+	return schemaSet;
+}
+
+private static void OnSchemaValidationError(object sender, ValidationEventArgs e)
+{
+	throw e.Exception;
+}
+
+private static string CustomDescriptionText(string typeName, string customDescription)
+{
+	if (customDescription == null)
+		return string.Format("Implements the strong type <see cref=\"{0}\" />.", typeName);
+	return customDescription;
+}
+
+private static string BuildDerivation(string typeName)
+{
+	var sb = new StringBuilder(" : ");
+	sb.Append(string.Format("IEquatable<{0}>, IComparable<{0}>, ISerializable, IXmlSerializable", typeName));
+	return sb.ToString();
+}
+
+private static string AddValidation(bool validate, string callInput)
+{
+	return validate
+		? string.Format("Validate({0})", callInput)
+		: callInput;
+}
+
+private static string FormatStringOutput(string internalType, string formatString)
+{
+	if (formatString == null)
+		return "_value.ToString()";
+	var t = Type.GetType(internalType);
+	if (t == typeof(string))
+		return string.Format("String.Format(\"{0}\", _value)", formatString);
+	return string.Format("_value.ToString(\"{0}\")", formatString);
+}
+
+public static string CreateReadXmlCallInput(string internalType)
+{
+	var t = Type.GetType(internalType);
+	if (t == typeof(System.Guid))
+	{
+		return "Guid.Parse((System.String)reader.ReadElementContentAs(typeof(System.String), null))";
+	}
+	return string.Format("({0})reader.ReadElementContentAs(typeof({0}), null)", internalType);
+}
+
+public static string ConvertValueToXml(string internalType)
+{
+	var t = Type.GetType(internalType);
+	if (t == typeof(System.DateTime))
+	{
+		return "XmlConvert.ToString(_value, GetSerializationMode(_value))";
+	}
+	else if (t == typeof(System.String))
+	{
+		return "_value";
+	}
+	else
+	{
+		return "XmlConvert.ToString(_value)";
+	}
+}
+
+// Exceptions for HasOperator method
+private static readonly Dictionary<Type, Func<Expression, Expression, BinaryExpression>[]> _binaryExpressionExceptions = new Dictionary<Type, Func<Expression, Expression, BinaryExpression>[]>
+{
+	{typeof(System.Byte), new Func<Expression, Expression, BinaryExpression>[] { Expression.Add, Expression.Subtract }},
+	{typeof(System.SByte), new Func<Expression, Expression, BinaryExpression>[] { Expression.Add, Expression.Subtract }}
+};
+
+// Exceptions for HasOperator method
+private static readonly Dictionary<Type, Func<Expression, UnaryExpression>[]> _unaryExpressionExceptions = new Dictionary<Type, Func<Expression, UnaryExpression>[]>
+{
+	{typeof(System.Byte), new Func<Expression, UnaryExpression>[] { Expression.Increment, Expression.Decrement }},
+	{typeof(System.SByte), new Func<Expression, UnaryExpression>[] { Expression.Increment, Expression.Decrement }}
+};
+
+private static bool HasOperator(System.Type type, string[] excludedOperators, Func<Expression, Expression, BinaryExpression> a)
+{
+	// Check if the operator shouldn't be generated
+	// The name of the operator to exclude most exist in 'excludedOperators'
+	var name = a.GetMethodInfo().Name;
+	if (excludedOperators != null
+	 && excludedOperators.Contains(name))
+	{
+		return false;
+	}
+
+	// Create default for expression execution
+	object def = type.IsValueType
+		? Activator.CreateInstance(type)
+		: null;
+	var ce = Expression.Constant(def, type);
+	
+	// Check if the operator is defined
+	try
+	{
+		// If the operator is defined for the underlying type, the following operation is successful
+		a(ce, ce);
+		return true;
+	}
+	catch
+	{
+		// If the operatior isn't defined, an exception is thrown.
+		// But there can be an exception for the underlying type.
+		// If the type is defined as an exception, and the operator is defined as an exception as well,
+		// True will be returned. If the exception isn't defined, False will be returned.
+		return _binaryExpressionExceptions.ContainsKey(type)
+			&& _binaryExpressionExceptions[type].Contains(a);
+	}
+}
+
+private static bool HasOperator(System.Type type, string[] excludedOperators, Func<Expression, UnaryExpression> a)
+{
+	// Check if the operator shouldn't be generated
+	// The name of the operator to exclude most exist in 'excludedOperators'
+	var name = a.GetMethodInfo().Name;
+	if (excludedOperators != null
+	 && excludedOperators.Contains(name))
+	{
+		return false;
+	}
+	
+	// Create default for expression execution
+	object def = type.IsValueType
+		? Activator.CreateInstance(type)
+		: null;
+	var ce = Expression.Constant(def, type);
+	
+	// Check if the operator is defined
+	try
+	{
+		// If the operator is defined for the underlying type, the following operation is successful
+		a(ce);
+		return true;
+	}
+	catch
+	{
+		// If the operatior isn't defined, an exception is thrown.
+		// But there can be an exception for the underlying type.
+		// If the type is defined as an exception, and the operator is defined as an exception as well,
+		// True will be returned. If the exception isn't defined, False will be returned.
+		return _unaryExpressionExceptions.ContainsKey(type)
+			&& _unaryExpressionExceptions[type].Contains(a);
+	}
+}
+#>

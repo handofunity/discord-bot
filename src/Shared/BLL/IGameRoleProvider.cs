@@ -4,6 +4,7 @@
     using System.Threading.Tasks;
     using DAL;
     using Objects;
+    using StrongTypes;
 
     public interface IGameRoleProvider
     {
@@ -11,7 +12,7 @@
 
         IReadOnlyList<AvailableGame> Games { get; }
 
-        Task<(bool Success, string Response, string LogMessage)> SetGameRole((ulong UserID, string Mention) user, AvailableGame game, string className);
+        Task<(bool Success, string Response, string LogMessage)> SetGameRole((DiscordUserID UserID, string Mention) user, AvailableGame game, string className);
 
         Task LoadAvailableGames();
     }

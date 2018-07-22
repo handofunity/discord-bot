@@ -11,6 +11,7 @@
     using Shared.DAL;
     using Shared.Enums;
     using Shared.Objects;
+    using Shared.StrongTypes;
 
     [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
     public class GuildUserRegistry : IGuildUserRegistry
@@ -20,7 +21,7 @@
 
         private readonly ILogger<GuildUserRegistry> _logger;
         private readonly IDatabaseAccess _databaseAccess;
-        private readonly ConcurrentDictionary<ulong, Role> _guildUserRoles;
+        private readonly ConcurrentDictionary<DiscordUserID, Role> _guildUserRoles;
         private IDiscordAccess _discordAccess;
 
         #endregion
@@ -33,7 +34,7 @@
         {
             _logger = logger;
             _databaseAccess = databaseAccess;
-            _guildUserRoles = new ConcurrentDictionary<ulong, Role>();
+            _guildUserRoles = new ConcurrentDictionary<DiscordUserID, Role>();
         }
 
         #endregion
@@ -46,19 +47,19 @@
             return (Role.AnyGuildMember & roles) != Role.NoRole;
         }
 
-        private ulong[] GetGuildMembersUserIds()
+        private DiscordUserID[] GetGuildMembersUserIds()
         {
             return _guildUserRoles.Where(m => HasGuildMemberRole(m.Value)).Select(m => m.Key).ToArray();
         }
 
-        private Role GetGuildUserRoles(ulong userId)
+        private Role GetGuildUserRoles(DiscordUserID userId)
         {
             return _guildUserRoles.TryGetValue(userId, out var roles)
                        ? roles
                        : Role.NoRole;
         }
 
-        private void RemoveGuildUser(ulong userId)
+        private void RemoveGuildUser(DiscordUserID userId)
         {
             var removed = _guildUserRoles.TryRemove(userId, out _);
             if (!removed)
@@ -75,13 +76,13 @@
             set => _discordAccess = value;
         }
 
-        bool IGuildUserRegistry.IsGuildMember(ulong userID)
+        bool IGuildUserRegistry.IsGuildMember(DiscordUserID userID)
         {
             var roles = GetGuildUserRoles(userID);
             return HasGuildMemberRole(roles);
         }
 
-        async Task IGuildUserRegistry.AddGuildUsers((ulong UserId, Role Roles)[] guildUsers)
+        async Task IGuildUserRegistry.AddGuildUsers((DiscordUserID UserId, Role Roles)[] guildUsers)
         {
             _logger.LogInformation($"Adding {guildUsers.Length} users to the registry.");
             foreach (var (userId, roles) in guildUsers)
@@ -93,7 +94,7 @@
             await _databaseAccess.AddUsers(guildUsers.Select(m => m.UserId)).ConfigureAwait(false);
         }
 
-        void IGuildUserRegistry.RemoveGuildUsers(IEnumerable<ulong> userIds)
+        void IGuildUserRegistry.RemoveGuildUsers(IEnumerable<DiscordUserID> userIds)
         {
             foreach (var uid in userIds)
             {
@@ -101,19 +102,21 @@
             }
         }
 
-        async Task<bool> IGuildUserRegistry.AddGuildUser(ulong userId, Role roles)
+        async Task<bool> IGuildUserRegistry.AddGuildUser(DiscordUserID userId, Role roles)
         {
             _guildUserRoles.AddOrUpdate(userId, uid => roles, (uid, oldRoles) => roles);
             // Check against database
-            return await _databaseAccess.AddUser(userId).ConfigureAwait(false);
+            // This method doesn't use the IUserStore, because the user store cannot provide a IsNew information
+            var result = await _databaseAccess.GetOrAddUser(userId).ConfigureAwait(false);
+            return result.IsNew;
         }
 
-        void IGuildUserRegistry.RemoveGuildUser(ulong userId)
+        void IGuildUserRegistry.RemoveGuildUser(DiscordUserID userId)
         {
             RemoveGuildUser(userId);
         }
 
-        GuildMemberUpdatedResult IGuildUserRegistry.UpdateGuildUser(ulong userId, string mention, Role oldRoles, Role newRoles)
+        GuildMemberUpdatedResult IGuildUserRegistry.UpdateGuildUser(DiscordUserID userId, string mention, Role oldRoles, Role newRoles)
         {
             _guildUserRoles.AddOrUpdate(userId, uid => newRoles, (uid, currentRegisteredRoles) => newRoles);
 
@@ -148,7 +151,7 @@
             return new GuildMemberUpdatedResult(a, $"{mention} has been promoted to **{promotedTo}**.");
         }
 
-        Role IGuildUserRegistry.GetGuildUserRoles(ulong userId) => GetGuildUserRoles(userId);
+        Role IGuildUserRegistry.GetGuildUserRoles(DiscordUserID userId) => GetGuildUserRoles(userId);
 
         EmbedData IGuildUserRegistry.GetGuildMembers()
         {
@@ -171,7 +174,7 @@
             };
         }
 
-        ulong[] IGuildUserRegistry.GetGuildMemberUserIds() => GetGuildMembersUserIds();
+        DiscordUserID[] IGuildUserRegistry.GetGuildMemberUserIds() => GetGuildMembersUserIds();
 
         #endregion
     }

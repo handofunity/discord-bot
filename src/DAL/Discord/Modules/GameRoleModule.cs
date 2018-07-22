@@ -10,6 +10,7 @@
     using Shared.BLL;
     using Shared.DAL;
     using Shared.Enums;
+    using Shared.StrongTypes;
 
     [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
     public class GameRoleModule : ModuleBaseHoU
@@ -65,7 +66,7 @@
             }
             var className = match.Groups["className"].Value;
 
-            var result = await _gameRoleProvider.SetGameRole((Context.User.Id, Context.User.Mention), game, className).ConfigureAwait(false);
+            var result = await _gameRoleProvider.SetGameRole(((DiscordUserID)Context.User.Id, Context.User.Mention), game, className).ConfigureAwait(false);
             if (result.Success)
             {
                 // Log

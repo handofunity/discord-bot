@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<strongTypes xmlns="https://www.github.com/Herdo/strongtypes"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="https://www.github.com/Herdo/strongtypes StrongTypesConfiguration.xsd">
+  <strongType name="InternalUserID" internalType="System.Int32">
+    <excludeOperator>Add</excludeOperator>
+    <excludeOperator>Subtract</excludeOperator>
+    <excludeOperator>Increment</excludeOperator>
+    <excludeOperator>Decrement</excludeOperator>
+    <excludeOperator>LessThan</excludeOperator>
+    <excludeOperator>GreaterThan</excludeOperator>
+    <excludeOperator>LessThanOrEqual</excludeOperator>
+    <excludeOperator>GreaterThanOrEqual</excludeOperator>
+  </strongType>
+  <strongType name="DiscordUserID" internalType="System.UInt64">
+    <excludeOperator>Add</excludeOperator>
+    <excludeOperator>Subtract</excludeOperator>
+    <excludeOperator>Increment</excludeOperator>
+    <excludeOperator>Decrement</excludeOperator>
+    <excludeOperator>LessThan</excludeOperator>
+    <excludeOperator>GreaterThan</excludeOperator>
+    <excludeOperator>LessThanOrEqual</excludeOperator>
+    <excludeOperator>GreaterThanOrEqual</excludeOperator>
+  </strongType>
+</strongTypes>

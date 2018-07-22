@@ -3,6 +3,7 @@
     using System.Threading.Tasks;
     using DAL;
     using Objects;
+    using StrongTypes;
 
     public interface IGuildUserInspector
     {
@@ -13,6 +14,6 @@
 
         Task<EmbedData> GetLastSeenInfo();
 
-        Task UpdateLastSeenInfo(ulong userID, bool wasOnline, bool isOnline);
+        Task UpdateLastSeenInfo(DiscordUserID userID, bool wasOnline, bool isOnline);
     }
 }

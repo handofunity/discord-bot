@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="strongTypes" targetNamespace="https://www.github.com/Herdo/strongtypes" xmlns:mstns="https://www.github.com/Herdo/strongtypes" xmlns="https://www.github.com/Herdo/strongtypes" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" attributeFormDefault="qualified" elementFormDefault="qualified">
+  <xs:element name="strongTypes" msdata:IsDataSet="true" msdata:Locale="en-US">
+    <xs:complexType>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element name="strongType">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="validate" type="xs:string" minOccurs="0" msdata:Ordinal="0" />
+              <xs:element name="formatString" type="xs:string" minOccurs="0" msdata:Ordinal="1" />
+              <xs:element name="customDescription" type="xs:string" minOccurs="0" msdata:Ordinal="2" />
+              <xs:element name="excludeOperator" type="xs:string" minOccurs="0" maxOccurs="unbounded" msdata:Ordinal="2" />
+            </xs:sequence>
+            <xs:attribute name="name" use="required" form="unqualified" type="xs:string" />
+            <xs:attribute name="internalType" use="required" form="unqualified" type="xs:string" />
+          </xs:complexType>
+        </xs:element>
+      </xs:choice>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

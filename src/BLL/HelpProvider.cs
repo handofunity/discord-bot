@@ -8,6 +8,7 @@
     using Shared.BLL;
     using Shared.Enums;
     using Shared.Objects;
+    using Shared.StrongTypes;
 
     [UsedImplicitly]
     public class HelpProvider : IHelpProvider
@@ -35,7 +36,7 @@
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region Private Methods
 
-        private CommandInfo[] GetAvailableCommands(ulong userId)
+        private CommandInfo[] GetAvailableCommands(DiscordUserID userId)
         {
             var userRoles = _guildUserRegistry.GetGuildUserRoles(userId);
             return userRoles == Role.NoRole
@@ -43,7 +44,7 @@
                        : _commandRegistry.GetAvailableCommands(userRoles);
         }
 
-        private (string Message, EmbedData Embed) ListAvailableCommands(ulong userId)
+        private (string Message, EmbedData Embed) ListAvailableCommands(DiscordUserID userId)
         {
             const string responseTitle = "Available commands";
 
@@ -72,7 +73,7 @@
             });
         }
 
-        private (string Message, EmbedData Embed) GetAdvancedCommandHelp(ulong userId, string helpRequest)
+        private (string Message, EmbedData Embed) GetAdvancedCommandHelp(DiscordUserID userId, string helpRequest)
         {
             var syntax = new Regex("\"(?<requestedCommand>.+)\"");
             var match = syntax.Match(helpRequest);
@@ -116,7 +117,7 @@
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region IHelpProvider Members
 
-        (string Message, EmbedData EmbedData) IHelpProvider.GetHelp(ulong userId, string helpRequest)
+        (string Message, EmbedData EmbedData) IHelpProvider.GetHelp(DiscordUserID userId, string helpRequest)
         {
             return helpRequest == null
                        ? ListAvailableCommands(userId)

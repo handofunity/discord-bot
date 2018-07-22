@@ -1,9 +1,38 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <AssemblyName>HoU.GuildBot.Shared</AssemblyName>
     <RootNamespace>HoU.GuildBot.Shared</RootNamespace>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Update="StrongTypes\StrongTypeGenerator.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+	    <LastGenOutput>StrongTypeGenerator.cs</LastGenOutput>
+    </None>
+    <None Update="StrongTypes\InternalUserID.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>StrongTypeGenerator.tt</DependentUpon>
+    </None>
+    <None Update="StrongTypes\DiscordUserID.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>StrongTypeGenerator.tt</DependentUpon>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="StrongTypes\StrongTypeGenerator.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>StrongTypeGenerator.tt</DependentUpon>
+    </Compile>
+  </ItemGroup>
 
 </Project>

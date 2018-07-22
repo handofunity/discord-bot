@@ -7,6 +7,7 @@
     using Shared.Attributes;
     using Shared.BLL;
     using Shared.Enums;
+    using Shared.StrongTypes;
 
     [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
     public class HelpModule : ModuleBaseHoU
@@ -41,7 +42,7 @@
         [RolePrecondition(Role.AnyGuildMember)]
         public async Task HelpAsync([Remainder] string helpRequest = null)
         {
-            var data = _helpProvider.GetHelp(Context.User.Id, helpRequest);
+            var data = _helpProvider.GetHelp((DiscordUserID)Context.User.Id, helpRequest);
             var embed = data.EmbedData.ToEmbed();
             await ReplyPrivateAsync(data.Message, embed).ConfigureAwait(false);
         }

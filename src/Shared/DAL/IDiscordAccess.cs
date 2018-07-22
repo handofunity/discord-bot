@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using Objects;
+    using StrongTypes;
 
     public interface IDiscordAccess
     {
@@ -42,14 +43,14 @@
         /// </summary>
         /// <param name="userID">The ID of the user to check.</param>
         /// <returns><b>True</b>, if the user is online, otherwise <b>false</b>.</returns>
-        bool IsUserOnline(ulong userID);
+        bool IsUserOnline(DiscordUserID userID);
 
         /// <summary>
         /// Gets the user names for the given <paramref name="userIDs"/>.
         /// </summary>
         /// <param name="userIDs">The user IDs to get the names for.</param>
         /// <returns>A mapping from a userID to a display name.</returns>
-        Dictionary<ulong, string> GetUserNames(IEnumerable<ulong> userIDs);
+        Dictionary<DiscordUserID, string> GetUserNames(IEnumerable<DiscordUserID> userIDs);
 
         /// <summary>
         /// Gets the available class names for the <paramref name="game"/>.
@@ -64,7 +65,7 @@
         /// <param name="userID">The user ID.</param>
         /// <param name="game">The game.</param>
         /// <returns>An awaitable <see cref="Task"/>.</returns>
-        Task RevokeCurrentGameRoles(ulong userID, AvailableGame game);
+        Task RevokeCurrentGameRoles(DiscordUserID userID, AvailableGame game);
 
         /// <summary>
         /// Sets the current role related with the <paramref name="userID"/> for the given <paramref name="game"/> to a specific <paramref name="className"/>.
@@ -73,13 +74,13 @@
         /// <param name="game">The game.</param>
         /// <param name="className">The <paramref name="game"/> related class name.</param>
         /// <returns>An awaitable <see cref="Task"/>.</returns>
-        Task SetCurrentGameRole(ulong userID, AvailableGame game, string className);
+        Task SetCurrentGameRole(DiscordUserID userID, AvailableGame game, string className);
 
         /// <summary>
         /// Checks if the bot can manage roles for a specific <paramref name="userID"/>, depending on the guilds role configuration.
         /// </summary>
         /// <param name="userID">The ID of the user to change roles for.</param>
         /// <returns><b>True</b>, if the bot can manage roles for the user, otherwise <b>false</b>.</returns>
-        bool CanManageRolesForUser(ulong userID);
+        bool CanManageRolesForUser(DiscordUserID userID);
     }
 }

@@ -5,6 +5,7 @@
     using JetBrains.Annotations;
     using Shared.BLL;
     using Shared.DAL;
+    using Shared.Objects;
 
     [UsedImplicitly]
     public class PrivacyProvider : IPrivacyProvider
@@ -41,10 +42,10 @@
             _timer.Start();
         }
 
-        async Task IPrivacyProvider.DeleteUserRelatedData(ulong userID)
+        async Task IPrivacyProvider.DeleteUserRelatedData(User user)
         {
-            await _databaseAccess.DeleteUserInfo(userID).ConfigureAwait(false);
-            await _databaseAccess.DeleteVacations(userID).ConfigureAwait(false);
+            await _databaseAccess.DeleteUserInfo(user).ConfigureAwait(false);
+            await _databaseAccess.DeleteVacations(user).ConfigureAwait(false);
         }
 
         #endregion

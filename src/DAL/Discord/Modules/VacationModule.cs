@@ -11,6 +11,7 @@
     using Shared.Attributes;
     using Shared.BLL;
     using Shared.Enums;
+    using Shared.StrongTypes;
 
     [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
     public class VacationModule : ModuleBaseHoU
@@ -80,7 +81,7 @@
                            ? match.Groups["note"].Value
                            : null;
 
-            var response = await _vacationProvider.AddVacation(Context.User.Id, start, end, note).ConfigureAwait(false);
+            var response = await _vacationProvider.AddVacation((DiscordUserID)Context.User.Id, start, end, note).ConfigureAwait(false);
             await ReplyAsync(response).ConfigureAwait(false);
         }
 
@@ -144,7 +145,7 @@
         [RolePrecondition(Role.Leader | Role.SeniorOfficer)]
         public async Task ListVacationsForUserAsync(SocketGuildUser guildUser)
         {
-            var response = await _vacationProvider.GetVacations(guildUser.Id).ConfigureAwait(false);
+            var response = await _vacationProvider.GetVacations((DiscordUserID)guildUser.Id).ConfigureAwait(false);
             await ReplyAsync(response).ConfigureAwait(false);
         }
 
@@ -189,7 +190,7 @@
                 end = start;
             }
 
-            var response = await _vacationProvider.DeleteVacation(Context.User.Id, start, end).ConfigureAwait(false);
+            var response = await _vacationProvider.DeleteVacation((DiscordUserID)Context.User.Id, start, end).ConfigureAwait(false);
             await ReplyAsync(response).ConfigureAwait(false);
         }
 
@@ -202,7 +203,7 @@
         [RolePrecondition(Role.AnyGuildMember)]
         public async Task ListUserVacationsAsync()
         {
-            var response = await _vacationProvider.GetVacations(Context.User.Id).ConfigureAwait(false);
+            var response = await _vacationProvider.GetVacations((DiscordUserID)Context.User.Id).ConfigureAwait(false);
             await ReplyAsync(response).ConfigureAwait(false);
         }
 

@@ -8,6 +8,7 @@
     using Shared.BLL;
     using Shared.DAL;
     using Shared.Objects;
+    using Shared.StrongTypes;
 
     [UsedImplicitly]
     public class GameRoleProvider : IGameRoleProvider
@@ -46,7 +47,7 @@
 
         public IReadOnlyList<AvailableGame> Games => _games;
 
-        async Task<(bool Success, string Response, string LogMessage)> IGameRoleProvider.SetGameRole((ulong UserID, string Mention) user, AvailableGame game, string className)
+        async Task<(bool Success, string Response, string LogMessage)> IGameRoleProvider.SetGameRole((DiscordUserID UserID, string Mention) user, AvailableGame game, string className)
         {
             var canChangeRole = _discordAccess.CanManageRolesForUser(user.UserID);
             if (!canChangeRole)
