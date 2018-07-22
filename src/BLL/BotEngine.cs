@@ -58,6 +58,24 @@
             // Create connection to Discord
             await Connect().ConfigureAwait(false);
 
+            // Check if the initial connection to the Discord servers is successful,
+            // because this won't be handled by the DisconnectedHandler.
+#pragma warning disable CS4014 // Fire & Forget
+            Task.Run(async () =>
+            {
+                // In case that the Discord servers are unreachable, we won't be able to make a connection
+                // for a few minutes or even hours. Because we don't want to restart and retry too often,
+                // waiting 10 minutes to check for the initial connection is okay.
+                await Task.Delay(new TimeSpan(0, 10, 0)).ConfigureAwait(false);
+                if (!_discordAccess.IsConnected)
+                {
+                    _logger.LogWarning("Shutting down process, because the connection to Discord couldn't be established within 10 minutes.");
+                    await Task.Delay(2000).ConfigureAwait(false);
+                    Environment.Exit(1);
+                }
+            }).ConfigureAwait(false);
+#pragma warning restore CS4014 // Fire & Forget
+
             // Listen to calls and block the current thread
             await Task.Delay(-1).ConfigureAwait(false);
         }
