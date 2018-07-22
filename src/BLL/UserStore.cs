@@ -18,7 +18,7 @@
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region Fields
 
-        private readonly ReaderWriterLockSlim _lock;
+        private readonly SemaphoreSlim _semaphore;
         private readonly IDatabaseAccess _databaseAccess;
         private readonly ILogger<IUserStore> _logger;
         private readonly List<User> _store;
@@ -34,7 +34,7 @@
         {
             _databaseAccess = databaseAccess;
             _logger = logger;
-            _lock = new ReaderWriterLockSlim();
+            _semaphore = new SemaphoreSlim(1, 1);
             _store = new List<User>();
         }
 
@@ -52,7 +52,7 @@
             try
             {
                 _logger.LogInformation("Initializing user store...");
-                _lock.EnterWriteLock();
+                await _semaphore.WaitAsync().ConfigureAwait(false);
                 var users = await _databaseAccess.GetAllUsers().ConfigureAwait(false);
                 foreach (var user in users)
                     _store.Add(user);
@@ -61,7 +61,7 @@
             }
             finally
             {
-                _lock.ExitWriteLock();
+                _semaphore.Release();
             }
         }
 
@@ -72,19 +72,19 @@
 
             try
             {
-                _lock.EnterReadLock();
+                await _semaphore.WaitAsync().ConfigureAwait(false);
                 var storedUser = _store.SingleOrDefault(m => m.DiscordUserID == userID);
                 if (storedUser != null)
                     return storedUser;
             }
             finally
             {
-                _lock.ExitReadLock();
+                _semaphore.Release();
             }
 
             try
             {
-                _lock.EnterWriteLock();
+                await _semaphore.WaitAsync().ConfigureAwait(false);
                 // If the user wasn't found, make sure it exists in the database and load it
                 var databaseUser = await _databaseAccess.GetOrAddUser(userID).ConfigureAwait(false);
                 _store.Add(databaseUser.User);
@@ -92,7 +92,7 @@
             }
             finally
             {
-                _lock.ExitWriteLock();
+                _semaphore.Release();
             }
         }
 
@@ -103,7 +103,7 @@
 
             try
             {
-                _lock.EnterReadLock();
+                _semaphore.Wait();
                 var user = _store.SingleOrDefault(m => m.InternalUserID == userID);
                 if (user == null)
                     throw new ArgumentOutOfRangeException($"No user could be found for the user ID {userID}.");
@@ -111,7 +111,7 @@
             }
             finally
             {
-                _lock.ExitReadLock();
+                _semaphore.Release();
             }
         }
 
