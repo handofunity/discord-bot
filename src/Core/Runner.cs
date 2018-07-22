@@ -37,6 +37,7 @@
             var serviceProvider = serviceCollection.BuildServiceProvider();
 
             _logger = serviceProvider.GetService<ILogger<Runner>>();
+            _logger.LogInformation($"Starting up {nameof(IBotEngine)}...");
 
             // Resolve bot engine
             var botEngine = serviceProvider.GetService<IBotEngine>();

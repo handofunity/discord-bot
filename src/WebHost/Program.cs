@@ -22,7 +22,7 @@
             {
                 Task.Run(() => Startup.EnvironmentConfigured += Startup_EnvironmentConfigured);
                 var host = BuildWebHost();
-                host.WaitForShutdown();
+                host.Run();
             }
             catch (Exception e)
             {

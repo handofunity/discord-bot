@@ -9,7 +9,7 @@ COPY Core/Core.csproj Core/
 COPY DAL/DAL.csproj DAL/
 COPY Shared/Shared.csproj Shared/
 COPY BLL/BLL.csproj BLL/
-RUN dotnet restore -nowarn:msb3202,nu1503
+RUN dotnet restore -nowarn:msb3202,nu1503 -p:RestoreUseSkipNonexistentTargets=false
 COPY . .
 WORKDIR /src/WebHost
 RUN dotnet build -c Release -o /app
