@@ -62,7 +62,7 @@
             return dbObjects.Select(ToPoco).ToArray();
         }
 
-        async Task IDatabaseAccess.AddUsers(IEnumerable<DiscordUserID> userIDs)
+        async Task IDatabaseAccess.EnsureUsersExist(IEnumerable<DiscordUserID> userIDs)
         {
             using (var entities = GetEntities())
             {

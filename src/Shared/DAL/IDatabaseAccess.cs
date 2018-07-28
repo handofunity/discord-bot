@@ -16,7 +16,7 @@
         /// <param name="userIDs">The IDs to add.</param> 
         /// <returns>An awaitable <see cref="Task"/>.</returns>
         /// <remarks>User IDs that are already present on the database won't be added.</remarks>
-        Task AddUsers(IEnumerable<DiscordUserID> userIDs);
+        Task EnsureUsersExist(IEnumerable<DiscordUserID> userIDs);
 
         /// <summary>
         /// Adds a user ID to the database.

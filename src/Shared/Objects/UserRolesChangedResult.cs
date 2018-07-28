@@ -1,6 +1,6 @@
 ﻿namespace HoU.GuildBot.Shared.Objects
 {
-    public class GuildMemberUpdatedResult
+    public class UserRolesChangedResult
     {
         public bool IsPromotion { get; }
 
@@ -9,14 +9,14 @@
         public string LogMessage { get; }
 
         /// <summary>
-        /// Returns a new instance of the <see cref="GuildMemberUpdatedResult"/> class indicating that the update was no promotion.
+        /// Returns a new instance of the <see cref="UserRolesChangedResult"/> class indicating that the update was no promotion.
         /// </summary>
-        public GuildMemberUpdatedResult()
+        public UserRolesChangedResult()
         {
             IsPromotion = false;
         }
 
-        public GuildMemberUpdatedResult(EmbedData announcementData, string logMessage)
+        public UserRolesChangedResult(EmbedData announcementData, string logMessage)
         {
             IsPromotion = true;
             AnnouncementData = announcementData;

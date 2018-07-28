@@ -4,50 +4,42 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using JetBrains.Annotations;
     using Shared.BLL;
     using Shared.DAL;
     using Shared.Objects;
     using Shared.StrongTypes;
 
-    [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
-    public class GuildUserInspector : IGuildUserInspector
+    public class UserInfoProvider : IUserInfoProvider
     {
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region Fields
 
-        private readonly IGuildUserRegistry _guildUserRegistry;
         private readonly IUserStore _userStore;
+        private readonly IDiscordAccess _discordAccess;
         private readonly IDatabaseAccess _databaseAccess;
-        private IDiscordAccess _discordAccess;
 
         #endregion
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region Constructors
 
-        public GuildUserInspector(IGuildUserRegistry guildUserRegistry,
-                                  IUserStore userStore,
-                                  IDatabaseAccess databaseAccess)
+        public UserInfoProvider(IUserStore userStore,
+                                IDiscordAccess discordAccess,
+                                IDatabaseAccess databaseAccess)
         {
-            _guildUserRegistry = guildUserRegistry;
             _userStore = userStore;
+            _discordAccess = discordAccess;
             _databaseAccess = databaseAccess;
         }
 
         #endregion
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
-        #region IGuildUserInspector Members
+        #region IUserInfoProvider Members
 
-        IDiscordAccess IGuildUserInspector.DiscordAccess
+        async Task<EmbedData> IUserInfoProvider.GetLastSeenInfo()
         {
-            set => _discordAccess = value;
-        }
-
-        async Task<EmbedData> IGuildUserInspector.GetLastSeenInfo()
-        {
-            var ids = _guildUserRegistry.GetGuildMemberUserIds();
+            var ids = _userStore.GetUsers(m => m.IsGuildMember).Select(m => m.DiscordUserID).ToArray();
             // LastSeen = null equals the user is currently online
             var data = new List<(DiscordUserID UserID, string Username, bool IsOnline, DateTime? LastSeen)>(ids.Length);
 
@@ -67,7 +59,7 @@
             var missingUsers = new List<User>();
             foreach (var discordUserID in missingUserIDs)
             {
-                missingUsers.Add(await _userStore.GetUser(discordUserID).ConfigureAwait(false));
+                missingUsers.Add(_userStore.GetUser(discordUserID));
             }
             var lastSeenData = await _databaseAccess.GetLastSeenInfoForUsers(missingUsers.ToArray()).ConfigureAwait(false);
             var noInfoFallback = new DateTime(2018, 1, 1);
@@ -90,20 +82,6 @@
                 Title = "Last seen times for all guild members",
                 Description = result
             }).ConfigureAwait(false);
-        }
-
-        async Task IGuildUserInspector.UpdateLastSeenInfo(DiscordUserID userID, bool wasOnline, bool isOnline)
-        {
-            // We're only updating the info when the user goes offline
-            if (!(wasOnline && !isOnline))
-                return; // If the user does not change from online to offline, we can return here
-
-            // Only save status for guild members, not guests
-            if (!_guildUserRegistry.IsGuildMember(userID))
-                return;
-
-            var user = await _userStore.GetUser(userID).ConfigureAwait(false);
-            await _databaseAccess.UpdateUserInfoLastSeen(user, DateTime.UtcNow).ConfigureAwait(false);
         }
 
         #endregion

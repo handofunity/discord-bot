@@ -14,16 +14,16 @@
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region Fields
 
-        private readonly IGuildUserRegistry _guildUserRegistry;
+        private readonly IGuildInfoProvider _guildInfoProvider;
 
         #endregion
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region Constructors
 
-        public GuildMembersModule(IGuildUserRegistry guildUserRegistry)
+        public GuildMembersModule(IGuildInfoProvider guildInfoProvider)
         {
-            _guildUserRegistry = guildUserRegistry;
+            _guildInfoProvider = guildInfoProvider;
         }
 
         #endregion
@@ -40,7 +40,7 @@
         [RolePrecondition(Role.AnyGuildMember)]
         public async Task GuildMembersAsync()
         {
-            var data = _guildUserRegistry.GetGuildMembers();
+            var data = _guildInfoProvider.GetGuildMemberStatus();
             var embed = data.ToEmbed();
             await ReplyAsync(string.Empty, false, embed).ConfigureAwait(false);
         }

@@ -32,8 +32,8 @@
 
         public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider services)
         {
-            var gur = (IGuildUserRegistry)services.GetService(typeof(IGuildUserRegistry));
-            var userRoles = gur.GetGuildUserRoles((DiscordUserID)context.User.Id);
+            var userStore = (IUserStore)services.GetService(typeof(IUserStore));
+            var userRoles = userStore.GetUser((DiscordUserID)context.User.Id).Roles;
             var isAllowed = (AllowedRoles & userRoles) != Role.NoRole;
             return Task.FromResult(isAllowed
                                        ? PreconditionResult.FromSuccess()

@@ -34,11 +34,10 @@
         private readonly ISpamGuard _spamGuard;
         private readonly IIgnoreGuard _ignoreGuard;
         private readonly ICommandRegistry _commandRegistry;
-        private readonly IGuildUserRegistry _guildUserUserRegistry;
-        private readonly IGuildUserInspector _guildUserInspector;
         private readonly IMessageProvider _messageProvider;
         private readonly IPrivacyProvider _privacyProvider;
         private readonly IGameRoleProvider _gameRoleProvider;
+        private readonly IDiscordUserEventHandler _discordUserEventHandler;
         private readonly IUserStore _userStore;
         private readonly DiscordSocketClient _client;
         private readonly CommandService _commands;
@@ -71,11 +70,10 @@
                              ISpamGuard spamGuard,
                              IIgnoreGuard ignoreGuard,
                              ICommandRegistry commandRegistry,
-                             IGuildUserRegistry guildUserUserRegistry,
-                             IGuildUserInspector guildUserInspector,
                              IMessageProvider messageProvider,
                              IPrivacyProvider privacyProvider,
                              IGameRoleProvider gameRoleProvider,
+                             IDiscordUserEventHandler discordUserEventHandler,
                              IUserStore userStore)
         {
             _logger = logger;
@@ -84,14 +82,11 @@
             _spamGuard = spamGuard;
             _ignoreGuard = ignoreGuard;
             _commandRegistry = commandRegistry;
-            _guildUserUserRegistry = guildUserUserRegistry;
-            _guildUserInspector = guildUserInspector;
             _messageProvider = messageProvider;
             _privacyProvider = privacyProvider;
             _gameRoleProvider = gameRoleProvider;
+            _discordUserEventHandler = discordUserEventHandler;
             _userStore = userStore;
-            _guildUserUserRegistry.DiscordAccess = this;
-            _guildUserInspector.DiscordAccess = this;
             _gameRoleProvider.DiscordAccess = this;
             _commands = new CommandService();
             _client = new DiscordSocketClient();
@@ -355,9 +350,9 @@
             }
         }
 
-        private async Task UpdateGuildUserRoles(DiscordUserID userID, string mention, Role oldRoles, Role newRoles)
+        private async Task UpdateGuildUserRoles(DiscordUserID userID, Role oldRoles, Role newRoles)
         {
-            var result = _guildUserUserRegistry.UpdateGuildUser(userID, mention, oldRoles, newRoles);
+            var result = _discordUserEventHandler.HandleRolesChanged(userID, oldRoles, newRoles);
             if (result.IsPromotion)
             {
                 // Log promotion
@@ -370,7 +365,7 @@
             }
         }
 
-        private static bool IsOnline(IGuildUser gu) => gu.Status != UserStatus.Offline && gu.Status != UserStatus.Invisible;
+        private static bool IsOnline(IPresence gu) => gu.Status != UserStatus.Offline && gu.Status != UserStatus.Invisible;
 
         #endregion
 
@@ -532,10 +527,8 @@
                 if (!_userStore.IsInitialized)
                 {
                     // Initialize user store only once
-                    await _userStore.Initialize().ConfigureAwait(false);
+                    await _userStore.Initialize(guild.Users.Select(m => ((DiscordUserID)m.Id, SocketRoleToRole(m.Roles))).ToArray()).ConfigureAwait(false);
                 }
-
-                await _guildUserUserRegistry.AddGuildUsers(guild.Users.Select(m => ((DiscordUserID)m.Id, SocketRoleToRole(m.Roles))).ToArray()).ConfigureAwait(false);
                 
                 if (_gameRoleProvider.Games.Count == 0)
                 {
@@ -558,7 +551,6 @@
                 return Task.CompletedTask;
 
             _guildAvailable = false;
-            _guildUserUserRegistry.RemoveGuildUsers(guild.Users.Select(m => (DiscordUserID)m.Id));
 
             return Task.CompletedTask;
         }
@@ -571,8 +563,8 @@
 #pragma warning disable CS4014 // Fire & forget
             Task.Run(async () =>
             {
-                var isNew = await _guildUserUserRegistry.AddGuildUser((DiscordUserID)guildUser.Id, SocketRoleToRole(guildUser.Roles)).ConfigureAwait(false);
-                if (isNew)
+                var result = await _userStore.GetOrAddUser((DiscordUserID)guildUser.Id, SocketRoleToRole(guildUser.Roles)).ConfigureAwait(false);
+                if (result.IsNew)
                     await SendWelcomeMessage(guildUser).ConfigureAwait(false);
             }).ConfigureAwait(false);
 #pragma warning restore CS4014 // Fire & forget
@@ -585,11 +577,11 @@
             if (guildUser.Guild.Id != _appSettings.HandOfUnityGuildId)
                 return Task.CompletedTask;
 
-            _guildUserUserRegistry.RemoveGuildUser((DiscordUserID)guildUser.Id);
+            var user = _userStore.GetUser((DiscordUserID)guildUser.Id);
+            _userStore.RemoveUser((DiscordUserID)guildUser.Id);
             // Fire & Forget
             Task.Run(async () =>
             {
-                var user = await _userStore.GetUser((DiscordUserID)guildUser.Id).ConfigureAwait(false);
                 await _privacyProvider.DeleteUserRelatedData(user).ConfigureAwait(false);
             }).ConfigureAwait(false);
 
@@ -613,7 +605,7 @@
                 var newRoles = SocketRoleToRole(newGuildUser.Roles);
                 if (oldRoles != newRoles)
                 {
-                    await UpdateGuildUserRoles((DiscordUserID)newGuildUser.Id, newGuildUser.Mention, oldRoles, newRoles).ConfigureAwait(false);
+                    await UpdateGuildUserRoles((DiscordUserID)newGuildUser.Id, oldRoles, newRoles).ConfigureAwait(false);
                 }
 
                 // Handle possible status change
@@ -621,7 +613,7 @@
                 {
                     var wasOnline = IsOnline(oldGuildUser);
                     var isOnline = IsOnline(newGuildUser);
-                    await _guildUserInspector.UpdateLastSeenInfo((DiscordUserID)newGuildUser.Id, wasOnline, isOnline).ConfigureAwait(false);
+                    await _discordUserEventHandler.HandleStatusChanged((DiscordUserID)newGuildUser.Id, wasOnline, isOnline).ConfigureAwait(false);
                 }
             });
             return Task.CompletedTask;

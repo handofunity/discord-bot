@@ -14,16 +14,16 @@
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region Fields
 
-        private readonly IGuildUserInspector _guildUserInspector;
+        private readonly IUserInfoProvider _userInfoProvider;
 
         #endregion
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region Constructors
 
-        public LastSeenModule(IGuildUserInspector guildUserInspector)
+        public LastSeenModule(IUserInfoProvider userInfoProvider)
         {
-            _guildUserInspector = guildUserInspector;
+            _userInfoProvider = userInfoProvider;
         }
 
         #endregion
@@ -43,7 +43,7 @@
         {
             var message = await ReplyAsync("Loading...").ConfigureAwait(false);
 
-            var embedData = await _guildUserInspector.GetLastSeenInfo().ConfigureAwait(false);
+            var embedData = await _userInfoProvider.GetLastSeenInfo().ConfigureAwait(false);
             
             await message.DeleteAsync().ConfigureAwait(false);
 

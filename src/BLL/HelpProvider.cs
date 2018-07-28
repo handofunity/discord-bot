@@ -17,7 +17,7 @@
         #region Fields
 
         private readonly ICommandRegistry _commandRegistry;
-        private readonly IGuildUserRegistry _guildUserRegistry;
+        private readonly IUserStore _userStore;
 
         #endregion
 
@@ -25,10 +25,10 @@
         #region Constructors
 
         public HelpProvider(ICommandRegistry commandRegistry,
-                            IGuildUserRegistry guildUserRegistry)
+                            IUserStore userStore)
         {
             _commandRegistry = commandRegistry;
-            _guildUserRegistry = guildUserRegistry;
+            _userStore = userStore;
         }
 
         #endregion
@@ -38,10 +38,10 @@
 
         private CommandInfo[] GetAvailableCommands(DiscordUserID userId)
         {
-            var userRoles = _guildUserRegistry.GetGuildUserRoles(userId);
-            return userRoles == Role.NoRole
+            var user = _userStore.GetUser(userId);
+            return user.Roles == Role.NoRole
                        ? new CommandInfo[0]
-                       : _commandRegistry.GetAvailableCommands(userRoles);
+                       : _commandRegistry.GetAvailableCommands(user.Roles);
         }
 
         private (string Message, EmbedData Embed) ListAvailableCommands(DiscordUserID userId)

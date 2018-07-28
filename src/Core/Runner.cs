@@ -12,6 +12,7 @@
     using Shared.BLL;
     using Shared.DAL;
     using Shared.Objects;
+    using DiscordUserEventHandler = BLL.DiscordUserEventHandler;
 
     public class Runner
     {
@@ -64,14 +65,15 @@
                 .AddSingleton<ISpamGuard, SpamGuard>()
                 .AddSingleton<IIgnoreGuard, IgnoreGuard>()
                 .AddSingleton<ICommandRegistry, CommandRegistry>()
-                .AddSingleton<IGuildUserRegistry, GuildUserRegistry>()
+                .AddSingleton<IDiscordUserEventHandler, DiscordUserEventHandler>()
                 .AddSingleton<IBotInformationProvider>(botInformationProvider)
                 .AddSingleton<IHelpProvider, HelpProvider>()
                 .AddSingleton<IMessageProvider, MessageProvider>()
                 .AddSingleton<IVacationProvider, VacationProvider>()
                 .AddSingleton<IPrivacyProvider, PrivacyProvider>()
                 .AddSingleton<IGameRoleProvider, GameRoleProvider>()
-                .AddSingleton<IGuildUserInspector, GuildUserInspector>()
+                .AddSingleton<IGuildInfoProvider, GuildInfoProvider>()
+                .AddSingleton<IUserInfoProvider, UserInfoProvider>()
                 .AddSingleton<IUserStore, UserStore>();
         }
 
