@@ -49,14 +49,6 @@
             {
                 promotedTo = Role.Recruit;
             }
-            else if (!oldRoles.HasFlag(Role.Member)
-                  && !oldRoles.HasFlag(Role.Officer)
-                  && !oldRoles.HasFlag(Role.SeniorOfficer)
-                  && !oldRoles.HasFlag(Role.Leader)
-                  && newRoles.HasFlag(Role.Member))
-            {
-                promotedTo = Role.Member;
-            }
             else
             {
                 return new UserRolesChangedResult();
