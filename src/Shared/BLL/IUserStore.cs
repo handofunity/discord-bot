@@ -25,19 +25,19 @@
         /// Gets an user by the <see cref="DiscordUserID"/>.
         /// </summary>
         /// <param name="userID">The external Discord user ID.</param>
+        /// <param name="user">The matching user object, or <b>null</b> if none could have been found.</param>
         /// <exception cref="InvalidOperationException">The store is not initialized.</exception>
-        /// <exception cref="KeyNotFoundException">No user could be found for the given <paramref name="userID"/>.</exception>
         /// <returns>The <see cref="User"/> object.</returns>
-        User GetUser(DiscordUserID userID);
+        bool TryGetUser(DiscordUserID userID, out User user);
 
         /// <summary>
         /// Gets an user by the <see cref="InternalUserID"/>.
         /// </summary>
         /// <param name="userID">The internal user ID.</param>
+        /// <param name="user">The matching user object, or <b>null</b> if none could have been found.</param>
         /// <exception cref="InvalidOperationException">The store is not initialized.</exception>
-        /// <exception cref="KeyNotFoundException">No user could be found for the given <paramref name="userID"/>.</exception>
         /// <returns>The <see cref="User"/> object.</returns>
-        User GetUser(InternalUserID userID);
+        bool TryGetUser(InternalUserID userID, out User user);
 
         /// <summary>
         /// Gets all users matching the <paramref name="predicate"/>.

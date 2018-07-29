@@ -57,7 +57,8 @@
 
         void IDiscordUserEventHandler.HandleLeft(DiscordUserID userID)
         {
-            var user = _userStore.GetUser(userID);
+            if(!_userStore.TryGetUser(userID, out var user))
+                return;
 #pragma warning disable CS4014 // Fire & Forget
             Task.Run(async () =>
             {
@@ -73,7 +74,8 @@
 
         UserRolesChangedResult IDiscordUserEventHandler.HandleRolesChanged(DiscordUserID userID, Role oldRoles, Role newRoles)
         {
-            var user = _userStore.GetUser(userID);
+            if (!_userStore.TryGetUser(userID, out var user))
+                return new UserRolesChangedResult();
             user.Roles = newRoles;
 
             // Check if the role change was a promotion
@@ -107,7 +109,8 @@
 
         async Task IDiscordUserEventHandler.HandleStatusChanged(DiscordUserID userID, bool wasOnline, bool isOnline)
         {
-            var user = _userStore.GetUser(userID);
+            if (!_userStore.TryGetUser(userID, out var user))
+                return;
 
             // We're only updating the info when the user goes offline
             if (!(wasOnline && !isOnline))

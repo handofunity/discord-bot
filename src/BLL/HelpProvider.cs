@@ -36,9 +36,10 @@
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region Private Methods
 
-        private CommandInfo[] GetAvailableCommands(DiscordUserID userId)
+        private CommandInfo[] GetAvailableCommands(DiscordUserID userID)
         {
-            var user = _userStore.GetUser(userId);
+            if (!_userStore.TryGetUser(userID, out var user))
+                return new CommandInfo[0];
             return user.Roles == Role.NoRole
                        ? new CommandInfo[0]
                        : _commandRegistry.GetAvailableCommands(user.Roles);

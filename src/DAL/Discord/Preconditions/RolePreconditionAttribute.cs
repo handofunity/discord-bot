@@ -33,8 +33,9 @@
         public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider services)
         {
             var userStore = (IUserStore)services.GetService(typeof(IUserStore));
-            var userRoles = userStore.GetUser((DiscordUserID)context.User.Id).Roles;
-            var isAllowed = (AllowedRoles & userRoles) != Role.NoRole;
+            if (!userStore.TryGetUser((DiscordUserID)context.User.Id, out var user))
+                return Task.FromResult(PreconditionResult.FromError("Couldn't determine user permission roles."));
+            var isAllowed = (AllowedRoles & user.Roles) != Role.NoRole;
             return Task.FromResult(isAllowed
                                        ? PreconditionResult.FromSuccess()
                                        : PreconditionResult.FromError($"**{context.User.Username}**: This command is not available for your current roles."));

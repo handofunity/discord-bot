@@ -7,6 +7,7 @@
     using Shared.Attributes;
     using Shared.BLL;
     using Shared.Enums;
+    using Shared.StrongTypes;
 
     [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
     public class IgnoreModule : ModuleBaseHoU
@@ -41,7 +42,7 @@
         [RolePrecondition(Role.Developer)]
         public async Task IgnoreMeAsync([Remainder] string remainder)
         {
-            var result = _ignoreGuard.TryAddToIgnoreList(Context.User.Id, Context.User.Username, remainder);
+            var result = _ignoreGuard.TryAddToIgnoreList((DiscordUserID)Context.User.Id, Context.User.Username, remainder);
             var embed = result.ToEmbed();
             await ReplyPrivateAsync(string.Empty, embed).ConfigureAwait(false);
         }
@@ -56,7 +57,7 @@
         [RolePrecondition(Role.Developer)]
         public async Task NoticeMeAsync()
         {
-            var result = _ignoreGuard.TryRemoveFromIgnoreList(Context.User.Id, Context.User.Username);
+            var result = _ignoreGuard.TryRemoveFromIgnoreList((DiscordUserID)Context.User.Id, Context.User.Username);
             if (result != null)
             {
                 var embed = result.ToEmbed();

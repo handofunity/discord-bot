@@ -6,6 +6,7 @@
     using JetBrains.Annotations;
     using Shared.BLL;
     using Shared.Objects;
+    using Shared.StrongTypes;
 
     [UsedImplicitly]
     public class IgnoreGuard : IIgnoreGuard
@@ -14,7 +15,7 @@
         #region Fields
 
         private readonly IBotInformationProvider _botInformationProvider;
-        private readonly Dictionary<ulong, DateTime> _ignoreList;
+        private readonly Dictionary<DiscordUserID, DateTime> _ignoreList;
 
         #endregion
 
@@ -24,7 +25,7 @@
         public IgnoreGuard(IBotInformationProvider botInformationProvider)
         {
             _botInformationProvider = botInformationProvider;
-            _ignoreList = new Dictionary<ulong, DateTime>();
+            _ignoreList = new Dictionary<DiscordUserID, DateTime>();
         }
 
         #endregion
@@ -32,7 +33,7 @@
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region IIgnoreGuard Members
 
-        EmbedData IIgnoreGuard.TryAddToIgnoreList(ulong userId, string username, string remainderContent)
+        EmbedData IIgnoreGuard.TryAddToIgnoreList(DiscordUserID userID, string username, string remainderContent)
         {
             var regex = new Regex(@"for (?<minutes>\d+) minutes\.?");
             var match = regex.Match(remainderContent);
@@ -60,7 +61,7 @@
 
             // Update or insert value
             var ignoreUntil = DateTime.Now.ToUniversalTime().AddMinutes(minutes);
-            _ignoreList[userId] = ignoreUntil;
+            _ignoreList[userID] = ignoreUntil;
             return new EmbedData
             {
                 Title = "Ignore complete",
@@ -69,12 +70,12 @@
             };
         }
 
-        EmbedData IIgnoreGuard.TryRemoveFromIgnoreList(ulong userId, string username)
+        EmbedData IIgnoreGuard.TryRemoveFromIgnoreList(DiscordUserID userID, string username)
         {
-            if (!_ignoreList.ContainsKey(userId))
+            if (!_ignoreList.ContainsKey(userID))
                 return null;
 
-            _ignoreList.Remove(userId);
+            _ignoreList.Remove(userID);
             return new EmbedData
             {
                 Title = "Notice complete",
@@ -83,12 +84,12 @@
             };
         }
 
-        bool IIgnoreGuard.ShouldIgnoreMessage(ulong userId)
+        bool IIgnoreGuard.ShouldIgnoreMessage(DiscordUserID userID)
         {
-            if (!_ignoreList.TryGetValue(userId, out var ignoreUntil)) return false;
+            if (!_ignoreList.TryGetValue(userID, out var ignoreUntil)) return false;
             if (ignoreUntil > DateTime.UtcNow)
                 return true;
-            _ignoreList.Remove(userId);
+            _ignoreList.Remove(userID);
             return false;
         }
 

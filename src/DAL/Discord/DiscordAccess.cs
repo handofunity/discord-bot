@@ -169,7 +169,7 @@
 
         private bool ShouldIgnore(SocketMessage userMessage)
         {
-            return _ignoreGuard.ShouldIgnoreMessage(userMessage.Author.Id)
+            return _ignoreGuard.ShouldIgnoreMessage((DiscordUserID)userMessage.Author.Id)
                 && !userMessage.Content.Contains("notice me"); // Required to disable ignore duration early
         }
 

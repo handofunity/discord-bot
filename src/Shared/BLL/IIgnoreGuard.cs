@@ -1,13 +1,14 @@
 ﻿namespace HoU.GuildBot.Shared.BLL
 {
     using Objects;
+    using StrongTypes;
 
     public interface IIgnoreGuard
     {
-        EmbedData TryAddToIgnoreList(ulong userId, string username, string messageContent);
+        EmbedData TryAddToIgnoreList(DiscordUserID userID, string username, string messageContent);
 
-        EmbedData TryRemoveFromIgnoreList(ulong userId, string username);
+        EmbedData TryRemoveFromIgnoreList(DiscordUserID userID, string username);
 
-        bool ShouldIgnoreMessage(ulong userId);
+        bool ShouldIgnoreMessage(DiscordUserID userID);
     }
 }

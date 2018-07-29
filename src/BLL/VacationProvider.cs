@@ -68,7 +68,8 @@
             if (end > DateTime.Today.AddYears(1))
                 return "End date cannot be more than 12 months into the future.";
 
-            var user = _userStore.GetUser(userID);
+            if (!_userStore.TryGetUser(userID, out var user))
+                return "Failed to add vacation. User couldn't be identified.";
             var vacationAdded = await _databaseAccess.AddVacation(user, start, end, note?.Trim()).ConfigureAwait(false);
             return vacationAdded
                        ? "Vacation added successfully."
@@ -77,7 +78,8 @@
 
         async Task<string> IVacationProvider.DeleteVacation(DiscordUserID userID, DateTime start, DateTime end)
         {
-            var user = _userStore.GetUser(userID);
+            if (!_userStore.TryGetUser(userID, out var user))
+                return "Failed to delete vacation. User couldn't be identified.";
             var vacationDeleted = await _databaseAccess.DeleteVacation(user, start, end).ConfigureAwait(false);
             return vacationDeleted
                        ? "Vacation deleted successfully."
@@ -94,7 +96,8 @@
 
         async Task<string> IVacationProvider.GetVacations(DiscordUserID userID)
         {
-            var user = _userStore.GetUser(userID);
+            if (!_userStore.TryGetUser(userID, out var user))
+                return "Failed to fetch vacation. User couldn't be identified.";
             var vacations = await _databaseAccess.GetVacations(user).ConfigureAwait(false);
             return vacations.Length == 0
                        ? "No current or upcoming vacations."

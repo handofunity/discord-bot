@@ -117,7 +117,7 @@
             }
         }
 
-        User IUserStore.GetUser(DiscordUserID userID)
+        bool IUserStore.TryGetUser(DiscordUserID userID, out User user)
         {
             if (!_isInitialized)
                 throw new InvalidOperationException("Store is not initialized.");
@@ -125,10 +125,8 @@
             try
             {
                 _semaphore.Wait();
-                var user = _store.SingleOrDefault(m => m.DiscordUserID == userID);
-                if (user == null)
-                    throw new KeyNotFoundException($"No user could be found for the user ID {userID}.");
-                return user;
+                user = _store.SingleOrDefault(m => m.DiscordUserID == userID);
+                return user != null;
             }
             finally
             {
@@ -136,7 +134,7 @@
             }
         }
 
-        User IUserStore.GetUser(InternalUserID userID)
+        bool IUserStore.TryGetUser(InternalUserID userID, out User user)
         {
             if (!_isInitialized)
                 throw new InvalidOperationException("Store is not initialized.");
@@ -144,10 +142,8 @@
             try
             {
                 _semaphore.Wait();
-                var user = _store.SingleOrDefault(m => m.InternalUserID == userID);
-                if (user == null)
-                    throw new KeyNotFoundException($"No user could be found for the user ID {userID}.");
-                return user;
+                user = _store.SingleOrDefault(m => m.InternalUserID == userID);
+                return user != null;
             }
             finally
             {
