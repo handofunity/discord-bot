@@ -82,5 +82,12 @@
         /// <param name="userID">The ID of the user to change roles for.</param>
         /// <returns><b>True</b>, if the bot can manage roles for the user, otherwise <b>false</b>.</returns>
         bool CanManageRolesForUser(DiscordUserID userID);
+
+        /// <summary>
+        /// Sends the welcome message to new people joining the server.
+        /// </summary>
+        /// <param name="userID">The <see cref="DiscordUserID"/> to send the welcome message to.</param>
+        /// <returns>An awaitable <see cref="Task"/>.</returns>
+        Task SendWelcomeMessage(DiscordUserID userID);
     }
 }

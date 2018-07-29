@@ -2,6 +2,7 @@
 {
     using System.Threading;
     using Enums;
+    using Extensions;
     using StrongTypes;
 
     public class User
@@ -20,7 +21,7 @@
 
         public DiscordUserID DiscordUserID { get; }
 
-        public string Mention => $"<@{DiscordUserID}>";
+        public string Mention => DiscordUserID.ToMention();
 
         public Role Roles
         {

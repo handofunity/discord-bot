@@ -63,6 +63,6 @@
         /// </summary>
         /// <param name="userID">The ID of the user to remove.</param>
         /// <exception cref="InvalidOperationException">The store is not initialized.</exception>
-        void RemoveUser(DiscordUserID userID);
+        Task RemoveUser(DiscordUserID userID);
     }
 }

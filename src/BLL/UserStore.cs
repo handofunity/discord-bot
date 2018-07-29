@@ -178,14 +178,14 @@
             return result;
         }
 
-        void IUserStore.RemoveUser(DiscordUserID userID)
+        async Task IUserStore.RemoveUser(DiscordUserID userID)
         {
             if (!_isInitialized)
                 throw new InvalidOperationException("Store is not initialized.");
 
             try
             {
-                _semaphore.Wait();
+                await _semaphore.WaitAsync().ConfigureAwait(false);
                 _store.RemoveAll(m => m.DiscordUserID == userID);
             }
             finally

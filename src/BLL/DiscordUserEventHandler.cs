@@ -14,7 +14,9 @@
         #region Fields
 
         private readonly IUserStore _userStore;
+        private readonly IPrivacyProvider _privacyProvider;
         private readonly IDatabaseAccess _databaseAccess;
+        private IDiscordAccess _discordAccess;
 
         #endregion
 
@@ -22,9 +24,11 @@
         #region Constructors
 
         public DiscordUserEventHandler(IUserStore userStore,
+                                       IPrivacyProvider privacyProvider,
                                        IDatabaseAccess databaseAccess)
         {
             _userStore = userStore;
+            _privacyProvider = privacyProvider;
             _databaseAccess = databaseAccess;
         }
 
@@ -32,6 +36,35 @@
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region IDiscordUserEventHandler Members
+            
+        IDiscordAccess IDiscordUserEventHandler.DiscordAccess
+        {
+            set => _discordAccess = value;
+        }
+
+        void IDiscordUserEventHandler.HandleJoined(DiscordUserID userID, Role roles)
+        {
+#pragma warning disable CS4014 // Fire & forget
+            Task.Run(async () =>
+            {
+                var result = await _userStore.GetOrAddUser(userID, roles).ConfigureAwait(false);
+                if (result.IsNew)
+                    await _discordAccess.SendWelcomeMessage(userID).ConfigureAwait(false);
+            }).ConfigureAwait(false);
+#pragma warning restore CS4014 // Fire & forget
+        }
+
+        void IDiscordUserEventHandler.HandleLeft(DiscordUserID userID)
+        {
+            var user = _userStore.GetUser(userID);
+#pragma warning disable CS4014 // Fire & Forget
+            Task.Run(async () =>
+            {
+                await _userStore.RemoveUser(userID).ConfigureAwait(false);
+                await _privacyProvider.DeleteUserRelatedData(user).ConfigureAwait(false);
+            }).ConfigureAwait(false);
+#pragma warning restore CS4014 // Fire & Forget
+        }
 
         UserRolesChangedResult IDiscordUserEventHandler.HandleRolesChanged(DiscordUserID userID, Role oldRoles, Role newRoles)
         {

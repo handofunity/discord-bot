@@ -35,7 +35,6 @@
         private readonly IIgnoreGuard _ignoreGuard;
         private readonly ICommandRegistry _commandRegistry;
         private readonly IMessageProvider _messageProvider;
-        private readonly IPrivacyProvider _privacyProvider;
         private readonly IGameRoleProvider _gameRoleProvider;
         private readonly IDiscordUserEventHandler _discordUserEventHandler;
         private readonly IUserStore _userStore;
@@ -71,7 +70,6 @@
                              IIgnoreGuard ignoreGuard,
                              ICommandRegistry commandRegistry,
                              IMessageProvider messageProvider,
-                             IPrivacyProvider privacyProvider,
                              IGameRoleProvider gameRoleProvider,
                              IDiscordUserEventHandler discordUserEventHandler,
                              IUserStore userStore)
@@ -83,11 +81,11 @@
             _ignoreGuard = ignoreGuard;
             _commandRegistry = commandRegistry;
             _messageProvider = messageProvider;
-            _privacyProvider = privacyProvider;
             _gameRoleProvider = gameRoleProvider;
             _discordUserEventHandler = discordUserEventHandler;
             _userStore = userStore;
             _gameRoleProvider.DiscordAccess = this;
+            _discordUserEventHandler.DiscordAccess = this;
             _commands = new CommandService();
             _client = new DiscordSocketClient();
             _pendingMessages = new Queue<string>();
@@ -332,24 +330,6 @@
             _logger.Log(ToLogLevel(msg.Severity), 0, prefix + msg.Message, msg.Exception, FormatLogMessage);
         }
 
-        private async Task SendWelcomeMessage(IUser guildUser)
-        {
-            var message = await _messageProvider.GetMessage(Constants.MessageNames.FirstServerJoinWelcome).ConfigureAwait(false);
-            var privateChannel = await guildUser.GetOrCreateDMChannelAsync().ConfigureAwait(false);
-            try
-            {
-                await privateChannel.SendMessageAsync(message).ConfigureAwait(false);
-            }
-            catch (HttpException e) when (e.DiscordCode == 50007)
-            {
-                _logger.LogDebug($"Couldn't send welcome message to '{guildUser.Username}', because private messages are probably blocked.");
-            }
-            catch (Exception e)
-            {
-                _logger.LogError($"Couldn't send welcome message to '{guildUser.Username}' due to an unexpected error: {e}");
-            }
-        }
-
         private async Task UpdateGuildUserRoles(DiscordUserID userID, Role oldRoles, Role newRoles)
         {
             var result = _discordUserEventHandler.HandleRolesChanged(userID, oldRoles, newRoles);
@@ -497,6 +477,25 @@
             return botUser.Roles.Max(m => m.Position) > gu.Roles.Max(m => m.Position);
         }
 
+        async Task IDiscordAccess.SendWelcomeMessage(DiscordUserID userID)
+        {
+            var guildUser = GetGuildUserById(userID);
+            var message = await _messageProvider.GetMessage(Constants.MessageNames.FirstServerJoinWelcome).ConfigureAwait(false);
+            var privateChannel = await guildUser.GetOrCreateDMChannelAsync().ConfigureAwait(false);
+            try
+            {
+                await privateChannel.SendMessageAsync(message).ConfigureAwait(false);
+            }
+            catch (HttpException e) when (e.DiscordCode == 50007)
+            {
+                _logger.LogDebug($"Couldn't send welcome message to '{guildUser.Username}', because private messages are probably blocked.");
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"Couldn't send welcome message to '{guildUser.Username}' due to an unexpected error: {e}");
+            }
+        }
+
         #endregion
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -560,15 +559,7 @@
             if (guildUser.Guild.Id != _appSettings.HandOfUnityGuildId)
                 return Task.CompletedTask;
 
-#pragma warning disable CS4014 // Fire & forget
-            Task.Run(async () =>
-            {
-                var result = await _userStore.GetOrAddUser((DiscordUserID)guildUser.Id, SocketRoleToRole(guildUser.Roles)).ConfigureAwait(false);
-                if (result.IsNew)
-                    await SendWelcomeMessage(guildUser).ConfigureAwait(false);
-            }).ConfigureAwait(false);
-#pragma warning restore CS4014 // Fire & forget
-
+            _discordUserEventHandler.HandleJoined((DiscordUserID)guildUser.Id, SocketRoleToRole(guildUser.Roles));
             return Task.CompletedTask;
         }
 
@@ -577,14 +568,7 @@
             if (guildUser.Guild.Id != _appSettings.HandOfUnityGuildId)
                 return Task.CompletedTask;
 
-            var user = _userStore.GetUser((DiscordUserID)guildUser.Id);
-            _userStore.RemoveUser((DiscordUserID)guildUser.Id);
-            // Fire & Forget
-            Task.Run(async () =>
-            {
-                await _privacyProvider.DeleteUserRelatedData(user).ConfigureAwait(false);
-            }).ConfigureAwait(false);
-
+            _discordUserEventHandler.HandleLeft((DiscordUserID) guildUser.Id);
             return Task.CompletedTask;
         }
 
