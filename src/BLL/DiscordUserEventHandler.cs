@@ -5,6 +5,7 @@
     using Shared.BLL;
     using Shared.DAL;
     using Shared.Enums;
+    using Shared.Extensions;
     using Shared.Objects;
     using Shared.StrongTypes;
 
@@ -62,6 +63,10 @@
             {
                 await _userStore.RemoveUser(userID).ConfigureAwait(false);
                 await _privacyProvider.DeleteUserRelatedData(user).ConfigureAwait(false);
+                var leaderMention = _discordAccess.GetRoleMention(Constants.RoleNames.LeaderRoleName);
+                var seniorOfficerMention = _discordAccess.GetRoleMention(Constants.RoleNames.SeniorOfficerRoleName);
+                await _discordAccess.LogToDiscord(
+                    $"{leaderMention} {seniorOfficerMention} - User {userID.ToMention()} has left the server at {DateTime.UtcNow:U}");
             }).ConfigureAwait(false);
 #pragma warning restore CS4014 // Fire & Forget
         }

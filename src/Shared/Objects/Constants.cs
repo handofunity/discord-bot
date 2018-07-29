@@ -8,5 +8,11 @@
         {
             public const string FirstServerJoinWelcome = "FirstServerJoinWelcome";
         }
+
+        public static class RoleNames
+        {
+            public const string LeaderRoleName = "Leader";
+            public const string SeniorOfficerRoleName = "Senior Officer";
+        }
     }
 }

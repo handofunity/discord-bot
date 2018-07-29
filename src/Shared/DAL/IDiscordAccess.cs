@@ -89,5 +89,13 @@
         /// <param name="userID">The <see cref="DiscordUserID"/> to send the welcome message to.</param>
         /// <returns>An awaitable <see cref="Task"/>.</returns>
         Task SendWelcomeMessage(DiscordUserID userID);
+
+        /// <summary>
+        /// Gets the mention string for the give <paramref name="roleName"/>.
+        /// </summary>
+        /// <param name="roleName">The name of the role to get the mention for.</param>
+        /// <exception cref="InvalidOperationException">No role with the given <paramref name="roleName"/> exists.</exception>
+        /// <returns>The mention string.</returns>
+        string GetRoleMention(string roleName);
     }
 }

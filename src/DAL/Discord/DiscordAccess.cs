@@ -116,8 +116,8 @@
                 return false;
 
             var g = GetGuild();
-            var leaderRole = GetRoleByName("Leader", g);
-            var seniorOfficerRole = GetRoleByName("Senior Officer", g);
+            var leaderRole = GetRoleByName(Constants.RoleNames.LeaderRoleName, g);
+            var seniorOfficerRole = GetRoleByName(Constants.RoleNames.SeniorOfficerRoleName, g);
 
             switch (checkResult)
             {
@@ -494,6 +494,11 @@
             {
                 _logger.LogError($"Couldn't send welcome message to '{guildUser.Username}' due to an unexpected error: {e}");
             }
+        }
+
+        string IDiscordAccess.GetRoleMention(string roleName)
+        {
+            return GetRoleByName(roleName).Mention;
         }
 
         #endregion
