@@ -66,8 +66,9 @@
                 await _privacyProvider.DeleteUserRelatedData(user).ConfigureAwait(false);
                 var leaderMention = _discordAccess.GetRoleMention(Constants.RoleNames.LeaderRoleName);
                 var seniorOfficerMention = _discordAccess.GetRoleMention(Constants.RoleNames.SeniorOfficerRoleName);
+                var now = DateTime.UtcNow;
                 await _discordAccess.LogToDiscord(
-                    $"{leaderMention} {seniorOfficerMention} - User {userID.ToMention()} ({username}) has left the server at {DateTime.UtcNow:U}");
+                    $"{leaderMention} {seniorOfficerMention} - User {userID.ToMention()} ({username}) has left the server on {now:D} at {now:HH:mm:ss} UTC.");
             }).ConfigureAwait(false);
 #pragma warning restore CS4014 // Fire & Forget
         }
