@@ -55,7 +55,7 @@
 #pragma warning restore CS4014 // Fire & forget
         }
 
-        void IDiscordUserEventHandler.HandleLeft(DiscordUserID userID)
+        void IDiscordUserEventHandler.HandleLeft(DiscordUserID userID, string username)
         {
             if(!_userStore.TryGetUser(userID, out var user))
                 return;
@@ -67,7 +67,7 @@
                 var leaderMention = _discordAccess.GetRoleMention(Constants.RoleNames.LeaderRoleName);
                 var seniorOfficerMention = _discordAccess.GetRoleMention(Constants.RoleNames.SeniorOfficerRoleName);
                 await _discordAccess.LogToDiscord(
-                    $"{leaderMention} {seniorOfficerMention} - User {userID.ToMention()} has left the server at {DateTime.UtcNow:U}");
+                    $"{leaderMention} {seniorOfficerMention} - User {userID.ToMention()} ({username}) has left the server at {DateTime.UtcNow:U}");
             }).ConfigureAwait(false);
 #pragma warning restore CS4014 // Fire & Forget
         }

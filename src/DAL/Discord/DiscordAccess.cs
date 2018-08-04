@@ -573,7 +573,7 @@
             if (guildUser.Guild.Id != _appSettings.HandOfUnityGuildId)
                 return Task.CompletedTask;
 
-            _discordUserEventHandler.HandleLeft((DiscordUserID) guildUser.Id);
+            _discordUserEventHandler.HandleLeft((DiscordUserID) guildUser.Id, guildUser.Username);
             return Task.CompletedTask;
         }
 

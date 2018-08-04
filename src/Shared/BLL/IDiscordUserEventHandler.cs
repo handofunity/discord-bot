@@ -12,7 +12,7 @@
 
         void HandleJoined(DiscordUserID userID, Role roles);
 
-        void HandleLeft(DiscordUserID userID);
+        void HandleLeft(DiscordUserID userID, string username);
 
         UserRolesChangedResult HandleRolesChanged(DiscordUserID userID, Role oldRoles, Role newRoles);
 
