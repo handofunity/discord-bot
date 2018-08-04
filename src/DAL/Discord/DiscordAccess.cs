@@ -105,6 +105,20 @@
         /// <returns>A <see cref="SocketGuild"/> instance for "Hand of Unity".</returns>
         private SocketGuild GetGuild() => _client.GetGuild(_appSettings.HandOfUnityGuildId);
 
+        private bool IsUserOnServer(DiscordUserID userID)
+        {
+            // Cannot check if the user store is not initialized
+            if (!_userStore.IsInitialized)
+                return false;
+            // Even if the user store is there to check,
+            // checking any further is meaningless if the guild (server) is not available
+            if (!_guildAvailable)
+                return false;
+
+            // If the user can be found in the store, he's on the server
+            return _userStore.TryGetUser(userID, out _);
+        }
+
         private async Task<bool> IsSpam(SocketMessage userMessage)
         {
             // If the message was received on a direct message channel, it's never spam
@@ -639,6 +653,10 @@
             // If the message is from this bot, or any other bot, we don't need to handle it
             if (userMessage.Author.Id == _client.CurrentUser.Id || userMessage.Author.IsBot) return;
             
+            // Only accept messages from users currently on the server
+            if (!IsUserOnServer((DiscordUserID)message.Author.Id))
+                return;
+
             // Check for spam
             if (await IsSpam(userMessage).ConfigureAwait(false)) return;
             
