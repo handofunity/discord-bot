@@ -1,5 +1,6 @@
 ﻿namespace HoU.GuildBot.DAL.Discord.Modules
 {
+    using System.Text;
     using System.Threading.Tasks;
     using global::Discord.Commands;
     using JetBrains.Annotations;
@@ -43,11 +44,29 @@
         {
             var message = await ReplyAsync("Loading...").ConfigureAwait(false);
 
-            var embedData = await _userInfoProvider.GetLastSeenInfo().ConfigureAwait(false);
-            
-            await message.DeleteAsync().ConfigureAwait(false);
+            var data = await _userInfoProvider.GetLastSeenInfo().ConfigureAwait(false);
 
-            await ReplyAsync(string.Empty, false, embedData.ToEmbed()).ConfigureAwait(false);
+            var buffer = new StringBuilder();
+
+            foreach (var s in data)
+            {
+                if (buffer.Length + s.Length < 2000)
+                {
+                    buffer.AppendLine(s);
+                }
+                else
+                {
+                    // Flush buffer
+                    await ReplyAsync(buffer.ToString()).ConfigureAwait(false);
+                    buffer.Clear();
+                    buffer.AppendLine(s);
+                }
+            }
+
+            if (buffer.Length > 0)
+                await ReplyAsync(buffer.ToString()).ConfigureAwait(false);
+
+            await message.DeleteAsync().ConfigureAwait(false);
         }
 
         #endregion

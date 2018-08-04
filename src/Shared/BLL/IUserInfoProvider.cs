@@ -6,7 +6,7 @@
 
     public interface IUserInfoProvider
     {
-        Task<EmbedData> GetLastSeenInfo();
+        Task<string[]> GetLastSeenInfo();
 
         EmbedData WhoIs(DiscordUserID userID);
 

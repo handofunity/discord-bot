@@ -72,7 +72,7 @@
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region IUserInfoProvider Members
 
-        async Task<EmbedData> IUserInfoProvider.GetLastSeenInfo()
+        async Task<string[]> IUserInfoProvider.GetLastSeenInfo()
         {
             var ids = _userStore.GetUsers(m => m.IsGuildMember).Select(m => m.DiscordUserID).ToArray();
             // LastSeen = null equals the user is currently online
@@ -107,18 +107,14 @@
             }
 
             // Format
-            var result = string.Join(Environment.NewLine,
+            var result =
                 data.OrderByDescending(m => m.IsOnline)
                     .ThenByDescending(m => m.LastSeen)
                     .ThenBy(m => m.Username)
-                    .Select(m => $"{(m.IsOnline ? "Online" : m.LastSeen.Value.ToString("yyyy-MM-dd HH:mm"))}: {m.Username}"));
+                    .Select(m => $"{(m.IsOnline ? "Online" : m.LastSeen.Value.ToString("yyyy-MM-dd HH:mm"))}: {m.Username}")
+                    .ToArray();
 
-            return await Task.FromResult(new EmbedData
-            {
-                Color = Colors.LightOrange,
-                Title = "Last seen times for all guild members",
-                Description = result
-            }).ConfigureAwait(false);
+            return await Task.FromResult(result).ConfigureAwait(false);
         }
 
         EmbedData IUserInfoProvider.WhoIs(DiscordUserID userID)
