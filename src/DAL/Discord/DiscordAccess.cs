@@ -192,10 +192,17 @@
                         var embedBuilder = new EmbedBuilder()
                                            .WithColor(Color.Red)
                                            .WithTitle("Error during command execution")
-                                           .WithDescription(result.ErrorReason);
+                                           .WithDescription("The command you used caused an error. " +
+                                                            "The original message was deleted to protect sensitive data and to prevent spam. " +
+                                                            "Please review the error reason below, copy the original message, fix any errors and try again. " +
+                                                            "If you need further assistance, use the @Developer mention in any guild channel.")
+                                           .AddField("Original message", userMessage.Content)
+                                           .AddField("Error reason", GetDescriptiveErrorReason(result));
+                        await userMessage.DeleteAsync().ConfigureAwait(false);
                         var embed = embedBuilder.Build();
                         _logger.LogWarning(result.ErrorReason);
-                        await userMessage.Channel.SendMessageAsync(string.Empty, false, embed).ConfigureAwait(false);
+                        var directChannel = await userMessage.Author.GetOrCreateDMChannelAsync().ConfigureAwait(false);
+                        await directChannel.SendMessageAsync(string.Empty, false, embed).ConfigureAwait(false);
                     }
                 }
                 catch (Exception e)
@@ -203,6 +210,21 @@
                     _logger.LogError(e, "Unexpected error during command processing");
                 }
             }
+        }
+
+        private static string GetDescriptiveErrorReason(IResult result)
+        {
+            if (result.Error != null && result.Error == CommandError.UnmetPrecondition)
+            {
+                if (result.ErrorReason?.ToLower()?.Contains("invalid context for command") == true)
+                {
+                    return "The command used was executed in the wrong context (guild channel or direct message to the bot). " +
+                           "Please use the hou!help command to view the valid contexts for the command.";
+                }
+            }
+
+            // Fallback: just use the reason given
+            return result.ErrorReason;
         }
 
         private void RegisterCommands()
