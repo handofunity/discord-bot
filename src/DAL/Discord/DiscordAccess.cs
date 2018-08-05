@@ -203,16 +203,20 @@
                     if (!result.IsSuccess && result.Error != CommandError.UnknownCommand)
                     {
                         // Handle error during command execution
+                        var isGuildChannel = userMessage.Channel is IGuildChannel;
                         var embedBuilder = new EmbedBuilder()
                                            .WithColor(Color.Red)
                                            .WithTitle("Error during command execution")
                                            .WithDescription("The command you used caused an error. " +
-                                                            "The original message was deleted to protect sensitive data and to prevent spam. " +
+                                                            (isGuildChannel ? "The original message was deleted to protect sensitive data and to prevent spam. " : string.Empty) +
                                                             "Please review the error reason below, copy the original message, fix any errors and try again. " +
                                                             "If you need further assistance, use the @Developer mention in any guild channel.")
                                            .AddField("Original message", userMessage.Content)
                                            .AddField("Error reason", GetDescriptiveErrorReason(result));
-                        await userMessage.DeleteAsync().ConfigureAwait(false);
+
+                        if (isGuildChannel)
+                            await userMessage.DeleteAsync().ConfigureAwait(false);
+
                         var embed = embedBuilder.Build();
                         _logger.LogWarning(result.ErrorReason);
                         var directChannel = await userMessage.Author.GetOrCreateDMChannelAsync().ConfigureAwait(false);

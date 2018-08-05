@@ -45,19 +45,22 @@
                        : _commandRegistry.GetAvailableCommands(user.Roles);
         }
 
-        private (string Message, EmbedData Embed) ListAvailableCommands(DiscordUserID userId)
+        private (string Message, EmbedData Embed)[] ListAvailableCommands(DiscordUserID userId)
         {
             const string responseTitle = "Available commands";
 
             var availableCommands = GetAvailableCommands(userId);
             if (availableCommands.Length == 0)
             {
-                return (string.Empty, new EmbedData
+                return new (string Message, EmbedData Embed)[]
                 {
-                    Title = responseTitle,
-                    Color = Colors.LightOrange,
-                    Description = "No commands are available for you."
-                });
+                    (string.Empty, new EmbedData
+                        {
+                            Title = responseTitle,
+                            Color = Colors.LightOrange,
+                            Description = "No commands are available for you."
+                        })
+                };
             }
 
             var message = "The list below shows all commands that are available for you. " +
@@ -66,51 +69,61 @@
                           $"{Environment.NewLine}For example, use `hou!help \"help\"`, to get advanced help for the \"help\" command.";
 
             var commands = availableCommands.Select(ci => $"```\"{ci.Name}\": \"{string.Join("\", \"", ci.InvokeNames)}\"```");
-            return (message, new EmbedData
+            return new (string Message, EmbedData Embed)[]
             {
-                Title = responseTitle,
-                Color = Colors.LightGreen,
-                Description = string.Join(Environment.NewLine, commands)
-            });
+                (message, new EmbedData
+                    {
+                        Title = responseTitle,
+                        Color = Colors.LightGreen,
+                        Description = string.Join(Environment.NewLine, commands)
+                    })
+            };
         }
 
-        private (string Message, EmbedData Embed) GetAdvancedCommandHelp(DiscordUserID userId, string helpRequest)
+        private (string Message, EmbedData Embed)[] GetAdvancedCommandHelp(DiscordUserID userId, string helpRequest)
         {
             var syntax = new Regex("\"(?<requestedCommand>.+)\"");
             var match = syntax.Match(helpRequest);
             if (!match.Success)
-                return ("Incorrect command usage, please specify the command with **double quotation marks**: `hou!help \"help\"`", null);
+                return new (string Message, EmbedData Embed)[]{("Incorrect command usage, please specify the command with **double quotation marks**: `hou!help \"help\"`", null)};
             var requestedCommand = match.Groups["requestedCommand"].Value;
             var availableCommands = GetAvailableCommands(userId);
-            var matchingCommand = availableCommands.SingleOrDefault(m => m.Name == requestedCommand || m.InvokeNames.Any(i => i == requestedCommand));
-            if (matchingCommand == null)
-                return ($"Couldn't find a matching command for \"{requestedCommand}\"", null);
+            var matchingCommands = availableCommands.Where(m => m.Name == requestedCommand || m.InvokeNames.Any(i => i == requestedCommand)).ToArray();
+            if (matchingCommands.Length == 0)
+                return new(string Message, EmbedData Embed)[] { ($"Couldn't find a matching command for \"{requestedCommand}\"", null)};
 
-            EmbedField[] GetFields()
+            var result = new List<(string Message, EmbedData Embed)>();
+            foreach (var matchingCommand in matchingCommands)
             {
-                var r = new List<EmbedField>(new[]
+                EmbedField[] GetFields()
                 {
-                    new EmbedField("Name", matchingCommand.Name, false),
-                    new EmbedField("Shortcuts", $"\"{string.Join("\", \"", matchingCommand.InvokeNames)}\"", false)
-                });
+                    var r = new List<EmbedField>(new[]
+                    {
+                        new EmbedField("Name", matchingCommand.Name, false),
+                        new EmbedField("Shortcuts", $"\"{string.Join("\", \"", matchingCommand.InvokeNames)}\"", false)
+                    });
 
-                if (!string.IsNullOrWhiteSpace(matchingCommand.Summary))
-                    r.Add(new EmbedField("Summary", matchingCommand.Summary, false));
-                if (!string.IsNullOrWhiteSpace(matchingCommand.Remarks))
-                    r.Add(new EmbedField("Remarks", matchingCommand.Remarks, false));
+                    if (!string.IsNullOrWhiteSpace(matchingCommand.Summary))
+                        r.Add(new EmbedField("Summary", matchingCommand.Summary, false));
+                    if (!string.IsNullOrWhiteSpace(matchingCommand.Remarks))
+                        r.Add(new EmbedField("Remarks", matchingCommand.Remarks, false));
 
-                r.Add(new EmbedField("Available to", matchingCommand.AllowedRoles, true));
-                r.Add(new EmbedField("Available in", matchingCommand.AllowedRequestTypes, true));
-                r.Add(new EmbedField("Will respond in", matchingCommand.ResponseType, true));
+                    r.Add(new EmbedField("Available to", matchingCommand.AllowedRoles, true));
+                    r.Add(new EmbedField("Available in", matchingCommand.AllowedRequestTypes, true));
+                    r.Add(new EmbedField("Will respond in", matchingCommand.ResponseType, true));
 
-                return r.ToArray();
+                    return r.ToArray();
+                }
+
+                result.Add((string.Empty, new EmbedData
+                               {
+                                   Title = "Command help",
+                                   Color = Colors.LightGreen,
+                                   Fields = GetFields()
+                               }));
             }
-            return (string.Empty, new EmbedData
-                       {
-                           Title = "Command help",
-                           Color = Colors.LightGreen,
-                           Fields = GetFields()
-                       });
+
+            return result.ToArray();
         }
 
         #endregion
@@ -118,7 +131,7 @@
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region IHelpProvider Members
 
-        (string Message, EmbedData EmbedData) IHelpProvider.GetHelp(DiscordUserID userId, string helpRequest)
+        (string Message, EmbedData EmbedData)[] IHelpProvider.GetHelp(DiscordUserID userId, string helpRequest)
         {
             return helpRequest == null
                        ? ListAvailableCommands(userId)

@@ -43,8 +43,11 @@
         public async Task HelpAsync([Remainder] string helpRequest = null)
         {
             var data = _helpProvider.GetHelp((DiscordUserID)Context.User.Id, helpRequest);
-            var embed = data.EmbedData.ToEmbed();
-            await ReplyPrivateAsync(data.Message, embed).ConfigureAwait(false);
+            foreach (var t in data)
+            {
+                var embed = t.EmbedData.ToEmbed();
+                await ReplyPrivateAsync(t.Message, embed).ConfigureAwait(false);
+            }
         }
 
         #endregion

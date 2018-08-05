@@ -5,6 +5,6 @@
 
     public interface IHelpProvider
     {
-        (string Message, EmbedData EmbedData) GetHelp(DiscordUserID userId, string helpRequest);
+        (string Message, EmbedData EmbedData)[] GetHelp(DiscordUserID userId, string helpRequest);
     }
 }
