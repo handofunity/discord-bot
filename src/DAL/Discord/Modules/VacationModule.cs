@@ -49,7 +49,7 @@
         public async Task AddVacationAsync([Remainder] string messageContent)
         {
             // Parse message content
-            var regex = new Regex(@"^(?<start>\d{4}-\d{2}-\d{2})( to (?<end>\d{4}-\d{2}-\d{2}))?(?<note>.*)?$");
+            var regex = new Regex(@"^(?<start>\d{4}-\d{2}-\d{2})( (to|until|up to|till|-) (?<end>\d{4}-\d{2}-\d{2}))? (?<note>.*)?$");
             var match = regex.Match(messageContent);
             if (!match.Success)
             {
@@ -161,7 +161,7 @@
         public async Task DeleteVacationAsync([Remainder] string messageContent)
         {
             // Parse message content
-            var regex = new Regex(@"^(?<start>\d{4}-\d{2}-\d{2})( to (?<end>\d{4}-\d{2}-\d{2}))?$");
+            var regex = new Regex(@"^(?<start>\d{4}-\d{2}-\d{2})( (to|until|up to|till|-) (?<end>\d{4}-\d{2}-\d{2}))?$");
             var match = regex.Match(messageContent);
             if (!match.Success)
             {
