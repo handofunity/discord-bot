@@ -152,7 +152,7 @@
         [Command("delete vacation")]
         [Name("Delete vacation entry")]
         [Summary("Deletes a vacation entry.")]
-        [Remarks("Syntax: _delete vacation yyyy-mm-dd to yyyy-mm-dd e.g.: _delete vacation 2018-05-19 to 2018-05-20_.\r\n" +
+        [Remarks("Syntax: _delete vacation yyyy-mm-dd to yyyy-mm-dd_ e.g.: _delete vacation 2018-05-19 to 2018-05-20_.\r\n" +
                  "The end date is optional, therefore _delete vacation yyyy-mm-dd_ is also valid.")]
         [Alias("deletevacation")]
         [RequireContext(ContextType.DM)]
