@@ -23,10 +23,8 @@
     <SqlServerVerification>False</SqlServerVerification>
     <IncludeCompositeObjects>True</IncludeCompositeObjects>
     <TargetDatabaseSet>True</TargetDatabaseSet>
-    <DacVersion>1.0.0</DacVersion>
-    <DacDescription>Added table [config].[Game]
-Added initial games
-Added table [hou].[UserInfo]</DacDescription>
+    <DacVersion>1.1.0</DacVersion>
+    <DacDescription>Added messages for welcome channel</DacDescription>
     <DefaultCollation>Latin1_General_CI_AS</DefaultCollation>
     <Recovery>SIMPLE</Recovery>
     <TargetFrameworkProfile />
@@ -81,6 +79,8 @@ Added table [hou].[UserInfo]</DacDescription>
     <Build Include="Security\config.sql" />
     <None Include="Scripts\AddMessage_FirstServerJoinWelcome.sql" />
     <None Include="Scripts\AddInitialGames.sql" />
+    <None Include="Scripts\AddMessages_WelcomeChannelMessages.sql" />
+    <None Include="Scripts\RemoveGame_Bless.sql" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="Security\hou.sql" />

@@ -9,4 +9,9 @@ GO
 -- 1.0.0:
 --:r .\Scripts\AddInitialGames.sql
 --GO
+-- 1.1.0:
+--:r .\Scripts\AddMessages_WelcomeChannelMessages.sql
+--GO
+--:r .\Scripts\RemoveGame_Bless.sql
+--GO
 -- x.y.z:

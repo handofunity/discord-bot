@@ -3,7 +3,7 @@
 	[MessageID]   INT            NOT NULL IDENTITY(1, 1),
 	[Name]        SYSNAME        NOT NULL,
 	[Description] NVARCHAR(512)  NOT NULL,
-	[Content]     NVARCHAR(4000) NOT NULL
+	[Content]     NVARCHAR(2000) NOT NULL
 );
 
 GO
