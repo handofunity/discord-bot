@@ -18,7 +18,7 @@
         /// </summary>
         /// <param name="connectedHandler"><see cref="Func{TResult}"/> that will be invoked when the connection has been established.</param>
         /// <param name="disconnectedHandler"><see cref="Func{TResult}"/> that will be invoked when the connection is lost.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="connectedHandler"/> is <b>null</b>.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="connectedHandler"/> or <paramref name="disconnectedHandler"/> are <b>null</b>.</exception>
         /// <returns>An awaitable <see cref="Task"/>.</returns>
         Task Connect(Func<Task> connectedHandler, Func<Task> disconnectedHandler);
 

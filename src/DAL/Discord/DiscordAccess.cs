@@ -396,6 +396,11 @@
 
         async Task IDiscordAccess.Connect(Func<Task> connectedHandler, Func<Task> disconnectedHandler)
         {
+            if (connectedHandler == null)
+                throw new ArgumentNullException(nameof(connectedHandler));
+            if (disconnectedHandler == null)
+                throw new ArgumentNullException(nameof(disconnectedHandler));
+
             Func<Task> ClientConnected()
             {
                 return () =>
@@ -431,10 +436,7 @@
                     return Task.CompletedTask;
                 };
             }
-
-            if (connectedHandler == null)
-                throw new ArgumentNullException(nameof(connectedHandler));
-
+            
             try
             {
                 _logger.LogInformation("Establishing initial Discord connection...");
