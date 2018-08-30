@@ -102,12 +102,18 @@
 
         private async Task DisconnectedHandler()
         {
+            const int delayInSeconds = 30;
+            _logger.LogWarning($"Bot disconnected. Checking for connection status in {delayInSeconds} seconds.");
+
             // The Discord connection might get lost, but should reconnect automatically.
             // In rare cases, the reconnect doesn't work and the bot will just idle.
             // Therefore, after a disconnect, we grant the connection 30 seconds to recover.
-            await Task.Delay(TimeSpan.FromSeconds(30)).ConfigureAwait(false);
+            await Task.Delay(TimeSpan.FromSeconds(delayInSeconds)).ConfigureAwait(false);
             if (_discordAccess.IsConnected)
+            {
+                _logger.LogInformation("Bot re-connected successfully.");
                 return;
+            }
             // If it doesn't recover during this period of time, we'll kill the process.
             _logger.LogWarning("Failed to recover connection to Discord. Killing the process.");
             // Give the logger some time to log the message
