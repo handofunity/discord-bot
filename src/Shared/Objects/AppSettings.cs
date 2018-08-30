@@ -23,6 +23,11 @@
         public ulong PromotionAnnouncementChannelId { get; set; }
 
         /// <summary>
+        /// Gets or sets the Discord ID of the channel where the general welcome message should be created.
+        /// </summary>
+        public ulong WelcomeChannelId { get; set; }
+
+        /// <summary>
         /// Gets or sets the connection string.
         /// </summary>
         /// <remarks>Should either be a IP/TCP connection, or a named connection. For IP/TCP connections, see example.</remarks>

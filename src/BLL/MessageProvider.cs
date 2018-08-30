@@ -34,6 +34,8 @@
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region IMessageProvider Members
 
+        public event EventHandler<MessageChangedEventArgs> MessageChanged;
+
         async Task<EmbedData> IMessageProvider.ListAllMessages()
         {
             var messages = await _databaseAccess.GetAllMessages().ConfigureAwait(false);
@@ -62,6 +64,8 @@
         {
             _cache.AddOrUpdate(name, content, (key, currentValue) => content);
             var setSuccessfully = await _databaseAccess.SetMessageContent(name, content).ConfigureAwait(false);
+            if (setSuccessfully)
+                MessageChanged?.Invoke(this, new MessageChangedEventArgs(name));
             return setSuccessfully
                        ? (true, "Message updated successfully.")
                        : (false, $"Failed to update message: message with name '{name}' doesn't exist");

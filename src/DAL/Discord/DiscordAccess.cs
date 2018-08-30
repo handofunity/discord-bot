@@ -543,6 +543,54 @@
             return GetRoleByName(roleName).Mention;
         }
 
+        async Task<string[]> IDiscordAccess.GetBotMessagesInChannel(ulong channelID)
+        {
+            var result = new List<string>();
+            var channel = (ITextChannel)GetGuild().GetChannel(channelID);
+            var messageCollection = channel.GetMessagesAsync();
+            var enumerator = messageCollection.GetEnumerator();
+            while (await enumerator.MoveNext().ConfigureAwait(false))
+            {
+                if (enumerator.Current != null)
+                {
+                    foreach (var message in enumerator.Current.Where(m => m.Author.Id == _client.CurrentUser.Id))
+                    {
+                        result.Add(message.Content);
+                    }
+                }
+            }
+
+            result.Reverse();
+            return result.ToArray();
+        }
+
+        async Task IDiscordAccess.DeleteBotMessagesInChannel(ulong channelID)
+        {
+            var channel = (ITextChannel)GetGuild().GetChannel(channelID);
+            var messagesToDelete = new List<IMessage>();
+            var messageCollection = channel.GetMessagesAsync();
+            var enumerator = messageCollection.GetEnumerator();
+            while (await enumerator.MoveNext().ConfigureAwait(false))
+            {
+                if (enumerator.Current == null) continue;
+                messagesToDelete.AddRange(enumerator.Current.Where(m => m.Author.Id == _client.CurrentUser.Id));
+            }
+
+            foreach (var message in messagesToDelete)
+            {
+                await message.DeleteAsync().ConfigureAwait(false);
+            }
+        }
+
+        async Task IDiscordAccess.CreateBotMessagesInChannel(ulong channelID, string[] messages)
+        {
+            var channel = (ITextChannel)GetGuild().GetChannel(channelID);
+            foreach (var message in messages)
+            {
+                await channel.SendMessageAsync(message).ConfigureAwait(false);
+            }
+        }
+
         #endregion
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////

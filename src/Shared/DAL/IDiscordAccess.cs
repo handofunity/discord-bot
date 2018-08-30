@@ -97,5 +97,27 @@
         /// <exception cref="InvalidOperationException">No role with the given <paramref name="roleName"/> exists.</exception>
         /// <returns>The mention string.</returns>
         string GetRoleMention(string roleName);
+
+        /// <summary>
+        /// Gets all messages posted by the bot to the given <paramref name="channelID"/>.
+        /// </summary>
+        /// <param name="channelID">The ID of the channel to search for bot messages in.</param>
+        /// <returns>An array of found messages.</returns>
+        Task<string[]> GetBotMessagesInChannel(ulong channelID);
+
+        /// <summary>
+        /// Deletes all messages of the bot in the given <paramref name="channelID"/>.
+        /// </summary>
+        /// <param name="channelID">The ID of the channel to delete the messages in.</param>
+        /// <returns>An awaitable <see cref="Task"/>.</returns>
+        Task DeleteBotMessagesInChannel(ulong channelID);
+
+        /// <summary>
+        /// Creates the <paramref name="messages"/> in the given <paramref name="channelID"/>.
+        /// </summary>
+        /// <param name="channelID">The ID of the channel to create the <paramref name="messages"/> in.</param>
+        /// <param name="messages">The messages to create.</param>
+        /// <returns>An awaitable <see cref="Task"/>.</returns>
+        Task CreateBotMessagesInChannel(ulong channelID, string[] messages);
     }
 }
