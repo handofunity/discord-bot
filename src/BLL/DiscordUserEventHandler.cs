@@ -1,6 +1,7 @@
 ﻿namespace HoU.GuildBot.BLL
 {
     using System;
+    using System.Linq;
     using System.Threading.Tasks;
     using Shared.BLL;
     using Shared.DAL;
@@ -16,7 +17,9 @@
 
         private readonly IUserStore _userStore;
         private readonly IPrivacyProvider _privacyProvider;
+        private readonly IGameRoleProvider _gameRoleProvider;
         private readonly IDatabaseAccess _databaseAccess;
+        private readonly AppSettings _appSettings;
         private IDiscordAccess _discordAccess;
 
         #endregion
@@ -26,11 +29,15 @@
 
         public DiscordUserEventHandler(IUserStore userStore,
                                        IPrivacyProvider privacyProvider,
-                                       IDatabaseAccess databaseAccess)
+                                       IGameRoleProvider gameRoleProvider,
+                                       IDatabaseAccess databaseAccess,
+                                       AppSettings appSettings)
         {
             _userStore = userStore;
             _privacyProvider = privacyProvider;
+            _gameRoleProvider = gameRoleProvider;
             _databaseAccess = databaseAccess;
+            _appSettings = appSettings;
         }
 
         #endregion
@@ -122,6 +129,30 @@
                 return;
 
             await _databaseAccess.UpdateUserInfoLastSeen(user, DateTime.UtcNow).ConfigureAwait(false);
+        }
+
+        async Task IDiscordUserEventHandler.HandleReactionAdded(DiscordChannelID channelID, DiscordUserID userID, ulong messageID, string emoji)
+        {
+            // Currently, only reactions in the AshesOfCreationRoleChannelId must be handled
+            if (channelID != _appSettings.AshesOfCreationRoleChannelId)
+                return;
+
+            // If the message is the AoC role menu message, forward the data to the game role provider
+            if (messageID == _gameRoleProvider.AocGameRoleMenuMessageID)
+                await _gameRoleProvider.SetGameRole(channelID, userID, _gameRoleProvider.Games.Single(m => m.ShortName == "AoC"), emoji)
+                                       .ConfigureAwait(false);
+        }
+
+        async Task IDiscordUserEventHandler.HandleReactionRemoved(DiscordChannelID channelID, DiscordUserID userID, ulong messageID, string emoji)
+        {
+            // Currently, only reactions in the AshesOfCreationRoleChannelId must be handled
+            if (channelID != _appSettings.AshesOfCreationRoleChannelId)
+                return;
+
+            // If the message is the AoC role menu message, forward the data to the game role provider
+            if (messageID == _gameRoleProvider.AocGameRoleMenuMessageID)
+                await _gameRoleProvider.RevokeGameRole(channelID, userID, _gameRoleProvider.Games.Single(m => m.ShortName == "AoC"), emoji)
+                                       .ConfigureAwait(false);
         }
 
         #endregion

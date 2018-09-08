@@ -3,6 +3,7 @@
     using System;
     using Microsoft.Extensions.Configuration;
     using Shared.Objects;
+    using Shared.StrongTypes;
 
     internal static class AppSettingsLoader
     {
@@ -19,9 +20,10 @@
             {
                 BotToken = settingsSection[nameof(AppSettings.BotToken)],
                 HandOfUnityGuildId = ulong.Parse(settingsSection[nameof(AppSettings.HandOfUnityGuildId)]),
-                LoggingChannelId = ulong.Parse(settingsSection[nameof(AppSettings.LoggingChannelId)]),
-                PromotionAnnouncementChannelId = ulong.Parse(settingsSection[nameof(AppSettings.PromotionAnnouncementChannelId)]),
-                WelcomeChannelId = ulong.Parse(settingsSection[nameof(AppSettings.WelcomeChannelId)]),
+                LoggingChannelId = (DiscordChannelID)ulong.Parse(settingsSection[nameof(AppSettings.LoggingChannelId)]),
+                PromotionAnnouncementChannelId = (DiscordChannelID)ulong.Parse(settingsSection[nameof(AppSettings.PromotionAnnouncementChannelId)]),
+                WelcomeChannelId = (DiscordChannelID)ulong.Parse(settingsSection[nameof(AppSettings.WelcomeChannelId)]),
+                AshesOfCreationRoleChannelId = (DiscordChannelID)ulong.Parse(settingsSection[nameof(AppSettings.AshesOfCreationRoleChannelId)]),
                 ConnectionString = settingsSection[nameof(AppSettings.ConnectionString)]
             };
             return settings;
@@ -33,12 +35,14 @@
                 throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.BotToken)}' cannot be empty.");
             if (settings.HandOfUnityGuildId == 0)
                 throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.HandOfUnityGuildId)}' must be a correct ID.");
-            if (settings.LoggingChannelId == 0)
+            if (settings.LoggingChannelId == default(DiscordChannelID))
                 throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.LoggingChannelId)}' must be a correct ID.");
-            if (settings.PromotionAnnouncementChannelId == 0)
+            if (settings.PromotionAnnouncementChannelId == default(DiscordChannelID))
                 throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.PromotionAnnouncementChannelId)}' must be a correct ID.");
-            if (settings.WelcomeChannelId == 0)
+            if (settings.WelcomeChannelId == default(DiscordChannelID))
                 throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.WelcomeChannelId)}' must be a correct ID.");
+            if (settings.AshesOfCreationRoleChannelId == default(DiscordChannelID))
+                throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.AshesOfCreationRoleChannelId)}' must be a correct ID.");
             if (string.IsNullOrWhiteSpace(settings.ConnectionString))
                 throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.ConnectionString)}' cannot be empty.");
 

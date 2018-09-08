@@ -27,6 +27,7 @@
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region Fields
 
+        private static readonly TimeSpan GlobalActionDelay = TimeSpan.FromSeconds(2);
         private static readonly Dictionary<string, Role> RoleMapping;
         private readonly ILogger<DiscordAccess> _logger;
         private readonly AppSettings _appSettings;
@@ -293,7 +294,7 @@
         private async Task LogToDiscordInternal(string message)
         {
             var g = GetGuild();
-            var lc = g.GetTextChannel(_appSettings.LoggingChannelId);
+            var lc = g.GetTextChannel((ulong)_appSettings.LoggingChannelId);
             if (lc == null)
             {
                 // Channel can be null because the guild is currently unavailable.
@@ -379,7 +380,7 @@
                 await LogToDiscordInternal(result.LogMessage).ConfigureAwait(false);
 
                 // Announce promotion
-                var g = GetGuild().GetTextChannel(_appSettings.PromotionAnnouncementChannelId);
+                var g = GetGuild().GetTextChannel((ulong)_appSettings.PromotionAnnouncementChannelId);
                 var embed = result.AnnouncementData.ToEmbed();
                 await g.SendMessageAsync(string.Empty, false, embed).ConfigureAwait(false);
             }
@@ -454,6 +455,10 @@
                 _client.UserLeft += Client_UserLeft;
                 _client.GuildMemberUpdated -= Client_GuildMemberUpdated;
                 _client.GuildMemberUpdated += Client_GuildMemberUpdated;
+                _client.ReactionRemoved -= Client_ReactionRemoved;
+                _client.ReactionRemoved += Client_ReactionRemoved;
+                _client.ReactionAdded -= Client_ReactionAdded;
+                _client.ReactionAdded += Client_ReactionAdded;
 
                 await _client.LoginAsync(TokenType.Bot, _appSettings.BotToken).ConfigureAwait(false);
                 await _client.StartAsync().ConfigureAwait(false);
@@ -493,23 +498,45 @@
                 throw new ArgumentNullException(nameof(game));
 
             var g = GetGuild();
-            var roles = g.Roles.Where(m => m.Name.Contains($" ({game.ShortName})")).Select(m => m.Name.Split(' ')[0]).ToArray();
+            var roles = g.Roles.Where(m => m.Name.StartsWith($"{game.ShortName} - ")).Select(m => m.Name.Split('-')[1].Trim()).ToArray();
             game.ClassNames.Clear();
             game.ClassNames.AddRange(roles);
         }
 
-        async Task IDiscordAccess.RevokeCurrentGameRoles(DiscordUserID userID, AvailableGame game)
+        async Task<bool> IDiscordAccess.TryRevokeGameRole(DiscordUserID userID, AvailableGame game, string className)
         {
+            var role = GetRoleByName($"{game.ShortName} - {className}");
             var gu = GetGuildUserById(userID);
-            var gameRelatedRoles = gu.Roles.Where(m => m.Name.Contains($" ({game.ShortName})"));
-            await gu.RemoveRolesAsync(gameRelatedRoles).ConfigureAwait(false);
+            if (gu.Roles.All(m => m.Id != role.Id))
+                return false;
+            try
+            {
+                await gu.RemoveRoleAsync(role).ConfigureAwait(false);
+                return true;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, $"Failed to revoke game role '{role.Name}' for UserID {userID}.");
+                return false;
+            }
         }
 
-        async Task IDiscordAccess.SetCurrentGameRole(DiscordUserID userID, AvailableGame game, string className)
+        async Task<bool> IDiscordAccess.TryAddGameRole(DiscordUserID userID, AvailableGame game, string className)
         {
-            var role = GetRoleByName($"{className} ({game.ShortName})");
+            var role = GetRoleByName($"{game.ShortName} - {className}");
             var gu = GetGuildUserById(userID);
-            await gu.AddRoleAsync(role).ConfigureAwait(false);
+            if (gu.Roles.Any(m => m.Id == role.Id))
+                return false;
+            try
+            {
+                await gu.AddRoleAsync(role).ConfigureAwait(false);
+                return true;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, $"Failed to set game role '{role.Name}' for UserID {userID}.");
+                return false;
+            }
         }
 
         bool IDiscordAccess.CanManageRolesForUser(DiscordUserID userID)
@@ -543,10 +570,10 @@
             return GetRoleByName(roleName).Mention;
         }
 
-        async Task<string[]> IDiscordAccess.GetBotMessagesInChannel(ulong channelID)
+        async Task<TextMessage[]> IDiscordAccess.GetBotMessagesInChannel(DiscordChannelID channelID)
         {
-            var result = new List<string>();
-            var channel = (ITextChannel)GetGuild().GetChannel(channelID);
+            var result = new List<TextMessage>();
+            var channel = (ITextChannel)GetGuild().GetChannel((ulong)channelID);
             var messageCollection = channel.GetMessagesAsync();
             var enumerator = messageCollection.GetEnumerator();
             while (await enumerator.MoveNext().ConfigureAwait(false))
@@ -555,7 +582,7 @@
                 {
                     foreach (var message in enumerator.Current.Where(m => m.Author.Id == _client.CurrentUser.Id))
                     {
-                        result.Add(message.Content);
+                        result.Add(new TextMessage((DiscordChannelID)message.Channel.Id, message.Id, message.Content));
                     }
                 }
             }
@@ -564,9 +591,9 @@
             return result.ToArray();
         }
 
-        async Task IDiscordAccess.DeleteBotMessagesInChannel(ulong channelID)
+        async Task IDiscordAccess.DeleteBotMessagesInChannel(DiscordChannelID channelID)
         {
-            var channel = (ITextChannel)GetGuild().GetChannel(channelID);
+            var channel = (ITextChannel)GetGuild().GetChannel((ulong)channelID);
             var messagesToDelete = new List<IMessage>();
             var messageCollection = channel.GetMessagesAsync();
             var enumerator = messageCollection.GetEnumerator();
@@ -579,15 +606,40 @@
             foreach (var message in messagesToDelete)
             {
                 await message.DeleteAsync().ConfigureAwait(false);
+                await Task.Delay(GlobalActionDelay).ConfigureAwait(false);
             }
         }
 
-        async Task IDiscordAccess.CreateBotMessagesInChannel(ulong channelID, string[] messages)
+        async Task IDiscordAccess.DeleteBotMessageInChannel(DiscordChannelID channelID, ulong messageID)
         {
-            var channel = (ITextChannel)GetGuild().GetChannel(channelID);
+            var channel = (ITextChannel)GetGuild().GetChannel((ulong)channelID);
+            var message = await channel.GetMessageAsync(messageID).ConfigureAwait(false);
+            await message.DeleteAsync().ConfigureAwait(false);
+        }
+
+        async Task<ulong[]> IDiscordAccess.CreateBotMessagesInChannel(DiscordChannelID channelID, string[] messages)
+        {
+            var channel = (ITextChannel)GetGuild().GetChannel((ulong)channelID);
+            var result = new List<ulong>();
             foreach (var message in messages)
             {
-                await channel.SendMessageAsync(message).ConfigureAwait(false);
+                var createdMessage = await channel.SendMessageAsync(message).ConfigureAwait(false);
+                await Task.Delay(GlobalActionDelay).ConfigureAwait(false);
+                result.Add(createdMessage.Id);
+            }
+
+            return result.ToArray();
+        }
+
+        async Task IDiscordAccess.AddReactionsToMessage(DiscordChannelID channelID, ulong messageID, string[] reactions)
+        {
+            var channel = (ITextChannel)GetGuild().GetChannel((ulong)channelID);
+            var message = (IUserMessage)await channel.GetMessageAsync(messageID).ConfigureAwait(false);
+            foreach (var reaction in reactions)
+            {
+                var e = new Emoji(reaction);
+                await message.AddReactionAsync(e).ConfigureAwait(false);
+                await Task.Delay(GlobalActionDelay).ConfigureAwait(false);
             }
         }
 
@@ -695,6 +747,40 @@
                     await _discordUserEventHandler.HandleStatusChanged((DiscordUserID)newGuildUser.Id, wasOnline, isOnline).ConfigureAwait(false);
                 }
             });
+            return Task.CompletedTask;
+        }
+
+        private Task Client_ReactionRemoved(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
+        {
+            // Don't handle reactions where the user is not specified
+            // Don't handle bot reactions
+            if (!reaction.User.IsSpecified
+              || reaction.User.Value.IsBot)
+            {
+                return Task.CompletedTask;
+            }
+
+            // Fire & Forget
+            Task.Run(async () => await _discordUserEventHandler
+                                       .HandleReactionRemoved((DiscordChannelID)channel.Id, (DiscordUserID)reaction.UserId, message.Id, reaction.Emote.Name)
+                                       .ConfigureAwait(false)).ConfigureAwait(false);
+            return Task.CompletedTask;
+        }
+
+        private Task Client_ReactionAdded(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
+        {
+            // Don't handle reactions where the user is not specified
+            // Don't handle bot reactions
+            if (!reaction.User.IsSpecified
+                || reaction.User.Value.IsBot)
+            {
+                return Task.CompletedTask;
+            }
+
+            // Fire & Forget
+            Task.Run(async () => await _discordUserEventHandler
+                                       .HandleReactionAdded((DiscordChannelID) channel.Id, (DiscordUserID) reaction.UserId, message.Id, reaction.Emote.Name)
+                                       .ConfigureAwait(false)).ConfigureAwait(false);
             return Task.CompletedTask;
         }
 

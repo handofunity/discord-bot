@@ -94,6 +94,8 @@
             {
                 await _semaphore.WaitAsync().ConfigureAwait(false);
                 _logger.LogInformation("Initializing user store...");
+                _logger.LogInformation("Ensuring all users exist on the database...");
+                await _databaseAccess.EnsureUsersExist(guildUsers.Select(m => m.UserId)).ConfigureAwait(false);
                 _logger.LogInformation("Loading users from database...");
                 var users = await _databaseAccess.GetAllUsers().ConfigureAwait(false);
                 _logger.LogInformation("Applying Discord information to users...");
@@ -107,7 +109,6 @@
                     }).ToArray();
                 foreach (var user in existingUsers)
                     _store.Add(user);
-                await _databaseAccess.EnsureUsersExist(existingUsers.Select(m => m.DiscordUserID)).ConfigureAwait(false);
                 _isInitialized = true;
                 _logger.LogInformation($"User store initialized with {_store.Count} users.");
             }

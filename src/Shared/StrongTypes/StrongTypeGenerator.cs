@@ -342,4 +342,167 @@ namespace HoU.GuildBot.Shared.StrongTypes
             writer.WriteString(XmlConvert.ToString(_value));
 	    }
 	}
+
+	/// <summary>
+	/// Implements the strong type <see cref="DiscordChannelID" />.
+	/// </summary>
+	[GeneratedCode("Herdo.StrongTypes.StrongTypeGenerator", "1.0.0")]
+	[Serializable]
+	public partial struct DiscordChannelID : IEquatable<DiscordChannelID>, IComparable<DiscordChannelID>, ISerializable, IXmlSerializable
+	{
+		/// <summary>
+		/// Actual backing field which holds the value.
+		/// </summary>
+		/// <remarks>This field is basically readonly, but must be non-readonly due to the XML-deserialization which will be called from outside the constructor.</remarks>
+		private System.UInt64 _value;
+
+		[ExcludeFromCodeCoverage]
+		private DiscordChannelID(System.UInt64 value)
+	    {
+	        _value = value;
+	    }
+
+		[ExcludeFromCodeCoverage]
+		private DiscordChannelID(SerializationInfo info, StreamingContext context)
+		{
+            _value = (System.UInt64)info.GetValue("v", typeof(System.UInt64));
+		}
+
+	    /// <summary>
+	    /// Converts the weak type into a <see cref="DiscordChannelID"/> instance.
+	    /// </summary>
+	    /// <param name="value">The value to convert.</param>
+	    /// <returns>A new instance of the strong type.</returns>
+		[ExcludeFromCodeCoverage]
+	    public static explicit operator DiscordChannelID(System.UInt64 value)
+	    {
+	        return new DiscordChannelID(value);
+	    }
+
+	    /// <summary>
+	    /// Converts the strong type into a <see cref="System.UInt64"/> value.
+	    /// </summary>
+	    /// <param name="value">The instance to convert.</param>
+	    /// <returns>The converted value.</returns>
+		[ExcludeFromCodeCoverage]
+	    public static explicit operator System.UInt64(DiscordChannelID value)
+	    {
+	        return value._value;
+	    }
+
+		/// <summary>
+        /// Returns a value indicating whether this instance and a specified <see cref="DiscordChannelID"/> object represent the same value.
+        /// </summary>
+        /// <param name="other">An object to compare to this instance.</param>
+        /// <returns><b>true</b> if <paramref name="other"/> is equal to this instance; otherwise, <b>false</b>.</returns>
+		[ExcludeFromCodeCoverage]
+		public bool Equals(DiscordChannelID other)
+		{
+			if (ReferenceEquals(null, other)) return false;
+			if (ReferenceEquals(this, other)) return true;
+			return _value == other._value;
+		}
+		
+		/// <summary>
+        /// Returns a value indicating whether this instance and a specified object represent the same value.
+        /// </summary>
+        /// <param name="other">An object to compare to this instance.</param>
+        /// <returns><b>true</b> if <paramref name="other"/> is equal to this instance; otherwise, <b>false</b>.</returns>
+		[ExcludeFromCodeCoverage]
+		public override bool Equals(object other)
+		{
+			if (ReferenceEquals(null, other)) return false;
+			if (ReferenceEquals(this, other)) return true;
+			return Equals((DiscordChannelID)other);
+		}
+
+		/// <summary>
+        /// Returns the hash code for this instance.
+        /// </summary>
+        /// <returns>A hash code for the current <see cref="DiscordChannelID"/>.</returns>
+		[ExcludeFromCodeCoverage]
+		public override int GetHashCode()
+		{
+			if (Equals(null, _value))
+				return 0;
+			return _value.GetHashCode();
+		}
+
+		/// <summary>
+        /// Compares this instance to a specified <see cref="DiscordChannelID"/> and returns an indication of their relative values.
+        /// </summary>
+        /// <param name="other">A <see cref="DiscordChannelID"/> to compare to.</param>
+        /// <returns>A signed integer that indicates the relative order of this instance and <paramref name="other"/>.</returns>
+		[ExcludeFromCodeCoverage]
+		public int CompareTo(DiscordChannelID other)
+		{
+			if (Equals(null, _value))
+				return 1;
+			return _value.CompareTo(other._value);
+		}
+
+        /// <summary>
+        /// Checks if both operands are equal.
+        /// </summary>
+        /// <param name="first">The first operand.</param>
+        /// <param name="second">The second operand.</param>
+        /// <returns><b>True</b>, if both operands are equal; otherwise, <b>false</b>.</returns>
+        [ExcludeFromCodeCoverage]
+        public static bool operator ==(DiscordChannelID first, DiscordChannelID second)
+	    {
+	        if (ReferenceEquals(first, second))
+	            return true;
+
+	        return first._value == second._value;
+	    }
+
+        /// <summary>
+        /// Checks if both operands are not equal.
+        /// </summary>
+        /// <param name="first">The first operand.</param>
+        /// <param name="second">The second operand.</param>
+        /// <returns><b>False</b>, if both operands are equal; otherwise, <b>true</b>.</returns>
+        [ExcludeFromCodeCoverage]
+        public static bool operator !=(DiscordChannelID first, DiscordChannelID second)
+	    {
+	        return !(first == second);
+	    }
+
+		/// <summary>
+        /// Returns a string that represents the current object.
+        /// </summary>
+        /// <returns>A string that represents the current object.</returns>
+		[ExcludeFromCodeCoverage]
+	    public override string ToString()
+	    {
+	        if ((object) _value == null)
+	            return null;
+	        return _value.ToString();
+	    }
+				
+		[ExcludeFromCodeCoverage]
+		[SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.SerializationFormatter)]
+		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context)
+		{
+			info.AddValue("v", _value);
+		}
+		
+		[ExcludeFromCodeCoverage]
+		XmlSchema IXmlSerializable.GetSchema()
+	    {
+	        return null;
+	    }
+		
+		[ExcludeFromCodeCoverage]
+	    void IXmlSerializable.ReadXml(XmlReader reader)
+	    {
+	        _value = (System.UInt64)reader.ReadElementContentAs(typeof(System.UInt64), null);
+	    }
+		
+		[ExcludeFromCodeCoverage]
+	    void IXmlSerializable.WriteXml(XmlWriter writer)
+	    {
+            writer.WriteString(XmlConvert.ToString(_value));
+	    }
+	}
 }

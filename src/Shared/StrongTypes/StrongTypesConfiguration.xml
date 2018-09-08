@@ -22,4 +22,14 @@
     <excludeOperator>LessThanOrEqual</excludeOperator>
     <excludeOperator>GreaterThanOrEqual</excludeOperator>
   </strongType>
+  <strongType name="DiscordChannelID" internalType="System.UInt64">
+    <excludeOperator>Add</excludeOperator>
+    <excludeOperator>Subtract</excludeOperator>
+    <excludeOperator>Increment</excludeOperator>
+    <excludeOperator>Decrement</excludeOperator>
+    <excludeOperator>LessThan</excludeOperator>
+    <excludeOperator>GreaterThan</excludeOperator>
+    <excludeOperator>LessThanOrEqual</excludeOperator>
+    <excludeOperator>GreaterThanOrEqual</excludeOperator>
+  </strongType>
 </strongTypes>

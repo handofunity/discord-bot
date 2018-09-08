@@ -17,5 +17,9 @@
         UserRolesChangedResult HandleRolesChanged(DiscordUserID userID, Role oldRoles, Role newRoles);
 
         Task HandleStatusChanged(DiscordUserID userID, bool wasOnline, bool isOnline);
+
+        Task HandleReactionAdded(DiscordChannelID channelID, DiscordUserID userID, ulong messageID, string emote);
+
+        Task HandleReactionRemoved(DiscordChannelID channelID, DiscordUserID userID, ulong messageID, string emote);
     }
 }

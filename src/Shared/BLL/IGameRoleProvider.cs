@@ -10,9 +10,13 @@
     {
         IDiscordAccess DiscordAccess { set; }
 
+        ulong AocGameRoleMenuMessageID { get; set; }
+
         IReadOnlyList<AvailableGame> Games { get; }
 
-        Task<(bool Success, string Response, string LogMessage)> SetGameRole((DiscordUserID UserID, string Mention) user, AvailableGame game, string className);
+        Task SetGameRole(DiscordChannelID channelID, DiscordUserID userID, AvailableGame game, string emoji);
+
+        Task RevokeGameRole(DiscordChannelID channelID, DiscordUserID userID, AvailableGame game, string emoji);
 
         Task LoadAvailableGames();
     }

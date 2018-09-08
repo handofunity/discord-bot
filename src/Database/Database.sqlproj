@@ -23,8 +23,8 @@
     <SqlServerVerification>False</SqlServerVerification>
     <IncludeCompositeObjects>True</IncludeCompositeObjects>
     <TargetDatabaseSet>True</TargetDatabaseSet>
-    <DacVersion>1.1.0</DacVersion>
-    <DacDescription>Added messages for welcome channel</DacDescription>
+    <DacVersion>1.2.0</DacVersion>
+    <DacDescription>Added AoC role menu message</DacDescription>
     <DefaultCollation>Latin1_General_CI_AS</DefaultCollation>
     <Recovery>SIMPLE</Recovery>
     <TargetFrameworkProfile />
@@ -81,6 +81,7 @@
     <None Include="Scripts\AddInitialGames.sql" />
     <None Include="Scripts\AddMessages_WelcomeChannelMessages.sql" />
     <None Include="Scripts\RemoveGame_Bless.sql" />
+    <None Include="Scripts\AddMessage_AocRoleMenu.sql" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="Security\hou.sql" />

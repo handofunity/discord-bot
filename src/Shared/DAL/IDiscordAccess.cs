@@ -60,21 +60,22 @@
         void GetClassNamesForGame(AvailableGame game);
 
         /// <summary>
-        /// Revokes all current roles related with the <paramref name="userID"/> for the given <paramref name="game"/>.
-        /// </summary>
-        /// <param name="userID">The user ID.</param>
-        /// <param name="game">The game.</param>
-        /// <returns>An awaitable <see cref="Task"/>.</returns>
-        Task RevokeCurrentGameRoles(DiscordUserID userID, AvailableGame game);
-
-        /// <summary>
-        /// Sets the current role related with the <paramref name="userID"/> for the given <paramref name="game"/> to a specific <paramref name="className"/>.
+        /// Revokes the role combined from <paramref name="game"/> and <paramref name="className"/> from the given <paramref name="userID"/>.
         /// </summary>
         /// <param name="userID">The user ID.</param>
         /// <param name="game">The game.</param>
         /// <param name="className">The <paramref name="game"/> related class name.</param>
-        /// <returns>An awaitable <see cref="Task"/>.</returns>
-        Task SetCurrentGameRole(DiscordUserID userID, AvailableGame game, string className);
+        /// <returns>True, if the role was revoked, otherwise false.</returns>
+        Task<bool> TryRevokeGameRole(DiscordUserID userID, AvailableGame game, string className);
+
+        /// <summary>
+        /// Sets the role combined from <paramref name="game"/> and <paramref name="className"/> from the given <paramref name="userID"/>.
+        /// </summary>
+        /// <param name="userID">The user ID.</param>
+        /// <param name="game">The game.</param>
+        /// <param name="className">The <paramref name="game"/> related class name.</param>
+        /// <returns>True, if the role was added, otherwise false.</returns>
+        Task<bool> TryAddGameRole(DiscordUserID userID, AvailableGame game, string className);
 
         /// <summary>
         /// Checks if the bot can manage roles for a specific <paramref name="userID"/>, depending on the guilds role configuration.
@@ -103,21 +104,38 @@
         /// </summary>
         /// <param name="channelID">The ID of the channel to search for bot messages in.</param>
         /// <returns>An array of found messages.</returns>
-        Task<string[]> GetBotMessagesInChannel(ulong channelID);
+        Task<TextMessage[]> GetBotMessagesInChannel(DiscordChannelID channelID);
 
         /// <summary>
         /// Deletes all messages of the bot in the given <paramref name="channelID"/>.
         /// </summary>
         /// <param name="channelID">The ID of the channel to delete the messages in.</param>
         /// <returns>An awaitable <see cref="Task"/>.</returns>
-        Task DeleteBotMessagesInChannel(ulong channelID);
+        Task DeleteBotMessagesInChannel(DiscordChannelID channelID);
+
+        /// <summary>
+        /// Deletes a specific <paramref name="messageID"/> of the bot in the given <paramref name="channelID"/>.
+        /// </summary>
+        /// <param name="channelID">The ID of the channel to delete the message in.</param>
+        /// <param name="messageID">The ID of the message to delete.</param>
+        /// <returns>An awaitable <see cref="Task"/>.</returns>
+        Task DeleteBotMessageInChannel(DiscordChannelID channelID, ulong messageID);
 
         /// <summary>
         /// Creates the <paramref name="messages"/> in the given <paramref name="channelID"/>.
         /// </summary>
         /// <param name="channelID">The ID of the channel to create the <paramref name="messages"/> in.</param>
         /// <param name="messages">The messages to create.</param>
+        /// <returns>An array of the message IDs.</returns>
+        Task<ulong[]> CreateBotMessagesInChannel(DiscordChannelID channelID, string[] messages);
+
+        /// <summary>
+        /// Adds the <paramref name="reactions"/> to the given <paramref name="messageID"/> in the <paramref name="channelID"/>.
+        /// </summary>
+        /// <param name="channelID">The ID of the channel where the <paramref name="messageID"/> can be found.</param>
+        /// <param name="messageID">The ID of the message to add the reactions to.</param>
+        /// <param name="reactions">The reactions to add.</param>
         /// <returns>An awaitable <see cref="Task"/>.</returns>
-        Task CreateBotMessagesInChannel(ulong channelID, string[] messages);
+        Task AddReactionsToMessage(DiscordChannelID channelID, ulong messageID, string[] reactions);
     }
 }

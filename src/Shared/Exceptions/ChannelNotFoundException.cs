@@ -1,20 +1,21 @@
 ﻿namespace HoU.GuildBot.Shared.Exceptions
 {
     using System;
+    using StrongTypes;
 
     public class ChannelNotFoundException : Exception
     {
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region Properties
 
-        public ulong ChannelId { get; }
+        public DiscordChannelID ChannelId { get; }
 
         #endregion
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region Constructors
 
-        public ChannelNotFoundException(ulong channelId) : base($"Couldn't find channel with the ID '{channelId}'.")
+        public ChannelNotFoundException(DiscordChannelID channelId) : base($"Couldn't find channel with the ID '{channelId}'.")
         {
             ChannelId = channelId;
         }

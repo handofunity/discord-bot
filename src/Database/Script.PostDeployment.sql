@@ -14,4 +14,7 @@ GO
 --GO
 --:r .\Scripts\RemoveGame_Bless.sql
 --GO
+-- 1.2.0:
+--:r .\Scripts\AddMessage_AocRoleMenu.sql
+--GO
 -- x.y.z:

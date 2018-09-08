@@ -1,5 +1,7 @@
 ﻿namespace HoU.GuildBot.Shared.Objects
 {
+    using StrongTypes;
+
     public class AppSettings
     {
         /// <summary>
@@ -15,17 +17,22 @@
         /// <summary>
         /// Gets or sets the Discord ID of the channel used for logging.
         /// </summary>
-        public ulong LoggingChannelId { get; set; }
+        public DiscordChannelID LoggingChannelId { get; set; }
 
         /// <summary>
         /// Gets or sets the Discord ID of the channel used for promotion announcements.
         /// </summary>
-        public ulong PromotionAnnouncementChannelId { get; set; }
+        public DiscordChannelID PromotionAnnouncementChannelId { get; set; }
 
         /// <summary>
         /// Gets or sets the Discord ID of the channel where the general welcome message should be created.
         /// </summary>
-        public ulong WelcomeChannelId { get; set; }
+        public DiscordChannelID WelcomeChannelId { get; set; }
+
+        /// <summary>
+        /// Gets or sets the Discord ID of the channel that is used for the 'Ashes of Creation' role feature.
+        /// </summary>
+        public DiscordChannelID AshesOfCreationRoleChannelId { get; set; }
 
         /// <summary>
         /// Gets or sets the connection string.
