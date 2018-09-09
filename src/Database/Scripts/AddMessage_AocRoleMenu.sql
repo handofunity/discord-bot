@@ -9,8 +9,8 @@ VALUES
 'AocRoleMenu',
 'The message used as the role menu for AoC.',
 '**ROLE MENU**
-Add an reaction to assign yourself the role.
-Remove an reaction to remove yourself from the role.
+Add your reaction(s) to assign yourself the role(s).
+Remove your reaction(s) to remove yourself from the role(s).
 
 :musical_note: - Bard
 
