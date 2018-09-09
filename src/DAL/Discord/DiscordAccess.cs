@@ -27,6 +27,11 @@
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region Fields
 
+        /// <summary>
+        /// Gets the global action delay for bulk operations on the Discord APU.
+        /// With this delay, a single bulk operation can use up to 30 of the 120 operations per minute.
+        /// This leaves 90 operations per minute for other bulk operations and single scope operations.
+        /// </summary>
         private static readonly TimeSpan GlobalActionDelay = TimeSpan.FromSeconds(2);
         private static readonly Dictionary<string, Role> RoleMapping;
         private readonly ILogger<DiscordAccess> _logger;
@@ -388,6 +393,22 @@
 
         private static bool IsOnline(IPresence gu) => gu.Status != UserStatus.Offline && gu.Status != UserStatus.Invisible;
 
+        private static async Task PerformBulkOperation<T>(IEnumerable<T> items, Func<T, Task> itemAction)
+        {
+            // If there's more than one item, this method will inclue a delay between each
+            // item to comply with the rate limits before those are even hit.
+            var enumeration = items.ToArray();
+            for (var i = 0; i < enumeration.Length; i++)
+            {
+                var item = enumeration[i];
+                await itemAction(item).ConfigureAwait(false);
+
+                if (enumeration.Length > 1      // Delay only if there's more than one item
+                 && i < enumeration.Length - 1) // Delay if the item is not the last item
+                    await Task.Delay(GlobalActionDelay).ConfigureAwait(false);
+            }
+        }
+
         #endregion
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -603,11 +624,7 @@
                 messagesToDelete.AddRange(enumerator.Current.Where(m => m.Author.Id == _client.CurrentUser.Id));
             }
 
-            foreach (var message in messagesToDelete)
-            {
-                await message.DeleteAsync().ConfigureAwait(false);
-                await Task.Delay(GlobalActionDelay).ConfigureAwait(false);
-            }
+            await PerformBulkOperation(messagesToDelete, async message => await message.DeleteAsync().ConfigureAwait(false)).ConfigureAwait(false);
         }
 
         async Task IDiscordAccess.DeleteBotMessageInChannel(DiscordChannelID channelID, ulong messageID)
@@ -621,12 +638,12 @@
         {
             var channel = (ITextChannel)GetGuild().GetChannel((ulong)channelID);
             var result = new List<ulong>();
-            foreach (var message in messages)
+
+            await PerformBulkOperation(messages, async message =>
             {
                 var createdMessage = await channel.SendMessageAsync(message).ConfigureAwait(false);
-                await Task.Delay(GlobalActionDelay).ConfigureAwait(false);
                 result.Add(createdMessage.Id);
-            }
+            }).ConfigureAwait(false);
 
             return result.ToArray();
         }
@@ -635,12 +652,12 @@
         {
             var channel = (ITextChannel)GetGuild().GetChannel((ulong)channelID);
             var message = (IUserMessage)await channel.GetMessageAsync(messageID).ConfigureAwait(false);
-            foreach (var reaction in reactions)
+
+            await PerformBulkOperation(reactions, async reaction =>
             {
                 var e = new Emoji(reaction);
                 await message.AddReactionAsync(e).ConfigureAwait(false);
-                await Task.Delay(GlobalActionDelay).ConfigureAwait(false);
-            }
+            }).ConfigureAwait(false);
         }
 
         #endregion
