@@ -11,6 +11,8 @@
     using Shared.BLL;
     using Shared.DAL;
     using Shared.Enums;
+    using Shared.Extensions;
+    using Shared.Objects;
 
     [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
     public class ConfigurationModule : ModuleBaseHoU
@@ -50,9 +52,33 @@
         [RolePrecondition(Role.Developer | Role.Leader)]
         public async Task ListAllMessagesAsync()
         {
-            var data = await _messageProvider.ListAllMessages().ConfigureAwait(false);
-            var embed = data.ToEmbed();
-            await ReplyAsync(string.Empty, false, embed).ConfigureAwait(false);
+            var messages = await _messageProvider.ListAllMessages().ConfigureAwait(false);
+#pragma warning disable CS4014 // Fire & forget
+            Task.Run(async () =>
+            {
+                await messages.PerformBulkOperation(async message =>
+                {
+                    await ReplyAsync($"```markdown{Environment.NewLine}" +
+                                     $"Message: \"{message.Name}\"{Environment.NewLine}" +
+                                     $"Description: {message.Description}{Environment.NewLine}" +
+                                     $"================{Environment.NewLine}" +
+                                     $"Current content:{Environment.NewLine}" +
+                                     "================```").ConfigureAwait(false);
+                    await Task.Delay(Constants.GlobalActionDelay).ConfigureAwait(false);
+                    var content = message.Content;
+                    if (content.StartsWith("```")
+                     && content.EndsWith("```"))
+                    {
+                        content = $"`{content.Substring(3, content.Length - 6)}`";
+                    }
+                    else if (content.Length <= 1998)
+                    {
+                        content = $"`{content}`";
+                    }
+                    await ReplyAsync(content);
+                }).ConfigureAwait(false);
+            }).ConfigureAwait(false);
+#pragma warning restore CS4014 // Fire & forget
         }
 
         [Command("set message")]

@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Concurrent;
-    using System.Linq;
     using System.Threading.Tasks;
     using JetBrains.Annotations;
     using Shared.BLL;
@@ -36,17 +35,9 @@
 
         public event EventHandler<MessageChangedEventArgs> MessageChanged;
 
-        async Task<EmbedData> IMessageProvider.ListAllMessages()
+        async Task<(string Name, string Description, string Content)[]> IMessageProvider.ListAllMessages()
         {
-            var messages = await _databaseAccess.GetAllMessages().ConfigureAwait(false);
-            var formatedMessages = messages.Select(m => $"**{m.Name}**: _{m.Description}_{Environment.NewLine}" +
-                                                        $"**Current content:**{Environment.NewLine}{m.Content}");
-            return new EmbedData
-                       {
-                           Title = "All messages",
-                           Color = Colors.LightGreen,
-                           Description = string.Join(Environment.NewLine + Environment.NewLine, formatedMessages)
-                       };
+            return await _databaseAccess.GetAllMessages().ConfigureAwait(false);
         }
 
         async Task<string> IMessageProvider.GetMessage(string name)
@@ -62,10 +53,16 @@
 
         async Task<(bool Success, string Response)> IMessageProvider.SetMessage(string name, string content)
         {
-            _cache.AddOrUpdate(name, content, (key, currentValue) => content);
+            if (content == null)
+                return (false, "Content cannot be <null>.");
+            if (content.Length > 2000)
+                return (false, "Content length cannot be longer than 2000 characters.");
             var setSuccessfully = await _databaseAccess.SetMessageContent(name, content).ConfigureAwait(false);
             if (setSuccessfully)
+            {
+                _cache.AddOrUpdate(name, content, (key, currentValue) => content);
                 MessageChanged?.Invoke(this, new MessageChangedEventArgs(name));
+            }
             return setSuccessfully
                        ? (true, "Message updated successfully.")
                        : (false, $"Failed to update message: message with name '{name}' doesn't exist");

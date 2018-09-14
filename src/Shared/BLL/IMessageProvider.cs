@@ -8,7 +8,7 @@
     {
         event EventHandler<MessageChangedEventArgs> MessageChanged;
 
-        Task<EmbedData> ListAllMessages();
+        Task<(string Name, string Description, string Content)[]> ListAllMessages();
 
         Task<string> GetMessage(string name);
 

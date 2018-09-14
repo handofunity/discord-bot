@@ -1,8 +1,17 @@
 ﻿namespace HoU.GuildBot.Shared.Objects
 {
+    using System;
+
     public static class Constants
     {
         public const string InvalidCommandUsageTitle = ":octagonal_sign: Invalid command usage";
+
+        /// <summary>
+        /// Gets the global action delay for bulk operations on the Discord APU.
+        /// With this delay, a single bulk operation can use up to 30 of the 120 operations per minute.
+        /// This leaves 90 operations per minute for other bulk operations and single scope operations.
+        /// </summary>
+        public static readonly TimeSpan GlobalActionDelay = TimeSpan.FromSeconds(2);
 
         public static class MessageNames
         {
