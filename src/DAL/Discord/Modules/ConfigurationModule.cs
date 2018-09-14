@@ -92,7 +92,8 @@
         public async Task SetMessage([Remainder] string messageContent)
         {
             // Parse message content
-            var regex = new Regex("^\"(?<name>\\w+)\" \"(?<content>.+)\"$");
+            // "(?<name>\w+)" "(?<content>(.|\n|\r)+)"
+            var regex = new Regex("^\"(?<name>\\w+)\" \"(?<content>(.|\\n|\\r)+)\"$");
             var match = regex.Match(messageContent);
             if (!match.Success)
             {
