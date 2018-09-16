@@ -639,6 +639,12 @@
             }).ConfigureAwait(false);
         }
 
+        int IDiscordAccess.CountMembersWithRole(string roleName)
+        {
+            var g = GetGuild();
+            return g.Users.SelectMany(m => m.Roles.Where(x => x.Name == roleName)).Count();
+        }
+
         #endregion
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////

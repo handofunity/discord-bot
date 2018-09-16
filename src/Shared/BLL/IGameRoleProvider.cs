@@ -19,5 +19,7 @@
         Task RevokeGameRole(DiscordChannelID channelID, DiscordUserID userID, AvailableGame game, string emoji);
 
         Task LoadAvailableGames();
+
+        Dictionary<string, int> GetGameRoleDistribution(AvailableGame game);
     }
 }

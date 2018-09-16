@@ -16,7 +16,7 @@
 
     public class Runner
     {
-        private static readonly Version BotVersion = new Version(1, 5, 2);
+        private static readonly Version BotVersion = new Version(1, 6, 0);
 
         private ILogger<Runner> _logger;
 
@@ -75,7 +75,8 @@
                 .AddSingleton<IGuildInfoProvider, GuildInfoProvider>()
                 .AddSingleton<IUserInfoProvider, UserInfoProvider>()
                 .AddSingleton<IUserStore, UserStore>()
-                .AddSingleton<IStaticMessageProvider, StaticMessageProvider>();
+                .AddSingleton<IStaticMessageProvider, StaticMessageProvider>()
+                .AddSingleton<IStatisticImageProvider, StatisticImageProvider>();
         }
 
         private static void RegisterDAL(IServiceCollection serviceCollection)

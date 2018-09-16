@@ -137,5 +137,12 @@
         /// <param name="reactions">The reactions to add.</param>
         /// <returns>An awaitable <see cref="Task"/>.</returns>
         Task AddReactionsToMessage(DiscordChannelID channelID, ulong messageID, string[] reactions);
+
+        /// <summary>
+        /// Counts the members having the <paramref name="roleName"/>.
+        /// </summary>
+        /// <param name="roleName">The name of the role to count.</param>
+        /// <returns>The amount of people having the <paramref name="roleName"/>.</returns>
+        int CountMembersWithRole(string roleName);
     }
 }
