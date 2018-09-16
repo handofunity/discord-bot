@@ -7,6 +7,7 @@
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
+    using Shared.Objects;
 
     [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
     public class Startup
@@ -31,11 +32,11 @@
             string environment;
             if (env.IsDevelopment())
             {
-                environment = "Development";
+                environment = Constants.RuntimeEnvironment.Development;
             }
             else if (env.IsProduction())
             {
-                environment = "Production";
+                environment = Constants.RuntimeEnvironment.Production;
             }
             else
             {

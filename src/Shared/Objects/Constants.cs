@@ -13,6 +13,12 @@
         /// </summary>
         public static readonly TimeSpan GlobalActionDelay = TimeSpan.FromSeconds(2);
 
+        public static class RuntimeEnvironment
+        {
+            public const string Development = "Development";
+            public const string Production = "Production";
+        }
+
         public static class MessageNames
         {
             public const string FirstServerJoinWelcome = "FirstServerJoinWelcome";

@@ -20,6 +20,7 @@
         private readonly IGameRoleProvider _gameRoleProvider;
         private readonly IDiscordAccess _discordAccess;
         private readonly AppSettings _appSettings;
+        private readonly bool _provideStaticMessages;
 
         #endregion
 
@@ -28,6 +29,7 @@
 
         public StaticMessageProvider(IMessageProvider messageProvider,
                                      IGameRoleProvider gameRoleProvider,
+                                     IBotInformationProvider botInformationProvider,
                                      IDiscordAccess discordAccess,
                                      AppSettings appSettings)
         {
@@ -35,8 +37,10 @@
             _gameRoleProvider = gameRoleProvider;
             _discordAccess = discordAccess;
             _appSettings = appSettings;
+            _provideStaticMessages = botInformationProvider.GetEnvironmentName() == Constants.RuntimeEnvironment.Production;
 
-            _messageProvider.MessageChanged += MessageProvider_MessageChanged;
+            if (_provideStaticMessages)
+                _messageProvider.MessageChanged += MessageProvider_MessageChanged;
         }
 
         #endregion
@@ -46,6 +50,9 @@
 
         private async Task LoadWelcomeChannelMessages(Dictionary<DiscordChannelID, (List<string> Messages, Func<ulong[], Task> PostCreationCallback)> expectedChannelMessages)
         {
+            if (!_provideStaticMessages)
+                return;
+
             var l = new List<string>
             {
                 await _messageProvider.GetMessage(Constants.MessageNames.WelcomeChannelMessage01).ConfigureAwait(false),
@@ -58,6 +65,9 @@
 
         private async Task LoadAocRoleMenuMessages(Dictionary<DiscordChannelID, (List<string> Messages, Func<ulong[], Task> PostCreationCallback)> expectedChannelMessages)
         {
+            if (!_provideStaticMessages)
+                return;
+
             var l = new List<string>
             {
                 await _messageProvider.GetMessage(Constants.MessageNames.AocRoleMenu).ConfigureAwait(false)
