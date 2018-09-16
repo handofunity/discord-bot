@@ -35,10 +35,10 @@
         [Command("aocrolesimage")]
         [Name("Get an image about the aoc roles")]
         [Summary("Creates and posts an image that shows the current amount of roles.")]
-        [Alias("aoc roles image", "dev1", "dev2")]
+        [Alias("aoc roles image")]
         [RequireContext(ContextType.Guild)]
         [ResponseContext(ResponseType.AlwaysSameChannel)]
-        [RolePrecondition(Role.Developer)] // TODO: AnyGuildMember
+        [RolePrecondition(Role.AnyGuildMember)]
         public async Task GetAocRolesImage()
         {
             var processingMessage = await ReplyAsync("Creating image..").ConfigureAwait(false);
