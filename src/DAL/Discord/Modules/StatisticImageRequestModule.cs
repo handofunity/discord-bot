@@ -35,10 +35,10 @@
         [Command("aocrolesimage")]
         [Name("Get an image about the aoc roles")]
         [Summary("Creates and posts an image that shows the current amount of roles.")]
-        [Alias("aoc roles image")]
+        [Alias("aoc roles image", "dev1", "dev2", "dev3", "dev4")]
         [RequireContext(ContextType.Guild)]
         [ResponseContext(ResponseType.AlwaysSameChannel)]
-        [RolePrecondition(Role.AnyGuildMember)]
+        [RolePrecondition(Role.Developer)]
         public async Task GetAocRolesImage()
         {
             var processingMessage = await ReplyAsync("Creating image..").ConfigureAwait(false);
@@ -51,7 +51,7 @@
             {
                 try
                 {
-                    using (var imageStream = await _statisticImageProvider.CreateAocRolesImage().ConfigureAwait(false))
+                    using (var imageStream = _statisticImageProvider.CreateAocRolesImage())
                     {
                         await channel.SendFileAsync(imageStream, "currentAocRoles.png").ConfigureAwait(false);
                     }

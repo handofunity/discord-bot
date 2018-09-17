@@ -169,16 +169,18 @@
             _logger.LogInformation($"Loaded {_games.Count} games with a total count of {_games.Sum(m => m.ClassNames.Count)} roles.");
         }
 
-        Dictionary<string, int> IGameRoleProvider.GetGameRoleDistribution(AvailableGame game)
+        (int GameMembers, Dictionary<string, int> RoleDistribution) IGameRoleProvider.GetGameRoleDistribution(AvailableGame game)
         {
-            var result = new Dictionary<string, int>();
+            var distribution = new Dictionary<string, int>();
             foreach (var className in game.ClassNames)
             {
                 var count = _discordAccess.CountMembersWithRole($"{game.ShortName} - {className}");
-                result.Add(className, count);
+                distribution.Add(className, count);
             }
 
-            return result;
+            var gameMembers = _discordAccess.CountMembersWithRole($"{game.ShortName} ({game.LongName})");
+
+            return (gameMembers, distribution);
         }
 
         #endregion

@@ -20,6 +20,6 @@
 
         Task LoadAvailableGames();
 
-        Dictionary<string, int> GetGameRoleDistribution(AvailableGame game);
+        (int GameMembers, Dictionary<string, int> RoleDistribution) GetGameRoleDistribution(AvailableGame game);
     }
 }
