@@ -72,10 +72,10 @@
                 await _userStore.RemoveUser(userID).ConfigureAwait(false);
                 await _privacyProvider.DeleteUserRelatedData(user).ConfigureAwait(false);
                 var leaderMention = _discordAccess.GetRoleMention(Constants.RoleNames.LeaderRoleName);
-                var seniorOfficerMention = _discordAccess.GetRoleMention(Constants.RoleNames.SeniorOfficerRoleName);
+                var officerMention = _discordAccess.GetRoleMention(Constants.RoleNames.OfficerRoleName);
                 var now = DateTime.UtcNow;
                 await _discordAccess.LogToDiscord(
-                    $"{leaderMention} {seniorOfficerMention} - User {userID.ToMention()} ({username}) has left the server on {now:D} at {now:HH:mm:ss} UTC.");
+                    $"{leaderMention} {officerMention} - User {userID.ToMention()} ({username}) has left the server on {now:D} at {now:HH:mm:ss} UTC.");
             }).ConfigureAwait(false);
 #pragma warning restore CS4014 // Fire & Forget
         }
@@ -90,8 +90,8 @@
             Role promotedTo;
             if (!oldRoles.HasFlag(Role.Recruit)
              && !oldRoles.HasFlag(Role.Member)
+             && !oldRoles.HasFlag(Role.Coordinator)
              && !oldRoles.HasFlag(Role.Officer)
-             && !oldRoles.HasFlag(Role.SeniorOfficer)
              && !oldRoles.HasFlag(Role.Leader)
              && newRoles.HasFlag(Role.Recruit))
             {

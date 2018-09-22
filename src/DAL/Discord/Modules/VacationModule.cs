@@ -93,7 +93,7 @@
         [Alias("listvacations", "vacations")]
         [RequireContext(ContextType.Guild)]
         [ResponseContext(ResponseType.AlwaysSameChannel)]
-        [RolePrecondition(Role.Leader | Role.SeniorOfficer)]
+        [RolePrecondition(Role.Leader | Role.Officer)]
         public async Task ListVacationsAsync([Remainder] string messageContent = null)
         {
             if (messageContent == null)
@@ -142,7 +142,7 @@
         [Alias("listvacations", "vacations")]
         [RequireContext(ContextType.Guild)]
         [ResponseContext(ResponseType.AlwaysSameChannel)]
-        [RolePrecondition(Role.Leader | Role.SeniorOfficer)]
+        [RolePrecondition(Role.Leader | Role.Officer)]
         public async Task ListVacationsForUserAsync(SocketGuildUser guildUser)
         {
             var response = await _vacationProvider.GetVacations((DiscordUserID)guildUser.Id).ConfigureAwait(false);

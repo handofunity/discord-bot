@@ -39,7 +39,7 @@
         [Alias("lastseen")]
         [RequireContext(ContextType.Guild)]
         [ResponseContext(ResponseType.AlwaysSameChannel)]
-        [RolePrecondition(Role.Leader | Role.SeniorOfficer)]
+        [RolePrecondition(Role.Leader | Role.Officer)]
         public async Task LastSeenAsync()
         {
             var message = await ReplyAsync("Loading...").ConfigureAwait(false);

@@ -56,8 +56,9 @@
             {
                 {"Developer", Role.Developer},
                 {"Leader", Role.Leader},
-                {"Senior Officer", Role.SeniorOfficer},
-                {"Officer", Role.Officer},
+                {"Senior Officer", Role.Officer},
+                {"Head Coordinator", Role.Coordinator},
+                {"Coordinator", Role.Coordinator},
                 {"Member", Role.Member},
                 {"Recruit", Role.Recruit},
                 {"Guest", Role.Guest}
@@ -132,7 +133,7 @@
 
             var g = GetGuild();
             var leaderRole = GetRoleByName(Constants.RoleNames.LeaderRoleName, g);
-            var seniorOfficerRole = GetRoleByName(Constants.RoleNames.SeniorOfficerRoleName, g);
+            var officerRole = GetRoleByName(Constants.RoleNames.OfficerRoleName, g);
 
             switch (checkResult)
             {
@@ -144,7 +145,7 @@
                                        .WithDescription("Please refrain from further spamming in this channel.");
                     var embed = embedBuilder.Build();
                     await userMessage
-                          .Channel.SendMessageAsync($"{userMessage.Author.Mention} - {leaderRole.Mention} and {seniorOfficerRole.Mention} have been notified.", false, embed)
+                          .Channel.SendMessageAsync($"{userMessage.Author.Mention} - {leaderRole.Mention} and {officerRole.Mention} have been notified.", false, embed)
                           .ConfigureAwait(false);
                     return true;
                 }
@@ -162,19 +163,19 @@
                     catch (HttpException e) when (e.HttpCode == HttpStatusCode.Forbidden)
                     {
                         await LogToDiscordInternal(
-                                $"{leaderRole.Mention}, {seniorOfficerRole.Mention}: Failed to kick user {guildUser.Mention}, because the bot is not permitted to kick a user with a higher rank.")
+                                $"{leaderRole.Mention}, {officerRole.Mention}: Failed to kick user {guildUser.Mention}, because the bot is not permitted to kick a user with a higher rank.")
                             .ConfigureAwait(false);
                         return true;
                     }
                     catch (Exception e)
                     {
                         await LogToDiscordInternal(
-                                $"{leaderRole.Mention}, {seniorOfficerRole.Mention}: Failed to kick user {guildUser.Mention} due to an unexpected error: {e.Message}")
+                                $"{leaderRole.Mention}, {officerRole.Mention}: Failed to kick user {guildUser.Mention} due to an unexpected error: {e.Message}")
                             .ConfigureAwait(false);
                         return true;
                     }
 
-                    await LogToDiscordInternal($"{leaderRole.Mention}, {seniorOfficerRole.Mention}:Kicked user {guildUser.Mention} from the server due to excesive spam.").ConfigureAwait(false);
+                    await LogToDiscordInternal($"{leaderRole.Mention}, {officerRole.Mention}:Kicked user {guildUser.Mention} from the server due to excesive spam.").ConfigureAwait(false);
                     return true;
                 }
             }
@@ -705,18 +706,12 @@
 
         private Task Client_UserJoined(SocketGuildUser guildUser)
         {
-            if (guildUser.Guild.Id != _appSettings.HandOfUnityGuildId)
-                return Task.CompletedTask;
-
             _discordUserEventHandler.HandleJoined((DiscordUserID)guildUser.Id, SocketRoleToRole(guildUser.Roles));
             return Task.CompletedTask;
         }
 
         private Task Client_UserLeft(SocketGuildUser guildUser)
         {
-            if (guildUser.Guild.Id != _appSettings.HandOfUnityGuildId)
-                return Task.CompletedTask;
-
             _discordUserEventHandler.HandleLeft((DiscordUserID) guildUser.Id, guildUser.Username);
             return Task.CompletedTask;
         }

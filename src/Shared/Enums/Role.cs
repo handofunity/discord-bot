@@ -15,13 +15,13 @@
         /// </summary>
         Leader = 2,
         /// <summary>
-        /// Only users with the role <see cref="SeniorOfficer"/> may use these commands.
-        /// </summary>
-        SeniorOfficer = 4,
-        /// <summary>
         /// Only users with the role <see cref="Officer"/> may use these commands.
         /// </summary>
-        Officer = 8,
+        Officer = 4,
+        /// <summary>
+        /// Only users with the role <see cref="Coordinator"/> may use these commands.
+        /// </summary>
+        Coordinator = 8,
         /// <summary>
         /// Only users with the role <see cref="Member"/> may use these commands.
         /// </summary>
@@ -33,7 +33,7 @@
         /// <summary>
         /// Any user who is a guild member may use these commands.
         /// </summary>
-        AnyGuildMember = Leader | SeniorOfficer | Officer | Member | Recruit,
+        AnyGuildMember = Leader | Officer | Coordinator | Member | Recruit,
         /// <summary>
         /// Not a guild member, but a <see cref="Guest"/> role.
         /// </summary>

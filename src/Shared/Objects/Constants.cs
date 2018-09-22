@@ -32,7 +32,7 @@
         public static class RoleNames
         {
             public const string LeaderRoleName = "Leader";
-            public const string SeniorOfficerRoleName = "Senior Officer";
+            public const string OfficerRoleName = "Officer";
         }
 
         public static class AocRoleEmojis
