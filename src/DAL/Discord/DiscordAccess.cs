@@ -56,7 +56,7 @@
             {
                 {"Developer", Role.Developer},
                 {"Leader", Role.Leader},
-                {"Senior Officer", Role.Officer},
+                {"Officer", Role.Officer},
                 {"Head Coordinator", Role.Coordinator},
                 {"Coordinator", Role.Coordinator},
                 {"Member", Role.Member},
