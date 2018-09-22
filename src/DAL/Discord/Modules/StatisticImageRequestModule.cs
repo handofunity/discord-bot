@@ -4,6 +4,7 @@
     using System.Threading.Tasks;
     using global::Discord.Commands;
     using JetBrains.Annotations;
+    using Microsoft.Extensions.Logging;
     using Preconditions;
     using Shared.Attributes;
     using Shared.BLL;
@@ -16,15 +17,18 @@
         #region Fields
 
         private readonly IStatisticImageProvider _statisticImageProvider;
+        private readonly ILogger<StatisticImageRequestModule> _logger;
 
         #endregion
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region Constructors
 
-        public StatisticImageRequestModule(IStatisticImageProvider statisticImageProvider)
+        public StatisticImageRequestModule(IStatisticImageProvider statisticImageProvider,
+                                           ILogger<StatisticImageRequestModule> logger)
         {
             _statisticImageProvider = statisticImageProvider;
+            _logger = logger;
         }
 
         #endregion
@@ -55,6 +59,10 @@
                     {
                         await channel.SendFileAsync(imageStream, "currentAocRoles.png").ConfigureAwait(false);
                     }
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, $"Failed to provide aoc roles statistic image to channel {channel.Name}.");
                 }
                 finally
                 {

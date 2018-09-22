@@ -1,4 +1,9 @@
 FROM microsoft/dotnet:2.1-aspnetcore-runtime AS base
+RUN ln -s /lib/x86_64-linux-gnu/libdl.so.2 /lib/x86_64-linux-gnu/libdl.so
+RUN apt update
+RUN apt install -y libgdiplus
+RUN ln -s /usr/lib/libgdiplus.so /lib/x86_64-linux-gnu/libgdiplus.so
+
 WORKDIR /app
 
 FROM microsoft/dotnet:2.1-sdk AS build
