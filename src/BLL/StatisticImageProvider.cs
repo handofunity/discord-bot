@@ -100,7 +100,8 @@
 
             // Data
             var indent = 0;
-            var font = new Font(ff, 16, FontStyle.Bold);
+            var labelFont = new Font(ff, 14, FontStyle.Bold);
+            var amountFont = new Font(ff, 16, FontStyle.Bold);
             var pens = new Dictionary<string, Pen>
             {
                 {"Fighter", new Pen(Color.BurlyWood) },
@@ -116,8 +117,8 @@
             foreach (var d in distribution.RoleDistribution.OrderByDescending(m => m.Value).ThenBy(m => m.Key))
             {
                 // Class label
-                requiredSize = graph.MeasureString(d.Key, font);
-                graph.DrawString(d.Key, font, Brushes.Black, new PointF(indent + (indentIncrement - requiredSize.Width) / 2, labelsTopOffset));
+                requiredSize = graph.MeasureString(d.Key, labelFont);
+                graph.DrawString(d.Key, labelFont, Brushes.Black, new PointF(indent + (indentIncrement - requiredSize.Width) / 2, labelsTopOffset));
 
                 // Bar
                 var pen = pens[d.Key];
@@ -130,8 +131,8 @@
 
                 // Amount label
                 var amount = d.Value.ToString(CultureInfo.InvariantCulture);
-                requiredSize = graph.MeasureString(amount, font);
-                graph.DrawString(amount, font, Brushes.Black, new PointF(indent + (indentIncrement - requiredSize.Width) / 2, currentBarTopOffset - 10 - requiredSize.Height));
+                requiredSize = graph.MeasureString(amount, amountFont);
+                graph.DrawString(amount, amountFont, Brushes.Black, new PointF(indent + (indentIncrement - requiredSize.Width) / 2, currentBarTopOffset - 10 - requiredSize.Height));
 
                 indent += indentIncrement;
             }
