@@ -712,7 +712,7 @@
 
         private Task Client_UserLeft(SocketGuildUser guildUser)
         {
-            _discordUserEventHandler.HandleLeft((DiscordUserID) guildUser.Id, guildUser.Username);
+            _discordUserEventHandler.HandleLeft((DiscordUserID) guildUser.Id, guildUser.Username, guildUser.DiscriminatorValue);
             return Task.CompletedTask;
         }
 
