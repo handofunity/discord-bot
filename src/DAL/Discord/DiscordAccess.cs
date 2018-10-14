@@ -498,8 +498,17 @@
             if (game == null)
                 throw new ArgumentNullException(nameof(game));
 
+            var roleBlacklist = new[]
+            {
+                "Alpha 1"
+            };
+
             var g = GetGuild();
-            var roles = g.Roles.Where(m => m.Name.StartsWith($"{game.ShortName} - ")).Select(m => m.Name.Split('-')[1].Trim()).ToArray();
+            var roles = g.Roles
+                         .Where(m => m.Name.StartsWith($"{game.ShortName} - "))
+                         .Select(m => m.Name.Split('-')[1].Trim())
+                         .Except(roleBlacklist)
+                         .ToArray();
             game.ClassNames.Clear();
             game.ClassNames.AddRange(roles);
         }
