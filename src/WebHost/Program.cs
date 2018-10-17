@@ -33,9 +33,6 @@
 
         private static IWebHost BuildWebHost() =>
             WebHost.CreateDefaultBuilder()
-                   .UseKestrel()
-                   .UseContentRoot(Directory.GetCurrentDirectory())
-                   .UseIISIntegration()
                    .UseStartup<Startup>()
                    .Build();
 
