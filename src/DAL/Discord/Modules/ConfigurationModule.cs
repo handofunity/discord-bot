@@ -44,7 +44,8 @@
         #region Commands
 
         [Command("list messages")]
-        [Name("List bot messages")]
+        [CommandCategory(CommandCategory.Administration, 4)]
+        [Name("List all bot messages")]
         [Summary("Lists all configurable messages the bot uses.")]
         [Alias("listmessages")]
         [RequireContext(ContextType.Guild)]
@@ -82,7 +83,8 @@
         }
 
         [Command("set message")]
-        [Name("Sets a bot message")]
+        [CommandCategory(CommandCategory.Administration, 5)]
+        [Name("Set a specific bot message")]
         [Summary("Sets a specific, configurable message the bot uses.")]
         [Remarks("Syntax: _set message \"NAME\" \"CONTENT\"_ e.g.: _set message \"FirstServerJoinWelcome\" \"Welcome to the server!\"_")]
         [Alias("setmessage")]

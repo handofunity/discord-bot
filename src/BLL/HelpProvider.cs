@@ -7,6 +7,7 @@
     using JetBrains.Annotations;
     using Shared.BLL;
     using Shared.Enums;
+    using Shared.Extensions;
     using Shared.Objects;
     using Shared.StrongTypes;
 
@@ -47,8 +48,6 @@
 
         private (string Message, EmbedData Embed)[] ListAvailableCommands(DiscordUserID userId)
         {
-            const string responseTitle = "Available commands";
-
             var availableCommands = GetAvailableCommands(userId);
             if (availableCommands.Length == 0)
             {
@@ -56,28 +55,36 @@
                 {
                     (string.Empty, new EmbedData
                         {
-                            Title = responseTitle,
+                            Title = "No commands available",
                             Color = Colors.LightOrange,
                             Description = "No commands are available for you."
                         })
                 };
             }
 
-            var message = "The list below shows all commands that are available for you. " +
-                          $"{Environment.NewLine}If you need advanced help for a command, " +
-                          "supply either a _command name_ or _command shortcut_ **in double quotation marks** to get additional help for that command." +
-                          $"{Environment.NewLine}For example, use `hou!help \"help\"`, to get advanced help for the \"help\" command.";
+            var header = "Available commands (name and shortcuts)." +
+                         $"{Environment.NewLine}The list below shows all commands that are available for you. " +
+                         $"{Environment.NewLine}If you need advanced help for a command, " +
+                         "supply either a _command name_ or _command shortcut_ **in double quotation marks** to get additional help for that command." +
+                         $"{Environment.NewLine}For example, use `hou!help \"help\"`, to get advanced help for the \"help\" command.";
 
-            var commands = availableCommands.Select(ci => $"```\"{ci.Name}\": \"{string.Join("\", \"", ci.InvokeNames)}\"```");
-            return new (string Message, EmbedData Embed)[]
+            var commandsCategories = availableCommands.Select(ci => new {ci.CommandCategory, ci.CommandOrder, ci.Name, Invokes = $"\"{string.Join("\", \"", ci.InvokeNames)}\""})
+                                                      .GroupBy(m => m.CommandCategory)
+                                                      .OrderBy(m => m.Key);
+            var result = new List<(string Message, EmbedData Embed)>
             {
-                (message, new EmbedData
-                    {
-                        Title = responseTitle,
-                        Color = Colors.LightGreen,
-                        Description = string.Join(Environment.NewLine, commands)
-                    })
+                (header, null)
             };
+            foreach (var commandCategory in commandsCategories)
+            {
+                result.Add((string.Empty, new EmbedData
+                               {
+                                   Title = commandCategory.Key.GetDisplayName(),
+                                   Color = Colors.LightGreen,
+                                   Fields = commandCategory.OrderBy(m => m.CommandOrder).Select(m => new EmbedField(m.Name, m.Invokes, false)).ToArray()
+                               }));
+            }
+            return result.ToArray();
         }
 
         private (string Message, EmbedData Embed)[] GetAdvancedCommandHelp(DiscordUserID userId, string helpRequest)
@@ -108,9 +115,9 @@
                     if (!string.IsNullOrWhiteSpace(matchingCommand.Remarks))
                         r.Add(new EmbedField("Remarks", matchingCommand.Remarks, false));
 
-                    r.Add(new EmbedField("Available to", matchingCommand.AllowedRoles, true));
-                    r.Add(new EmbedField("Available in", matchingCommand.AllowedRequestTypes, true));
-                    r.Add(new EmbedField("Will respond in", matchingCommand.ResponseType, true));
+                    r.Add(new EmbedField("Available to", matchingCommand.AllowedRoles.GetDisplayName(), true));
+                    r.Add(new EmbedField("Available in", matchingCommand.AllowedRequestTypes.GetDisplayName(), true));
+                    r.Add(new EmbedField("Will respond in", matchingCommand.ResponseType.GetDisplayName(), true));
 
                     return r.ToArray();
                 }

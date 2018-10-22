@@ -32,6 +32,7 @@
         #region Commands
 
         [Command("info")]
+        [CommandCategory(CommandCategory.Administration, 1)]
         [Name("Get bot information")]
         [Summary("Gets information about the current bot instance.")]
         [Alias("information")]

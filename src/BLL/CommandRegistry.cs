@@ -32,6 +32,48 @@
         #endregion
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
+        #region Private Methods
+
+        private bool IsCommandValid(CommandInfo ci)
+        {
+            _logger.LogDebug($"Validating command '{ci.Name}'...");
+
+            if (ci.AllowedRequestTypes == RequestType.Undefined)
+            {
+                _logger.LogDebug($"Didn't add command '{ci.Name}' because the allowed request types are undefined.");
+                return false;
+            }
+
+            if (ci.ResponseType == ResponseType.Undefined)
+            {
+                _logger.LogDebug($"Didn't add command '{ci.Name}' because the response type is undefined.");
+                return false;
+            }
+
+            if (ci.AllowedRoles == Role.NoRole)
+            {
+                _logger.LogDebug($"Didn't add command '{ci.Name}' because the allowed roles are undefined.");
+                return false;
+            }
+
+            if (ci.CommandCategory == CommandCategory.Undefined)
+            {
+                _logger.LogDebug($"Didn't add command '{ci.Name}' because the command category is not defined.");
+                return false;
+            }
+
+            if (ci.CommandOrder == 0)
+            {
+                _logger.LogDebug($"Didn't add command '{ci.Name}' because the command order is not defined.");
+                return false;
+            }
+
+            return true;
+        }
+
+        #endregion
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region ICommandRegistry Members
 
         bool ICommandRegistry.CommandsRegistered => _commandsRegistered;
@@ -44,25 +86,7 @@
             {
                 foreach (var ci in commands)
                 {
-                    _logger.LogDebug($"Validating command '{ci.Name}'...");
-
-                    if (ci.AllowedRequestTypes == RequestType.Undefined)
-                    {
-                        _logger.LogDebug($"Didn't add command '{ci.Name}' because the allowed request types are undefined.");
-                        continue;
-                    }
-
-                    if (ci.ResponseType == ResponseType.Undefined)
-                    {
-                        _logger.LogDebug($"Didn't add command '{ci.Name}' because the response type is undefined.");
-                        continue;
-                    }
-
-                    if (ci.AllowedRoles == Role.NoRole)
-                    {
-                        _logger.LogDebug($"Didn't add command '{ci.Name}' because the allowed roles are undefined.");
-                        continue;
-                    }
+                    if (!IsCommandValid(ci)) continue;
 
                     _commands.Add(ci);
                     _logger.LogDebug($"Added command '{ci.Name}' to registry.");

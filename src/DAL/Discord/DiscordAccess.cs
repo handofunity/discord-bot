@@ -270,8 +270,13 @@
                 var requiredRoles = ci.Preconditions.OfType<RolePreconditionAttribute>().SingleOrDefault();
                 var rr = requiredRoles?.AllowedRoles ?? Role.NoRole;
 
+                // Get command category
+                var commandCategory = ci.Attributes.OfType<CommandCategoryAttribute>().SingleOrDefault();
+                var cc = commandCategory?.Category ?? CommandCategory.Undefined;
+                var cco = commandCategory?.Order ?? 0;
+
                 // Create POCO
-                return new Shared.Objects.CommandInfo(ci.Name, ci.Aliases.ToArray(), rt, resp, rr)
+                return new Shared.Objects.CommandInfo(ci.Name, ci.Aliases.ToArray(), rt, resp, rr, cc, cco)
                 {
                     Summary = ci.Summary,
                     Remarks = ci.Remarks

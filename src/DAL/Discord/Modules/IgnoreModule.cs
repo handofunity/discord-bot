@@ -33,12 +33,13 @@
         #region Commands
 
         [Command("ignore me")]
-        [Name("Ignore commands")]
+        [CommandCategory(CommandCategory.Administration, 2)]
+        [Name("Start ignoring the user")]
         [Summary("Requests the bot instance to ignore further commands from the user for a certain duration.")]
         [Remarks("The minimum ignore duration is 3 minutes, the maximum ignore duration is 60 minutes.")]
         [Alias("ignoreme")]
         [RequireContext(ContextType.DM | ContextType.Guild)]
-        [ResponseContext(ResponseType.AlwaysPrivate)]
+        [ResponseContext(ResponseType.AlwaysDirect)]
         [RolePrecondition(Role.Developer)]
         public async Task IgnoreMeAsync([Remainder] string remainder)
         {
@@ -48,12 +49,13 @@
         }
 
         [Command("notice me")]
-        [Name("Stop ignoring commands")]
+        [CommandCategory(CommandCategory.Administration, 3)]
+        [Name("Stop ignore the user")]
         [Summary("Requests the bot instance to accept commands from the current user again.")]
         [Remarks("If the user was not ignored by the bot, he won't receive any message. The bot will only respond during the ignored time.")]
         [Alias("noticeme")]
         [RequireContext(ContextType.DM | ContextType.Guild)]
-        [ResponseContext(ResponseType.AlwaysPrivate)]
+        [ResponseContext(ResponseType.AlwaysDirect)]
         [RolePrecondition(Role.Developer)]
         public async Task NoticeMeAsync()
         {

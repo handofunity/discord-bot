@@ -14,17 +14,29 @@
 
         public Role AllowedRoles { get; }
 
+        public CommandCategory CommandCategory { get; }
+
+        public uint CommandOrder { get; }
+
         public string Summary { get; set; }
 
         public string Remarks { get; set; }
 
-        public CommandInfo(string name, string[] invokeNames, RequestType allowedRequestTypes, ResponseType responseType, Role allowedRoles)
+        public CommandInfo(string name,
+                           string[] invokeNames,
+                           RequestType allowedRequestTypes,
+                           ResponseType responseType,
+                           Role allowedRoles,
+                           CommandCategory commandCategory,
+                           uint commandOrder)
         {
             Name = name;
             InvokeNames = invokeNames;
             AllowedRequestTypes = allowedRequestTypes;
             ResponseType = responseType;
             AllowedRoles = allowedRoles;
+            CommandCategory = commandCategory;
+            CommandOrder = commandOrder;
         }
     }
 }

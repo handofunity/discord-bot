@@ -33,6 +33,7 @@
         #region Commands
 
         [Command("last seen", RunMode = RunMode.Async)]
+        [CommandCategory(CommandCategory.MemberInformation, 2)]
         [Name("Shows last seen timestamps")]
         [Summary("Lists all users and the timestamp of their last text message.")]
         [Remarks("List is ordered by descanding activity (those who are away the longest are on the top).")]

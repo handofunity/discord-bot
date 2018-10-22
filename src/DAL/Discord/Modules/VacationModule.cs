@@ -37,6 +37,7 @@
         #region Commands
 
         [Command("add vacation")]
+        [CommandCategory(CommandCategory.MemberManagement, 2)]
         [Name("Add vacation entry")]
         [Summary("Adds a vacation entry.")]
         [Remarks("Syntax: _add vacation yyyy-mm-dd to yyyy-mm-dd optional note_ e.g.: _add vacation 2018-05-19 to 2018-05-20 weekend trip_.\r\n" +
@@ -86,7 +87,8 @@
         }
 
         [Command("list vacations")]
-        [Name("List all vacations.")]
+        [CommandCategory(CommandCategory.MemberInformation, 3)]
+        [Name("List all vacations")]
         [Summary("Lists all current and upcoming vacations, or for a specfic date.")]
         [Remarks("Can be called with an optional data parameter to get the vacations for a specific date, e.g.: _list vacations 2018-05-20_ to get a list of everybody who's on vacation on the 20th May 2018.\r\n" +
                  "Can also be called with parameters \"today\" and \"tomorrow\", e.g.: _list vacations today_ or _list vacations tomorrow_")]
@@ -136,7 +138,8 @@
         }
 
         [Command("list vacations")]
-        [Name("List user related vacations.")]
+        [CommandCategory(CommandCategory.MemberInformation, 4)]
+        [Name("List user related vacations")]
         [Summary("Lists all current and upcoming vacations for a specific user.")]
         [Remarks("Syntax: _list vacations @User_")]
         [Alias("listvacations", "vacations")]
@@ -150,6 +153,7 @@
         }
 
         [Command("delete vacation")]
+        [CommandCategory(CommandCategory.MemberManagement, 3)]
         [Name("Delete vacation entry")]
         [Summary("Deletes a vacation entry.")]
         [Remarks("Syntax: _delete vacation yyyy-mm-dd to yyyy-mm-dd_ e.g.: _delete vacation 2018-05-19 to 2018-05-20_.\r\n" +
@@ -195,7 +199,8 @@
         }
 
         [Command("list my vacations")]
-        [Name("Lists your vacations.")]
+        [CommandCategory(CommandCategory.MemberManagement, 1)]
+        [Name("Lists your vacations")]
         [Summary("Lists all current and upcoming vacations for you.")]
         [Alias("listmyvacations", "myvacations", "my vacations")]
         [RequireContext(ContextType.DM)]

@@ -7,6 +7,7 @@
     using Shared.Attributes;
     using Shared.BLL;
     using Shared.Enums;
+    using Shared.Extensions;
     using Shared.StrongTypes;
 
     [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
@@ -33,21 +34,25 @@
         #region Commands
 
         [Command("help")]
+        [CommandCategory(CommandCategory.Help, 1)]
         [Name("Get command help")]
         [Summary("Provides help for commands.")]
         [Remarks("If no further arguments are provided, this command will list all available commands.")]
         [Alias("?")]
         [RequireContext(ContextType.DM | ContextType.Guild)]
-        [ResponseContext(ResponseType.AlwaysPrivate)]
+        [ResponseContext(ResponseType.AlwaysDirect)]
         [RolePrecondition(Role.AnyGuildMember)]
-        public async Task HelpAsync([Remainder] string helpRequest = null)
+        public Task HelpAsync([Remainder] string helpRequest = null)
         {
-            var data = _helpProvider.GetHelp((DiscordUserID)Context.User.Id, helpRequest);
-            foreach (var t in data)
+            var data = _helpProvider.GetHelp((DiscordUserID) Context.User.Id, helpRequest);
+#pragma warning disable 4014 // Fire & Forget
+            Task.Run(async () => await data.PerformBulkOperation(async t =>
             {
-                var embed = t.EmbedData.ToEmbed();
+                var embed = t.EmbedData?.ToEmbed();
                 await ReplyPrivateAsync(t.Message, embed).ConfigureAwait(false);
-            }
+            }).ConfigureAwait(false));
+#pragma warning restore 4014 // Fire & Forget
+            return Task.CompletedTask;
         }
 
         #endregion

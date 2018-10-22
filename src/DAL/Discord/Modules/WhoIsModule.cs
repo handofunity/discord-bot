@@ -35,6 +35,7 @@
         #region Commands
 
         [Command("whois")]
+        [CommandCategory(CommandCategory.Help, 2)]
         [Name("Gets \"who is\" user info by mention")]
         [Summary("Gets internal information about the given user.")]
         [Alias("who is")]
@@ -49,6 +50,7 @@
         }
 
         [Command("whois")]
+        [CommandCategory(CommandCategory.Help, 3)]
         [Name("Gets \"who is\" user info by InternalUserID or DiscordUserID")]
         [Summary("Gets internal information about the given user ID.")]
         [Alias("who is")]

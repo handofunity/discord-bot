@@ -37,6 +37,7 @@
         #region Commands
 
         [Command("aocrolesimage")]
+        [CommandCategory(CommandCategory.GameAshesOfCreation, 1)]
         [Name("Get an image about the aoc roles")]
         [Summary("Creates and posts an image that shows the current amount of roles.")]
         [Alias("aoc roles image", "aocrolesstatistic", "aoc roles statistic")]

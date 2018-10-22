@@ -32,6 +32,7 @@
         #region Commands
 
         [Command("guildmembers")]
+        [CommandCategory(CommandCategory.MemberInformation, 1)]
         [Name("List guild members count")]
         [Summary("Lists the count of guild members")]
         [Alias("guild members")]
