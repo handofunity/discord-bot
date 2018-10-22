@@ -75,7 +75,7 @@
                 var officerMention = _discordAccess.GetRoleMention(Constants.RoleNames.OfficerRoleName);
                 var now = DateTime.UtcNow;
                 await _discordAccess.LogToDiscord(
-                    $"{leaderMention} {officerMention} - User **{username}#{discriminatorValue}** (Role: {user.Roles}) has left the server on {now:D} at {now:HH:mm:ss} UTC.");
+                    $"{leaderMention} {officerMention} - User `{username}#{discriminatorValue}` (Role: {user.Roles}) has left the server on {now:D} at {now:HH:mm:ss} UTC.");
             }).ConfigureAwait(false);
 #pragma warning restore CS4014 // Fire & Forget
         }
