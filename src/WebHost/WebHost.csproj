@@ -4,7 +4,6 @@
     <PublishWithAspNetCoreTargetManifest>false</PublishWithAspNetCoreTargetManifest>
     <AssemblyName>HoU.GuildBot.WebHost</AssemblyName>
     <RootNamespace>HoU.GuildBot.WebHost</RootNamespace>
-    <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
     <DockerTargetOS>Linux</DockerTargetOS>
     <StartupObject>HoU.GuildBot.WebHost.Program</StartupObject>
   </PropertyGroup>
@@ -48,6 +47,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="web.config" CopyToPublishDirectory="Always" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="JetBrains.Annotations">
+      <HintPath>C:\Users\Stefan\.nuget\packages\jetbrains.annotations\2018.2.1\lib\netstandard2.0\JetBrains.Annotations.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>
 
