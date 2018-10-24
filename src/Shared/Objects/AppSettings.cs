@@ -1,5 +1,6 @@
 ﻿namespace HoU.GuildBot.Shared.Objects
 {
+    using Microsoft.Extensions.Configuration;
     using StrongTypes;
 
     public class AppSettings
@@ -41,6 +42,8 @@
         /// <example>IPv4: "Server=169.100.10.154\\MSSQLSERVER,1433;Database=hou-guild;User Id=hou-guildbot;Password=PASSWORD;"
         /// IPv6: "Server=fe80::2011:f831:9281:1ffb%23\\MSSQLSERVER,1433;Database=hou-guild;User Id=hou-guildbot;Password=PASSWORD;"
         /// IPv6: "Server=fe80::2011:f831:9281:1ffb\\MSSQLSERVER,1433;Database=hou-guild;User Id=hou-guildbot;Password=PASSWORD;"</example>
-        public string ConnectionString { get; set; }
+        public string HandOfUnityConnectionString { get; set; }
+
+        public IConfiguration LoggingConfiguration { get; set; }
     }
 }

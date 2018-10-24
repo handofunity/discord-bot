@@ -24,6 +24,8 @@
         public void ConfigureServices(IServiceCollection services)
         {
             Trace.WriteLine($"Executing '{nameof(ConfigureServices)}' ...");
+
+            services.AddAppSettings(Configuration);
         }
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
@@ -42,7 +44,9 @@
             {
                 throw new InvalidOperationException("Environment is not supported.");
             }
-            EnvironmentConfigured?.Invoke(this, new EnvironmentEventArgs(environment));
+
+            var settings = app.ApplicationServices.GetService<AppSettings>();
+            EnvironmentConfigured?.Invoke(this, new EnvironmentEventArgs(environment, settings));
         }
     }
 }

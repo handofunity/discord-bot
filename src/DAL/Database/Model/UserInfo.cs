@@ -1,10 +1,9 @@
-﻿namespace HoU.GuildBot.DAL.Database.Model
-{
-    using System;
-    using System.ComponentModel.DataAnnotations.Schema;
+﻿using System;
+using System.Collections.Generic;
 
-    [Table("UserInfo", Schema = "hou")]
-    public class UserInfo
+namespace HoU.GuildBot.DAL.Database.Model
+{
+    public partial class UserInfo
     {
         public int UserID { get; set; }
         public DateTime LastSeen { get; set; }

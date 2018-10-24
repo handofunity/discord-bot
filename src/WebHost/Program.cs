@@ -1,7 +1,6 @@
 ﻿namespace HoU.GuildBot.WebHost
 {
     using System;
-    using System.IO;
     using System.Threading.Tasks;
     using Core;
     using Microsoft.AspNetCore;
@@ -38,7 +37,7 @@
 
         private static void Startup_EnvironmentConfigured(object sender, EnvironmentEventArgs e)
         {
-            Runner.Run(e.Environment);
+            Runner.Run(e.Environment, e.AppSettings);
         }
     }
 }

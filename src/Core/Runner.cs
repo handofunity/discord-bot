@@ -20,19 +20,14 @@
 
         private ILogger<Runner> _logger;
 
-        public void Run(string environment)
+        public void Run(string environment, AppSettings settings)
         {
             // Retrieve settings
-            var builder = new ConfigurationBuilder()
-                          .SetBasePath(Directory.GetCurrentDirectory())
-                          .AddJsonFile($"appsettings.{environment}.json");
-            var configuration = builder.Build();
-            var settings = configuration.LoadAppSettings();
 
             // Prepare IoC
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddSingleton(settings);
-            RegisterLogging(serviceCollection, configuration, environment);
+            RegisterLogging(serviceCollection, settings.LoggingConfiguration, environment);
             RegisterDAL(serviceCollection);
             RegisterBLL(serviceCollection, environment);
             var serviceProvider = serviceCollection.BuildServiceProvider();
@@ -85,11 +80,11 @@
             serviceCollection.AddSingleton<IDiscordAccess, DiscordAccess>();
         }
 
-        private static void RegisterLogging(IServiceCollection serviceCollection, IConfiguration configuration, string environment)
+        private static void RegisterLogging(IServiceCollection serviceCollection, IConfiguration loggingConfiguration, string environment)
         {
             serviceCollection.AddLogging(builder =>
             {
-                builder.AddConfiguration(configuration.GetSection("Logging"));
+                builder.AddConfiguration(loggingConfiguration);
                 switch (environment)
                 {
                     case "Development":

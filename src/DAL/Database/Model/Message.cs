@@ -1,9 +1,9 @@
-﻿namespace HoU.GuildBot.DAL.Database.Model
-{
-    using System.ComponentModel.DataAnnotations.Schema;
+﻿using System;
+using System.Collections.Generic;
 
-    [Table("Message", Schema = "config")]
-    public class Message
+namespace HoU.GuildBot.DAL.Database.Model
+{
+    public partial class Message
     {
         public int MessageID { get; set; }
         public string Name { get; set; }

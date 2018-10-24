@@ -20,7 +20,7 @@
         #region Fields
 
         private readonly ILogger<DatabaseAccess> _logger;
-        private readonly AppSettings _appSettings;
+        private readonly DbContextOptions<HandOfUnityContext> _handOfUnityContextOptions;
 
         #endregion
 
@@ -31,7 +31,9 @@
                               AppSettings appSettings)
         {
             _logger = logger;
-            _appSettings = appSettings;
+            var builder = new DbContextOptionsBuilder<HandOfUnityContext>();
+            builder.UseSqlServer(appSettings.HandOfUnityConnectionString);
+            _handOfUnityContextOptions = builder.Options;
         }
 
         #endregion
@@ -39,7 +41,7 @@
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region Private Methods
 
-        private HoUEntities GetEntities() => new HoUEntities(_appSettings.ConnectionString);
+        private HandOfUnityContext GetDbContext() => new HandOfUnityContext(_handOfUnityContextOptions);
 
         private static User ToPoco(Model.User user)
         {
@@ -54,7 +56,7 @@
         async Task<User[]> IDatabaseAccess.GetAllUsers()
         {
             Model.User[] dbObjects;
-            using (var entities = GetEntities())
+            using (var entities = GetDbContext())
             {
                 dbObjects = await entities.User.ToArrayAsync().ConfigureAwait(false);
             }
@@ -64,7 +66,7 @@
 
         async Task IDatabaseAccess.EnsureUsersExist(IEnumerable<DiscordUserID> userIDs)
         {
-            using (var entities = GetEntities())
+            using (var entities = GetDbContext())
             {
                 var existingUserIDs = await entities.User.Select(m => m.DiscordUserID).ToArrayAsync().ConfigureAwait(false);
                 var missingUserIDs = userIDs.Except(existingUserIDs.Select(m => (DiscordUserID)(ulong)m)).ToArray();
@@ -90,7 +92,7 @@
 
         async Task<(User User, bool IsNew)> IDatabaseAccess.GetOrAddUser(DiscordUserID userID)
         {
-            using (var entities = GetEntities())
+            using (var entities = GetDbContext())
             {
                 var decUserID = (decimal)userID;
                 var dbObject = await entities.User.SingleOrDefaultAsync(m => m.DiscordUserID == decUserID).ConfigureAwait(false);
@@ -111,7 +113,7 @@
 
         async Task<(string Name, string Description, string Content)[]> IDatabaseAccess.GetAllMessages()
         {
-            using (var entities = GetEntities())
+            using (var entities = GetDbContext())
             {
                 var local = await entities.Message.ToArrayAsync().ConfigureAwait(false);
                 return local.Select(m => (m.Name, m.Description, m.Content)).ToArray();
@@ -120,7 +122,7 @@
 
         async Task<string> IDatabaseAccess.GetMessageContent(string name)
         {
-            using (var entities = GetEntities())
+            using (var entities = GetDbContext())
             {
                 var match = await entities.Message.SingleOrDefaultAsync(m => m.Name == name).ConfigureAwait(false);
                 return match?.Content;
@@ -129,7 +131,7 @@
 
         async Task<bool> IDatabaseAccess.SetMessageContent(string name, string content)
         {
-            using (var entities = GetEntities())
+            using (var entities = GetDbContext())
             {
                 var match = await entities.Message.SingleOrDefaultAsync(m => m.Name == name).ConfigureAwait(false);
                 if (match == null)
@@ -144,7 +146,7 @@
         async Task<bool> IDatabaseAccess.AddVacation(User user, DateTime start, DateTime end, string note)
         {
             var internalUserId = (int) user.InternalUserID;
-            using (var entities = GetEntities())
+            using (var entities = GetDbContext())
             {
                 // Check if colliding entry exists
                 var collisions = await entities.Vacation
@@ -170,7 +172,7 @@
 
         async Task<bool> IDatabaseAccess.DeleteVacation(User user, DateTime start, DateTime end)
         {
-            using (var entities = GetEntities())
+            using (var entities = GetDbContext())
             {
                 // Find the maching vacation
                 var match = await entities.Vacation
@@ -189,7 +191,7 @@
 
         async Task IDatabaseAccess.DeletePastVacations()
         {
-            using (var entities = GetEntities())
+            using (var entities = GetDbContext())
             {
                 // Get past vacations - we don't need to keep those in the database
                 var pastVacations = await entities.Vacation.Where(m => m.End < DateTime.Today).ToArrayAsync().ConfigureAwait(false);
@@ -203,7 +205,7 @@
 
         async Task IDatabaseAccess.DeleteVacations(User user)
         {
-            using (var entities = GetEntities())
+            using (var entities = GetDbContext())
             {
                 var vacations = await entities.Vacation.Where(m => m.UserID == (int)user.InternalUserID).ToArrayAsync().ConfigureAwait(false);
                 if (!vacations.Any())
@@ -216,7 +218,7 @@
 
         async Task<(DiscordUserID UserID, DateTime Start, DateTime End, string Note)[]> IDatabaseAccess.GetVacations()
         {
-            using (var entities = GetEntities())
+            using (var entities = GetDbContext())
             {
                 var localItems = await entities.Vacation
                                                .Where(m => m.End >= DateTime.Today)
@@ -229,7 +231,7 @@
 
         async Task<(DiscordUserID UserID, DateTime Start, DateTime End, string Note)[]> IDatabaseAccess.GetVacations(User user)
         {
-            using (var entities = GetEntities())
+            using (var entities = GetDbContext())
             {
                 var localItems = await entities.Vacation
                                                .Where(m => m.End >= DateTime.Today)
@@ -243,7 +245,7 @@
 
         async Task<(DiscordUserID UserID, DateTime Start, DateTime End, string Note)[]> IDatabaseAccess.GetVacations(DateTime date)
         {
-            using (var entities = GetEntities())
+            using (var entities = GetDbContext())
             {
                 var localItems = await entities.Vacation
                                                .Where(m => date >= m.Start
@@ -257,9 +259,9 @@
 
         async Task<AvailableGame[]> IDatabaseAccess.GetAvailableGames()
         {
-            using (var entities = GetEntities())
+            using (var entities = GetDbContext())
             {
-                var localItems = await entities.Game.ToArrayAsync().ConfigureAwait(false);
+                var localItems = await entities.Game.Include(m => m.GameRole).ToArrayAsync().ConfigureAwait(false);
                 return localItems.Select(m => new AvailableGame
                 {
                     LongName = m.LongName,
@@ -270,7 +272,7 @@
 
         async Task IDatabaseAccess.UpdateUserInfoLastSeen(User user, DateTime lastSeen)
         {
-            using (var entities = GetEntities())
+            using (var entities = GetDbContext())
             {
                 var existingInfo = await entities.UserInfo.SingleOrDefaultAsync(m => m.UserID == (decimal)user.InternalUserID).ConfigureAwait(false);
                 if (existingInfo != null)
@@ -294,7 +296,7 @@
                 throw new ArgumentException("Parameter cannot be empty.", nameof(users));
 
             var result = new List<(InternalUserID UserID, DateTime? LastSeen)>();
-            using (var entities = GetEntities())
+            using (var entities = GetDbContext())
             {
                 foreach (var user in users)
                 {
@@ -308,7 +310,7 @@
 
         async Task IDatabaseAccess.DeleteUserInfo(User user)
         {
-            using (var entities = GetEntities())
+            using (var entities = GetDbContext())
             {
                 var ui = await entities.UserInfo.SingleOrDefaultAsync(m => m.UserID == (int)user.InternalUserID).ConfigureAwait(false);
                 if (ui != null)

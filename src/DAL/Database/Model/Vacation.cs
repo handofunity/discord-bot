@@ -1,10 +1,9 @@
-﻿namespace HoU.GuildBot.DAL.Database.Model
-{
-    using System;
-    using System.ComponentModel.DataAnnotations.Schema;
+﻿using System;
+using System.Collections.Generic;
 
-    [Table("Vacation", Schema = "hou")]
-    public class Vacation
+namespace HoU.GuildBot.DAL.Database.Model
+{
+    public partial class Vacation
     {
         public int VacationID { get; set; }
         public int UserID { get; set; }

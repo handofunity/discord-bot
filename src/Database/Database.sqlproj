@@ -23,8 +23,8 @@
     <SqlServerVerification>False</SqlServerVerification>
     <IncludeCompositeObjects>True</IncludeCompositeObjects>
     <TargetDatabaseSet>True</TargetDatabaseSet>
-    <DacVersion>1.2.0</DacVersion>
-    <DacDescription>Added AoC role menu message</DacDescription>
+    <DacVersion>1.3.2</DacVersion>
+    <DacDescription>Added missing PK on table config.Message</DacDescription>
     <DefaultCollation>Latin1_General_CI_AS</DefaultCollation>
     <Recovery>SIMPLE</Recovery>
     <TargetFrameworkProfile />
@@ -82,6 +82,8 @@
     <None Include="Scripts\AddMessages_WelcomeChannelMessages.sql" />
     <None Include="Scripts\RemoveGame_Bless.sql" />
     <None Include="Scripts\AddMessage_AocRoleMenu.sql" />
+    <None Include="Database_DeploymentScript.publish.xml" />
+    <None Include="Scripts\MigrateGameTable_1.2.0_1.3.0.sql" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="Security\hou.sql" />
@@ -90,6 +92,7 @@
     <Build Include="hou\Tables\Vacation.sql" />
     <Build Include="config\Tables\Game.sql" />
     <Build Include="hou\Tables\UserInfo.sql" />
+    <Build Include="config\Tables\GameRole.sql" />
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="Script.PostDeployment.sql" />
