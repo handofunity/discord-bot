@@ -12,6 +12,6 @@
 
         Task<string> GetMessage(string name);
 
-        Task<(bool Success, string Response)> SetMessage(string name, string content);
+        Task<(bool Success, string Message)> SetMessage(string name, string content);
     }
 }

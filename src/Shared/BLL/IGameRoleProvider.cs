@@ -21,5 +21,16 @@
         Task LoadAvailableGames();
 
         (int GameMembers, Dictionary<string, int> RoleDistribution) GetGameRoleDistribution(AvailableGame game);
+
+        Task<(bool Success, string Message)> AddGameRole(InternalUserID userID,
+                                                         string gameShortName,
+                                                         string roleName,
+                                                         ulong discordRoleID);
+
+        Task<(bool Success, string Message, string OldRoleName)> EditGameRole(InternalUserID userID,
+                                                                              ulong discordRoleID,
+                                                                              string newRoleName);
+
+        Task<(bool Success, string Message, string OldRoleName)> RemoveGameRole(ulong discordRoleID);
     }
 }

@@ -1,7 +1,7 @@
 ﻿CREATE TABLE [config].[GameRole]
 (
 	[GameRoleID] SMALLINT NOT NULL IDENTITY (1, 1),
-	[DiscordRoleID] BIGINT NOT NULL,
+	[DiscordRoleID] DECIMAL(20,0) NOT NULL,
 	[RoleName] VARCHAR(512) NOT NULL,
 	[GameID] SMALLINT NOT NULL,
 	[ModifiedByUserID] INT NOT NULL,

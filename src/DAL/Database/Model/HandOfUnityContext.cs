@@ -71,6 +71,8 @@ namespace HoU.GuildBot.DAL.Database.Model
                     .HasName("UQ_GameRole_GameID_RoleName")
                     .IsUnique();
 
+                entity.Property(e => e.DiscordRoleID).HasColumnType("decimal(20, 0)");
+
                 entity.Property(e => e.RoleName)
                     .IsRequired()
                     .HasMaxLength(512)

@@ -58,7 +58,7 @@
 
         private async Task<bool> IsValidClassName(DiscordChannelID channelID, User user, AvailableGame game, string className)
         {
-            if (game.ClassNames.Any(m => m == className))
+            if (game.AvailableRoles.Any(m => m.RoleName == className))
                 return true;
             
             var createdMessages = await _discordAccess.CreateBotMessagesInChannel(channelID, new[] { $"{user.Mention}: Class name '{className}' is not valid for {game}." }).ConfigureAwait(false);
@@ -164,23 +164,89 @@
             _games.Clear();
             var games = await _databaseAccess.GetAvailableGames().ConfigureAwait(false);
             _games.AddRange(games);
-            foreach (var availableGame in _games)
-                _discordAccess.GetClassNamesForGame(availableGame);
-            _logger.LogInformation($"Loaded {_games.Count} games with a total count of {_games.Sum(m => m.ClassNames.Count)} roles.");
+            _logger.LogInformation($"Loaded {_games.Count} games with a total count of {_games.Sum(m => m.AvailableRoles.Count)} roles.");
         }
 
         (int GameMembers, Dictionary<string, int> RoleDistribution) IGameRoleProvider.GetGameRoleDistribution(AvailableGame game)
         {
             var distribution = new Dictionary<string, int>();
-            foreach (var className in game.ClassNames)
+            foreach (var className in game.AvailableRoles)
             {
-                var count = _discordAccess.CountMembersWithRole($"{game.ShortName} - {className}");
-                distribution.Add(className, count);
+                var count = _discordAccess.CountMembersWithRole($"{game.ShortName} - {className.RoleName}");
+                distribution.Add(className.RoleName, count);
             }
 
             var gameMembers = _discordAccess.CountMembersWithRole($"{game.ShortName} ({game.LongName})");
 
             return (gameMembers, distribution);
+        }
+
+        async Task<(bool Success, string Message)> IGameRoleProvider.AddGameRole(InternalUserID userID, 
+                                                                                 string gameShortName,
+                                                                                 string roleName,
+                                                                                 ulong discordRoleID)
+        {
+            // Precondition
+            var gameID = await _databaseAccess.TryGetGameID(gameShortName).ConfigureAwait(false);
+            if (gameID == null)
+                return (false, $"Couldn't find any game with the short name `{gameShortName}`.");
+
+            // Act
+            var (success, error) = await _databaseAccess.TryAddGameRole(userID, gameID.Value, roleName, discordRoleID).ConfigureAwait(false);
+            if (!success) return (false, $"Failed to add the game role: {error}");
+
+            // Update cache
+            var game = _games.Single(m => m.ShortName == gameShortName);
+            game.AvailableRoles.Add(new AvailableGameRole
+            {
+                DiscordRoleID = discordRoleID,
+                RoleName = roleName
+            });
+
+            return (true, "The game role was added successfully.");
+        }
+
+        async Task<(bool Success, string Message, string OldRoleName)> IGameRoleProvider.EditGameRole(InternalUserID userID, 
+                                                                                                      ulong discordRoleID,
+                                                                                                      string newRoleName)
+        {
+            // Preconditions
+            var gameRole = await _databaseAccess.TryGetGameRole(discordRoleID).ConfigureAwait(false);
+            if (gameRole == null)
+                return (false, $"Couldn't find any game role with the Discord role ID `{discordRoleID}`.", null);
+            if (string.IsNullOrWhiteSpace(newRoleName))
+                return (false, "New role name cannot be empty.", null);
+            if (gameRole.Value.CurrentName == newRoleName)
+                return (false, "New role name is the same as the current one.", null);
+
+            // Act
+            var (success, error) = await _databaseAccess.TryEditGameRole(userID, gameRole.Value.ID, newRoleName).ConfigureAwait(false);
+            if (!success) return (false, $"Failed to edit the game role: {error}", null);
+
+            // Update cache
+            var cachedGameRole = _games.SelectMany(m => m.AvailableRoles).Single(m => m.DiscordRoleID == discordRoleID);
+            cachedGameRole.RoleName = newRoleName;
+
+            return (true, "The game role was edited successfully.", gameRole.Value.CurrentName);
+        }
+
+        async Task<(bool Success, string Message, string OldRoleName)> IGameRoleProvider.RemoveGameRole(ulong discordRoleID)
+        {
+            // Precondition
+            var gameRole = await _databaseAccess.TryGetGameRole(discordRoleID).ConfigureAwait(false);
+            if (gameRole == null)
+                return (false, $"Couldn't find any game role with the Discord role ID `{discordRoleID}`.", null);
+
+            // Act
+            var (success, error) = await _databaseAccess.TryRemoveGameRole(gameRole.Value.ID).ConfigureAwait(false);
+            if (!success) return (false, $"Failed to remove the game role: {error}", null);
+
+            // Update cache
+            var cachedGameRole = _games.SelectMany(m => m.AvailableRoles).Single(m => m.DiscordRoleID == discordRoleID);
+            var gameWithCachedRole = _games.Single(m => m.AvailableRoles.Contains(cachedGameRole));
+            gameWithCachedRole.AvailableRoles.Remove(cachedGameRole);
+
+            return (true, "The game role was removed successfully.", gameRole.Value.CurrentName);
         }
 
         #endregion

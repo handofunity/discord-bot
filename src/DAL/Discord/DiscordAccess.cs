@@ -497,27 +497,7 @@
         }
 
         Dictionary<DiscordUserID, string> IDiscordAccess.GetUserNames(IEnumerable<DiscordUserID> userIDs) => userIDs.Select(GetGuildUserById).ToDictionary(gu => (DiscordUserID)gu.Id, gu => gu.Username);
-
-        void IDiscordAccess.GetClassNamesForGame(AvailableGame game)
-        {
-            if (game == null)
-                throw new ArgumentNullException(nameof(game));
-
-            var roleBlacklist = new[]
-            {
-                "Alpha 1"
-            };
-
-            var g = GetGuild();
-            var roles = g.Roles
-                         .Where(m => m.Name.StartsWith($"{game.ShortName} - "))
-                         .Select(m => m.Name.Split('-')[1].Trim())
-                         .Except(roleBlacklist)
-                         .ToArray();
-            game.ClassNames.Clear();
-            game.ClassNames.AddRange(roles);
-        }
-
+        
         async Task<bool> IDiscordAccess.TryRevokeGameRole(DiscordUserID userID, AvailableGame game, string className)
         {
             var role = GetRoleByName($"{game.ShortName} - {className}");

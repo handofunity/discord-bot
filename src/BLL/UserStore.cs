@@ -46,12 +46,13 @@
 
         private async Task<(User User, bool IsNew)> GetUserInternal(DiscordUserID userID)
         {
-            if (!_isInitialized)
-                throw new InvalidOperationException("Store is not initialized.");
-
             try
             {
                 await _semaphore.WaitAsync().ConfigureAwait(false);
+
+                if (!_isInitialized)
+                    throw new InvalidOperationException("Store is not initialized.");
+
                 var storedUser = _store.SingleOrDefault(m => m.DiscordUserID == userID);
                 if (storedUser != null)
                     return (storedUser, false);
@@ -120,12 +121,13 @@
 
         bool IUserStore.TryGetUser(DiscordUserID userID, out User user)
         {
-            if (!_isInitialized)
-                throw new InvalidOperationException("Store is not initialized.");
-
             try
             {
                 _semaphore.Wait();
+
+                if (!_isInitialized)
+                    throw new InvalidOperationException("Store is not initialized.");
+
                 user = _store.SingleOrDefault(m => m.DiscordUserID == userID);
                 return user != null;
             }
@@ -137,12 +139,13 @@
 
         bool IUserStore.TryGetUser(InternalUserID userID, out User user)
         {
-            if (!_isInitialized)
-                throw new InvalidOperationException("Store is not initialized.");
-
             try
             {
                 _semaphore.Wait();
+
+                if (!_isInitialized)
+                    throw new InvalidOperationException("Store is not initialized.");
+
                 user = _store.SingleOrDefault(m => m.InternalUserID == userID);
                 return user != null;
             }
@@ -154,12 +157,13 @@
 
         User[] IUserStore.GetUsers(Predicate<User> predicate)
         {
-            if (!_isInitialized)
-                throw new InvalidOperationException("Store is not initialized.");
-
             try
             {
                 _semaphore.Wait();
+
+                if (!_isInitialized)
+                    throw new InvalidOperationException("Store is not initialized.");
+
                 return _store.Where(m => predicate(m)).ToArray();
             }
             finally
@@ -177,12 +181,13 @@
 
         async Task IUserStore.RemoveUser(DiscordUserID userID)
         {
-            if (!_isInitialized)
-                throw new InvalidOperationException("Store is not initialized.");
-
             try
             {
                 await _semaphore.WaitAsync().ConfigureAwait(false);
+
+                if (!_isInitialized)
+                    throw new InvalidOperationException("Store is not initialized.");
+
                 _store.RemoveAll(m => m.DiscordUserID == userID);
             }
             finally

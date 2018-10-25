@@ -8,11 +8,11 @@
 
         public string ShortName { get; set; }
 
-        public List<string> ClassNames { get; }
+        public List<AvailableGameRole> AvailableRoles { get; }
 
         public AvailableGame()
         {
-            ClassNames = new List<string>();
+            AvailableRoles = new List<AvailableGameRole>();
         }
     }
 }

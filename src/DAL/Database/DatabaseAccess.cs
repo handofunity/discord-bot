@@ -174,7 +174,7 @@
         {
             using (var entities = GetDbContext())
             {
-                // Find the maching vacation
+                // Find the matching vacation
                 var match = await entities.Vacation
                                           .SingleOrDefaultAsync(m => m.UserID == (int)user.InternalUserID
                                                                   && m.Start == start
@@ -262,10 +262,19 @@
             using (var entities = GetDbContext())
             {
                 var localItems = await entities.Game.Include(m => m.GameRole).ToArrayAsync().ConfigureAwait(false);
-                return localItems.Select(m => new AvailableGame
+                return localItems.Select(m =>
                 {
-                    LongName = m.LongName,
-                    ShortName = m.ShortName
+                    var g = new AvailableGame
+                    {
+                        LongName = m.LongName,
+                        ShortName = m.ShortName
+                    };
+                    g.AvailableRoles.AddRange(m.GameRole.Select(n => new AvailableGameRole
+                    {
+                        DiscordRoleID = Convert.ToUInt64(n.DiscordRoleID),
+                        RoleName = n.RoleName
+                    }));
+                    return g;
                 }).ToArray();
             }
         }
@@ -317,6 +326,110 @@
                 {
                     entities.UserInfo.Remove(ui);
                     await entities.SaveChangesAsync().ConfigureAwait(false);
+                }
+            }
+        }
+
+        async Task<short?> IDatabaseAccess.TryGetGameID(string shortName)
+        {
+            using (var context = GetDbContext())
+            {
+                var game = await context.Game.SingleOrDefaultAsync(m => m.ShortName == shortName).ConfigureAwait(false);
+                return game?.GameID;
+            }
+        }
+
+        async Task<(short ID, string CurrentName)?> IDatabaseAccess.TryGetGameRole(ulong discordRoleID)
+        {
+            using (var context = GetDbContext())
+            {
+                var decDiscordRoleID = (decimal)discordRoleID;
+                var gameRole = await context.GameRole.SingleOrDefaultAsync(m => m.DiscordRoleID == decDiscordRoleID).ConfigureAwait(false);
+                if (gameRole == null)
+                    return null;
+                return (gameRole.GameRoleID, gameRole.RoleName);
+            }
+        }
+
+        async Task<(bool Success, string Error)> IDatabaseAccess.TryAddGameRole(InternalUserID userID,
+                                                                                short gameID,
+                                                                                string roleName,
+                                                                                ulong discordRoleID)
+        {
+            using (var context = GetDbContext())
+            {
+                using (var transaction = context.Database.BeginTransaction())
+                {
+                    var decDiscordRoleID = (decimal)discordRoleID;
+                    var matchingDiscordRoleID = await context.GameRole.SingleOrDefaultAsync(m => m.DiscordRoleID == decDiscordRoleID).ConfigureAwait(false);
+                    if (matchingDiscordRoleID != null)
+                        return (false, matchingDiscordRoleID.GameID == gameID
+                                           ? "The DiscordRoleID is already is use for this game."
+                                           : "The DiscordRoleID is already in use for another game.");
+
+                    var matchingGameRoleName = await context.GameRole.AnyAsync(m => m.GameID == gameID && m.RoleName == roleName).ConfigureAwait(false);
+                    if (matchingGameRoleName)
+                        return (false, "A role with the same name is already assigned to the game.");
+
+                    context.GameRole.Add(new GameRole
+                    {
+                        GameID = gameID,
+                        RoleName = roleName,
+                        DiscordRoleID = decDiscordRoleID,
+                        ModifiedByUserID = (int)userID,
+                        ModifiedAtTimestamp = DateTime.UtcNow
+                    });
+                    await context.SaveChangesAsync().ConfigureAwait(false);
+
+                    transaction.Commit();
+
+                    return (true, null);
+                }
+            }
+        }
+
+        async Task<(bool Success, string Error)> IDatabaseAccess.TryEditGameRole(InternalUserID userID,
+                                                                                 short gameRoleID,
+                                                                                 string newRoleName)
+        {
+            using (var context = GetDbContext())
+            {
+                using (var transaction = context.Database.BeginTransaction())
+                {
+                    var gameRole = await context.GameRole.SingleOrDefaultAsync(m => m.GameRoleID == gameRoleID).ConfigureAwait(false);
+                    if (gameRole == null)
+                        return (false, "Couldn't find game role by ID.");
+
+                    gameRole.RoleName = newRoleName;
+                    gameRole.ModifiedByUserID = (int)userID;
+                    gameRole.ModifiedAtTimestamp = DateTime.UtcNow;
+
+                    await context.SaveChangesAsync().ConfigureAwait(false);
+
+                    transaction.Commit();
+
+                    return (true, null);
+                }
+            }
+        }
+
+        async Task<(bool Success, string Error)> IDatabaseAccess.TryRemoveGameRole(short gameRoleID)
+        {
+            using (var context = GetDbContext())
+            {
+                using (var transaction = context.Database.BeginTransaction())
+                {
+                    var gameRole = await context.GameRole.SingleOrDefaultAsync(m => m.GameRoleID == gameRoleID).ConfigureAwait(false);
+                    if (gameRole == null)
+                        return (false, "Couldn't find game role by ID.");
+
+                    context.GameRole.Remove(gameRole);
+
+                    await context.SaveChangesAsync().ConfigureAwait(false);
+
+                    transaction.Commit();
+
+                    return (true, null);
                 }
             }
         }

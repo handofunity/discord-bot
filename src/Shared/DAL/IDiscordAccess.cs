@@ -51,14 +51,7 @@
         /// <param name="userIDs">The user IDs to get the names for.</param>
         /// <returns>A mapping from a userID to a display name.</returns>
         Dictionary<DiscordUserID, string> GetUserNames(IEnumerable<DiscordUserID> userIDs);
-
-        /// <summary>
-        /// Gets the available class names for the <paramref name="game"/>.
-        /// </summary>
-        /// <param name="game">The game to get the class names for.</param>
-        /// <exception cref="ArgumentNullException"><paramref name="game"/> is <b>null</b>.</exception>
-        void GetClassNamesForGame(AvailableGame game);
-
+        
         /// <summary>
         /// Revokes the role combined from <paramref name="game"/> and <paramref name="className"/> from the given <paramref name="userID"/>.
         /// </summary>

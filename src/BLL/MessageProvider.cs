@@ -51,7 +51,7 @@
             return n;
         }
 
-        async Task<(bool Success, string Response)> IMessageProvider.SetMessage(string name, string content)
+        async Task<(bool Success, string Message)> IMessageProvider.SetMessage(string name, string content)
         {
             if (content == null)
                 return (false, "Content cannot be <null>.");
