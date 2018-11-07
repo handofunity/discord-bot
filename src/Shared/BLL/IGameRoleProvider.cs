@@ -24,6 +24,17 @@
 
         (int GameMembers, Dictionary<string, int> RoleDistribution) GetGameRoleDistribution(AvailableGame game);
 
+        Task<(bool Success, string Message)> AddGame(InternalUserID userID,
+                                                     string gameLongName,
+                                                     string gameShortName);
+
+        Task<(bool Success, string Message, string OldValue)> EditGame(InternalUserID userID,
+                                                                       string gameShortName,
+                                                                       string property,
+                                                                       string newValue);
+
+        Task<(bool Success, string Message)> RemoveGame(string gameShortName);
+
         Task<(bool Success, string Message)> AddGameRole(InternalUserID userID,
                                                          string gameShortName,
                                                          string roleName,

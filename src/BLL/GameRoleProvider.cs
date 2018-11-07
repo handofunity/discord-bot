@@ -212,6 +212,97 @@
             return (gameMembers, distribution);
         }
 
+        async Task<(bool Success, string Message)> IGameRoleProvider.AddGame(InternalUserID userID,
+                                                                             string gameLongName,
+                                                                             string gameShortName)
+        {
+            // Precondition
+            if (_games.Any(m => m.LongName == gameLongName))
+                return (false, $"Game with the long name `{gameLongName}` already exists.");
+            if (_games.Any(m => m.ShortName == gameShortName))
+                return (false, $"Game with the short name `{gameShortName}` already exists.");
+
+            // Act
+            var (success, error) = await _databaseAccess.TryAddGame(userID, gameLongName, gameShortName).ConfigureAwait(false);
+            if (!success)
+                return (false, $"Failed to add the game: {error}");
+
+            // Update cache
+            _games.Add(new AvailableGame
+            {
+                LongName = gameLongName,
+                ShortName = gameShortName
+            });
+
+            return (true, "The game was added successfully.");
+        }
+
+        async Task<(bool Success, string Message, string OldValue)> IGameRoleProvider.EditGame(InternalUserID userID,
+                                                                                               string gameShortName,
+                                                                                               string property,
+                                                                                               string newValue)
+        {
+            // Precondition
+            var gameID = await _databaseAccess.TryGetGameID(gameShortName).ConfigureAwait(false);
+            if (gameID == null)
+                return (false, $"Couldn't find any game with the short name `{gameShortName}`.", null);
+
+            // Act
+            var cachedGame = _games.SingleOrDefault(m => m.ShortName == gameShortName);
+            if (cachedGame == null)
+                return (false, $"Couldn't find any game with the short name `{gameShortName}`.", null);
+
+            var clone = cachedGame.Clone();
+
+            // If the property is known, and does not equal the current value, it will be updated
+            string oldValue;
+            switch (property)
+            {
+                case nameof(AvailableGame.LongName):
+                    if (clone.LongName == newValue)
+                        return (false, "New value equals the current value.", null);
+                    oldValue = clone.LongName;
+                    clone.LongName = newValue;
+                    break;
+                case nameof(AvailableGame.ShortName):
+                    if (clone.ShortName == newValue)
+                        return (false, "New value equals the current value.", null);
+                    oldValue = clone.ShortName;
+                    clone.ShortName = newValue;
+                    break;
+                default:
+                    return (false, $"The property `{property}` is not valid.", null);
+            }
+            var (success, error) = await _databaseAccess.TryEditGame(userID, gameID.Value, clone).ConfigureAwait(false);
+            if (!success) return (false, $"Failed to edit the game: {error}", null);
+
+            // Update cache
+            cachedGame.LongName = clone.LongName;
+            cachedGame.ShortName = clone.ShortName;
+
+            return (true, "The game was edited successfully.", oldValue);
+        }
+
+        async Task<(bool Success, string Message)> IGameRoleProvider.RemoveGame(string gameShortName)
+        {
+            // Precondition
+            var gameID = await _databaseAccess.TryGetGameID(gameShortName).ConfigureAwait(false);
+            if (gameID == null)
+                return (false, $"Couldn't find any game with the short name `{gameShortName}`.");
+
+            // Act
+            var (success, error) = await _databaseAccess.TryRemoveGame(gameID.Value).ConfigureAwait(false);
+            if (!success)
+                return (false, $"Failed to remove the game: {error}");
+
+            // Update cache
+            var cachedGame = _games.SingleOrDefault(m => m.ShortName == gameShortName);
+            if (cachedGame != null)
+                _games.Remove(cachedGame);
+
+            return (true, "The game was removed successfully.");
+        }
+
         async Task<(bool Success, string Message)> IGameRoleProvider.AddGameRole(InternalUserID userID, 
                                                                                  string gameShortName,
                                                                                  string roleName,

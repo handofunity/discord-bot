@@ -14,5 +14,21 @@
         {
             AvailableRoles = new List<AvailableGameRole>();
         }
+
+        public AvailableGame Clone()
+        {
+            var c = new AvailableGame
+            {
+                LongName = LongName,
+                ShortName = ShortName
+            };
+
+            foreach (var role in AvailableRoles)
+            {
+                c.AvailableRoles.Add(role.Clone());
+            }
+
+            return c;
+        }
     }
 }

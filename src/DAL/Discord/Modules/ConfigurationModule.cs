@@ -1,7 +1,6 @@
 ﻿namespace HoU.GuildBot.DAL.Discord.Modules
 {
     using System;
-    using System.Collections.Generic;
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
     using global::Discord.Commands;
@@ -124,9 +123,116 @@
             await ReplyAsync(message).ConfigureAwait(false);
         }
 
-        // TODO Administration Command #6: Add game
-        // TODO Administration Command #7: Edit game
-        // TODO Administration Command #8: Remove game
+        [Command("add game")]
+        [CommandCategory(CommandCategory.Administration, 6)]
+        [Name("Adds a new game")]
+        [Summary("Adds a new game, if it doesn't already exist.")]
+        [Remarks("Syntax: _add game \"GameLongName\" \"GameShortName\"_ e.g.: _add game \"Ashes of Creation\" \"AoC\"_")]
+        [Alias("addgame")]
+        [RequireContext(ContextType.Guild)]
+        [ResponseContext(ResponseType.AlwaysSameChannel)]
+        [RolePrecondition(Role.Developer | Role.Leader)]
+        public async Task AddGameAsync([Remainder] string messageContent)
+        {
+            // Parse message content
+            var regex = new Regex("^\"(?<gameLongName>[\\w ]+)\" \"(?<gameShortName>\\w+)\"$");
+            var match = regex.Match(messageContent);
+            if (!match.Success)
+            {
+                await ReplyAsync("Couldn't parse command parameter from message content. Please use the help function to see the correct command syntax.").ConfigureAwait(false);
+                return;
+            }
+
+            if (!_userStore.TryGetUser((DiscordUserID)Context.User.Id, out var user))
+                return;
+
+            // Add
+            var gameLongName = match.Groups["gameLongName"].Value;
+            var gameShortName = match.Groups["gameShortName"].Value;
+            var (success, message) = await _gameRoleProvider.AddGame(user.InternalUserID, gameLongName, gameShortName).ConfigureAwait(false);
+            if (success)
+            {
+                // When the game was added successfully, log the add
+                var logMessage = $"{Context.User.Username} added the game **{gameLongName} ({gameShortName})**.";
+                _logger.LogInformation(logMessage);
+                await _discordAccess.LogToDiscord(logMessage).ConfigureAwait(false);
+            }
+
+            await ReplyAsync(message).ConfigureAwait(false);
+        }
+
+        [Command("edit game")]
+        [CommandCategory(CommandCategory.Administration, 7)]
+        [Name("Edits an existing game")]
+        [Summary("Edits an existing game, if it exist.")]
+        [Remarks("Syntax: _edit game \"CurrentGameShortName\" Property=\"NewPropertyValue\"_ e.g.: _edit game \"AoC\" GameLongName=\"Ashes of Creation Apocalypse\"_")]
+        [Alias("editgame")]
+        [RequireContext(ContextType.Guild)]
+        [ResponseContext(ResponseType.AlwaysSameChannel)]
+        [RolePrecondition(Role.Developer | Role.Leader)]
+        public async Task EditGameAsync([Remainder] string messageContent)
+        {
+            // Parse message content
+            var regex = new Regex("^\"(?<gameShortName>\\w+)\" (?<property>\\w+)=\"(?<newValue>[\\w ]+)\"$");
+            var match = regex.Match(messageContent);
+            if (!match.Success)
+            {
+                await ReplyAsync("Couldn't parse command parameter from message content. Please use the help function to see the correct command syntax.").ConfigureAwait(false);
+                return;
+            }
+
+            if (!_userStore.TryGetUser((DiscordUserID)Context.User.Id, out var user))
+                return;
+
+            // Add
+            var gameShortName = match.Groups["gameShortName"].Value;
+            var property = match.Groups["property"].Value;
+            var newValue = match.Groups["newValue"].Value;
+            var (success, message, oldValue) = await _gameRoleProvider.EditGame(user.InternalUserID, gameShortName, property, newValue).ConfigureAwait(false);
+            if (success)
+            {
+                // When the game was edited successfully, log the add
+                var logMessage = $"{Context.User.Username} changed the property **{property}** of the game **{gameShortName}** from **{oldValue}** to **{newValue}**.";
+                _logger.LogInformation(logMessage);
+                await _discordAccess.LogToDiscord(logMessage).ConfigureAwait(false);
+            }
+
+            await ReplyAsync(message).ConfigureAwait(false);
+        }
+
+        [Command("remove game")]
+        [CommandCategory(CommandCategory.Administration, 8)]
+        [Name("Removes an existing game")]
+        [Summary("Removes an existing game, if it exist.")]
+        [Remarks("Syntax: _remove game \"GameShortName\"_ e.g.: _remove game \"AoC\"_")]
+        [Alias("removegame")]
+        [RequireContext(ContextType.Guild)]
+        [ResponseContext(ResponseType.AlwaysSameChannel)]
+        [RolePrecondition(Role.Developer | Role.Leader)]
+        public async Task RemoveGameAsync([Remainder] string messageContent)
+        {
+            // Parse message content
+            var regex = new Regex("^\"(?<gameShortName>\\w+)\"$");
+            var match = regex.Match(messageContent);
+            if (!match.Success)
+            {
+                await ReplyAsync("Couldn't parse command parameter from message content. Please use the help function to see the correct command syntax.").ConfigureAwait(false);
+                return;
+            }
+
+            // Remove
+            var gameShortName = match.Groups["gameShortName"].Value;
+            var (success, message) = await _gameRoleProvider.RemoveGame(gameShortName).ConfigureAwait(false);
+            if (success)
+            {
+                // When the game was removed successfully, log the remove
+                var logMessage = $"{Context.User.Username} removed the game **{gameShortName}**.";
+                _logger.LogInformation(logMessage);
+                await _discordAccess.LogToDiscord(logMessage).ConfigureAwait(false);
+            }
+
+            await ReplyAsync(message).ConfigureAwait(false);
+        }
 
         [Command("add game role")]
         [CommandCategory(CommandCategory.Administration, 9)]

@@ -143,6 +143,35 @@
         Task<(short ID, string CurrentName)?> TryGetGameRole(ulong discordRoleID);
 
         /// <summary>
+        /// Tries to add the game.
+        /// </summary>
+        /// <param name="userID">The ID of the user who adds the game.</param>
+        /// <param name="gameLongName">The long name of the game.</param>
+        /// <param name="gameShortName">The short name of the game.</param>
+        /// <returns>A value tuple containing the success state, and, if the add fails, the error that occured.</returns>
+        Task<(bool Success, string Error)> TryAddGame(InternalUserID userID,
+                                                      string gameLongName,
+                                                      string gameShortName);
+
+        /// <summary>
+        /// Tries to edit the game.
+        /// </summary>
+        /// <param name="userID">The ID of the user who edits the game.</param>
+        /// <param name="gameID">The ID of the game to edit.</param>
+        /// <param name="updated">The updated class holding the new values.</param>
+        /// <returns>A value tuple containing the success state, and, if the add fails, the error that occured.</returns>
+        Task<(bool Success, string Error)> TryEditGame(InternalUserID userID,
+                                                       short gameID,
+                                                       AvailableGame updated);
+
+        /// <summary>
+        /// Tries to remove a game and all dependencies.
+        /// </summary>
+        /// <param name="gameID">The ID of the game to remove.</param>
+        /// <returns>A value tuple containing the success state, and, if the add fails, the error that occured.</returns>
+        Task<(bool Success, string Error)> TryRemoveGame(short gameID);
+
+        /// <summary>
         /// Tries to add the game role.
         /// </summary>
         /// <param name="userID">The ID of the user who adds the role.</param>

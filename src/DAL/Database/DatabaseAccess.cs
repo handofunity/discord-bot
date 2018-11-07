@@ -351,6 +351,90 @@
             }
         }
 
+        async Task<(bool Success, string Error)> IDatabaseAccess.TryAddGame(InternalUserID userID,
+                                                                            string gameLongName,
+                                                                            string gameShortName)
+        {
+            using (var context = GetDbContext())
+            {
+                using (var transaction = context.Database.BeginTransaction())
+                {
+                    var matchingGame = await context.Game.SingleOrDefaultAsync(m => m.LongName == gameLongName || m.ShortName == gameShortName).ConfigureAwait(false);
+                    if (matchingGame != null)
+                        return (false, "A game with the same long or short name already exists.");
+
+                    context.Game.Add(new Game
+                    {
+                        LongName = gameLongName,
+                        ShortName = gameShortName,
+                        ModifiedByUserID = (int)userID,
+                        ModifiedAtTimestamp = DateTime.UtcNow
+                    });
+
+                    await context.SaveChangesAsync().ConfigureAwait(false);
+
+                    transaction.Commit();
+
+                    return (true, null);
+                }
+            }
+        }
+
+        async Task<(bool Success, string Error)> IDatabaseAccess.TryEditGame(InternalUserID userID,
+                                                                             short gameID,
+                                                                             AvailableGame updated)
+        {
+            using (var context = GetDbContext())
+            {
+                using (var transaction = context.Database.BeginTransaction())
+                {
+                    var matchingGame = await context.Game.SingleOrDefaultAsync(m => m.GameID == gameID).ConfigureAwait(false);
+                    if (matchingGame == null)
+                        return (false, $"Game with the GameID {gameID} couldn't be found.");
+
+                    matchingGame.LongName = updated.LongName;
+                    matchingGame.ShortName = updated.ShortName;
+                    matchingGame.ModifiedByUserID = (int) userID;
+                    matchingGame.ModifiedAtTimestamp = DateTime.UtcNow;
+
+                    await context.SaveChangesAsync().ConfigureAwait(false);
+
+                    transaction.Commit();
+
+                    return (true, null);
+                }
+            }
+        }
+
+        async Task<(bool Success, string Error)> IDatabaseAccess.TryRemoveGame(short gameID)
+        {
+            using (var context = GetDbContext())
+            {
+                using (var transaction = context.Database.BeginTransaction())
+                {
+                    var matchingGame = await context.Game
+                                                    .Include(m => m.GameRole)
+                                                    .SingleOrDefaultAsync(m => m.GameID == gameID)
+                                                    .ConfigureAwait(false);
+                    if (matchingGame == null)
+                        return (false, $"Game with the GameID {gameID} couldn't be found.");
+
+                    if (matchingGame.GameRole.Any())
+                    {
+                        context.GameRole.RemoveRange(matchingGame.GameRole);
+                        await context.SaveChangesAsync().ConfigureAwait(false);
+                    }
+
+                    context.Game.Remove(matchingGame);
+                    await context.SaveChangesAsync().ConfigureAwait(false);
+
+                    transaction.Commit();
+
+                    return (true, null);
+                }
+            }
+        }
+
         async Task<(bool Success, string Error)> IDatabaseAccess.TryAddGameRole(InternalUserID userID,
                                                                                 short gameID,
                                                                                 string roleName,
