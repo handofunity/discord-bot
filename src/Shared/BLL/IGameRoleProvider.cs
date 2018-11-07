@@ -14,6 +14,8 @@
 
         IReadOnlyList<AvailableGame> Games { get; }
 
+        IReadOnlyList<EmbedData> GetGameInfoAsEmbedData();
+
         Task SetGameRole(DiscordChannelID channelID, DiscordUserID userID, AvailableGame game, string emoji);
 
         Task RevokeGameRole(DiscordChannelID channelID, DiscordUserID userID, AvailableGame game, string emoji);

@@ -1,6 +1,7 @@
 ﻿namespace HoU.GuildBot.DAL.Discord.Modules
 {
     using System;
+    using System.Collections.Generic;
     using System.Text.RegularExpressions;
     using System.Threading.Tasks;
     using global::Discord.Commands;
@@ -236,6 +237,25 @@
             }
 
             await ReplyAsync(message).ConfigureAwait(false);
+        }
+
+        [Command("list games")]
+        [CommandCategory(CommandCategory.Administration, 12)]
+        [Name("List configured games")]
+        [Summary("Lists the configured games and the assigned roles.")]
+        [Alias("listgames")]
+        [RequireContext(ContextType.Guild)]
+        [ResponseContext(ResponseType.AlwaysSameChannel)]
+        [RolePrecondition(Role.Developer | Role.Leader)]
+        public Task ListGames()
+        {
+            var embedData = _gameRoleProvider.GetGameInfoAsEmbedData();
+            Task.Run(async () => await embedData.PerformBulkOperation(async data =>
+            {
+                var embed = data.ToEmbed();
+                await ReplyAsync(string.Empty, false, embed).ConfigureAwait(false);
+            }).ConfigureAwait(false)).ConfigureAwait(false);
+            return Task.CompletedTask;
         }
 
         #endregion

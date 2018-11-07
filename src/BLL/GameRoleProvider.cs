@@ -118,6 +118,37 @@
 
         public IReadOnlyList<AvailableGame> Games => _games;
 
+        IReadOnlyList<EmbedData> IGameRoleProvider.GetGameInfoAsEmbedData()
+        {
+            var result = new List<EmbedData>();
+
+            foreach (var game in _games.OrderBy(m => m.LongName))
+            {
+                var ed = new EmbedData
+                {
+                    Color = Colors.LightGreen,
+                    Title = $"Game information for \"{game.LongName}\" ({game.ShortName})"
+                };
+
+                if (game.AvailableRoles.Count == 0)
+                {
+                    ed.Description = "This game has no roles assigned.";
+                }
+                else
+                {
+                    ed.Description = "The following roles are assigned to the game:";
+                    ed.Fields = game.AvailableRoles
+                                    .OrderBy(m => m.RoleName)
+                                    .Select(m => new EmbedField(m.RoleName, $"DiscordRoleID: {m.DiscordRoleID}", false))
+                                    .ToArray();
+                }
+
+                result.Add(ed);
+            }
+
+            return result;
+        }
+
         async Task IGameRoleProvider.SetGameRole(DiscordChannelID channelID, DiscordUserID userID, AvailableGame game, string emoji)
         {
             if (!_userStore.TryGetUser(userID, out var user))
