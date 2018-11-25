@@ -67,11 +67,7 @@
                 await _semaphore.WaitAsync().ConfigureAwait(false);
                 // If the user wasn't found, make sure it exists in the database and load it
                 var databaseUser = await _databaseAccess.GetOrAddUser(userID).ConfigureAwait(false);
-                // Only add the user to the store if it is really new.
-                // We might end up in this block to add the user to the database,
-                // but it might have been added to the store due to another block before entering the semaphore here.
-                if (databaseUser.IsNew)
-                    _store.Add(databaseUser.User);
+                _store.Add(databaseUser.User);
                 return databaseUser;
             }
             finally

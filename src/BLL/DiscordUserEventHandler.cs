@@ -62,7 +62,10 @@
 #pragma warning restore CS4014 // Fire & forget
         }
 
-        void IDiscordUserEventHandler.HandleLeft(DiscordUserID userID, string username, ushort discriminatorValue)
+        void IDiscordUserEventHandler.HandleLeft(DiscordUserID userID,
+                                                 string username,
+                                                 ushort discriminatorValue,
+                                                 DateTimeOffset? joinedAt)
         {
             if(!_userStore.TryGetUser(userID, out var user))
                 return;
@@ -71,11 +74,16 @@
             {
                 await _userStore.RemoveUser(userID).ConfigureAwait(false);
                 await _privacyProvider.DeleteUserRelatedData(user).ConfigureAwait(false);
-                var leaderMention = _discordAccess.GetRoleMention(Constants.RoleNames.LeaderRoleName);
-                var officerMention = _discordAccess.GetRoleMention(Constants.RoleNames.OfficerRoleName);
                 var now = DateTime.UtcNow;
-                await _discordAccess.LogToDiscord(
-                    $"{leaderMention} {officerMention} - User `{username}#{discriminatorValue}` (Role: {user.Roles}) has left the server on {now:D} at {now:HH:mm:ss} UTC.");
+                // Only post to Discord log if the user was on the server for more than 10 minutes, or the time on the server cannot be determined.
+                if (!joinedAt.HasValue
+                  || (now - joinedAt.Value.UtcDateTime).TotalMinutes > 10)
+                {
+                    var leaderMention = _discordAccess.GetRoleMention(Constants.RoleNames.LeaderRoleName);
+                    var officerMention = _discordAccess.GetRoleMention(Constants.RoleNames.OfficerRoleName);
+                    await _discordAccess.LogToDiscord(
+                                                      $"{leaderMention} {officerMention} - User `{username}#{discriminatorValue}` (Role: {user.Roles}) has left the server on {now:D} at {now:HH:mm:ss} UTC.").ConfigureAwait(false);
+                }
             }).ConfigureAwait(false);
 #pragma warning restore CS4014 // Fire & Forget
         }

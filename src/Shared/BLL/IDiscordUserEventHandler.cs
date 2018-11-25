@@ -1,5 +1,6 @@
 ﻿namespace HoU.GuildBot.Shared.BLL
 {
+    using System;
     using System.Threading.Tasks;
     using DAL;
     using Enums;
@@ -12,7 +13,10 @@
 
         void HandleJoined(DiscordUserID userID, Role roles);
 
-        void HandleLeft(DiscordUserID userID, string username, ushort discriminatorValue);
+        void HandleLeft(DiscordUserID userID,
+                        string username,
+                        ushort discriminatorValue,
+                        DateTimeOffset? joinedAt);
 
         UserRolesChangedResult HandleRolesChanged(DiscordUserID userID, Role oldRoles, Role newRoles);
 
