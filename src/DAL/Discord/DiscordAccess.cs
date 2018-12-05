@@ -158,7 +158,7 @@
                     var guildUser = g.GetUser(userMessage.Author.Id);
                     try
                     {
-                        await guildUser.KickAsync("Excesive spam.", RequestOptions.Default).ConfigureAwait(false);
+                        await guildUser.KickAsync("Excessive spam.", RequestOptions.Default).ConfigureAwait(false);
                     }
                     catch (HttpException e) when (e.HttpCode == HttpStatusCode.Forbidden)
                     {
@@ -175,7 +175,7 @@
                         return true;
                     }
 
-                    await LogToDiscordInternal($"{leaderRole.Mention}, {officerRole.Mention}:Kicked user {guildUser.Mention} from the server due to excesive spam.").ConfigureAwait(false);
+                    await LogToDiscordInternal($"{leaderRole.Mention}, {officerRole.Mention}:Kicked user {guildUser.Mention} from the server due to excessive spam.").ConfigureAwait(false);
                     return true;
                 }
             }
