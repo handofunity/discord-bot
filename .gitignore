@@ -295,3 +295,4 @@ __pycache__/
 logs/
 src/Tools/Client/settings.houguildbot.ini
 src/Tools/Server/settings.registry.production.ini
+/ClientTools/settings.houguildbot.ini
