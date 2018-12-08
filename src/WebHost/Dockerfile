@@ -8,19 +8,18 @@ WORKDIR /app
 
 FROM microsoft/dotnet:2.1-sdk AS build
 WORKDIR /src
-COPY HoU.GuildBot.sln ./
-COPY WebHost/WebHost.csproj WebHost/
-COPY Core/Core.csproj Core/
-COPY DAL/DAL.csproj DAL/
-COPY Shared/Shared.csproj Shared/
-COPY BLL/BLL.csproj BLL/
-RUN dotnet restore -nowarn:msb3202,nu1503 -p:RestoreUseSkipNonexistentTargets=false
+COPY ["WebHost/WebHost.csproj", "WebHost/"]
+COPY ["DAL/DAL.csproj", "DAL/"]
+COPY ["Shared/Shared.csproj", "Shared/"]
+COPY ["Core/Core.csproj", "Core/"]
+COPY ["BLL/BLL.csproj", "BLL/"]
+RUN dotnet restore "WebHost/WebHost.csproj"
 COPY . .
-WORKDIR /src/WebHost
-RUN dotnet build -c Release -o /app
+WORKDIR "/src/WebHost"
+RUN dotnet build "WebHost.csproj" -c Release -o /app
 
 FROM build AS publish
-RUN dotnet publish -c Release -o /app
+RUN dotnet publish "WebHost.csproj" -c Release -o /app
 
 FROM base AS final
 WORKDIR /app

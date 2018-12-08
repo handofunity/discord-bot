@@ -6,6 +6,7 @@
     <RootNamespace>HoU.GuildBot.WebHost</RootNamespace>
     <DockerTargetOS>Linux</DockerTargetOS>
     <StartupObject>HoU.GuildBot.WebHost.Program</StartupObject>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="logs\**" />
