@@ -4,5 +4,5 @@ REGISTRY_EXTERNAL_PORT="$(sed -nr "/^\[Network\]/ { :l /^RegistryExternalPort[ ]
 docker run -d \
   --name houguildbot \
   --restart unless-stopped \
-  -v hou-guildbot-logs-volume:/app/logs \
+  -v /var/log/hand-of-unity/guild-bot:/app/logs \
   $REGISTRY_HOST:$REGISTRY_EXTERNAL_PORT/houguildbotwebhost:latest
