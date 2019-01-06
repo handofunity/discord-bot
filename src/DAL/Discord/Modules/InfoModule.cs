@@ -1,5 +1,7 @@
 ﻿namespace HoU.GuildBot.DAL.Discord.Modules
 {
+    using System;
+    using System.Text;
     using System.Threading.Tasks;
     using global::Discord.Commands;
     using JetBrains.Annotations;
@@ -15,15 +17,18 @@
         #region Fields
 
         private readonly IBotInformationProvider _botInformationProvider;
+        private readonly ITimeInformationProvider _timeInformationProvider;
 
         #endregion
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region Constructors
 
-        public InfoModule(IBotInformationProvider botInformationProvider)
+        public InfoModule(IBotInformationProvider botInformationProvider,
+                          ITimeInformationProvider timeInformationProvider)
         {
             _botInformationProvider = botInformationProvider;
+            _timeInformationProvider = timeInformationProvider;
         }
 
         #endregion
@@ -44,6 +49,27 @@
             var data = _botInformationProvider.GetData();
             var embed = data.ToEmbed();
             await ReplyAsync(string.Empty, false, embed).ConfigureAwait(false);
+        }
+
+        [Command("time")]
+        [CommandCategory(CommandCategory.MemberInformation, 5)]
+        [Name("Get guild times")]
+        [Summary("Gets a list of guild time zones.")]
+        [Alias("times", "timezone", "timezones", "guildtime", "guild time", "guildtimes", "guild times")]
+        [RequireContext(ContextType.Guild)]
+        [ResponseContext(ResponseType.AlwaysSameChannel)]
+        [RolePrecondition(Role.AnyGuildMember)]
+        public async Task TimeAsync()
+        {
+            var tz = _timeInformationProvider.GetCurrentTimeFormattedForConfiguredTimezones();
+            var markdownBuilder = new StringBuilder()
+                                 .AppendLine("```md")
+                                 .AppendLine("Current Guild Times")
+                                 .AppendLine("===================");
+            foreach (var s in tz)
+                markdownBuilder.AppendLine(s);
+            markdownBuilder.AppendLine("```");
+            await ReplyAsync(markdownBuilder.ToString()).ConfigureAwait(false);
         }
 
         #endregion

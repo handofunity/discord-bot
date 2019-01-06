@@ -16,7 +16,7 @@
 
     public class Runner
     {
-        private static readonly Version BotVersion = new Version(1, 7, 0);
+        private static readonly Version BotVersion = new Version(1, 7, 1);
 
         private ILogger<Runner> _logger;
 
@@ -56,22 +56,25 @@
             var botInformationProvider = new BotInformationProvider(runtimeInformation);
 
             serviceCollection
-                .AddSingleton<IBotEngine, BotEngine>()
-                .AddSingleton<ISpamGuard, SpamGuard>()
-                .AddSingleton<IIgnoreGuard, IgnoreGuard>()
-                .AddSingleton<ICommandRegistry, CommandRegistry>()
-                .AddSingleton<IDiscordUserEventHandler, DiscordUserEventHandler>()
-                .AddSingleton<IBotInformationProvider>(botInformationProvider)
-                .AddSingleton<IHelpProvider, HelpProvider>()
-                .AddSingleton<IMessageProvider, MessageProvider>()
-                .AddSingleton<IVacationProvider, VacationProvider>()
-                .AddSingleton<IPrivacyProvider, PrivacyProvider>()
-                .AddSingleton<IGameRoleProvider, GameRoleProvider>()
-                .AddSingleton<IGuildInfoProvider, GuildInfoProvider>()
-                .AddSingleton<IUserInfoProvider, UserInfoProvider>()
-                .AddSingleton<IUserStore, UserStore>()
-                .AddSingleton<IStaticMessageProvider, StaticMessageProvider>()
-                .AddSingleton<IStatisticImageProvider, StatisticImageProvider>();
+                // Singletons
+               .AddSingleton<IBotEngine, BotEngine>()
+               .AddSingleton<IUserStore, UserStore>()
+               .AddSingleton<ISpamGuard, SpamGuard>()
+               .AddSingleton<IIgnoreGuard, IgnoreGuard>()
+               .AddSingleton<ICommandRegistry, CommandRegistry>()
+               .AddSingleton<IDiscordUserEventHandler, DiscordUserEventHandler>()
+               .AddSingleton<IBotInformationProvider>(botInformationProvider)
+               .AddSingleton<IMessageProvider, MessageProvider>()
+               .AddSingleton<IPrivacyProvider, PrivacyProvider>()
+               .AddSingleton<IGameRoleProvider, GameRoleProvider>()
+               .AddSingleton<IStaticMessageProvider, StaticMessageProvider>()
+               // Transients
+               .AddTransient<IHelpProvider, HelpProvider>()
+               .AddTransient<IVacationProvider, VacationProvider>()
+               .AddTransient<IGuildInfoProvider, GuildInfoProvider>()
+               .AddTransient<IUserInfoProvider, UserInfoProvider>()
+               .AddTransient<IStatisticImageProvider, StatisticImageProvider>()
+               .AddTransient<ITimeInformationProvider, TimeInformationProvider>();
         }
 
         private static void RegisterDAL(IServiceCollection serviceCollection)
