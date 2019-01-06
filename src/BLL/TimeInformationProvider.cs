@@ -45,7 +45,7 @@
             {
                 if (desiredTimeZoneID == "UTC")
                 {
-                    result.Add($"# {n:T} (UTC) < Guild Time >");
+                    result.Add($"# {n:ddd} {n:T} (UTC       - Guild Time)");
                 }
                 else
                 {
@@ -57,7 +57,7 @@
                     }
 
                     var localTime = TimeZoneInfo.ConvertTimeFromUtc(n, tz);
-                    result.Add($"> {localTime:T} ({(tz.IsDaylightSavingTime(localTime) ? tz.DaylightName : tz.StandardName)}, {tz.Id})");
+                    result.Add($"> {n:ddd} {localTime:T} ({(tz.IsDaylightSavingTime(localTime) ? tz.DaylightName : tz.StandardName),-9} - {tz.Id})");
                 }
             }
 
