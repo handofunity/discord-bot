@@ -201,29 +201,7 @@
                 var context = new SocketCommandContext(_client, userMessage);
                 try
                 {
-                    var result = await _commands.ExecuteAsync(context, argPos, _serviceProvider).ConfigureAwait(false);
-                    if (!result.IsSuccess && result.Error != CommandError.UnknownCommand)
-                    {
-                        // Handle error during command execution
-                        var isGuildChannel = userMessage.Channel is IGuildChannel;
-                        var embedBuilder = new EmbedBuilder()
-                                           .WithColor(Color.Red)
-                                           .WithTitle("Error during command execution")
-                                           .WithDescription("The command you used caused an error. " +
-                                                            (isGuildChannel ? "The original message was deleted to protect sensitive data and to prevent spam. " : string.Empty) +
-                                                            "Please review the error reason below, copy the original message, fix any errors and try again. " +
-                                                            "If you need further assistance, use the @Developer mention in any guild channel.")
-                                           .AddField("Original message", userMessage.Content)
-                                           .AddField("Error reason", GetDescriptiveErrorReason(result));
-
-                        if (isGuildChannel)
-                            await userMessage.DeleteAsync().ConfigureAwait(false);
-
-                        var embed = embedBuilder.Build();
-                        _logger.LogWarning(result.ErrorReason);
-                        var directChannel = await userMessage.Author.GetOrCreateDMChannelAsync().ConfigureAwait(false);
-                        await directChannel.SendMessageAsync(string.Empty, false, embed).ConfigureAwait(false);
-                    }
+                    await _commands.ExecuteAsync(context, argPos, _serviceProvider).ConfigureAwait(false);
                 }
                 catch (Exception e)
                 {
@@ -418,10 +396,11 @@
                         if (!_commandRegistry.CommandsRegistered)
                         {
                             // Load modules and register commands only once
-                            await _commands.AddModulesAsync(typeof(DiscordAccess).Assembly).ConfigureAwait(false);
+                            await _commands.AddModulesAsync(typeof(DiscordAccess).Assembly, _serviceProvider).ConfigureAwait(false);
                             RegisterCommands();
                         }
                         await connectedHandler().ConfigureAwait(false);
+                        _commands.CommandExecuted += Commands_CommandExecuted;
                         _client.MessageReceived += Client_MessageReceived;
                     });
                     // Return immediately
@@ -437,6 +416,7 @@
                     Task.Run(async () =>
                     {
                         _client.MessageReceived -= Client_MessageReceived;
+                        _commands.CommandExecuted -= Commands_CommandExecuted;
                         await disconnectedHandler().ConfigureAwait(false);
                     });
                     // Return immediately
@@ -795,6 +775,35 @@
             
             // If the message is no spam, process message
             await ProcessMessage(userMessage).ConfigureAwait(false);
+        }
+
+        private async Task Commands_CommandExecuted(Optional<CommandInfo> commandInfo, ICommandContext context, IResult result)
+        {
+            var userMessage = context.Message;
+            if (result != null
+             && !result.IsSuccess
+             && result.Error != CommandError.UnknownCommand)
+            {
+                // Handle error during command execution
+                var isGuildChannel = userMessage.Channel is IGuildChannel;
+                var embedBuilder = new EmbedBuilder()
+                                  .WithColor(Color.Red)
+                                  .WithTitle("Error during command execution")
+                                  .WithDescription("The command you used caused an error. " +
+                                                   (isGuildChannel ? "The original message was deleted to protect sensitive data and to prevent spam. " : string.Empty) +
+                                                   "Please review the error reason below, copy the original message, fix any errors and try again. " +
+                                                   "If you need further assistance, use the @Developer mention in any guild channel.")
+                                  .AddField("Original message", userMessage.Content)
+                                  .AddField("Error reason", GetDescriptiveErrorReason(result));
+
+                if (isGuildChannel)
+                    await userMessage.DeleteAsync().ConfigureAwait(false);
+
+                var embed = embedBuilder.Build();
+                _logger.LogWarning(result.ErrorReason);
+                var directChannel = await userMessage.Author.GetOrCreateDMChannelAsync().ConfigureAwait(false);
+                await directChannel.SendMessageAsync(string.Empty, false, embed).ConfigureAwait(false);
+            }
         }
 
         #endregion

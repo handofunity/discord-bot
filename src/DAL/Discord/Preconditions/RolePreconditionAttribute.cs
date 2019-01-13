@@ -30,7 +30,7 @@
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region Base Overrides
 
-        public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider services)
+        public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider services)
         {
             var userStore = (IUserStore)services.GetService(typeof(IUserStore));
             if (!userStore.TryGetUser((DiscordUserID)context.User.Id, out var user))
