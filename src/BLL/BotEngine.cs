@@ -1,6 +1,7 @@
 ﻿namespace HoU.GuildBot.BLL
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using JetBrains.Annotations;
     using Microsoft.Extensions.Logging;
@@ -56,6 +57,8 @@
 
         async Task IBotEngine.Run()
         {
+            var cts = new CancellationTokenSource();
+
             _logger.LogInformation("Starting bot...");
 
             // Create connection to Discord
@@ -69,18 +72,23 @@
                 // In case that the Discord servers are unreachable, we won't be able to make a connection
                 // for a few minutes or even hours. Because we don't want to restart and retry too often,
                 // waiting 10 minutes to check for the initial connection is okay.
-                await Task.Delay(new TimeSpan(0, 10, 0)).ConfigureAwait(false);
+                await Task.Delay(new TimeSpan(0, 10, 0), CancellationToken.None).ConfigureAwait(false);
                 if (!_discordAccess.IsConnected)
                 {
                     _logger.LogWarning("Shutting down process, because the connection to Discord couldn't be established within 10 minutes.");
-                    await Task.Delay(2000).ConfigureAwait(false);
-                    Environment.Exit(1);
+                    cts.CancelAfter(2000);
                 }
-            }).ConfigureAwait(false);
+            }, CancellationToken.None).ConfigureAwait(false);
 #pragma warning restore CS4014 // Fire & Forget
 
             // Listen to calls and block the current thread
-            await Task.Delay(-1).ConfigureAwait(false);
+            try
+            {
+                await Task.Delay(-1, cts.Token).ConfigureAwait(false);
+            }
+            catch (TaskCanceledException)
+            {
+            }
         }
 
         #endregion

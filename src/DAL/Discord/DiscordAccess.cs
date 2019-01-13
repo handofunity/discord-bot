@@ -466,7 +466,9 @@
                 _client.ReactionAdded -= Client_ReactionAdded;
                 _client.ReactionAdded += Client_ReactionAdded;
 
+                _logger.LogInformation("Performing login...");
                 await _client.LoginAsync(TokenType.Bot, _appSettings.BotToken).ConfigureAwait(false);
+                _logger.LogInformation("Starting client...");
                 await _client.StartAsync().ConfigureAwait(false);
             }
             catch (Exception e)
