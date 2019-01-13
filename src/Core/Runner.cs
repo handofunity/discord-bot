@@ -1,7 +1,6 @@
 ﻿namespace HoU.GuildBot.Core
 {
     using System;
-    using System.IO;
     using BLL;
     using DAL.Database;
     using DAL.Discord;
@@ -16,7 +15,7 @@
 
     public class Runner
     {
-        private static readonly Version BotVersion = new Version(1, 7, 1);
+        private static readonly Version BotVersion = new Version(2, 0, 0);
 
         private ILogger<Runner> _logger;
 

@@ -28,6 +28,7 @@
                 Runner.NotifyShutdown(e.ToString());
             }
             Runner.NotifyShutdown("no reason specified");
+            Environment.FailFast("Shutting down process due to lacking connection.");
         }
 
         private static IWebHost BuildWebHost() =>
