@@ -37,7 +37,7 @@
             appSettings.PromotionAnnouncementChannelId = (DiscordChannelID) ulong.Parse(settingsSection[nameof(AppSettings.PromotionAnnouncementChannelId)]);
             appSettings.WelcomeChannelId = (DiscordChannelID) ulong.Parse(settingsSection[nameof(AppSettings.WelcomeChannelId)]);
             appSettings.AshesOfCreationRoleChannelId = (DiscordChannelID) ulong.Parse(settingsSection[nameof(AppSettings.AshesOfCreationRoleChannelId)]);
-            appSettings.DesiredTimeZoneIDs = settingsSection.GetSection(nameof(AppSettings.DesiredTimeZoneIDs)).GetChildren().Select(m => m.Value).ToArray();
+            appSettings.DesiredTimeZones = settingsSection.GetSection(nameof(AppSettings.DesiredTimeZones)).GetChildren().Select(m => m.Get<DesiredTimeZone>()).ToArray();
         }
 
         private static void ValidateSettings(AppSettings settings)
@@ -54,8 +54,8 @@
                 throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.WelcomeChannelId)}' must be a correct ID.");
             if (settings.AshesOfCreationRoleChannelId == default(DiscordChannelID))
                 throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.AshesOfCreationRoleChannelId)}' must be a correct ID.");
-            if (settings.DesiredTimeZoneIDs.Length == 0)
-                throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.DesiredTimeZoneIDs)}' cannot be empty.");
+            if (settings.DesiredTimeZones.Length == 0)
+                throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.DesiredTimeZones)}' cannot be empty.");
         }
     }
 }

@@ -36,28 +36,28 @@
         {
             var n = DateTime.UtcNow;
             var supportedTimeZones = TimeZoneInfo.GetSystemTimeZones();
-            var result = new List<string>(_settings.DesiredTimeZoneIDs.Length);
+            var result = new List<string>(_settings.DesiredTimeZones.Length);
 
-            _logger.LogDebug($"Desired time zones: {_settings.DesiredTimeZoneIDs.Length}");
+            _logger.LogDebug($"Desired time zones: {_settings.DesiredTimeZones.Length}");
             _logger.LogDebug($"Supported time zones: {supportedTimeZones.Count}");
 
-            foreach (var desiredTimeZoneID in _settings.DesiredTimeZoneIDs)
+            foreach (var desiredTimeZone in _settings.DesiredTimeZones)
             {
-                if (desiredTimeZoneID == "UTC")
+                if (desiredTimeZone.TimeZoneId == "UTC")
                 {
-                    result.Add($"# {n:ddd} {n:T} (UTC       - Guild Time)");
+                    result.Add($"# {n:ddd} {n:T} (UTC       - {desiredTimeZone.InvariantDisplayName})");
                 }
                 else
                 {
-                    var tz = supportedTimeZones.SingleOrDefault(m => m.Id == desiredTimeZoneID);
+                    var tz = supportedTimeZones.SingleOrDefault(m => m.Id == desiredTimeZone.TimeZoneId);
                     if (tz == null)
                     {
-                        _logger.LogWarning($"Desired time zone '{desiredTimeZoneID}' is not available.");
+                        _logger.LogWarning($"Desired time zone '{desiredTimeZone}' is not available.");
                         continue;
                     }
 
                     var localTime = TimeZoneInfo.ConvertTimeFromUtc(n, tz);
-                    result.Add($"> {n:ddd} {localTime:T} ({(tz.IsDaylightSavingTime(localTime) ? tz.DaylightName : tz.StandardName),-9} - {tz.Id})");
+                    result.Add($"> {n:ddd} {localTime:T} ({(tz.IsDaylightSavingTime(localTime) ? tz.DaylightName : tz.StandardName),-9} - {desiredTimeZone.InvariantDisplayName})");
                 }
             }
 

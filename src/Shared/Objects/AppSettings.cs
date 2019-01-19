@@ -35,7 +35,10 @@
         /// </summary>
         public DiscordChannelID AshesOfCreationRoleChannelId { get; set; }
 
-        public string[] DesiredTimeZoneIDs { get; set; }
+        /// <summary>
+        /// Gets or sets an array of <see cref="DesiredTimeZone"/> instances.
+        /// </summary>
+        public DesiredTimeZone[] DesiredTimeZones { get; set; }
 
         /// <summary>
         /// Gets or sets the connection string.
