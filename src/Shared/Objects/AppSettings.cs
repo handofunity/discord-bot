@@ -1,6 +1,5 @@
 ﻿namespace HoU.GuildBot.Shared.Objects
 {
-    using System;
     using Microsoft.Extensions.Configuration;
     using StrongTypes;
 
@@ -80,6 +79,11 @@
         /// Gets or sets an array of <see cref="DesiredTimeZone"/> instances.
         /// </summary>
         public DesiredTimeZone[] DesiredTimeZones { get; set; }
+
+        /// <summary>
+        /// Gets or sets an array of <see cref="SpamLimit"/> instances.
+        /// </summary>
+        public SpamLimit[] SpamLimits { get; set; }
 
         /// <summary>
         /// Gets or sets the connection string.

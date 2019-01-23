@@ -1,0 +1,22 @@
+﻿namespace HoU.GuildBot.Shared.Objects
+{
+    public class SpamLimit
+    {
+        /// <summary>
+        /// Gets or sets if the <see cref="SoftCap"/> and <see cref="HardCap"/> are restricted to a certain channel, or if the values apply globally.
+        /// </summary>
+        public ulong? RestrictToChannelID { get; set; }
+
+        /// <summary>
+        /// Gets or sets the soft cap for this spam limit.
+        /// </summary>
+        /// <remarks>Hitting the soft cap will result in a warning/notification.</remarks>
+        public byte SoftCap { get; set; }
+
+        /// <summary>
+        /// Gets or sets the hard cap for this spam limit.
+        /// </summary>
+        /// <remarks>Hitting the hard cap will result in a kick.</remarks>
+        public byte HardCap { get; set; }
+    }
+}

@@ -1,6 +1,7 @@
 ﻿namespace HoU.GuildBot.WebHost
 {
     using System;
+    using System.Linq;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Shared.Objects;
@@ -45,6 +46,12 @@
                 throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.AshesOfCreationRoleChannelId)}' must be a correct ID.");
             if (settings.DesiredTimeZones.Length == 0)
                 throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.DesiredTimeZones)}' cannot be empty.");
+            if (settings.SpamLimits.Length == 0)
+                throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.SpamLimits)}' cannot be empty.");
+            if (settings.SpamLimits.Count(m => m.RestrictToChannelID == null) != 1)
+                throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.SpamLimits)}' must have exactly one entry without the {nameof(SpamLimit.RestrictToChannelID)} set.");
+            if (settings.SpamLimits.GroupBy(m => m.RestrictToChannelID).Any(m => m.Count() > 1))
+                throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.SpamLimits)}' contains duplicate {nameof(SpamLimit.RestrictToChannelID)}s.");
         }
     }
 }

@@ -5,17 +5,17 @@
     using JetBrains.Annotations;
     using Shared.BLL;
     using Shared.Enums;
+    using Shared.Objects;
 
     [UsedImplicitly]
     public class SpamGuard : ISpamGuard
     {
-        private const int _SOFT_LIMIT = 5;
-        private const int _HARD_LIMIT = 7;
-
+        private readonly Dictionary<ulong, (byte SoftCap, byte HardCap)> _limits;
         private readonly Queue<string> _recentMessage;
 
-        public SpamGuard()
+        public SpamGuard(AppSettings appSettings)
         {
+            _limits = appSettings.SpamLimits.ToDictionary(m => m.RestrictToChannelID ?? 0, m => (m.SoftCap, m.HardCap));
             _recentMessage = new Queue<string>(25);
         }
 
@@ -36,13 +36,16 @@
             // Add the new message
             _recentMessage.Enqueue(builtMessage);
 
+            // Get limits
+            if (!_limits.TryGetValue(channelId, out var limits)) limits = _limits[0];
+
             // Check the message for soft and hard limit
             var messageCount = _recentMessage.Count(m => m == builtMessage);
-            if (messageCount >= _HARD_LIMIT)
+            if (messageCount >= limits.HardCap)
                 return SpamCheckResult.HardLimitHit;
-            if (messageCount > _SOFT_LIMIT && messageCount < _HARD_LIMIT)
+            if (messageCount > limits.SoftCap && messageCount < limits.HardCap)
                 return SpamCheckResult.BetweenSoftAndHardLimit;
-            if (messageCount == _SOFT_LIMIT)
+            if (messageCount == limits.SoftCap)
                 return SpamCheckResult.SoftLimitHit;
             return SpamCheckResult.NoSpam;
         }
