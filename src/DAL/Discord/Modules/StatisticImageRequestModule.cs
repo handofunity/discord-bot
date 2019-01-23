@@ -40,13 +40,12 @@
         [CommandCategory(CommandCategory.GameAshesOfCreation, 1)]
         [Name("Get an image about the aoc roles")]
         [Summary("Creates and posts an image that shows the current amount of roles.")]
-        [Alias("aoc roles image", "aocrolesstatistic", "aoc roles statistic")]
+        [Alias("aoc roles image", "aocrolesstatistic", "aoc roles statistic", "roles", "role", "classes", "class")]
         [RequireContext(ContextType.Guild)]
         [ResponseContext(ResponseType.AlwaysSameChannel)]
         [RolePrecondition(Role.AnyGuildMember)]
         public async Task GetAocRolesImage()
         {
-            var processingMessage = await ReplyAsync("Creating image..").ConfigureAwait(false);
             var channel = Context.Channel;
 
 #pragma warning disable CS4014 // Fire & forget
@@ -56,18 +55,17 @@
             {
                 try
                 {
-                    using (var imageStream = _statisticImageProvider.CreateAocRolesImage())
+                    using (channel.EnterTypingState())
                     {
-                        await channel.SendFileAsync(imageStream, "currentAocRoles.png").ConfigureAwait(false);
+                        using (var imageStream = _statisticImageProvider.CreateAocRolesImage())
+                        {
+                            await channel.SendFileAsync(imageStream, "currentAocRoles.png").ConfigureAwait(false);
+                        }
                     }
                 }
                 catch (Exception e)
                 {
                     _logger.LogError(e, $"Failed to provide aoc roles statistic image to channel {channel.Name}.");
-                }
-                finally
-                {
-                    await processingMessage.DeleteAsync().ConfigureAwait(false);
                 }
             }).ConfigureAwait(false);
 
