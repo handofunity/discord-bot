@@ -1,7 +1,6 @@
 ﻿namespace HoU.GuildBot.WebHost
 {
     using System;
-    using System.Linq;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Shared.Objects;
@@ -11,33 +10,23 @@
     {
         internal static void AddAppSettings(this IServiceCollection serviceCollection, IConfiguration configuration)
         {
-            var appSettings = new AppSettings
-            {
-                HandOfUnityConnectionString = configuration.GetConnectionString("HandOfUnityGuild"),
-                LoggingConfiguration = configuration.GetSection("Logging")
-            };
-            appSettings.LoadAdditionalAppSettingsFromConfiguration(configuration);
-
+            var appSettings = LoadAppSettingsFromConfiguration(configuration);
             serviceCollection.AddSingleton(appSettings);
         }
 
-        private static void LoadAdditionalAppSettingsFromConfiguration(this AppSettings appSettings, IConfiguration configuration)
+        private static AppSettings LoadAppSettingsFromConfiguration(IConfiguration configuration)
         {
-            ReadAdditionalSettings(appSettings, configuration);
-            ValidateSettings(appSettings);
-        }
+            // Deserialize
+            var settings = configuration.GetSection("AppSettings").Get<AppSettings>(options => options.BindNonPublicProperties = true);
 
-        private static void ReadAdditionalSettings(AppSettings appSettings, IConfiguration configuration)
-        {
-            var settingsSection = configuration.GetSection("AppSettings");
+            // Read settings not in the AppSettings section
+            settings.HandOfUnityConnectionString = configuration.GetConnectionString("HandOfUnityGuild");
+            settings.LoggingConfiguration = configuration.GetSection("Logging");
 
-            appSettings.BotToken = settingsSection[nameof(AppSettings.BotToken)];
-            appSettings.HandOfUnityGuildId = ulong.Parse(settingsSection[nameof(AppSettings.HandOfUnityGuildId)]);
-            appSettings.LoggingChannelId = (DiscordChannelID) ulong.Parse(settingsSection[nameof(AppSettings.LoggingChannelId)]);
-            appSettings.PromotionAnnouncementChannelId = (DiscordChannelID) ulong.Parse(settingsSection[nameof(AppSettings.PromotionAnnouncementChannelId)]);
-            appSettings.WelcomeChannelId = (DiscordChannelID) ulong.Parse(settingsSection[nameof(AppSettings.WelcomeChannelId)]);
-            appSettings.AshesOfCreationRoleChannelId = (DiscordChannelID) ulong.Parse(settingsSection[nameof(AppSettings.AshesOfCreationRoleChannelId)]);
-            appSettings.DesiredTimeZones = settingsSection.GetSection(nameof(AppSettings.DesiredTimeZones)).GetChildren().Select(m => m.Get<DesiredTimeZone>()).ToArray();
+            // Validate everything to make sure that not an empty or incomplete setting file is used
+            ValidateSettings(settings);
+
+            return settings;
         }
 
         private static void ValidateSettings(AppSettings settings)
