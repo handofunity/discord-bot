@@ -86,6 +86,11 @@
         public SpamLimit[] SpamLimits { get; set; }
 
         /// <summary>
+        /// Gets or sets an array of channel IDs that will have the spam protection disabled.
+        /// </summary>
+        public ulong[] ChannelIDsWithDisabledSpamProtection { get; set; }
+
+        /// <summary>
         /// Gets or sets the connection string.
         /// </summary>
         /// <remarks>Should either be a IP/TCP connection, or a named connection. For IP/TCP connections, see example.</remarks>

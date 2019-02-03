@@ -16,7 +16,8 @@
         void HandleLeft(DiscordUserID userID,
                         string username,
                         ushort discriminatorValue,
-                        DateTimeOffset? joinedAt);
+                        DateTimeOffset? joinedAt,
+                        string[] roles);
 
         UserRolesChangedResult HandleRolesChanged(DiscordUserID userID, Role oldRoles, Role newRoles);
 

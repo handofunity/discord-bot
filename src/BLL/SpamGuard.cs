@@ -11,16 +11,23 @@
     public class SpamGuard : ISpamGuard
     {
         private readonly Dictionary<ulong, (byte SoftCap, byte HardCap)> _limits;
+        private readonly ulong[] _channelIDsWithDisabledSpamProtection;
         private readonly Queue<string> _recentMessage;
 
         public SpamGuard(AppSettings appSettings)
         {
             _limits = appSettings.SpamLimits.ToDictionary(m => m.RestrictToChannelID ?? 0, m => (m.SoftCap, m.HardCap));
+            _channelIDsWithDisabledSpamProtection = appSettings.ChannelIDsWithDisabledSpamProtection;
             _recentMessage = new Queue<string>(25);
         }
 
         SpamCheckResult ISpamGuard.CheckForSpam(ulong userId, ulong channelId, string message, int attachmentsCount)
         {
+            // If the spam protection is disabled for the channel, there's no need to do any further checks.
+            // The whole channel won't count into the queue.
+            if (_channelIDsWithDisabledSpamProtection.Contains(channelId))
+                return SpamCheckResult.NoSpam;
+
             if (string.IsNullOrEmpty(message) && attachmentsCount > 0)
             {
                 // Attachment upload without optional comment

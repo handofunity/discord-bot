@@ -65,7 +65,8 @@
         void IDiscordUserEventHandler.HandleLeft(DiscordUserID userID,
                                                  string username,
                                                  ushort discriminatorValue,
-                                                 DateTimeOffset? joinedAt)
+                                                 DateTimeOffset? joinedAt,
+                                                 string[] roles)
         {
             if(!_userStore.TryGetUser(userID, out var user))
                 return;
@@ -81,8 +82,14 @@
                 {
                     var leaderMention = _discordAccess.GetRoleMention(Constants.RoleNames.LeaderRoleName);
                     var officerMention = _discordAccess.GetRoleMention(Constants.RoleNames.OfficerRoleName);
+                    var formattedRolesMessage = roles.Length == 0
+                                                   ? string.Empty
+                                                   : $"; Roles: {string.Join(", ", roles.Select(m => "`" + m + "`"))}";
                     await _discordAccess.LogToDiscord(
-                                                      $"{leaderMention} {officerMention} - User `{username}#{discriminatorValue}` (Role: {user.Roles}) has left the server on {now:D} at {now:HH:mm:ss} UTC.").ConfigureAwait(false);
+                                                      $"{leaderMention} {officerMention}: User `{username}#{discriminatorValue}` " +
+                                                      $"(Membership level: **{user.Roles}**{formattedRolesMessage}) " +
+                                                      $"has left the server on {now:D} at {now:HH:mm:ss} UTC.")
+                                        .ConfigureAwait(false);
                 }
             }).ConfigureAwait(false);
 #pragma warning restore CS4014 // Fire & Forget

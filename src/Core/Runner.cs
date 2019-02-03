@@ -15,7 +15,7 @@
 
     public class Runner
     {
-        private static readonly Version BotVersion = new Version(2, 1, 0);
+        private static readonly Version BotVersion = new Version(2, 2, 0);
 
         private ILogger<Runner> _logger;
 

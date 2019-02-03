@@ -175,7 +175,7 @@
                         return true;
                     }
 
-                    await LogToDiscordInternal($"{leaderRole.Mention}, {officerRole.Mention}:Kicked user {guildUser.Mention} from the server due to excessive spam.").ConfigureAwait(false);
+                    await LogToDiscordInternal($"{leaderRole.Mention}, {officerRole.Mention}: Kicked user {guildUser.Mention} from the server due to excessive spam.").ConfigureAwait(false);
                     return true;
                 }
             }
@@ -688,7 +688,11 @@
 
         private Task Client_UserLeft(SocketGuildUser guildUser)
         {
-            _discordUserEventHandler.HandleLeft((DiscordUserID) guildUser.Id, guildUser.Username, guildUser.DiscriminatorValue, guildUser.JoinedAt);
+            _discordUserEventHandler.HandleLeft((DiscordUserID) guildUser.Id,
+                                                guildUser.Username,
+                                                guildUser.DiscriminatorValue,
+                                                guildUser.JoinedAt,
+                                                guildUser.Roles.Where(m => !m.IsEveryone).Select(m => m.Name).ToArray());
             return Task.CompletedTask;
         }
 
