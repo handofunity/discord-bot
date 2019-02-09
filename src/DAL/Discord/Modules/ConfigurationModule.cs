@@ -149,7 +149,7 @@
             // Add
             var gameLongName = match.Groups["gameLongName"].Value;
             var gameShortName = match.Groups["gameShortName"].Value;
-            var (success, message) = await _gameRoleProvider.AddGame(user.InternalUserID, gameLongName, gameShortName).ConfigureAwait(false);
+            var (success, message) = await _gameRoleProvider.AddGame(user.InternalUserID, gameLongName, gameShortName, null).ConfigureAwait(false);
             if (success)
             {
                 // When the game was added successfully, log the add

@@ -267,7 +267,8 @@
                     var g = new AvailableGame
                     {
                         LongName = m.LongName,
-                        ShortName = m.ShortName
+                        ShortName = m.ShortName,
+                        PrimaryGameDiscordRoleID = m.PrimaryGameDiscordRoleID == null ? null : (ulong?)m.PrimaryGameDiscordRoleID
                     };
                     g.AvailableRoles.AddRange(m.GameRole.Select(n => new AvailableGameRole
                     {
@@ -353,7 +354,8 @@
 
         async Task<(bool Success, string Error)> IDatabaseAccess.TryAddGame(InternalUserID userID,
                                                                             string gameLongName,
-                                                                            string gameShortName)
+                                                                            string gameShortName,
+                                                                            ulong? primaryGameDiscordRoleID)
         {
             using (var context = GetDbContext())
             {
@@ -394,6 +396,7 @@
 
                     matchingGame.LongName = updated.LongName;
                     matchingGame.ShortName = updated.ShortName;
+                    matchingGame.PrimaryGameDiscordRoleID = updated.PrimaryGameDiscordRoleID;
                     matchingGame.ModifiedByUserID = (int) userID;
                     matchingGame.ModifiedAtTimestamp = DateTime.UtcNow;
 

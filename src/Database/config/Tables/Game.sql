@@ -5,6 +5,7 @@
 	[ShortName] VARCHAR(16) NOT NULL,
 	[ModifiedByUserID] INT NOT NULL,
 	[ModifiedAtTimestamp] DATETIME2 NOT NULL,
+	[PrimaryGameDiscordRoleID] DECIMAL(20,0) NULL,
 	CONSTRAINT PK_Game_GameID PRIMARY KEY (GameID),
 	CONSTRAINT UQ_Game_LongName UNIQUE (LongName),
 	CONSTRAINT UQ_Game_ShortName UNIQUE (ShortName),

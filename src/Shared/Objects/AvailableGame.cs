@@ -8,6 +8,8 @@
 
         public string ShortName { get; set; }
 
+        public ulong? PrimaryGameDiscordRoleID { get; set; }
+
         public List<AvailableGameRole> AvailableRoles { get; }
 
         public AvailableGame()
@@ -20,7 +22,8 @@
             var c = new AvailableGame
             {
                 LongName = LongName,
-                ShortName = ShortName
+                ShortName = ShortName,
+                PrimaryGameDiscordRoleID = PrimaryGameDiscordRoleID
             };
 
             foreach (var role in AvailableRoles)

@@ -11,6 +11,6 @@ namespace HoU.GuildBot.DAL.Database.Model
         public DateTime End { get; set; }
         public string Note { get; set; }
 
-        public User User { get; set; }
+        public virtual User User { get; set; }
     }
 }

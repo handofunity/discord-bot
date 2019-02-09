@@ -18,7 +18,6 @@
         private readonly IDiscordAccess _discordAccess;
         private readonly IBotInformationProvider _botInformationProvider;
         private readonly IPrivacyProvider _privacyProvider;
-        private readonly IStaticMessageProvider _staticMessageProvider;
         private bool _isFirstConnect;
 
         #endregion
@@ -29,14 +28,12 @@
         public BotEngine(ILogger<BotEngine> logger,
                          IDiscordAccess discordAccess,
                          IBotInformationProvider botInformationProvider,
-                         IPrivacyProvider privacyProvider,
-                         IStaticMessageProvider staticMessageProvider)
+                         IPrivacyProvider privacyProvider)
         {
             _logger = logger;
             _discordAccess = discordAccess;
             _botInformationProvider = botInformationProvider;
             _privacyProvider = privacyProvider;
-            _staticMessageProvider = staticMessageProvider;
             _isFirstConnect = true;
         }
 
@@ -106,10 +103,6 @@
                 await _discordAccess.LogToDiscord($"Bot started on **{_botInformationProvider.GetEnvironmentName()}** in version {_botInformationProvider.GetFormatedVersion()}.").ConfigureAwait(false);
                 // Start privacy provider clean up
                 _privacyProvider.Start();
-                // Ensure welcome messages are correct, fire & forget
-#pragma warning disable CS4014 // Fire & forget
-                Task.Run(async () => await _staticMessageProvider.EnsureStaticMessagesExist().ConfigureAwait(false));
-#pragma warning restore CS4014 // Fire & forget
             }
 
             _logger.LogInformation("Bot ready.");

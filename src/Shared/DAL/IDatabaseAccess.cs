@@ -148,10 +148,12 @@
         /// <param name="userID">The ID of the user who adds the game.</param>
         /// <param name="gameLongName">The long name of the game.</param>
         /// <param name="gameShortName">The short name of the game.</param>
+        /// <param name="primaryGameDiscordRoleID">The optional ID of the primary game role.</param>
         /// <returns>A value tuple containing the success state, and, if the add fails, the error that occured.</returns>
         Task<(bool Success, string Error)> TryAddGame(InternalUserID userID,
                                                       string gameLongName,
-                                                      string gameShortName);
+                                                      string gameShortName,
+                                                      ulong? primaryGameDiscordRoleID);
 
         /// <summary>
         /// Tries to edit the game.

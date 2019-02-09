@@ -37,6 +37,7 @@
         private readonly ICommandRegistry _commandRegistry;
         private readonly IMessageProvider _messageProvider;
         private readonly IGameRoleProvider _gameRoleProvider;
+        private readonly IStaticMessageProvider _staticMessageProvider;
         private readonly IDiscordUserEventHandler _discordUserEventHandler;
         private readonly IUserStore _userStore;
         private readonly DiscordSocketClient _client;
@@ -73,6 +74,7 @@
                              ICommandRegistry commandRegistry,
                              IMessageProvider messageProvider,
                              IGameRoleProvider gameRoleProvider,
+                             IStaticMessageProvider staticMessageProvider,
                              IDiscordUserEventHandler discordUserEventHandler,
                              IUserStore userStore)
         {
@@ -84,9 +86,11 @@
             _commandRegistry = commandRegistry;
             _messageProvider = messageProvider;
             _gameRoleProvider = gameRoleProvider;
+            _staticMessageProvider = staticMessageProvider;
             _discordUserEventHandler = discordUserEventHandler;
             _userStore = userStore;
             _gameRoleProvider.DiscordAccess = this;
+            _staticMessageProvider.DiscordAccess = this;
             _discordUserEventHandler.DiscordAccess = this;
             _commands = new CommandService();
             _client = new DiscordSocketClient();
@@ -479,12 +483,32 @@
         }
 
         Dictionary<DiscordUserID, string> IDiscordAccess.GetUserNames(IEnumerable<DiscordUserID> userIDs) => userIDs.Select(GetGuildUserById).ToDictionary(gu => (DiscordUserID)gu.Id, gu => gu.Username);
-        
-        async Task<bool> IDiscordAccess.TryRevokeGameRole(DiscordUserID userID, AvailableGame game, string className)
+
+        async Task<bool> IDiscordAccess.TryAddPrimaryGameRole(DiscordUserID userID,
+                                                              AvailableGame game)
         {
-            var role = GetRoleByName($"{game.ShortName} - {className}");
             var gu = GetGuildUserById(userID);
-            if (gu.Roles.All(m => m.Id != role.Id))
+            var role = gu.Guild.Roles.Single(m => m.Id == game.PrimaryGameDiscordRoleID);
+            if (gu.Roles.Any(m => m.Id == game.PrimaryGameDiscordRoleID))
+                return false;
+            try
+            {
+                await gu.AddRoleAsync(role).ConfigureAwait(false);
+                return true;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, $"Failed to set primary game role for game '{game.LongName}' for UserID {userID}.");
+                return false;
+            }
+        }
+
+        async Task<bool> IDiscordAccess.TryRevokePrimaryGameRole(DiscordUserID userID,
+                                                                 AvailableGame game)
+        {
+            var gu = GetGuildUserById(userID);
+            var role = gu.Guild.Roles.Single(m => m.Id == game.PrimaryGameDiscordRoleID);
+            if (gu.Roles.All(m => m.Id != game.PrimaryGameDiscordRoleID))
                 return false;
             try
             {
@@ -493,7 +517,7 @@
             }
             catch (Exception e)
             {
-                _logger.LogError(e, $"Failed to revoke game role '{role.Name}' for UserID {userID}.");
+                _logger.LogError(e, $"Failed to remove primary game role for game '{game.LongName}' for UserID {userID}.");
                 return false;
             }
         }
@@ -512,6 +536,24 @@
             catch (Exception e)
             {
                 _logger.LogError(e, $"Failed to set game role '{role.Name}' for UserID {userID}.");
+                return false;
+            }
+        }
+
+        async Task<bool> IDiscordAccess.TryRevokeGameRole(DiscordUserID userID, AvailableGame game, string className)
+        {
+            var role = GetRoleByName($"{game.ShortName} - {className}");
+            var gu = GetGuildUserById(userID);
+            if (gu.Roles.All(m => m.Id != role.Id))
+                return false;
+            try
+            {
+                await gu.RemoveRoleAsync(role).ConfigureAwait(false);
+                return true;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, $"Failed to revoke game role '{role.Name}' for UserID {userID}.");
                 return false;
             }
         }
@@ -622,6 +664,12 @@
             return g.Users.SelectMany(m => m.Roles.Where(x => x.Name == roleName)).Count();
         }
 
+        bool IDiscordAccess.DoesRoleExist(ulong roleID)
+        {
+            var g = GetGuild();
+            return g.Roles.Any(m => m.Id == roleID);
+        }
+
         #endregion
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -660,6 +708,10 @@
                     // Load games only once
                     await _gameRoleProvider.LoadAvailableGames().ConfigureAwait(false);
                 }
+
+                // Ensure that static messages exist
+                await _staticMessageProvider.EnsureStaticMessagesExist().ConfigureAwait(false);
+
             }).ConfigureAwait(false);
 #pragma warning restore CS4014 // Fire & forget
 

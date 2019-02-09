@@ -23,8 +23,8 @@
     <SqlServerVerification>False</SqlServerVerification>
     <IncludeCompositeObjects>True</IncludeCompositeObjects>
     <TargetDatabaseSet>True</TargetDatabaseSet>
-    <DacVersion>1.3.3</DacVersion>
-    <DacDescription>Corrected DiscordRoleID to be DECIMAL(20,0), to take in the ulong ID from Discord</DacDescription>
+    <DacVersion>1.4.0</DacVersion>
+    <DacDescription>Added PrimaryGameDiscordRoleID to table config.Game</DacDescription>
     <DefaultCollation>Latin1_General_CI_AS</DefaultCollation>
     <Recovery>SIMPLE</Recovery>
     <TargetFrameworkProfile />
@@ -84,6 +84,7 @@
     <None Include="Scripts\AddMessage_AocRoleMenu.sql" />
     <None Include="Database_DeploymentScript.publish.xml" />
     <None Include="Scripts\MigrateGameTable_1.2.0_1.3.0.sql" />
+    <None Include="Scripts\AddMessage_GamesRolesMenu.sql" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="Security\hou.sql" />

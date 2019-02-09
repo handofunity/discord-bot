@@ -15,8 +15,9 @@ namespace HoU.GuildBot.DAL.Database.Model
         public string ShortName { get; set; }
         public int ModifiedByUserID { get; set; }
         public DateTime ModifiedAtTimestamp { get; set; }
+        public decimal? PrimaryGameDiscordRoleID { get; set; }
 
-        public User ModifiedByUser { get; set; }
-        public ICollection<GameRole> GameRole { get; set; }
+        public virtual User ModifiedByUser { get; set; }
+        public virtual ICollection<GameRole> GameRole { get; set; }
     }
 }

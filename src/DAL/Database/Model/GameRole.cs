@@ -12,7 +12,7 @@ namespace HoU.GuildBot.DAL.Database.Model
         public int ModifiedByUserID { get; set; }
         public DateTime ModifiedAtTimestamp { get; set; }
 
-        public Game Game { get; set; }
-        public User ModifiedByUser { get; set; }
+        public virtual Game Game { get; set; }
+        public virtual User ModifiedByUser { get; set; }
     }
 }

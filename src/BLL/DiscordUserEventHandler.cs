@@ -148,26 +148,44 @@
 
         async Task IDiscordUserEventHandler.HandleReactionAdded(DiscordChannelID channelID, DiscordUserID userID, ulong messageID, string emoji)
         {
-            // Currently, only reactions in the AshesOfCreationRoleChannelId must be handled
-            if (channelID != _appSettings.AshesOfCreationRoleChannelId)
+            // Channel must be a role channel
+            if (channelID != _appSettings.AshesOfCreationRoleChannelId
+             && channelID != _appSettings.GamesRolesChannelId)
                 return;
 
-            // If the message is the AoC role menu message, forward the data to the game role provider
             if (messageID == _gameRoleProvider.AocGameRoleMenuMessageID)
+                // If the message is the AoC role menu message, forward the data to the game role provider
                 await _gameRoleProvider.SetGameRole(channelID, userID, _gameRoleProvider.Games.Single(m => m.ShortName == "AoC"), emoji)
                                        .ConfigureAwait(false);
+            else if (emoji == Constants.GamesRolesEmojis.Joystick && _gameRoleProvider.GamesRolesMenuMessageIDs.Contains(messageID))
+            {
+                // If the message is one of the games roles menu messages, forward the data to the game role provider
+                var messages = await _discordAccess.GetBotMessagesInChannel(channelID).ConfigureAwait(false);
+                var message = messages.Single(m => m.MessageID == messageID);
+                var game = _gameRoleProvider.Games.Where(m => m.PrimaryGameDiscordRoleID != null).SingleOrDefault(m => message.Content.Contains(m.LongName));
+                if (game != null) await _gameRoleProvider.SetPrimaryGameRole(channelID, userID, game).ConfigureAwait(false);
+            }
         }
 
         async Task IDiscordUserEventHandler.HandleReactionRemoved(DiscordChannelID channelID, DiscordUserID userID, ulong messageID, string emoji)
         {
-            // Currently, only reactions in the AshesOfCreationRoleChannelId must be handled
-            if (channelID != _appSettings.AshesOfCreationRoleChannelId)
+            // Channel must be a role channel
+            if (channelID != _appSettings.AshesOfCreationRoleChannelId
+             && channelID != _appSettings.GamesRolesChannelId)
                 return;
 
-            // If the message is the AoC role menu message, forward the data to the game role provider
             if (messageID == _gameRoleProvider.AocGameRoleMenuMessageID)
+                // If the message is the AoC role menu message, forward the data to the game role provider
                 await _gameRoleProvider.RevokeGameRole(channelID, userID, _gameRoleProvider.Games.Single(m => m.ShortName == "AoC"), emoji)
                                        .ConfigureAwait(false);
+            else if (_gameRoleProvider.GamesRolesMenuMessageIDs.Contains(messageID))
+            {
+                // If the message is one of the games roles menu messages, forward the data to the game role provider
+                var messages = await _discordAccess.GetBotMessagesInChannel(channelID).ConfigureAwait(false);
+                var message = messages.Single(m => m.MessageID == messageID);
+                var game = _gameRoleProvider.Games.Where(m => m.PrimaryGameDiscordRoleID != null).SingleOrDefault(m => message.Content.Contains(m.LongName));
+                if (game != null) await _gameRoleProvider.RevokePrimaryGameRole(channelID, userID, game).ConfigureAwait(false);
+            }
         }
 
         #endregion

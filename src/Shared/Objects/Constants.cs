@@ -27,6 +27,7 @@
             public const string WelcomeChannelMessage03 = "WelcomeChannelMessage_03";
             public const string WelcomeChannelMessage04 = "WelcomeChannelMessage_04";
             public const string AocRoleMenu = "AocRoleMenu";
+            public const string GamesRolesMenu = "GamesRolesMenu";
         }
 
         public static class RoleNames
@@ -45,6 +46,11 @@
             public const string Rogue = "\uD83D\uDC65"; // :busts_in_silhouette:
             public const string Summoner = "\uD83D\uDC23"; // :hatching_chick:
             public const string Tank = "\uD83D\uDEE1"; // :shield:
+        }
+
+        public static class GamesRolesEmojis
+        {
+            public const string Joystick = "\uD83D\uDD79"; // :joystick: 
         }
     }
 }

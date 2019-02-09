@@ -7,6 +7,7 @@
     using JetBrains.Annotations;
     using Shared.BLL;
     using Shared.DAL;
+    using Shared.Enums;
     using Shared.Objects;
     using Shared.StrongTypes;
 
@@ -18,9 +19,10 @@
 
         private readonly IMessageProvider _messageProvider;
         private readonly IGameRoleProvider _gameRoleProvider;
-        private readonly IDiscordAccess _discordAccess;
         private readonly AppSettings _appSettings;
         private readonly bool _provideStaticMessages;
+
+        private IDiscordAccess _discordAccess;
 
         #endregion
 
@@ -30,17 +32,18 @@
         public StaticMessageProvider(IMessageProvider messageProvider,
                                      IGameRoleProvider gameRoleProvider,
                                      IBotInformationProvider botInformationProvider,
-                                     IDiscordAccess discordAccess,
                                      AppSettings appSettings)
         {
             _messageProvider = messageProvider;
             _gameRoleProvider = gameRoleProvider;
-            _discordAccess = discordAccess;
             _appSettings = appSettings;
             _provideStaticMessages = botInformationProvider.GetEnvironmentName() == Constants.RuntimeEnvironment.Production;
 
             if (_provideStaticMessages)
+            {
                 _messageProvider.MessageChanged += MessageProvider_MessageChanged;
+                _gameRoleProvider.GameChanged += GameRoleProvider_GameChanged;
+            }
         }
 
         #endregion
@@ -75,6 +78,20 @@
             expectedChannelMessages[_appSettings.AshesOfCreationRoleChannelId] = (l, EnsureAocRoleMenuReactionsExist);
         }
 
+        private async Task LoadGamesRolesMenuMessages(Dictionary<DiscordChannelID, (List<string> Messages, Func<ulong[], Task> PostCreationCallback)> expectedChannelMessages)
+        {
+            if (!_provideStaticMessages)
+                return;
+
+            var messageTemplate = await _messageProvider.GetMessage(Constants.MessageNames.GamesRolesMenu).ConfigureAwait(false);
+            var l = _gameRoleProvider.Games
+                                     .Where(m => m.PrimaryGameDiscordRoleID != null) // Only those games with a PrimaryGameDiscordRoleID can be used here
+                                     .OrderBy(m => m.LongName)
+                                     .Select(m => string.Format(messageTemplate, m.LongName))
+                                     .ToList();
+            expectedChannelMessages[_appSettings.GamesRolesChannelId] = (l, EnsureGamesRolesMenuReactionsExist);
+        }
+
         private async Task CreateMessagesInChannel(DiscordChannelID channelID, List<string> messages, Func<ulong[], Task> postCreationCallback)
         {
             await _discordAccess.DeleteBotMessagesInChannel(channelID).ConfigureAwait(false);
@@ -106,16 +123,47 @@
             _gameRoleProvider.AocGameRoleMenuMessageID = roleMenuMessageId;
         }
 
+        private async Task EnsureGamesRolesMenuReactionsExist(ulong[] messageIds)
+        {
+            if (messageIds.Length != _gameRoleProvider.Games.Count(m => m.PrimaryGameDiscordRoleID != null))
+                throw new ArgumentException("Unexpected amount of message IDs received.", nameof(messageIds));
+
+            foreach (var messageId in messageIds)
+            {
+                await _discordAccess.AddReactionsToMessage(_appSettings.GamesRolesChannelId, messageId, new[] {Constants.GamesRolesEmojis.Joystick}).ConfigureAwait(false);
+                await Task.Delay(500).ConfigureAwait(false);
+            }
+
+            _gameRoleProvider.GamesRolesMenuMessageIDs = messageIds.ToArray();
+        }
+
+        private void ReCreateGameRoleMenuMessages()
+        {
+            Task.Run(async () =>
+            {
+                var expectedChannelMessages = new Dictionary<DiscordChannelID, (List<string> Messages, Func<ulong[], Task> PostCreationCallback)>();
+                await LoadGamesRolesMenuMessages(expectedChannelMessages).ConfigureAwait(false);
+                var (messages, postCreationCallback) = expectedChannelMessages[_appSettings.GamesRolesChannelId];
+                await CreateMessagesInChannel(_appSettings.GamesRolesChannelId, messages, postCreationCallback).ConfigureAwait(false);
+            }).ConfigureAwait(false);
+        }
+
         #endregion
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region IStaticMessageProvider Members
+
+        IDiscordAccess IStaticMessageProvider.DiscordAccess
+        {
+            set => _discordAccess = value;
+        }
 
         async Task IStaticMessageProvider.EnsureStaticMessagesExist()
         {
             var expectedChannelMessages = new Dictionary<DiscordChannelID, (List<string> Messages, Func<ulong[], Task> PostCreationCallback)>();
             await LoadWelcomeChannelMessages(expectedChannelMessages).ConfigureAwait(false);
             await LoadAocRoleMenuMessages(expectedChannelMessages).ConfigureAwait(false);
+            await LoadGamesRolesMenuMessages(expectedChannelMessages).ConfigureAwait(false);
 
             foreach (var pair in expectedChannelMessages)
             {
@@ -137,6 +185,10 @@
                     if (pair.Key == _appSettings.AshesOfCreationRoleChannelId)
                     {
                         _gameRoleProvider.AocGameRoleMenuMessageID = existingMessages[0].MessageID;
+                    }
+                    else if (pair.Key == _appSettings.GamesRolesChannelId)
+                    {
+                        _gameRoleProvider.GamesRolesMenuMessageIDs = existingMessages.Select(m => m.MessageID).ToArray();
                     }
                 }
             }
@@ -174,6 +226,20 @@
                     var (messages, postCreationCallback) = expectedChannelMessages[_appSettings.AshesOfCreationRoleChannelId];
                     await CreateMessagesInChannel(_appSettings.AshesOfCreationRoleChannelId, messages, postCreationCallback).ConfigureAwait(false);
                 }).ConfigureAwait(false);
+            }
+            else if (e.MessageName == Constants.MessageNames.GamesRolesMenu)
+            {
+                ReCreateGameRoleMenuMessages();
+            }
+        }
+
+        private void GameRoleProvider_GameChanged(object sender, GameChangedEventArgs e)
+        {
+            // Add has never a primary game role ID
+            if (e.GameModification == GameModification.Edited
+             || e.GameModification == GameModification.Removed)
+            {
+                ReCreateGameRoleMenuMessages();
             }
         }
 

@@ -31,6 +31,8 @@ namespace HoU.GuildBot.DAL.Database.Model
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.HasAnnotation("ProductVersion", "2.2.0-rtm-35687");
+
             modelBuilder.Entity<Game>(entity =>
             {
                 entity.ToTable("Game", "config");
@@ -47,6 +49,8 @@ namespace HoU.GuildBot.DAL.Database.Model
                     .IsRequired()
                     .HasMaxLength(512)
                     .IsUnicode(false);
+
+                entity.Property(e => e.PrimaryGameDiscordRoleID).HasColumnType("decimal(20, 0)");
 
                 entity.Property(e => e.ShortName)
                     .IsRequired()
@@ -115,7 +119,8 @@ namespace HoU.GuildBot.DAL.Database.Model
 
             modelBuilder.Entity<UserInfo>(entity =>
             {
-                entity.HasKey(e => e.UserID);
+                entity.HasKey(e => e.UserID)
+                    .HasName("PK_UserInfo_UserID");
 
                 entity.ToTable("UserInfo", "hou");
 

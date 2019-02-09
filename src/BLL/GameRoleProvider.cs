@@ -3,11 +3,13 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Text;
     using System.Threading.Tasks;
     using JetBrains.Annotations;
     using Microsoft.Extensions.Logging;
     using Shared.BLL;
     using Shared.DAL;
+    using Shared.Enums;
     using Shared.Objects;
     using Shared.StrongTypes;
 
@@ -109,12 +111,16 @@
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region IGameRoleProvider Members
 
+        public event EventHandler<GameChangedEventArgs> GameChanged;
+
         IDiscordAccess IGameRoleProvider.DiscordAccess
         {
             set => _discordAccess = value;
         }
 
         ulong IGameRoleProvider.AocGameRoleMenuMessageID { get; set; }
+
+        ulong[] IGameRoleProvider.GamesRolesMenuMessageIDs { get; set; }
 
         public IReadOnlyList<AvailableGame> Games => _games;
 
@@ -124,10 +130,14 @@
 
             foreach (var game in _games.OrderBy(m => m.LongName))
             {
+                var titleSb = new StringBuilder($"Game information for \"{game.LongName}\" ({game.ShortName})");
+                if (game.PrimaryGameDiscordRoleID != null)
+                    titleSb.Append($" Primary role ID: {game.PrimaryGameDiscordRoleID.Value}");
+
                 var ed = new EmbedData
                 {
                     Color = Colors.LightGreen,
-                    Title = $"Game information for \"{game.LongName}\" ({game.ShortName})"
+                    Title = titleSb.ToString() 
                 };
 
                 if (game.AvailableRoles.Count == 0)
@@ -190,6 +200,44 @@
             }
         }
 
+        async Task IGameRoleProvider.SetPrimaryGameRole(DiscordChannelID channelID,
+                                                        DiscordUserID userID,
+                                                        AvailableGame game)
+        {
+            if (!_userStore.TryGetUser(userID, out var user))
+                return;
+            if (!await CanChangeRoles(channelID, user).ConfigureAwait(false))
+                return;
+
+            var added = await _discordAccess.TryAddPrimaryGameRole(userID, game).ConfigureAwait(false);
+            if (added)
+            {
+                var createdMessages = await _discordAccess.CreateBotMessagesInChannel(channelID, new[] { $"{user.Mention}: The primary role for the game _{game.LongName}_ was **added**." }).ConfigureAwait(false);
+                var messageID = createdMessages[0];
+                DeleteMessageAfterDelay(channelID, messageID);
+                await _discordAccess.LogToDiscord($"User {user.Mention} **added** the primary role for the game _{game.LongName}_.").ConfigureAwait(false);
+            }
+        }
+
+        async Task IGameRoleProvider.RevokePrimaryGameRole(DiscordChannelID channelID,
+                                                           DiscordUserID userID,
+                                                           AvailableGame game)
+        {
+            if (!_userStore.TryGetUser(userID, out var user))
+                return;
+            if (!await CanChangeRoles(channelID, user).ConfigureAwait(false))
+                return;
+
+            var revoked = await _discordAccess.TryRevokePrimaryGameRole(userID, game).ConfigureAwait(false);
+            if (revoked)
+            {
+                var createdMessages = await _discordAccess.CreateBotMessagesInChannel(channelID, new[] { $"{user.Mention}: The primary role for the game _{game.LongName}_ was **revoked**." }).ConfigureAwait(false);
+                var messageID = createdMessages[0];
+                DeleteMessageAfterDelay(channelID, messageID);
+                await _discordAccess.LogToDiscord($"User {user.Mention} **removed** the primary role for the game _{game.LongName}_.").ConfigureAwait(false);
+            }
+        }
+
         async Task IGameRoleProvider.LoadAvailableGames()
         {
             _games.Clear();
@@ -214,25 +262,32 @@
 
         async Task<(bool Success, string Message)> IGameRoleProvider.AddGame(InternalUserID userID,
                                                                              string gameLongName,
-                                                                             string gameShortName)
+                                                                             string gameShortName,
+                                                                             ulong? primaryGameDiscordRoleID)
         {
             // Precondition
             if (_games.Any(m => m.LongName == gameLongName))
                 return (false, $"Game with the long name `{gameLongName}` already exists.");
             if (_games.Any(m => m.ShortName == gameShortName))
                 return (false, $"Game with the short name `{gameShortName}` already exists.");
+            if (primaryGameDiscordRoleID != null && !_discordAccess.DoesRoleExist(primaryGameDiscordRoleID.Value))
+                return (false, $"Role with the ID `{primaryGameDiscordRoleID.Value}` doesn't exist.");
 
             // Act
-            var (success, error) = await _databaseAccess.TryAddGame(userID, gameLongName, gameShortName).ConfigureAwait(false);
+            var (success, error) = await _databaseAccess.TryAddGame(userID, gameLongName, gameShortName, primaryGameDiscordRoleID).ConfigureAwait(false);
             if (!success)
                 return (false, $"Failed to add the game: {error}");
 
             // Update cache
-            _games.Add(new AvailableGame
+            var newGame = new AvailableGame
             {
                 LongName = gameLongName,
-                ShortName = gameShortName
-            });
+                ShortName = gameShortName,
+                PrimaryGameDiscordRoleID = primaryGameDiscordRoleID
+            };
+            _games.Add(newGame);
+
+            GameChanged?.Invoke(this, new GameChangedEventArgs(newGame, GameModification.Added));
 
             return (true, "The game was added successfully.");
         }
@@ -270,6 +325,22 @@
                     oldValue = clone.ShortName;
                     clone.ShortName = newValue;
                     break;
+                case nameof(AvailableGame.PrimaryGameDiscordRoleID):
+                    if (newValue == "NULL")
+                    {
+                        oldValue = clone.PrimaryGameDiscordRoleID?.ToString() ?? "<null>";
+                        clone.PrimaryGameDiscordRoleID = null;
+                    }
+                    else
+                    {
+                        if (!ulong.TryParse(newValue, out var newUlongValue))
+                            return (false, "New value cannot be parsed to type ulong.", null);
+                        if (clone.PrimaryGameDiscordRoleID == newUlongValue)
+                            return (false, "New value equals the current value.", null);
+                        oldValue = clone.PrimaryGameDiscordRoleID?.ToString() ?? "<null>";
+                        clone.PrimaryGameDiscordRoleID = newUlongValue;
+                    }
+                    break;
                 default:
                     return (false, $"The property `{property}` is not valid.", null);
             }
@@ -279,6 +350,9 @@
             // Update cache
             cachedGame.LongName = clone.LongName;
             cachedGame.ShortName = clone.ShortName;
+            cachedGame.PrimaryGameDiscordRoleID = clone.PrimaryGameDiscordRoleID;
+
+            GameChanged?.Invoke(this, new GameChangedEventArgs(cachedGame, GameModification.Edited));
 
             return (true, "The game was edited successfully.", oldValue);
         }
@@ -299,6 +373,8 @@
             var cachedGame = _games.SingleOrDefault(m => m.ShortName == gameShortName);
             if (cachedGame != null)
                 _games.Remove(cachedGame);
+
+            GameChanged?.Invoke(this, new GameChangedEventArgs(cachedGame, GameModification.Removed));
 
             return (true, "The game was removed successfully.");
         }
@@ -325,6 +401,8 @@
                 RoleName = roleName
             });
 
+            GameChanged?.Invoke(this, new GameChangedEventArgs(game, GameModification.RoleAdded));
+
             return (true, "The game role was added successfully.");
         }
 
@@ -348,7 +426,7 @@
             // Update cache
             var cachedGameRole = _games.SelectMany(m => m.AvailableRoles).Single(m => m.DiscordRoleID == discordRoleID);
             cachedGameRole.RoleName = newRoleName;
-
+            
             return (true, "The game role was edited successfully.", gameRole.Value.CurrentName);
         }
 
@@ -367,6 +445,8 @@
             var cachedGameRole = _games.SelectMany(m => m.AvailableRoles).Single(m => m.DiscordRoleID == discordRoleID);
             var gameWithCachedRole = _games.Single(m => m.AvailableRoles.Contains(cachedGameRole));
             gameWithCachedRole.AvailableRoles.Remove(cachedGameRole);
+
+            GameChanged?.Invoke(this, new GameChangedEventArgs(gameWithCachedRole, GameModification.RoleRemoved));
 
             return (true, "The game role was removed successfully.", gameRole.Value.CurrentName);
         }

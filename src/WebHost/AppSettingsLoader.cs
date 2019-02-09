@@ -44,6 +44,8 @@
                 throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.WelcomeChannelId)}' must be a correct ID.");
             if (settings.AshesOfCreationRoleChannelId == default(DiscordChannelID))
                 throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.AshesOfCreationRoleChannelId)}' must be a correct ID.");
+            if (settings.GamesRolesChannelId == default(DiscordChannelID))
+                throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.GamesRolesChannelId)}' must be a correct ID.");
             if (settings.DesiredTimeZones.Length == 0)
                 throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.DesiredTimeZones)}' cannot be empty.");
             if (settings.SpamLimits.Length == 0)

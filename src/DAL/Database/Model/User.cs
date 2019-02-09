@@ -15,9 +15,9 @@ namespace HoU.GuildBot.DAL.Database.Model
         public int UserID { get; set; }
         public decimal DiscordUserID { get; set; }
 
-        public UserInfo UserInfo { get; set; }
-        public ICollection<Game> Game { get; set; }
-        public ICollection<GameRole> GameRole { get; set; }
-        public ICollection<Vacation> Vacation { get; set; }
+        public virtual UserInfo UserInfo { get; set; }
+        public virtual ICollection<Game> Game { get; set; }
+        public virtual ICollection<GameRole> GameRole { get; set; }
+        public virtual ICollection<Vacation> Vacation { get; set; }
     }
 }

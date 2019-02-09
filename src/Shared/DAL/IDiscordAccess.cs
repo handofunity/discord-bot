@@ -51,15 +51,22 @@
         /// <param name="userIDs">The user IDs to get the names for.</param>
         /// <returns>A mapping from a userID to a display name.</returns>
         Dictionary<DiscordUserID, string> GetUserNames(IEnumerable<DiscordUserID> userIDs);
-        
+
         /// <summary>
-        /// Revokes the role combined from <paramref name="game"/> and <paramref name="className"/> from the given <paramref name="userID"/>.
+        /// Sets the primary role of the <paramref name="game"/> for the given <paramref name="userID"/>.
         /// </summary>
         /// <param name="userID">The user ID.</param>
         /// <param name="game">The game.</param>
-        /// <param name="className">The <paramref name="game"/> related class name.</param>
-        /// <returns>True, if the role was revoked, otherwise false.</returns>
-        Task<bool> TryRevokeGameRole(DiscordUserID userID, AvailableGame game, string className);
+        /// <returns>True, if the role was added, otherwise false.</returns>
+        Task<bool> TryAddPrimaryGameRole(DiscordUserID userID, AvailableGame game);
+
+        /// <summary>
+        /// Revokes the primary role of the <paramref name="game"/> from the given <paramref name="userID"/>.
+        /// </summary>
+        /// <param name="userID">The user ID.</param>
+        /// <param name="game">The game.</param>
+        /// <returns>True, if the role was added, otherwise false.</returns>
+        Task<bool> TryRevokePrimaryGameRole(DiscordUserID userID, AvailableGame game);
 
         /// <summary>
         /// Sets the role combined from <paramref name="game"/> and <paramref name="className"/> from the given <paramref name="userID"/>.
@@ -69,6 +76,15 @@
         /// <param name="className">The <paramref name="game"/> related class name.</param>
         /// <returns>True, if the role was added, otherwise false.</returns>
         Task<bool> TryAddGameRole(DiscordUserID userID, AvailableGame game, string className);
+
+        /// <summary>
+        /// Revokes the role combined from <paramref name="game"/> and <paramref name="className"/> from the given <paramref name="userID"/>.
+        /// </summary>
+        /// <param name="userID">The user ID.</param>
+        /// <param name="game">The game.</param>
+        /// <param name="className">The <paramref name="game"/> related class name.</param>
+        /// <returns>True, if the role was revoked, otherwise false.</returns>
+        Task<bool> TryRevokeGameRole(DiscordUserID userID, AvailableGame game, string className);
 
         /// <summary>
         /// Checks if the bot can manage roles for a specific <paramref name="userID"/>, depending on the guilds role configuration.
@@ -137,5 +153,12 @@
         /// <param name="roleName">The name of the role to count.</param>
         /// <returns>The amount of people having the <paramref name="roleName"/>.</returns>
         int CountMembersWithRole(string roleName);
+
+        /// <summary>
+        /// Checks if the given <paramref name="roleID"/> exists.
+        /// </summary>
+        /// <param name="roleID">The ID of the role to check.</param>
+        /// <returns><b>True</b>, if the role exists, otherwise false.</returns>
+        bool DoesRoleExist(ulong roleID);
     }
 }

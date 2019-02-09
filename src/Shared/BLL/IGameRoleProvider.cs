@@ -1,5 +1,6 @@
 ﻿namespace HoU.GuildBot.Shared.BLL
 {
+    using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using DAL;
@@ -8,9 +9,13 @@
 
     public interface IGameRoleProvider
     {
+        event EventHandler<GameChangedEventArgs> GameChanged;
+
         IDiscordAccess DiscordAccess { set; }
 
         ulong AocGameRoleMenuMessageID { get; set; }
+
+        ulong[] GamesRolesMenuMessageIDs { get; set; }
 
         IReadOnlyList<AvailableGame> Games { get; }
 
@@ -20,13 +25,22 @@
 
         Task RevokeGameRole(DiscordChannelID channelID, DiscordUserID userID, AvailableGame game, string emoji);
 
+        Task SetPrimaryGameRole(DiscordChannelID channelID,
+                                DiscordUserID userID,
+                                AvailableGame game);
+
+        Task RevokePrimaryGameRole(DiscordChannelID channelID,
+                                   DiscordUserID userID,
+                                   AvailableGame game);
+
         Task LoadAvailableGames();
 
         (int GameMembers, Dictionary<string, int> RoleDistribution) GetGameRoleDistribution(AvailableGame game);
 
         Task<(bool Success, string Message)> AddGame(InternalUserID userID,
                                                      string gameLongName,
-                                                     string gameShortName);
+                                                     string gameShortName,
+                                                     ulong? primaryGameDiscordRoleID);
 
         Task<(bool Success, string Message, string OldValue)> EditGame(InternalUserID userID,
                                                                        string gameShortName,
