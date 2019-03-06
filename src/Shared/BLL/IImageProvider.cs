@@ -2,7 +2,7 @@
 {
     using System.IO;
 
-    public interface IStatisticImageProvider
+    public interface IImageProvider
     {
         Stream CreateAocRolesImage();
     }

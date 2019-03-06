@@ -11,7 +11,7 @@
     using Shared.BLL;
 
     [UsedImplicitly]
-    public class StatisticImageProvider : IStatisticImageProvider
+    public class ImageProvider : IImageProvider
     {
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region Fields
@@ -23,7 +23,7 @@
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region Constructors
 
-        public StatisticImageProvider(IGameRoleProvider gameRoleProvider)
+        public ImageProvider(IGameRoleProvider gameRoleProvider)
         {
             _gameRoleProvider = gameRoleProvider;
         }
@@ -31,9 +31,9 @@
         #endregion
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
-        #region IStatisticImageProvider Members
+        #region IImageProvider Members
 
-        Stream IStatisticImageProvider.CreateAocRolesImage()
+        Stream IImageProvider.CreateAocRolesImage()
         {
             const int imageHeight = 600;
             const int imageWidth = 1000;
@@ -53,7 +53,7 @@
             var distribution = _gameRoleProvider.GetGameRoleDistribution(game);
 
             // Load guild logo
-            var assembly = typeof(StatisticImageProvider).Assembly;
+            var assembly = typeof(ImageProvider).Assembly;
             var guildLogoResourceName = assembly.GetManifestResourceNames().Single(m => m.EndsWith("GuildLogo.png"));
             Image guildLogo;
             using (var guildLogoStream = assembly.GetManifestResourceStream(guildLogoResourceName))

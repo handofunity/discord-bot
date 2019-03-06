@@ -16,7 +16,7 @@
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region Fields
 
-        private readonly IStatisticImageProvider _statisticImageProvider;
+        private readonly IImageProvider _imageProvider;
         private readonly ILogger<StatisticImageRequestModule> _logger;
 
         #endregion
@@ -24,10 +24,10 @@
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region Constructors
 
-        public StatisticImageRequestModule(IStatisticImageProvider statisticImageProvider,
+        public StatisticImageRequestModule(IImageProvider imageProvider,
                                            ILogger<StatisticImageRequestModule> logger)
         {
-            _statisticImageProvider = statisticImageProvider;
+            _imageProvider = imageProvider;
             _logger = logger;
         }
 
@@ -57,7 +57,7 @@
                 {
                     using (channel.EnterTypingState())
                     {
-                        using (var imageStream = _statisticImageProvider.CreateAocRolesImage())
+                        using (var imageStream = _imageProvider.CreateAocRolesImage())
                         {
                             await channel.SendFileAsync(imageStream, "currentAocRoles.png").ConfigureAwait(false);
                         }
