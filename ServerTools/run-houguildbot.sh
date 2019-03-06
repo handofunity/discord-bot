@@ -5,4 +5,5 @@ docker run -d \
   --name houguildbot \
   --restart unless-stopped \
   -v /var/log/hand-of-unity/guild-bot:/app/logs \
+  -v /usr/share/fonts/:/usr/share/fonts/external/ \
   $REGISTRY_HOST:$REGISTRY_EXTERNAL_PORT/houguildbotwebhost:latest
