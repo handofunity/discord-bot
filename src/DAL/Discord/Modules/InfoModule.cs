@@ -1,6 +1,7 @@
 ﻿namespace HoU.GuildBot.DAL.Discord.Modules
 {
     using System;
+    using System.Collections.Generic;
     using System.Text;
     using System.Threading.Tasks;
     using global::Discord.Commands;
@@ -9,6 +10,7 @@
     using Shared.Attributes;
     using Shared.BLL;
     using Shared.Enums;
+    using Shared.Extensions;
 
     [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
     public class InfoModule : ModuleBaseHoU
@@ -70,6 +72,32 @@
                 markdownBuilder.AppendLine(s);
             markdownBuilder.AppendLine("```");
             await ReplyAsync(markdownBuilder.ToString()).ConfigureAwait(false);
+        }
+
+        [Command("fonts")]
+        [CommandCategory(CommandCategory.Administration, 13)]
+        [Name("List available fonts")]
+        [Summary("Lists all available fonts.")]
+        [Alias("listfonts", "list fonts")]
+        [RequireContext(ContextType.Guild)]
+        [ResponseContext(ResponseType.AlwaysSameChannel)]
+        [RolePrecondition(Role.Developer)]
+        public async Task FontsAsync()
+        {
+            var fonts = _botInformationProvider.GetAvailableFonts();
+            var messages = new List<string>();
+            foreach (var kvp in fonts)
+            {
+                var markdownBuilder = new StringBuilder()
+                                     .AppendLine("```md")
+                                     .AppendLine($"Available Fonts ({kvp.Key + 1}/{fonts.Keys.Count})")
+                                     .AppendLine("===============");
+                foreach (var f in kvp.Value)
+                    markdownBuilder.AppendLine(f);
+                markdownBuilder.AppendLine("```");
+                messages.Add(markdownBuilder.ToString());
+            }
+            await messages.PerformBulkOperation(async s => await ReplyAsync(s).ConfigureAwait(false)).ConfigureAwait(false);
         }
 
         #endregion
