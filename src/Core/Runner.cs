@@ -2,6 +2,7 @@
 {
     using System;
     using BLL;
+    using DAL;
     using DAL.Database;
     using DAL.Discord;
     using Microsoft.Extensions.Configuration;
@@ -15,7 +16,7 @@
 
     public class Runner
     {
-        private static readonly Version BotVersion = new Version(2, 4, 0);
+        private static readonly Version BotVersion = new Version(2, 5, 0);
 
         private ILogger<Runner> _logger;
 
@@ -72,7 +73,7 @@
                .AddTransient<IVacationProvider, VacationProvider>()
                .AddTransient<IGuildInfoProvider, GuildInfoProvider>()
                .AddTransient<IUserInfoProvider, UserInfoProvider>()
-               .AddTransient<IStatisticImageProvider, StatisticImageProvider>()
+               .AddTransient<IImageProvider, ImageProvider>()
                .AddTransient<ITimeInformationProvider, TimeInformationProvider>();
         }
 
@@ -80,6 +81,7 @@
         {
             serviceCollection.AddSingleton<IDatabaseAccess, DatabaseAccess>();
             serviceCollection.AddSingleton<IDiscordAccess, DiscordAccess>();
+            serviceCollection.AddSingleton<IWebAccess, WebAccess>();
         }
 
         private static void RegisterLogging(IServiceCollection serviceCollection, IConfiguration loggingConfiguration, string environment)

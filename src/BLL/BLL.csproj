@@ -8,10 +8,21 @@
 
   <ItemGroup>
     <None Remove="Resources\GuildLogo.png" />
+    <None Remove="Resources\UnitsProfileBadge_HighPoints.png" />
+    <None Remove="Resources\UnitsProfileBadge_LowPoints.png" />
+    <None Remove="Resources\UnitsProfileBadge_MediumPoints.png" />
+    <None Remove="Resources\UnitsProfileBadge_TopTenPoints.png" />
+    <None Remove="Resources\UnitsProfileNameplate.png" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Resources\GuildLogo.png" />
+    <EmbeddedResource Include="Resources\UnitsProfileBackground.png" />
+    <EmbeddedResource Include="Resources\UnitsProfileBadge_HighPoints.png" />
+    <EmbeddedResource Include="Resources\UnitsProfileBadge_LowPoints.png" />
+    <EmbeddedResource Include="Resources\UnitsProfileBadge_MediumPoints.png" />
+    <EmbeddedResource Include="Resources\UnitsProfileBadge_TopTenPoints.png" />
+    <EmbeddedResource Include="Resources\UnitsProfileNameplate.png" />
   </ItemGroup>
 
   <ItemGroup>

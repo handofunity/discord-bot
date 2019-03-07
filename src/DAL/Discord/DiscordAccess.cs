@@ -670,6 +670,12 @@
             return g.Roles.Any(m => m.Id == roleID);
         }
 
+        string IDiscordAccess.GetCurrentDisplayName(DiscordUserID userID)
+        {
+            var gu = GetGuildUserById(userID);
+            return string.IsNullOrWhiteSpace(gu.Nickname) ? gu.Username : gu.Nickname;
+        }
+
         #endregion
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -160,5 +160,12 @@
         /// <param name="roleID">The ID of the role to check.</param>
         /// <returns><b>True</b>, if the role exists, otherwise false.</returns>
         bool DoesRoleExist(ulong roleID);
+
+        /// <summary>
+        /// Gets the current display name for the <paramref name="userID"/>.
+        /// </summary>
+        /// <param name="userID">The ID of the user to get the current display name for.</param>
+        /// <returns>The nickname, if it's set, otherwise the username.</returns>
+        string GetCurrentDisplayName(DiscordUserID userID);
     }
 }
