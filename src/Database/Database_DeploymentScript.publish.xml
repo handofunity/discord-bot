@@ -4,7 +4,9 @@
     <IncludeCompositeObjects>True</IncludeCompositeObjects>
     <TargetDatabaseName>Database</TargetDatabaseName>
     <DeployScriptFileName>Database.sql</DeployScriptFileName>
-    <BlockOnPossibleDataLoss>True</BlockOnPossibleDataLoss>
+    <BlockOnPossibleDataLoss>False</BlockOnPossibleDataLoss>
     <ProfileVersionNumber>1</ProfileVersionNumber>
+    <ScriptDatabaseOptions>False</ScriptDatabaseOptions>
+    <DisableAndReenableDdlTriggers>False</DisableAndReenableDdlTriggers>
   </PropertyGroup>
 </Project>

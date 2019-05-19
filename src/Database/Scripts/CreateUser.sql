@@ -3,7 +3,12 @@
     RAISERROR ('Login ''hou-guildbot'' is missing.', 16, 1)
 	RETURN;
 END
+GO
 
-IF NOT EXISTS(SELECT principal_id FROM [sys].[database_principals] WHERE name = 'hou-guildbot') BEGIN
-    CREATE USER [hou-guildbot] FOR LOGIN [hou-guildbot]
+IF EXISTS(SELECT principal_id FROM [sys].[database_principals] WHERE name = 'hou-guildbot') BEGIN
+	DROP USER [hou-guildbot];
 END
+GO
+
+CREATE USER [hou-guildbot] FOR LOGIN [hou-guildbot];
+GO

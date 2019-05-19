@@ -32,5 +32,8 @@ GO
 -- 1.3.0
 :r .\Scripts\MigrateGameTable_1.2.0_1.3.0.sql
 GO
+-- 1.5.0:
+:r .\Scripts\FillGameTable_IncludeInGuildMembersStatisticColumn.sql
+GO
 -- x.y.z:
 */
