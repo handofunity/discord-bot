@@ -341,6 +341,14 @@
                         clone.PrimaryGameDiscordRoleID = newUlongValue;
                     }
                     break;
+                case nameof(AvailableGame.IncludeInGuildMembersStatistic):
+                    if (!bool.TryParse(newValue, out var newBoolValue))
+                        return (false, "New value cannot be parsed to type bool.", null);
+                    if (clone.IncludeInGuildMembersStatistic == newBoolValue)
+                        return (false, "New value equals the current value.", null);
+                    oldValue = clone.IncludeInGuildMembersStatistic.ToString();
+                    clone.IncludeInGuildMembersStatistic = newBoolValue;
+                    break;
                 default:
                     return (false, $"The property `{property}` is not valid.", null);
             }
@@ -351,6 +359,7 @@
             cachedGame.LongName = clone.LongName;
             cachedGame.ShortName = clone.ShortName;
             cachedGame.PrimaryGameDiscordRoleID = clone.PrimaryGameDiscordRoleID;
+            cachedGame.IncludeInGuildMembersStatistic = clone.IncludeInGuildMembersStatistic;
 
             GameChanged?.Invoke(this, new GameChangedEventArgs(cachedGame, GameModification.Edited));
 

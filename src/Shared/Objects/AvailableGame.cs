@@ -10,6 +10,8 @@
 
         public ulong? PrimaryGameDiscordRoleID { get; set; }
 
+        public bool IncludeInGuildMembersStatistic { get; set; }
+
         public List<AvailableGameRole> AvailableRoles { get; }
 
         public AvailableGame()
@@ -23,7 +25,8 @@
             {
                 LongName = LongName,
                 ShortName = ShortName,
-                PrimaryGameDiscordRoleID = PrimaryGameDiscordRoleID
+                PrimaryGameDiscordRoleID = PrimaryGameDiscordRoleID,
+                IncludeInGuildMembersStatistic = IncludeInGuildMembersStatistic
             };
 
             foreach (var role in AvailableRoles)

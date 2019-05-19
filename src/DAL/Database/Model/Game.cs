@@ -16,6 +16,7 @@ namespace HoU.GuildBot.DAL.Database.Model
         public int ModifiedByUserID { get; set; }
         public DateTime ModifiedAtTimestamp { get; set; }
         public decimal? PrimaryGameDiscordRoleID { get; set; }
+        public bool IncludeInGuildMembersStatistic { get; set; }
 
         public virtual User ModifiedByUser { get; set; }
         public virtual ICollection<GameRole> GameRole { get; set; }

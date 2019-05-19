@@ -664,6 +664,14 @@
             return g.Users.SelectMany(m => m.Roles.Where(x => x.Name == roleName)).Count();
         }
 
+        int IDiscordAccess.CountGuildMembersWithRole(ulong roleID)
+        {
+            var g = GetGuild();
+            return g.Users
+                    .Where(m => _userStore.TryGetUser((DiscordUserID)m.Id, out var user) && user.IsGuildMember)
+                    .SelectMany(m => m.Roles.Where(x => x.Id == roleID)).Count();
+        }
+
         bool IDiscordAccess.DoesRoleExist(ulong roleID)
         {
             var g = GetGuild();

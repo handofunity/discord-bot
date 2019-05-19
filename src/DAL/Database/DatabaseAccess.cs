@@ -268,7 +268,8 @@
                     {
                         LongName = m.LongName,
                         ShortName = m.ShortName,
-                        PrimaryGameDiscordRoleID = m.PrimaryGameDiscordRoleID == null ? null : (ulong?)m.PrimaryGameDiscordRoleID
+                        PrimaryGameDiscordRoleID = m.PrimaryGameDiscordRoleID == null ? null : (ulong?)m.PrimaryGameDiscordRoleID,
+                        IncludeInGuildMembersStatistic = m.IncludeInGuildMembersStatistic
                     };
                     g.AvailableRoles.AddRange(m.GameRole.Select(n => new AvailableGameRole
                     {
@@ -397,6 +398,7 @@
                     matchingGame.LongName = updated.LongName;
                     matchingGame.ShortName = updated.ShortName;
                     matchingGame.PrimaryGameDiscordRoleID = updated.PrimaryGameDiscordRoleID;
+                    matchingGame.IncludeInGuildMembersStatistic = updated.IncludeInGuildMembersStatistic;
                     matchingGame.ModifiedByUserID = (int) userID;
                     matchingGame.ModifiedAtTimestamp = DateTime.UtcNow;
 

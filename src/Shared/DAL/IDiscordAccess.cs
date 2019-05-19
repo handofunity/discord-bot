@@ -155,6 +155,13 @@
         int CountMembersWithRole(string roleName);
 
         /// <summary>
+        /// Counts the guild members having the <paramref name="roleID"/>.
+        /// </summary>
+        /// <param name="roleID">The ID of the role to count.</param>
+        /// <returns>The amount of guild members having the <paramref name="roleID"/>.</returns>
+        int CountGuildMembersWithRole(ulong roleID);
+
+        /// <summary>
         /// Checks if the given <paramref name="roleID"/> exists.
         /// </summary>
         /// <param name="roleID">The ID of the role to check.</param>
