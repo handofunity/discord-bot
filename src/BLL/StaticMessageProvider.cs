@@ -37,7 +37,12 @@
             _messageProvider = messageProvider;
             _gameRoleProvider = gameRoleProvider;
             _appSettings = appSettings;
+#if DEBUG
             _provideStaticMessages = botInformationProvider.GetEnvironmentName() == Constants.RuntimeEnvironment.Production;
+#else
+            // Don't change this statement, or the bot might not behave the way it should in the production environment.
+            _provideStaticMessages = botInformationProvider.GetEnvironmentName() == Constants.RuntimeEnvironment.Production;
+#endif
 
             if (_provideStaticMessages)
             {
@@ -46,10 +51,10 @@
             }
         }
 
-        #endregion
+#endregion
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
-        #region Private Methods
+#region Private Methods
 
         private async Task LoadWelcomeChannelMessages(Dictionary<DiscordChannelID, (List<string> Messages, Func<ulong[], Task> PostCreationCallback)> expectedChannelMessages)
         {
@@ -183,10 +188,10 @@
             }).ConfigureAwait(false);
         }
 
-        #endregion
+#endregion
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
-        #region IStaticMessageProvider Members
+#region IStaticMessageProvider Members
 
         IDiscordAccess IStaticMessageProvider.DiscordAccess
         {
@@ -234,10 +239,10 @@
             }
         }
 
-        #endregion
+#endregion
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
-        #region Event Handler
+#region Event Handler
 
         private void MessageProvider_MessageChanged(object sender, MessageChangedEventArgs e)
         {
@@ -293,6 +298,6 @@
             }
         }
 
-        #endregion
+#endregion
     }
 }
