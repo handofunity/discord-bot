@@ -27,6 +27,7 @@
             public const string WelcomeChannelMessage03 = "WelcomeChannelMessage_03";
             public const string WelcomeChannelMessage04 = "WelcomeChannelMessage_04";
             public const string AocRoleMenu = "AocRoleMenu";
+            public const string WowRoleMenu = "WowRoleMenu";
             public const string GamesRolesMenu = "GamesRolesMenu";
         }
 
@@ -34,6 +35,12 @@
         {
             public const string LeaderRoleName = "Leader";
             public const string OfficerRoleName = "Officer";
+        }
+
+        public static class RoleMenuGameShortNames
+        {
+            public const string AshesOfCreation = "AoC";
+            public const string WorldOfWarcraftClassic = "WC";
         }
 
         public static class AocRoleEmojis
@@ -46,6 +53,18 @@
             public const string Rogue = "\uD83D\uDC65"; // :busts_in_silhouette:
             public const string Summoner = "\uD83D\uDC23"; // :hatching_chick:
             public const string Tank = "\uD83D\uDEE1"; // :shield:
+        }
+
+        public static class WowRoleEmojis
+        {
+            public const string Druid = "\uD83C\uDF33"; // :deciduous_tree:
+            public const string Hunter = "\uD83C\uDFF9"; // :bow_and_arrow:
+            public const string Mage = "\uD83C\uDF86"; // :fireworks:
+            public const string Paladin = "\u2733"; // :eight_spoked_asterisk: 
+            public const string Priest = "\uD83C\uDFE5"; // :hospital:
+            public const string Rogue = "\uD83D\uDC65"; // :busts_in_silhouette:
+            public const string Warlock = "\uD83D\uDD73"; // :hole:
+            public const string Warrior = "\uD83D\uDEE1"; // :shield:
         }
 
         public static class GamesRolesEmojis

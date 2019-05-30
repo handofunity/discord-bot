@@ -92,7 +92,7 @@
             const int infoTextMargin = 5;
 
             // Collect data
-            var game = _gameRoleProvider.Games.Single(m => m.ShortName == "AoC");
+            var game = _gameRoleProvider.Games.Single(m => m.ShortName == Constants.RoleMenuGameShortNames.AshesOfCreation);
             var distribution = _gameRoleProvider.GetGameRoleDistribution(game);
 
             // Load guild logo

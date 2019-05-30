@@ -81,7 +81,7 @@
 #pragma warning restore CS4014 // Fire & Forget
         }
 
-        private static string EmojiToClassName(string emoji)
+        private static string AocEmojiToClassName(string emoji)
         {
             switch (emoji)
             {
@@ -106,6 +106,31 @@
             }
         }
 
+        private static string WowEmojiToClassName(string emoji)
+        {
+            switch (emoji)
+            {
+                case Constants.WowRoleEmojis.Druid:
+                    return nameof(Constants.WowRoleEmojis.Druid);
+                case Constants.WowRoleEmojis.Hunter:
+                    return nameof(Constants.WowRoleEmojis.Hunter);
+                case Constants.WowRoleEmojis.Mage:
+                    return nameof(Constants.WowRoleEmojis.Mage);
+                case Constants.WowRoleEmojis.Paladin:
+                    return nameof(Constants.WowRoleEmojis.Paladin);
+                case Constants.WowRoleEmojis.Priest:
+                    return nameof(Constants.WowRoleEmojis.Priest);
+                case Constants.WowRoleEmojis.Rogue:
+                    return nameof(Constants.WowRoleEmojis.Rogue);
+                case Constants.WowRoleEmojis.Warlock:
+                    return nameof(Constants.WowRoleEmojis.Warlock);
+                case Constants.WowRoleEmojis.Warrior:
+                    return nameof(Constants.WowRoleEmojis.Warrior);
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(emoji), $"Emoji '{emoji}' is unknown.");
+            }
+        }
+
         #endregion
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -119,6 +144,8 @@
         }
 
         ulong IGameRoleProvider.AocGameRoleMenuMessageID { get; set; }
+
+        ulong IGameRoleProvider.WowGameRoleMenuMessageID { get; set; }
 
         ulong[] IGameRoleProvider.GamesRolesMenuMessageIDs { get; set; }
 
@@ -166,7 +193,18 @@
             if (!await CanChangeRoles(channelID, user).ConfigureAwait(false))
                 return;
 
-            var className = EmojiToClassName(emoji);
+            string className;
+            switch (game.ShortName)
+            {
+                case Constants.RoleMenuGameShortNames.AshesOfCreation:
+                    className = AocEmojiToClassName(emoji);
+                    break;
+                case Constants.RoleMenuGameShortNames.WorldOfWarcraftClassic:
+                    className = WowEmojiToClassName(emoji);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(game), $"Game '{game.ShortName}' ist not valid for '{nameof(IGameRoleProvider.SetGameRole)}'.");
+            }
             if (!await IsValidClassName(channelID, user, game, className))
                 return;
 
@@ -187,7 +225,18 @@
             if (!await CanChangeRoles(channelID, user).ConfigureAwait(false))
                 return;
 
-            var className = EmojiToClassName(emoji);
+            string className;
+            switch (game.ShortName)
+            {
+                case Constants.RoleMenuGameShortNames.AshesOfCreation:
+                    className = AocEmojiToClassName(emoji);
+                    break;
+                case Constants.RoleMenuGameShortNames.WorldOfWarcraftClassic:
+                    className = WowEmojiToClassName(emoji);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(game), $"Game '{game.ShortName}' ist not valid for '{nameof(IGameRoleProvider.SetGameRole)}'.");
+            }
             if (!await IsValidClassName(channelID, user, game, className))
                 return;
 

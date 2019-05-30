@@ -15,6 +15,8 @@
 
         ulong AocGameRoleMenuMessageID { get; set; }
 
+        ulong WowGameRoleMenuMessageID { get; set; }
+
         ulong[] GamesRolesMenuMessageIDs { get; set; }
 
         IReadOnlyList<AvailableGame> Games { get; }

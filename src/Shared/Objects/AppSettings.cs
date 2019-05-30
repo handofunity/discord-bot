@@ -76,6 +76,21 @@
         }
 
         /// <summary>
+        /// Gets the Discord ID of the channel that is used for the 'World of Warcraft' role feature.
+        /// </summary>
+        public DiscordChannelID WorldOfWarcraftRoleChannelId { get; private set; }
+
+        /// <summary>
+        /// Property to bind the value of <see cref="WorldOfWarcraftRoleChannelId"/> from the app settings.
+        /// </summary>
+        // ReSharper disable once UnusedMember.Local
+        private ulong WorldOfWarcraftRoleChannelIdValue
+        {
+            get => (ulong)WorldOfWarcraftRoleChannelId;
+            set => WorldOfWarcraftRoleChannelId = (DiscordChannelID)value;
+        }
+
+        /// <summary>
         /// Gets the Discord ID of the channel that is used for the 'Games' role feature.
         /// </summary>
         public DiscordChannelID GamesRolesChannelId { get; private set; }

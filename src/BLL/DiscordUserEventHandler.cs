@@ -150,12 +150,17 @@
         {
             // Channel must be a role channel
             if (channelID != _appSettings.AshesOfCreationRoleChannelId
-             && channelID != _appSettings.GamesRolesChannelId)
+                && channelID != _appSettings.WorldOfWarcraftRoleChannelId
+                && channelID != _appSettings.GamesRolesChannelId)
                 return;
 
             if (messageID == _gameRoleProvider.AocGameRoleMenuMessageID)
                 // If the message is the AoC role menu message, forward the data to the game role provider
-                await _gameRoleProvider.SetGameRole(channelID, userID, _gameRoleProvider.Games.Single(m => m.ShortName == "AoC"), emoji)
+                await _gameRoleProvider.SetGameRole(channelID, userID, _gameRoleProvider.Games.Single(m => m.ShortName == Constants.RoleMenuGameShortNames.AshesOfCreation), emoji)
+                                       .ConfigureAwait(false);
+            else if (messageID == _gameRoleProvider.WowGameRoleMenuMessageID)
+                // If the message is the WoW role menu message, forward the data to the game role provider
+                await _gameRoleProvider.SetGameRole(channelID, userID, _gameRoleProvider.Games.Single(m => m.ShortName == Constants.RoleMenuGameShortNames.WorldOfWarcraftClassic), emoji)
                                        .ConfigureAwait(false);
             else if (emoji == Constants.GamesRolesEmojis.Joystick && _gameRoleProvider.GamesRolesMenuMessageIDs.Contains(messageID))
             {
@@ -171,12 +176,17 @@
         {
             // Channel must be a role channel
             if (channelID != _appSettings.AshesOfCreationRoleChannelId
-             && channelID != _appSettings.GamesRolesChannelId)
+                && channelID != _appSettings.WorldOfWarcraftRoleChannelId
+                && channelID != _appSettings.GamesRolesChannelId)
                 return;
 
             if (messageID == _gameRoleProvider.AocGameRoleMenuMessageID)
                 // If the message is the AoC role menu message, forward the data to the game role provider
-                await _gameRoleProvider.RevokeGameRole(channelID, userID, _gameRoleProvider.Games.Single(m => m.ShortName == "AoC"), emoji)
+                await _gameRoleProvider.RevokeGameRole(channelID, userID, _gameRoleProvider.Games.Single(m => m.ShortName == Constants.RoleMenuGameShortNames.AshesOfCreation), emoji)
+                                       .ConfigureAwait(false);
+            else if (messageID == _gameRoleProvider.WowGameRoleMenuMessageID)
+                // If the message is the WoW role menu message, forward the data to the game role provider
+                await _gameRoleProvider.RevokeGameRole(channelID, userID, _gameRoleProvider.Games.Single(m => m.ShortName == Constants.RoleMenuGameShortNames.WorldOfWarcraftClassic), emoji)
                                        .ConfigureAwait(false);
             else if (_gameRoleProvider.GamesRolesMenuMessageIDs.Contains(messageID))
             {

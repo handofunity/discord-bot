@@ -37,7 +37,7 @@
             _messageProvider = messageProvider;
             _gameRoleProvider = gameRoleProvider;
             _appSettings = appSettings;
-            _provideStaticMessages = botInformationProvider.GetEnvironmentName() == Constants.RuntimeEnvironment.Production;
+            _provideStaticMessages = botInformationProvider.GetEnvironmentName() != Constants.RuntimeEnvironment.Production;
 
             if (_provideStaticMessages)
             {
@@ -76,6 +76,18 @@
                 await _messageProvider.GetMessage(Constants.MessageNames.AocRoleMenu).ConfigureAwait(false)
             };
             expectedChannelMessages[_appSettings.AshesOfCreationRoleChannelId] = (l, EnsureAocRoleMenuReactionsExist);
+        }
+
+        private async Task LoadWowRoleMenuMessages(Dictionary<DiscordChannelID, (List<string> Messages, Func<ulong[], Task> PostCreationCallback)> expectedChannelMessages)
+        {
+            if (!_provideStaticMessages)
+                return;
+
+            var l = new List<string>
+            {
+                await _messageProvider.GetMessage(Constants.MessageNames.WowRoleMenu).ConfigureAwait(false)
+            };
+            expectedChannelMessages[_appSettings.WorldOfWarcraftRoleChannelId] = (l, EnsureWowRoleMenuReactionsExist);
         }
 
         private async Task LoadGamesRolesMenuMessages(Dictionary<DiscordChannelID, (List<string> Messages, Func<ulong[], Task> PostCreationCallback)> expectedChannelMessages)
@@ -123,6 +135,29 @@
             _gameRoleProvider.AocGameRoleMenuMessageID = roleMenuMessageId;
         }
 
+        private async Task EnsureWowRoleMenuReactionsExist(ulong[] messageIds)
+        {
+            if (messageIds.Length != 1)
+                throw new ArgumentException("Unexpected amount of message IDs received.", nameof(messageIds));
+
+            var roleMenuMessageId = messageIds[0];
+            await _discordAccess.AddReactionsToMessage(_appSettings.WorldOfWarcraftRoleChannelId,
+                                                       roleMenuMessageId,
+                                                       new[]
+                                                       {
+                                                           Constants.WowRoleEmojis.Druid,
+                                                           Constants.WowRoleEmojis.Hunter,
+                                                           Constants.WowRoleEmojis.Mage,
+                                                           Constants.WowRoleEmojis.Paladin,
+                                                           Constants.WowRoleEmojis.Priest,
+                                                           Constants.WowRoleEmojis.Rogue,
+                                                           Constants.WowRoleEmojis.Warlock,
+                                                           Constants.WowRoleEmojis.Warrior
+                                                       }).ConfigureAwait(false);
+
+            _gameRoleProvider.WowGameRoleMenuMessageID = roleMenuMessageId;
+        }
+
         private async Task EnsureGamesRolesMenuReactionsExist(ulong[] messageIds)
         {
             if (messageIds.Length != _gameRoleProvider.Games.Count(m => m.PrimaryGameDiscordRoleID != null))
@@ -163,6 +198,7 @@
             var expectedChannelMessages = new Dictionary<DiscordChannelID, (List<string> Messages, Func<ulong[], Task> PostCreationCallback)>();
             await LoadWelcomeChannelMessages(expectedChannelMessages).ConfigureAwait(false);
             await LoadAocRoleMenuMessages(expectedChannelMessages).ConfigureAwait(false);
+            await LoadWowRoleMenuMessages(expectedChannelMessages).ConfigureAwait(false);
             await LoadGamesRolesMenuMessages(expectedChannelMessages).ConfigureAwait(false);
 
             foreach (var pair in expectedChannelMessages)
@@ -185,6 +221,10 @@
                     if (pair.Key == _appSettings.AshesOfCreationRoleChannelId)
                     {
                         _gameRoleProvider.AocGameRoleMenuMessageID = existingMessages[0].MessageID;
+                    }
+                    else if (pair.Key == _appSettings.WorldOfWarcraftRoleChannelId)
+                    {
+                        _gameRoleProvider.WowGameRoleMenuMessageID = existingMessages[0].MessageID;
                     }
                     else if (pair.Key == _appSettings.GamesRolesChannelId)
                     {
@@ -225,6 +265,16 @@
                     await LoadAocRoleMenuMessages(expectedChannelMessages).ConfigureAwait(false);
                     var (messages, postCreationCallback) = expectedChannelMessages[_appSettings.AshesOfCreationRoleChannelId];
                     await CreateMessagesInChannel(_appSettings.AshesOfCreationRoleChannelId, messages, postCreationCallback).ConfigureAwait(false);
+                }).ConfigureAwait(false);
+            }
+            else if (e.MessageName == Constants.MessageNames.WowRoleMenu)
+            {
+                Task.Run(async () =>
+                {
+                    var expectedChannelMessages = new Dictionary<DiscordChannelID, (List<string> Messages, Func<ulong[], Task> PostCreationCallback)>();
+                    await LoadWowRoleMenuMessages(expectedChannelMessages).ConfigureAwait(false);
+                    var (messages, postCreationCallback) = expectedChannelMessages[_appSettings.WorldOfWarcraftRoleChannelId];
+                    await CreateMessagesInChannel(_appSettings.WorldOfWarcraftRoleChannelId, messages, postCreationCallback).ConfigureAwait(false);
                 }).ConfigureAwait(false);
             }
             else if (e.MessageName == Constants.MessageNames.GamesRolesMenu)

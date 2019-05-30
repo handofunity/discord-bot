@@ -95,6 +95,7 @@
     <Build Include="config\Tables\Game.sql" />
     <Build Include="hou\Tables\UserInfo.sql" />
     <Build Include="config\Tables\GameRole.sql" />
+    <None Include="Scripts\AddMessage_WowRoleMenu.sql" />
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="Script.PostDeployment.sql" />

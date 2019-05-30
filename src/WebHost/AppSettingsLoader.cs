@@ -36,15 +36,17 @@
                 throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.BotToken)}' cannot be empty.");
             if (settings.HandOfUnityGuildId == 0)
                 throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.HandOfUnityGuildId)}' must be a correct ID.");
-            if (settings.LoggingChannelId == default(DiscordChannelID))
+            if (settings.LoggingChannelId == default)
                 throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.LoggingChannelId)}' must be a correct ID.");
-            if (settings.PromotionAnnouncementChannelId == default(DiscordChannelID))
+            if (settings.PromotionAnnouncementChannelId == default)
                 throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.PromotionAnnouncementChannelId)}' must be a correct ID.");
-            if (settings.WelcomeChannelId == default(DiscordChannelID))
+            if (settings.WelcomeChannelId == default)
                 throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.WelcomeChannelId)}' must be a correct ID.");
-            if (settings.AshesOfCreationRoleChannelId == default(DiscordChannelID))
+            if (settings.AshesOfCreationRoleChannelId == default)
                 throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.AshesOfCreationRoleChannelId)}' must be a correct ID.");
-            if (settings.GamesRolesChannelId == default(DiscordChannelID))
+            if (settings.WorldOfWarcraftRoleChannelId == default)
+                throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.WorldOfWarcraftRoleChannelId)}' must be a correct ID.");
+            if (settings.GamesRolesChannelId == default)
                 throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.GamesRolesChannelId)}' must be a correct ID.");
             if (settings.DesiredTimeZones.Length == 0)
                 throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.DesiredTimeZones)}' cannot be empty.");
