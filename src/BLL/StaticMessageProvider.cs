@@ -37,7 +37,7 @@
             _messageProvider = messageProvider;
             _gameRoleProvider = gameRoleProvider;
             _appSettings = appSettings;
-            _provideStaticMessages = botInformationProvider.GetEnvironmentName() != Constants.RuntimeEnvironment.Production;
+            _provideStaticMessages = botInformationProvider.GetEnvironmentName() == Constants.RuntimeEnvironment.Production;
 
             if (_provideStaticMessages)
             {

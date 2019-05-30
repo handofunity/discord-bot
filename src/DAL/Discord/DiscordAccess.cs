@@ -622,7 +622,17 @@
                 messagesToDelete.AddRange(enumerator.Current.Where(m => m.Author.Id == _client.CurrentUser.Id));
             }
 
-            await messagesToDelete.PerformBulkOperation(async message => await message.DeleteAsync().ConfigureAwait(false)).ConfigureAwait(false);
+            await messagesToDelete.PerformBulkOperation(async message =>
+            {
+                try
+                {
+                    await message.DeleteAsync().ConfigureAwait(false);
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, $"Failed to delete message with ID {message.Id} in channel {channelID}.");
+                }
+            }).ConfigureAwait(false);
         }
 
         async Task IDiscordAccess.DeleteBotMessageInChannel(DiscordChannelID channelID, ulong messageID)
