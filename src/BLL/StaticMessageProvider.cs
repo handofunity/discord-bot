@@ -66,7 +66,8 @@
                 await _messageProvider.GetMessage(Constants.MessageNames.WelcomeChannelMessage01).ConfigureAwait(false),
                 await _messageProvider.GetMessage(Constants.MessageNames.WelcomeChannelMessage02).ConfigureAwait(false),
                 await _messageProvider.GetMessage(Constants.MessageNames.WelcomeChannelMessage03).ConfigureAwait(false),
-                await _messageProvider.GetMessage(Constants.MessageNames.WelcomeChannelMessage04).ConfigureAwait(false)
+                await _messageProvider.GetMessage(Constants.MessageNames.WelcomeChannelMessage04).ConfigureAwait(false),
+                await _messageProvider.GetMessage(Constants.MessageNames.WelcomeChannelMessage05).ConfigureAwait(false)
             };
             expectedChannelMessages[_appSettings.WelcomeChannelId] = (l, null);
         }
@@ -252,7 +253,8 @@
             if (e.MessageName == Constants.MessageNames.WelcomeChannelMessage01
              || e.MessageName == Constants.MessageNames.WelcomeChannelMessage02
              || e.MessageName == Constants.MessageNames.WelcomeChannelMessage03
-             || e.MessageName == Constants.MessageNames.WelcomeChannelMessage04)
+             || e.MessageName == Constants.MessageNames.WelcomeChannelMessage04
+             || e.MessageName == Constants.MessageNames.WelcomeChannelMessage05)
             {
                 Task.Run(async () =>
                 {
