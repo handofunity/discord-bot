@@ -56,22 +56,6 @@
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
 #region Private Methods
 
-        private async Task LoadWelcomeChannelMessages(Dictionary<DiscordChannelID, (List<string> Messages, Func<ulong[], Task> PostCreationCallback)> expectedChannelMessages)
-        {
-            if (!_provideStaticMessages)
-                return;
-
-            var l = new List<string>
-            {
-                await _messageProvider.GetMessage(Constants.MessageNames.WelcomeChannelMessage01).ConfigureAwait(false),
-                await _messageProvider.GetMessage(Constants.MessageNames.WelcomeChannelMessage02).ConfigureAwait(false),
-                await _messageProvider.GetMessage(Constants.MessageNames.WelcomeChannelMessage03).ConfigureAwait(false),
-                await _messageProvider.GetMessage(Constants.MessageNames.WelcomeChannelMessage04).ConfigureAwait(false),
-                await _messageProvider.GetMessage(Constants.MessageNames.WelcomeChannelMessage05).ConfigureAwait(false)
-            };
-            expectedChannelMessages[_appSettings.WelcomeChannelId] = (l, null);
-        }
-
         private async Task LoadAocRoleMenuMessages(Dictionary<DiscordChannelID, (List<string> Messages, Func<ulong[], Task> PostCreationCallback)> expectedChannelMessages)
         {
             if (!_provideStaticMessages)
@@ -202,7 +186,6 @@
         async Task IStaticMessageProvider.EnsureStaticMessagesExist()
         {
             var expectedChannelMessages = new Dictionary<DiscordChannelID, (List<string> Messages, Func<ulong[], Task> PostCreationCallback)>();
-            await LoadWelcomeChannelMessages(expectedChannelMessages).ConfigureAwait(false);
             await LoadAocRoleMenuMessages(expectedChannelMessages).ConfigureAwait(false);
             await LoadWowRoleMenuMessages(expectedChannelMessages).ConfigureAwait(false);
             await LoadGamesRolesMenuMessages(expectedChannelMessages).ConfigureAwait(false);
@@ -250,21 +233,7 @@
             // We can just create the messages here, because the message was changed.
             // There's no need to check if the messages in the channel are the same.
 
-            if (e.MessageName == Constants.MessageNames.WelcomeChannelMessage01
-             || e.MessageName == Constants.MessageNames.WelcomeChannelMessage02
-             || e.MessageName == Constants.MessageNames.WelcomeChannelMessage03
-             || e.MessageName == Constants.MessageNames.WelcomeChannelMessage04
-             || e.MessageName == Constants.MessageNames.WelcomeChannelMessage05)
-            {
-                Task.Run(async () =>
-                {
-                    var expectedChannelMessages = new Dictionary<DiscordChannelID, (List<string> Messages, Func<ulong[], Task> PostCreationCallback)>();
-                    await LoadWelcomeChannelMessages(expectedChannelMessages).ConfigureAwait(false);
-                    var (messages, postCreationCallback) = expectedChannelMessages[_appSettings.WelcomeChannelId];
-                    await CreateMessagesInChannel(_appSettings.WelcomeChannelId, messages, postCreationCallback).ConfigureAwait(false);
-                }).ConfigureAwait(false);
-            }
-            else if (e.MessageName == Constants.MessageNames.AocRoleMenu)
+            if (e.MessageName == Constants.MessageNames.AocRoleMenu)
             {
                 Task.Run(async () =>
                 {

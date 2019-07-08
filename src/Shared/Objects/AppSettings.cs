@@ -46,21 +46,6 @@
         }
 
         /// <summary>
-        /// Gets the Discord ID of the channel where the general welcome message should be created.
-        /// </summary>
-        public DiscordChannelID WelcomeChannelId { get; private set; }
-
-        /// <summary>
-        /// Property to bind the value of <see cref="WelcomeChannelId"/> from the app settings.
-        /// </summary>
-        // ReSharper disable once UnusedMember.Local
-        private ulong WelcomeChannelIdValue
-        {
-            get => (ulong)WelcomeChannelId;
-            set => WelcomeChannelId = (DiscordChannelID)value;
-        }
-
-        /// <summary>
         /// Gets the Discord ID of the channel that is used for the 'Ashes of Creation' role feature.
         /// </summary>
         public DiscordChannelID AshesOfCreationRoleChannelId { get; private set; }

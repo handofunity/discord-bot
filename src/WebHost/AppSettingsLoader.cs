@@ -5,7 +5,6 @@
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Shared.Objects;
-    using Shared.StrongTypes;
 
     internal static class AppSettingsLoader
     {
@@ -40,8 +39,6 @@
                 throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.LoggingChannelId)}' must be a correct ID.");
             if (settings.PromotionAnnouncementChannelId == default)
                 throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.PromotionAnnouncementChannelId)}' must be a correct ID.");
-            if (settings.WelcomeChannelId == default)
-                throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.WelcomeChannelId)}' must be a correct ID.");
             if (settings.AshesOfCreationRoleChannelId == default)
                 throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.AshesOfCreationRoleChannelId)}' must be a correct ID.");
             if (settings.WorldOfWarcraftRoleChannelId == default)

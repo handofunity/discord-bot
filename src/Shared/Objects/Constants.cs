@@ -22,11 +22,6 @@
         public static class MessageNames
         {
             public const string FirstServerJoinWelcome = "FirstServerJoinWelcome";
-            public const string WelcomeChannelMessage01 = "WelcomeChannelMessage_01";
-            public const string WelcomeChannelMessage02 = "WelcomeChannelMessage_02";
-            public const string WelcomeChannelMessage03 = "WelcomeChannelMessage_03";
-            public const string WelcomeChannelMessage04 = "WelcomeChannelMessage_04";
-            public const string WelcomeChannelMessage05 = "WelcomeChannelMessage_05";
             public const string AocRoleMenu = "AocRoleMenu";
             public const string WowRoleMenu = "WowRoleMenu";
             public const string GamesRolesMenu = "GamesRolesMenu";
