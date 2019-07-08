@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using Enums;
     using Objects;
     using StrongTypes;
 
@@ -51,6 +52,24 @@
         /// <param name="userIDs">The user IDs to get the names for.</param>
         /// <returns>A mapping from a userID to a display name.</returns>
         Dictionary<DiscordUserID, string> GetUserNames(IEnumerable<DiscordUserID> userIDs);
+
+        /// <summary>
+        /// Sets the non-member related <paramref name="targetRole"/> for the given <paramref name="userID"/>.
+        /// </summary>
+        /// <param name="userID">The user ID.</param>
+        /// <param name="targetRole">The target role.</param>
+        /// <returns>True, if the role was added, otherwise false.</returns>
+        Task<bool> TryAddNonMemberRole(DiscordUserID userID,
+                                       Role targetRole);
+
+        /// <summary>
+        /// Revokes the non-member related <paramref name="targetRole"/> from the given <paramref name="userID"/>.
+        /// </summary>
+        /// <param name="userID">The user ID.</param>
+        /// <param name="targetRole">The target role.</param>
+        /// <returns>True, if the role was revoked, otherwise false.</returns>
+        Task<bool> TryRevokeNonMemberRole(DiscordUserID userID,
+                                          Role targetRole);
 
         /// <summary>
         /// Sets the primary role of the <paramref name="game"/> for the given <paramref name="userID"/>.

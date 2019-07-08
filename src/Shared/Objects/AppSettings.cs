@@ -31,6 +31,21 @@
         }
 
         /// <summary>
+        /// Gets the Discord ID of the channel used for infos and public basic roles.
+        /// </summary>
+        public DiscordChannelID InfoAndRolesChannelId { get; private set; }
+
+        /// <summary>
+        /// Property to bind the value of <see cref="InfoAndRolesChannelId"/> from the app settings.
+        /// </summary>
+        // ReSharper disable once UnusedMember.Local
+        private ulong InfoAndRolesChannelIdValue
+        {
+            get => (ulong)InfoAndRolesChannelId;
+            set => InfoAndRolesChannelId = (DiscordChannelID)value;
+        }
+
+        /// <summary>
         /// Gets the Discord ID of the channel used for promotion announcements.
         /// </summary>
         public DiscordChannelID PromotionAnnouncementChannelId { get; private set; }
@@ -89,6 +104,11 @@
             get => (ulong) GamesRolesChannelId;
             set => GamesRolesChannelId = (DiscordChannelID) value;
         }
+
+        /// <summary>
+        /// Gets or sets the message ID used for friend and guest reactions.
+        /// </summary>
+        public ulong FriendOrGuestMessageId { get; set; }
 
         /// <summary>
         /// Gets or sets an array of <see cref="DesiredTimeZone"/> instances.

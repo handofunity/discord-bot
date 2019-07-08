@@ -62,7 +62,8 @@
                 {"Coordinator", Role.Coordinator},
                 {"Member", Role.Member},
                 {"Recruit", Role.Recruit},
-                {"Guest", Role.Guest}
+                {"Guest", Role.Guest},
+                {"Friend of Member", Role.FriendOfMember}
             };
         }
 
@@ -73,6 +74,7 @@
                              IIgnoreGuard ignoreGuard,
                              ICommandRegistry commandRegistry,
                              IMessageProvider messageProvider,
+                             INonMemberRoleProvider nonMemberRoleProvider,
                              IGameRoleProvider gameRoleProvider,
                              IStaticMessageProvider staticMessageProvider,
                              IDiscordUserEventHandler discordUserEventHandler,
@@ -89,6 +91,7 @@
             _staticMessageProvider = staticMessageProvider;
             _discordUserEventHandler = discordUserEventHandler;
             _userStore = userStore;
+            nonMemberRoleProvider.DiscordAccess = this;
             _gameRoleProvider.DiscordAccess = this;
             _staticMessageProvider.DiscordAccess = this;
             _discordUserEventHandler.DiscordAccess = this;
@@ -483,6 +486,46 @@
         }
 
         Dictionary<DiscordUserID, string> IDiscordAccess.GetUserNames(IEnumerable<DiscordUserID> userIDs) => userIDs.Select(GetGuildUserById).ToDictionary(gu => (DiscordUserID)gu.Id, gu => gu.Username);
+
+        async Task<bool> IDiscordAccess.TryAddNonMemberRole(DiscordUserID userID,
+                                                            Role targetRole)
+        {
+            var roleDisplayName = RoleMapping.Single(m => m.Value == targetRole).Key;
+            var role = GetRoleByName(roleDisplayName);
+            var gu = GetGuildUserById(userID);
+            if (gu.Roles.Any(m => m.Id == role.Id))
+                return false;
+            try
+            {
+                await gu.AddRoleAsync(role).ConfigureAwait(false);
+                return true;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, $"Failed to set game role '{role.Name}' for UserID {userID}.");
+                return false;
+            }
+        }
+
+        async Task<bool> IDiscordAccess.TryRevokeNonMemberRole(DiscordUserID userID,
+                                                               Role targetRole)
+        {
+            var roleDisplayName = RoleMapping.Single(m => m.Value == targetRole).Key;
+            var role = GetRoleByName(roleDisplayName);
+            var gu = GetGuildUserById(userID);
+            if (gu.Roles.All(m => m.Id != role.Id))
+                return false;
+            try
+            {
+                await gu.RemoveRoleAsync(role).ConfigureAwait(false);
+                return true;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, $"Failed to revoke game role '{role.Name}' for UserID {userID}.");
+                return false;
+            }
+        }
 
         async Task<bool> IDiscordAccess.TryAddPrimaryGameRole(DiscordUserID userID,
                                                               AvailableGame game)

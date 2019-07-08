@@ -67,5 +67,11 @@
         {
             public const string Joystick = "\uD83D\uDD79"; // :joystick: 
         }
+
+        public static class NonMemberRolesEmojis
+        {
+            public const string Wave = "\uD83D\uDC4B"; // :wave:
+            public const string Thinking = "\uD83E\uDD14"; // :thinking:
+        }
     }
 }

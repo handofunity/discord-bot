@@ -66,6 +66,7 @@
                .AddSingleton<IBotInformationProvider>(botInformationProvider)
                .AddSingleton<IMessageProvider, MessageProvider>()
                .AddSingleton<IPrivacyProvider, PrivacyProvider>()
+               .AddSingleton<INonMemberRoleProvider, NonMemberRoleProvider>()
                .AddSingleton<IGameRoleProvider, GameRoleProvider>()
                .AddSingleton<IStaticMessageProvider, StaticMessageProvider>()
                // Transients

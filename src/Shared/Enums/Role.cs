@@ -37,6 +37,10 @@
         /// <summary>
         /// Not a guild member, but a <see cref="Guest"/> role.
         /// </summary>
-        Guest = 64
+        Guest = 64,
+        /// <summary>
+        /// Not a guild member, but a <see cref="FriendOfMember"/> role.
+        /// </summary>
+        FriendOfMember = 128
     }
 }

@@ -6,7 +6,6 @@
     using Shared.BLL;
     using Shared.DAL;
     using Shared.Enums;
-    using Shared.Extensions;
     using Shared.Objects;
     using Shared.StrongTypes;
 
@@ -17,6 +16,7 @@
 
         private readonly IUserStore _userStore;
         private readonly IPrivacyProvider _privacyProvider;
+        private readonly INonMemberRoleProvider _nonMemberRoleProvider;
         private readonly IGameRoleProvider _gameRoleProvider;
         private readonly IDatabaseAccess _databaseAccess;
         private readonly AppSettings _appSettings;
@@ -29,12 +29,14 @@
 
         public DiscordUserEventHandler(IUserStore userStore,
                                        IPrivacyProvider privacyProvider,
+                                       INonMemberRoleProvider nonMemberRoleProvider,
                                        IGameRoleProvider gameRoleProvider,
                                        IDatabaseAccess databaseAccess,
                                        AppSettings appSettings)
         {
             _userStore = userStore;
             _privacyProvider = privacyProvider;
+            _nonMemberRoleProvider = nonMemberRoleProvider;
             _gameRoleProvider = gameRoleProvider;
             _databaseAccess = databaseAccess;
             _appSettings = appSettings;
@@ -151,7 +153,8 @@
             // Channel must be a role channel
             if (channelID != _appSettings.AshesOfCreationRoleChannelId
                 && channelID != _appSettings.WorldOfWarcraftRoleChannelId
-                && channelID != _appSettings.GamesRolesChannelId)
+                && channelID != _appSettings.GamesRolesChannelId
+                && channelID != _appSettings.InfoAndRolesChannelId)
                 return;
 
             if (messageID == _gameRoleProvider.AocGameRoleMenuMessageID)
@@ -170,6 +173,11 @@
                 var game = _gameRoleProvider.Games.Where(m => m.PrimaryGameDiscordRoleID != null).SingleOrDefault(m => message.Content.Contains(m.LongName));
                 if (game != null) await _gameRoleProvider.SetPrimaryGameRole(channelID, userID, game).ConfigureAwait(false);
             }
+            else if (messageID == _appSettings.FriendOrGuestMessageId)
+            {
+                // If the message is from the friend or guest menu, forward the data to the non-member role provider.
+                await _nonMemberRoleProvider.SetNonMemberRole(channelID, userID, emoji).ConfigureAwait(false);
+            }
         }
 
         async Task IDiscordUserEventHandler.HandleReactionRemoved(DiscordChannelID channelID, DiscordUserID userID, ulong messageID, string emoji)
@@ -177,7 +185,8 @@
             // Channel must be a role channel
             if (channelID != _appSettings.AshesOfCreationRoleChannelId
                 && channelID != _appSettings.WorldOfWarcraftRoleChannelId
-                && channelID != _appSettings.GamesRolesChannelId)
+                && channelID != _appSettings.GamesRolesChannelId
+                && channelID != _appSettings.InfoAndRolesChannelId)
                 return;
 
             if (messageID == _gameRoleProvider.AocGameRoleMenuMessageID)
@@ -195,6 +204,11 @@
                 var message = messages.Single(m => m.MessageID == messageID);
                 var game = _gameRoleProvider.Games.Where(m => m.PrimaryGameDiscordRoleID != null).SingleOrDefault(m => message.Content.Contains(m.LongName));
                 if (game != null) await _gameRoleProvider.RevokePrimaryGameRole(channelID, userID, game).ConfigureAwait(false);
+            }
+            else if (messageID == _appSettings.FriendOrGuestMessageId)
+            {
+                // If the message is from the friend or guest menu, forward the data to the non-member role provider.
+                await _nonMemberRoleProvider.RevokeNonMemberRole(channelID, userID, emoji).ConfigureAwait(false);
             }
         }
 

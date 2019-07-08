@@ -37,6 +37,8 @@
                 throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.HandOfUnityGuildId)}' must be a correct ID.");
             if (settings.LoggingChannelId == default)
                 throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.LoggingChannelId)}' must be a correct ID.");
+            if (settings.InfoAndRolesChannelId == default)
+                throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.InfoAndRolesChannelId)}' must be a correct ID.");
             if (settings.PromotionAnnouncementChannelId == default)
                 throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.PromotionAnnouncementChannelId)}' must be a correct ID.");
             if (settings.AshesOfCreationRoleChannelId == default)
@@ -45,6 +47,8 @@
                 throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.WorldOfWarcraftRoleChannelId)}' must be a correct ID.");
             if (settings.GamesRolesChannelId == default)
                 throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.GamesRolesChannelId)}' must be a correct ID.");
+            if (settings.FriendOrGuestMessageId == default)
+                throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.FriendOrGuestMessageId)}' must be a correct ID.");
             if (settings.DesiredTimeZones.Length == 0)
                 throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.DesiredTimeZones)}' cannot be empty.");
             if (settings.SpamLimits.Length == 0)
