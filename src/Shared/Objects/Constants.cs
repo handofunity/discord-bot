@@ -72,6 +72,9 @@
         {
             public const string Wave = "\uD83D\uDC4B"; // :wave:
             public const string Thinking = "\uD83E\uDD14"; // :thinking:
+            public const string GameInterestAshesOfCreation = "AshesofCreation";
+            public const string GameInterestWorldOfWarcraftClassic = "WoWClassic";
+            public const string GameInterestOath = "oath";
         }
     }
 }

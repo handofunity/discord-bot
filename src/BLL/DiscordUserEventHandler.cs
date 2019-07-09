@@ -173,7 +173,7 @@
                 var game = _gameRoleProvider.Games.Where(m => m.PrimaryGameDiscordRoleID != null).SingleOrDefault(m => message.Content.Contains(m.LongName));
                 if (game != null) await _gameRoleProvider.SetPrimaryGameRole(channelID, userID, game).ConfigureAwait(false);
             }
-            else if (messageID == _appSettings.FriendOrGuestMessageId)
+            else if (messageID == _appSettings.FriendOrGuestMessageId || messageID == _appSettings.NonMemberGameInterestMessageId)
             {
                 // If the message is from the friend or guest menu, forward the data to the non-member role provider.
                 await _nonMemberRoleProvider.SetNonMemberRole(channelID, userID, emoji).ConfigureAwait(false);
@@ -197,7 +197,7 @@
                 // If the message is the WoW role menu message, forward the data to the game role provider
                 await _gameRoleProvider.RevokeGameRole(channelID, userID, _gameRoleProvider.Games.Single(m => m.ShortName == Constants.RoleMenuGameShortNames.WorldOfWarcraftClassic), emoji)
                                        .ConfigureAwait(false);
-            else if (_gameRoleProvider.GamesRolesMenuMessageIDs.Contains(messageID))
+            else if (emoji == Constants.GamesRolesEmojis.Joystick && _gameRoleProvider.GamesRolesMenuMessageIDs.Contains(messageID))
             {
                 // If the message is one of the games roles menu messages, forward the data to the game role provider
                 var messages = await _discordAccess.GetBotMessagesInChannel(channelID).ConfigureAwait(false);
@@ -205,7 +205,7 @@
                 var game = _gameRoleProvider.Games.Where(m => m.PrimaryGameDiscordRoleID != null).SingleOrDefault(m => message.Content.Contains(m.LongName));
                 if (game != null) await _gameRoleProvider.RevokePrimaryGameRole(channelID, userID, game).ConfigureAwait(false);
             }
-            else if (messageID == _appSettings.FriendOrGuestMessageId)
+            else if (messageID == _appSettings.FriendOrGuestMessageId || messageID == _appSettings.NonMemberGameInterestMessageId)
             {
                 // If the message is from the friend or guest menu, forward the data to the non-member role provider.
                 await _nonMemberRoleProvider.RevokeNonMemberRole(channelID, userID, emoji).ConfigureAwait(false);

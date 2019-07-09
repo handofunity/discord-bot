@@ -111,6 +111,11 @@
         public ulong FriendOrGuestMessageId { get; set; }
 
         /// <summary>
+        /// Gets or sets the message ID used for non-member game interest reactions.
+        /// </summary>
+        public ulong NonMemberGameInterestMessageId { get; set; }
+
+        /// <summary>
         /// Gets or sets an array of <see cref="DesiredTimeZone"/> instances.
         /// </summary>
         public DesiredTimeZone[] DesiredTimeZones { get; set; }

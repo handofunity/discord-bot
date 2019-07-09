@@ -63,7 +63,10 @@
                 {"Member", Role.Member},
                 {"Recruit", Role.Recruit},
                 {"Guest", Role.Guest},
-                {"Friend of Member", Role.FriendOfMember}
+                {"Friend of Member", Role.FriendOfMember},
+                {"AoC Interest", Role.GameInterestAshesOfCreation },
+                {"WoW Classic Interest", Role.GameInterestWorldOfWarcraftClassic },
+                {"Oath Interest", Role.GameInterestOath }
             };
         }
 

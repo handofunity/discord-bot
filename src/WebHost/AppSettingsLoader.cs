@@ -49,6 +49,8 @@
                 throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.GamesRolesChannelId)}' must be a correct ID.");
             if (settings.FriendOrGuestMessageId == default)
                 throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.FriendOrGuestMessageId)}' must be a correct ID.");
+            if (settings.NonMemberGameInterestMessageId == default)
+                throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.NonMemberGameInterestMessageId)}' must be a correct ID.");
             if (settings.DesiredTimeZones.Length == 0)
                 throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.DesiredTimeZones)}' cannot be empty.");
             if (settings.SpamLimits.Length == 0)

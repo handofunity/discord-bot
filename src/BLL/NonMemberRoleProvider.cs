@@ -50,8 +50,14 @@
                     return Role.FriendOfMember;
                 case Constants.NonMemberRolesEmojis.Thinking:
                     return Role.Guest;
+                case Constants.NonMemberRolesEmojis.GameInterestAshesOfCreation:
+                    return Role.GameInterestAshesOfCreation;
+                case Constants.NonMemberRolesEmojis.GameInterestWorldOfWarcraftClassic:
+                    return Role.GameInterestWorldOfWarcraftClassic;
+                case Constants.NonMemberRolesEmojis.GameInterestOath:
+                    return Role.GameInterestOath;
                 default:
-                throw new ArgumentOutOfRangeException(nameof(emoji));
+                    throw new ArgumentOutOfRangeException(nameof(emoji));
             }
         }
 
