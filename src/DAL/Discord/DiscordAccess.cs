@@ -380,6 +380,41 @@
             }
         }
 
+        private async Task VerifyRoles(DiscordUserID discordUserID,
+                                       bool isGuildMember,
+                                       IEnumerable<SocketRole> previousRoles,
+                                       IEnumerable<SocketRole> currentRoles)
+        {
+            if (isGuildMember)
+                return;
+
+            var newRoles = currentRoles.Except(previousRoles).ToArray();
+            if (newRoles.Length == 0)
+                return;
+
+            var invalidRoles = _gameRoleProvider.Games.Where(m => m.AvailableRoles != null
+                                                                  && m.AvailableRoles.Count > 0)
+                                                .Join(newRoles,
+                                                      game => $"{game.LongName} ({game.ShortName})".ToLowerInvariant(),
+                                                      role => role.Name.ToLowerInvariant(),
+                                                      (game,
+                                                       role) => role.Name)
+                                                .ToArray();
+            if (invalidRoles.Length == 0)
+                return;
+
+            var g = GetGuild();
+            var gu = GetGuildUserById(discordUserID);
+            var leaderRole = GetRoleByName(Constants.RoleNames.LeaderRoleName, g);
+            var officerRole = GetRoleByName(Constants.RoleNames.OfficerRoleName, g);
+            foreach (var invalidRole in invalidRoles)
+            {
+                await LogToDiscordInternal($"{leaderRole.Mention} {officerRole.Mention}: User `{gu.Username}#{gu.DiscriminatorValue}` " +
+                                           $"is no guild member but was assigned the role `{invalidRole}`. " +
+                                           "Please verify the correctness of this role assignment.").ConfigureAwait(false);
+            }
+        }
+
         private static bool IsOnline(IPresence gu) => gu.Status != UserStatus.Offline && gu.Status != UserStatus.Invisible;
 
         private SocketGuildUser[] GetGuildMembersWithRole(ulong roleID)
@@ -845,6 +880,16 @@
                 if (oldRoles != newRoles)
                 {
                     await UpdateGuildUserRoles((DiscordUserID)newGuildUser.Id, oldRoles, newRoles).ConfigureAwait(false);
+                }
+
+                // Handle possible role change, that only should be there for guild members
+                if (_userStore.TryGetUser((DiscordUserID) newGuildUser.Id, out var user))
+                {
+                    await VerifyRoles(user.DiscordUserID,
+                                      user.IsGuildMember,
+                                      oldGuildUser.Roles,
+                                      newGuildUser.Roles)
+                       .ConfigureAwait(false);
                 }
 
                 // Handle possible status change

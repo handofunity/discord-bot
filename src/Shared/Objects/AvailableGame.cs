@@ -1,7 +1,9 @@
 ﻿namespace HoU.GuildBot.Shared.Objects
 {
     using System.Collections.Generic;
+    using System.Diagnostics;
 
+    [DebuggerDisplay("{" + nameof(ToString) + "(),nq}")]
     public class AvailableGame
     {
         public string LongName { get; set; }
@@ -35,6 +37,13 @@
             }
 
             return c;
+        }
+
+        public override string ToString()
+        {
+            return PrimaryGameDiscordRoleID == null
+                       ? $"{LongName} ({ShortName})"
+                       : $"{LongName} ({ShortName}) - {{{PrimaryGameDiscordRoleID.Value}}}";
         }
     }
 }
