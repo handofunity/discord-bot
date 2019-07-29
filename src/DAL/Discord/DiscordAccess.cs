@@ -365,6 +365,13 @@
             _logger.Log(ToLogLevel(msg.Severity), 0, prefix + msg.Message, msg.Exception, FormatLogMessage);
         }
 
+        private bool CanManageRolesForUserInternal(DiscordUserID userID)
+        {
+            var gu = GetGuildUserById(userID);
+            var botUser = GetGuildUserById((DiscordUserID)_client.CurrentUser.Id);
+            return botUser.Roles.Max(m => m.Position) > gu.Roles.Max(m => m.Position);
+        }
+
         private async Task UpdateGuildUserRoles(DiscordUserID userID, Role oldRoles, Role newRoles)
         {
             var result = _discordUserEventHandler.HandleRolesChanged(userID, oldRoles, newRoles);
@@ -413,6 +420,46 @@
                                            $"is no guild member but was assigned the role `{invalidRole}`. " +
                                            "Please verify the correctness of this role assignment.").ConfigureAwait(false);
             }
+        }
+
+        private async Task ApplyGroupRoles(DiscordUserID discordUserId,
+                                           IReadOnlyCollection<SocketRole> previousRoles,
+                                           IReadOnlyCollection<SocketRole> currentRoles)
+        {
+            if (!CanManageRolesForUserInternal(discordUserId))
+                return;
+
+            const string groupRolePrefix = "⁣⁣― ";
+            var rolesRemoved = previousRoles.Except(currentRoles)
+                                        .Any(m => !m.Name.StartsWith(groupRolePrefix));
+            var rolesAdded = currentRoles.Except(previousRoles)
+                                       .Any(m => !m.Name.StartsWith(groupRolePrefix));
+            if (!rolesRemoved && !rolesAdded)
+                return;
+
+            var g = GetGuild();
+            var groupRoles = g.Roles
+                              .Where(m => m.Name.StartsWith(groupRolePrefix))
+                              .OrderBy(m => m.Position)
+                              .ToArray();
+            var groupRolesToAdd = new List<SocketRole>();
+            var groupRolesToRemove = new List<SocketRole>();
+            var previousGroupRolePosition = 0;
+            foreach (var groupRole in groupRoles)
+            {
+                var hasRoleInGroup = currentRoles.Any(m => m.Position > previousGroupRolePosition && m.Position < groupRole.Position);
+                if (!currentRoles.Contains(groupRole) && hasRoleInGroup)
+                    groupRolesToAdd.Add(groupRole);
+                else if (currentRoles.Contains(groupRole) && !hasRoleInGroup)
+                    groupRolesToRemove.Add(groupRole);
+                previousGroupRolePosition = groupRole.Position;
+            }
+
+            var gu = GetGuildUserById(discordUserId);
+            if (groupRolesToAdd.Any())
+                await gu.AddRolesAsync(groupRolesToAdd).ConfigureAwait(false);
+            if (groupRolesToRemove.Any())
+                await gu.RemoveRolesAsync(groupRolesToRemove).ConfigureAwait(false);
         }
 
         private static bool IsOnline(IPresence gu) => gu.Status != UserStatus.Offline && gu.Status != UserStatus.Invisible;
@@ -651,9 +698,7 @@
 
         bool IDiscordAccess.CanManageRolesForUser(DiscordUserID userID)
         {
-            var gu = GetGuildUserById(userID);
-            var botUser = GetGuildUserById((DiscordUserID)_client.CurrentUser.Id);
-            return botUser.Roles.Max(m => m.Position) > gu.Roles.Max(m => m.Position);
+            return CanManageRolesForUserInternal(userID);
         }
 
         async Task IDiscordAccess.SendWelcomeMessage(DiscordUserID userID)
@@ -874,16 +919,17 @@
             // Fire & Forget
             Task.Run(async () =>
             {
+                var discordUserId = (DiscordUserID) newGuildUser.Id;
                 // Handle possible role change
                 var oldRoles = SocketRoleToRole(oldGuildUser.Roles);
                 var newRoles = SocketRoleToRole(newGuildUser.Roles);
                 if (oldRoles != newRoles)
                 {
-                    await UpdateGuildUserRoles((DiscordUserID)newGuildUser.Id, oldRoles, newRoles).ConfigureAwait(false);
+                    await UpdateGuildUserRoles(discordUserId, oldRoles, newRoles).ConfigureAwait(false);
                 }
 
                 // Handle possible role change, that only should be there for guild members
-                if (_userStore.TryGetUser((DiscordUserID) newGuildUser.Id, out var user))
+                if (_userStore.TryGetUser(discordUserId, out var user))
                 {
                     await VerifyRoles(user.DiscordUserID,
                                       user.IsGuildMember,
@@ -892,12 +938,18 @@
                        .ConfigureAwait(false);
                 }
 
+                // Handle possible role change, that would end up in new or removed group roles
+                await ApplyGroupRoles(discordUserId,
+                                      oldGuildUser.Roles,
+                                      newGuildUser.Roles)
+                   .ConfigureAwait(false);
+
                 // Handle possible status change
                 if (oldGuildUser.Status != newGuildUser.Status)
                 {
                     var wasOnline = IsOnline(oldGuildUser);
                     var isOnline = IsOnline(newGuildUser);
-                    await _discordUserEventHandler.HandleStatusChanged((DiscordUserID)newGuildUser.Id, wasOnline, isOnline).ConfigureAwait(false);
+                    await _discordUserEventHandler.HandleStatusChanged(discordUserId, wasOnline, isOnline).ConfigureAwait(false);
                 }
             });
             return Task.CompletedTask;
