@@ -167,18 +167,18 @@
         Task AddReactionsToMessage(DiscordChannelID channelID, ulong messageID, string[] reactions);
 
         /// <summary>
-        /// Counts the members having the <paramref name="roleName"/>.
-        /// </summary>
-        /// <param name="roleName">The name of the role to count.</param>
-        /// <returns>The amount of people having the <paramref name="roleName"/>.</returns>
-        int CountMembersWithRole(string roleName);
-
-        /// <summary>
         /// Counts the guild members having the <paramref name="roleID"/>.
         /// </summary>
         /// <param name="roleID">The ID of the role to count.</param>
         /// <returns>The amount of guild members having the <paramref name="roleID"/>.</returns>
         int CountGuildMembersWithRole(ulong roleID);
+
+        /// <summary>
+        /// Counts the guild members having the <paramref name="roleName"/>.
+        /// </summary>
+        /// <param name="roleName">The name of the role to count.</param>
+        /// <returns>The amount of guild members having the <paramref name="roleName"/>.</returns>
+        int CountGuildMembersWithRole(string roleName);
 
         /// <summary>
         /// Checks if the given <paramref name="roleID"/> exists.

@@ -300,11 +300,11 @@
             var distribution = new Dictionary<string, int>();
             foreach (var className in game.AvailableRoles)
             {
-                var count = _discordAccess.CountMembersWithRole($"{game.ShortName} - {className.RoleName}");
+                var count = _discordAccess.CountGuildMembersWithRole($"{game.ShortName} - {className.RoleName}");
                 distribution.Add(className.RoleName, count);
             }
 
-            var gameMembers = _discordAccess.CountMembersWithRole($"{game.ShortName} ({game.LongName})");
+            var gameMembers = _discordAccess.CountGuildMembersWithRole($"{game.LongName} ({game.ShortName})");
 
             return (gameMembers, distribution);
         }

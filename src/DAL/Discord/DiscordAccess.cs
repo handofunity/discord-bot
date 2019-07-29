@@ -382,6 +382,16 @@
 
         private static bool IsOnline(IPresence gu) => gu.Status != UserStatus.Offline && gu.Status != UserStatus.Invisible;
 
+        private SocketGuildUser[] GetGuildMembersWithRole(ulong roleID)
+        {
+            var g = GetGuild();
+            return g.Users
+                    .Where(m => _userStore.TryGetUser((DiscordUserID) m.Id, out var user)
+                                && user.IsGuildMember
+                                && m.Roles.Any(r => r.Id == roleID))
+                    .ToArray();
+        }
+
         #endregion
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -714,18 +724,17 @@
             }).ConfigureAwait(false);
         }
 
-        int IDiscordAccess.CountMembersWithRole(string roleName)
-        {
-            var g = GetGuild();
-            return g.Users.SelectMany(m => m.Roles.Where(x => x.Name == roleName)).Count();
-        }
-
         int IDiscordAccess.CountGuildMembersWithRole(ulong roleID)
         {
-            var g = GetGuild();
-            return g.Users
-                    .Where(m => _userStore.TryGetUser((DiscordUserID)m.Id, out var user) && user.IsGuildMember)
-                    .SelectMany(m => m.Roles.Where(x => x.Id == roleID)).Count();
+            var guildMembers = GetGuildMembersWithRole(roleID);
+            return guildMembers.Length;
+        }
+
+        int IDiscordAccess.CountGuildMembersWithRole(string roleName)
+        {
+            var role = GetRoleByName(roleName);
+            var guildMembers = GetGuildMembersWithRole(role.Id);
+            return guildMembers.Length;
         }
 
         bool IDiscordAccess.DoesRoleExist(ulong roleID)
