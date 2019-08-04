@@ -151,35 +151,45 @@
 
         public IReadOnlyList<AvailableGame> Games => _games;
 
-        IReadOnlyList<EmbedData> IGameRoleProvider.GetGameInfoAsEmbedData()
+        IReadOnlyList<EmbedData> IGameRoleProvider.GetGameInfoAsEmbedData(string filter)
         {
             var result = new List<EmbedData>();
+            var caseInsensitiveFilter = filter?.ToLowerInvariant();
+            if (string.IsNullOrWhiteSpace(caseInsensitiveFilter))
+                caseInsensitiveFilter = null;
 
             foreach (var game in _games.OrderBy(m => m.LongName))
             {
-                var titleSb = new StringBuilder($"Game information for \"{game.LongName}\" ({game.ShortName})");
-                if (game.PrimaryGameDiscordRoleID != null)
-                    titleSb.Append($" Primary role ID: {game.PrimaryGameDiscordRoleID.Value}");
-
+                if (caseInsensitiveFilter != null
+                    && !game.ShortName.ToLowerInvariant().Contains(caseInsensitiveFilter)
+                    && !game.LongName.ToLowerInvariant().Contains(caseInsensitiveFilter))
+                {
+                    continue;
+                }
+                
+                var fields = new List<EmbedField>();
                 var ed = new EmbedData
                 {
                     Color = Colors.LightGreen,
-                    Title = titleSb.ToString() 
+                    Title = $"Game information for \"{game.LongName}\" ({game.ShortName})"
                 };
 
-                if (game.AvailableRoles.Count == 0)
+                // Primary game role ID
+                if (game.PrimaryGameDiscordRoleID != null)
+                    fields.Add(new EmbedField("Primary game role DiscordRoleID", game.PrimaryGameDiscordRoleID.Value, false));
+
+                // Flags
+                fields.Add(new EmbedField("Include in \"guild members\" statistic", game.IncludeInGuildMembersStatistic, false));
+
+                // Game role IDs
+                if (game.AvailableRoles.Count > 0)
                 {
-                    ed.Description = "This game has no roles assigned.";
-                }
-                else
-                {
-                    ed.Description = "The following roles are assigned to the game:";
-                    ed.Fields = game.AvailableRoles
-                                    .OrderBy(m => m.RoleName)
-                                    .Select(m => new EmbedField(m.RoleName, $"DiscordRoleID: {m.DiscordRoleID}", false))
-                                    .ToArray();
+                    fields.AddRange(game.AvailableRoles
+                                        .OrderBy(m => m.RoleName)
+                                        .Select(m => new EmbedField($"Game role '{m.RoleName}'", $"DiscordRoleID: {m.DiscordRoleID}", false)));
                 }
 
+                ed.Fields = fields.ToArray();
                 result.Add(ed);
             }
 

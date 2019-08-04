@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using DAL;
+    using JetBrains.Annotations;
     using Objects;
     using StrongTypes;
 
@@ -21,7 +22,7 @@
 
         IReadOnlyList<AvailableGame> Games { get; }
 
-        IReadOnlyList<EmbedData> GetGameInfoAsEmbedData();
+        IReadOnlyList<EmbedData> GetGameInfoAsEmbedData([CanBeNull] string filter);
 
         Task SetGameRole(DiscordChannelID channelID, DiscordUserID userID, AvailableGame game, string emoji);
 

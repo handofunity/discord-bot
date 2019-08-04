@@ -348,19 +348,67 @@
         [Command("list games")]
         [CommandCategory(CommandCategory.Administration, 12)]
         [Name("List configured games")]
-        [Summary("Lists the configured games and the assigned roles.")]
+        [Summary("Lists the configured games and their details.")]
         [Alias("listgames")]
         [RequireContext(ContextType.Guild)]
         [ResponseContext(ResponseType.AlwaysSameChannel)]
         [RolePrecondition(Role.Developer | Role.Leader)]
         public Task ListGames()
         {
-            var embedData = _gameRoleProvider.GetGameInfoAsEmbedData();
-            Task.Run(async () => await embedData.PerformBulkOperation(async data =>
+            var embedData = _gameRoleProvider.GetGameInfoAsEmbedData(null);
+            Task.Run(async () =>
             {
-                var embed = data.ToEmbed();
-                await ReplyAsync(string.Empty, false, embed).ConfigureAwait(false);
-            }).ConfigureAwait(false)).ConfigureAwait(false);
+                await ReplyAsync($"Found {embedData.Count} game(s):").ConfigureAwait(false);
+                await embedData.PerformBulkOperation(async data =>
+                {
+                    var embed = data.ToEmbed();
+                    await ReplyAsync(string.Empty, false, embed).ConfigureAwait(false);
+                }).ConfigureAwait(false);
+            }).ConfigureAwait(false);
+            return Task.CompletedTask;
+        }
+
+        [Command("show game")]
+        [CommandCategory(CommandCategory.Administration, 12)]
+        [Name("Show a game")]
+        [Summary("Shows game details.")]
+        [Remarks("Syntax: show game \"game short or long name\"_ e.g.: _show game \"aoc\"_")]
+        [Alias("showgame", "game")]
+        [RequireContext(ContextType.Guild)]
+        [ResponseContext(ResponseType.AlwaysSameChannel)]
+        [RolePrecondition(Role.Developer | Role.Leader)]
+        public Task ShowGame([Remainder] string messageContent)
+        {
+            Task.Run(async () =>
+            {
+                // Parse message content
+                var regex = new Regex("^\"(?<gameFilter>[ \\w]+)\"$");
+                var match = regex.Match(messageContent);
+                if (!match.Success)
+                {
+                    await ReplyAsync("Couldn't parse command parameter from message content. Please use the help function to see the correct command syntax.").ConfigureAwait(false);
+                    return;
+                }
+
+                var gameFilter = match.Groups["gameFilter"].Value;
+
+                // Search for games
+                var embedData = _gameRoleProvider.GetGameInfoAsEmbedData(gameFilter);
+                if (embedData.Count == 0)
+                {
+                    await ReplyAsync($"Couldn't find any game matching '{gameFilter}'.").ConfigureAwait(false);
+                }
+                else
+                {
+                    await ReplyAsync($"Found {embedData.Count} game(s) matching '{gameFilter}':").ConfigureAwait(false);
+                    await embedData.PerformBulkOperation(async data =>
+                    {
+                        // Display result
+                        var embed = data.ToEmbed();
+                        await ReplyAsync(string.Empty, false, embed).ConfigureAwait(false);
+                    }).ConfigureAwait(false);
+                }
+            }).ConfigureAwait(false);
             return Task.CompletedTask;
         }
 
