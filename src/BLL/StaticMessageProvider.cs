@@ -116,28 +116,32 @@
 
             try
             {
-                _logger.LogInformation($"Waiting for channel-edit-semaphore on channel '{channelLocationAndName}' ...");
+                _logger.LogInformation($"{channelLocationAndName} - Waiting for channel-edit-semaphore ...");
                 await semaphore.WaitAsync();
-                _logger.LogInformation($"Got channel-edit-semaphore on channel '{channelLocationAndName}'.");
-                _logger.LogInformation($"Deleting existing bot messages in channel '{channelLocationAndName}' ...");
+                _logger.LogInformation($"{channelLocationAndName} - Got channel-edit-semaphore.");
+                _logger.LogInformation($"{channelLocationAndName} - Deleting existing bot messages in the channel ...");
                 await _discordAccess.DeleteBotMessagesInChannel(channelID).ConfigureAwait(false);
-                _logger.LogInformation($"Creating new messages in channel '{channelLocationAndName}' ...");
+                _logger.LogInformation($"{channelLocationAndName} - Creating new messages in the channel ...");
                 var messageIds = await _discordAccess.CreateBotMessagesInChannel(channelID, messages.ToArray()).ConfigureAwait(false);
-                if (postCreationCallback != null)
+                if (postCreationCallback == null)
                 {
-                    _logger.LogInformation($"Applying post-creation callback for new messages in channel '{channelLocationAndName} ...");
+                    _logger.LogInformation($"{channelLocationAndName} - No post-creation callback found.");
+                }
+                else
+                {
+                    _logger.LogInformation($"{channelLocationAndName} - Applying post-creation callback for new messages in the channel ...");
                     await postCreationCallback.Invoke(messageIds).ConfigureAwait(false);
                 }
             }
             catch (Exception e)
             {
-                _logger.LogError(e, $"Failed to create all messages for channel '{channelLocationAndName}'.");
+                _logger.LogError(e, $"{channelLocationAndName} - Failed to create all messages for channel.");
             }
             finally
             {
-                _logger.LogInformation($"Releasing channel-edit-semaphore on channel '{channelLocationAndName}' ...");
+                _logger.LogInformation($"{channelLocationAndName} - Releasing channel-edit-semaphore ...");
                 semaphore.Release();
-                _logger.LogInformation($"Channel-edit-semaphore on channel '{channelLocationAndName}' released.");
+                _logger.LogInformation($"{channelLocationAndName} - Channel-edit-semaphore released.");
             }
         }
 
@@ -189,7 +193,7 @@
 
         private async Task EnsureGamesRolesMenuReactionsExist(ulong[] messageIds)
         {
-            if (messageIds.Length != _gameRoleProvider.Games.Count(m => m.PrimaryGameDiscordRoleID != null))
+            if (messageIds.Length != _gameRoleProvider.Games.Count(m => m.PrimaryGameDiscordRoleID != null && m.IncludeInGamesMenu))
                 throw new ArgumentException("Unexpected amount of message IDs received.", nameof(messageIds));
 
             foreach (var messageId in messageIds)
