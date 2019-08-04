@@ -269,7 +269,8 @@
                         LongName = m.LongName,
                         ShortName = m.ShortName,
                         PrimaryGameDiscordRoleID = m.PrimaryGameDiscordRoleID == null ? null : (ulong?)m.PrimaryGameDiscordRoleID,
-                        IncludeInGuildMembersStatistic = m.IncludeInGuildMembersStatistic
+                        IncludeInGuildMembersStatistic = m.IncludeInGuildMembersStatistic,
+                        IncludeInGamesMenu = m.IncludeInGamesMenu
                     };
                     g.AvailableRoles.AddRange(m.GameRole.Select(n => new AvailableGameRole
                     {

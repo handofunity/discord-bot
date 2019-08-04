@@ -23,8 +23,8 @@
     <SqlServerVerification>False</SqlServerVerification>
     <IncludeCompositeObjects>True</IncludeCompositeObjects>
     <TargetDatabaseSet>True</TargetDatabaseSet>
-    <DacVersion>2.0.0</DacVersion>
-    <DacDescription>Made config.Game.IncludeInGuildMembersStatistic column NOT NULL.</DacDescription>
+    <DacVersion>2.1.1</DacVersion>
+    <DacDescription>Removed default constraint on config.Game.IncludeInGamesMenu column.</DacDescription>
     <DefaultCollation>Latin1_General_CI_AS</DefaultCollation>
     <Recovery>SIMPLE</Recovery>
     <TargetFrameworkProfile />
@@ -86,6 +86,7 @@
     <None Include="Scripts\MigrateGameTable_1.2.0_1.3.0.sql" />
     <None Include="Scripts\AddMessage_GamesRolesMenu.sql" />
     <None Include="Scripts\FillGameTable_IncludeInGuildMembersStatisticColumn.sql" />
+    <None Include="Properties\ssdtlifecycle.json" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="Security\hou.sql" />

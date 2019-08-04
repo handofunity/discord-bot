@@ -87,7 +87,8 @@
 
             var messageTemplate = await _messageProvider.GetMessage(Constants.MessageNames.GamesRolesMenu).ConfigureAwait(false);
             var l = _gameRoleProvider.Games
-                                     .Where(m => m.PrimaryGameDiscordRoleID != null) // Only those games with a PrimaryGameDiscordRoleID can be used here
+                                      // Only those games with a PrimaryGameDiscordRoleID and the flag IncludeInGamesMenu enabled can be used here
+                                     .Where(m => m.PrimaryGameDiscordRoleID != null && m.IncludeInGamesMenu)
                                      .OrderBy(m => m.LongName)
                                      .Select(m => string.Format(messageTemplate, m.LongName))
                                      .ToList();

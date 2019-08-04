@@ -176,10 +176,11 @@
 
                 // Primary game role ID
                 if (game.PrimaryGameDiscordRoleID != null)
-                    fields.Add(new EmbedField("Primary game role DiscordRoleID", game.PrimaryGameDiscordRoleID.Value, false));
+                    fields.Add(new EmbedField(nameof(AvailableGame.PrimaryGameDiscordRoleID), game.PrimaryGameDiscordRoleID.Value, false));
 
                 // Flags
-                fields.Add(new EmbedField("Include in \"guild members\" statistic", game.IncludeInGuildMembersStatistic, false));
+                fields.Add(new EmbedField(nameof(AvailableGame.IncludeInGuildMembersStatistic), game.IncludeInGuildMembersStatistic, false));
+                fields.Add(new EmbedField(nameof(AvailableGame.IncludeInGamesMenu), game.IncludeInGamesMenu, false));
 
                 // Game role IDs
                 if (game.AvailableRoles.Count > 0)
@@ -401,12 +402,20 @@
                     }
                     break;
                 case nameof(AvailableGame.IncludeInGuildMembersStatistic):
-                    if (!bool.TryParse(newValue, out var newBoolValue))
+                    if (!bool.TryParse(newValue, out var newIncludeInGuildMembersStatisticValue))
                         return (false, "New value cannot be parsed to type bool.", null);
-                    if (clone.IncludeInGuildMembersStatistic == newBoolValue)
+                    if (clone.IncludeInGuildMembersStatistic == newIncludeInGuildMembersStatisticValue)
                         return (false, "New value equals the current value.", null);
                     oldValue = clone.IncludeInGuildMembersStatistic.ToString();
-                    clone.IncludeInGuildMembersStatistic = newBoolValue;
+                    clone.IncludeInGuildMembersStatistic = newIncludeInGuildMembersStatisticValue;
+                    break;
+                case nameof(AvailableGame.IncludeInGamesMenu):
+                    if (!bool.TryParse(newValue, out var newIncludeInGamesMenuValue))
+                        return (false, "New value cannot be parsed to type bool.", null);
+                    if (clone.IncludeInGamesMenu == newIncludeInGamesMenuValue)
+                        return (false, "New value equals the current value.", null);
+                    oldValue = clone.IncludeInGamesMenu.ToString();
+                    clone.IncludeInGamesMenu = newIncludeInGamesMenuValue;
                     break;
                 default:
                     return (false, $"The property `{property}` is not valid.", null);
@@ -419,6 +428,7 @@
             cachedGame.ShortName = clone.ShortName;
             cachedGame.PrimaryGameDiscordRoleID = clone.PrimaryGameDiscordRoleID;
             cachedGame.IncludeInGuildMembersStatistic = clone.IncludeInGuildMembersStatistic;
+            cachedGame.IncludeInGamesMenu = clone.IncludeInGamesMenu;
 
             GameChanged?.Invoke(this, new GameChangedEventArgs(cachedGame, GameModification.Edited));
 

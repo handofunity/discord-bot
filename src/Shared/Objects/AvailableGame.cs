@@ -14,6 +14,8 @@
 
         public bool IncludeInGuildMembersStatistic { get; set; }
 
+        public bool IncludeInGamesMenu { get; set; }
+
         public List<AvailableGameRole> AvailableRoles { get; }
 
         public AvailableGame()
@@ -28,7 +30,8 @@
                 LongName = LongName,
                 ShortName = ShortName,
                 PrimaryGameDiscordRoleID = PrimaryGameDiscordRoleID,
-                IncludeInGuildMembersStatistic = IncludeInGuildMembersStatistic
+                IncludeInGuildMembersStatistic = IncludeInGuildMembersStatistic,
+                IncludeInGamesMenu = IncludeInGamesMenu
             };
 
             foreach (var role in AvailableRoles)
