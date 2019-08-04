@@ -193,5 +193,12 @@
         /// <param name="userID">The ID of the user to get the current display name for.</param>
         /// <returns>The nickname, if it's set, otherwise the username.</returns>
         string GetCurrentDisplayName(DiscordUserID userID);
+
+        /// <summary>
+        /// Gets the name of the channel for the <paramref name="discordChannelID"/>.
+        /// </summary>
+        /// <param name="discordChannelID">The ID of the discord channel to get the name for.</param>
+        /// <returns>The name of the channel.</returns>
+        string GetChannelLocationAndName(DiscordChannelID discordChannelID);
     }
 }

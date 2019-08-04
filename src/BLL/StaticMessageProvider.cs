@@ -3,8 +3,10 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using JetBrains.Annotations;
+    using Microsoft.Extensions.Logging;
     using Shared.BLL;
     using Shared.DAL;
     using Shared.Enums;
@@ -17,8 +19,10 @@
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region Fields
 
+        private readonly Dictionary<DiscordChannelID, SemaphoreSlim> _channelSemaphores;
         private readonly IMessageProvider _messageProvider;
         private readonly IGameRoleProvider _gameRoleProvider;
+        private readonly ILogger<StaticMessageProvider> _logger;
         private readonly AppSettings _appSettings;
         private readonly bool _provideStaticMessages;
 
@@ -32,10 +36,13 @@
         public StaticMessageProvider(IMessageProvider messageProvider,
                                      IGameRoleProvider gameRoleProvider,
                                      IBotInformationProvider botInformationProvider,
+                                     ILogger<StaticMessageProvider> logger,
                                      AppSettings appSettings)
         {
+            _channelSemaphores = new Dictionary<DiscordChannelID, SemaphoreSlim>();
             _messageProvider = messageProvider;
             _gameRoleProvider = gameRoleProvider;
+            _logger = logger;
             _appSettings = appSettings;
 #if DEBUG
             _provideStaticMessages = botInformationProvider.GetEnvironmentName() == Constants.RuntimeEnvironment.Production;
@@ -95,12 +102,43 @@
             expectedChannelMessages[_appSettings.GamesRolesChannelId] = (l, EnsureGamesRolesMenuReactionsExist);
         }
 
-        private async Task CreateMessagesInChannel(DiscordChannelID channelID, List<string> messages, Func<ulong[], Task> postCreationCallback)
+        private async Task CreateMessagesInChannel(DiscordChannelID channelID,
+                                                   List<string> messages,
+                                                   Func<ulong[], Task> postCreationCallback)
         {
-            await _discordAccess.DeleteBotMessagesInChannel(channelID).ConfigureAwait(false);
-            var messageIds = await _discordAccess.CreateBotMessagesInChannel(channelID, messages.ToArray()).ConfigureAwait(false);
-            if (postCreationCallback != null)
-                await postCreationCallback.Invoke(messageIds).ConfigureAwait(false);
+            if (!_channelSemaphores.TryGetValue(channelID, out var semaphore))
+            {
+                semaphore = new SemaphoreSlim(1, 1);
+                _channelSemaphores.Add(channelID, semaphore);
+            }
+
+            var channelLocationAndName = _discordAccess.GetChannelLocationAndName(channelID);
+
+            try
+            {
+                _logger.LogInformation($"Waiting for channel-edit-semaphore on channel '{channelLocationAndName}' ...");
+                await semaphore.WaitAsync();
+                _logger.LogInformation($"Got channel-edit-semaphore on channel '{channelLocationAndName}'.");
+                _logger.LogInformation($"Deleting existing bot messages in channel '{channelLocationAndName}' ...");
+                await _discordAccess.DeleteBotMessagesInChannel(channelID).ConfigureAwait(false);
+                _logger.LogInformation($"Creating new messages in channel '{channelLocationAndName}' ...");
+                var messageIds = await _discordAccess.CreateBotMessagesInChannel(channelID, messages.ToArray()).ConfigureAwait(false);
+                if (postCreationCallback != null)
+                {
+                    _logger.LogInformation($"Applying post-creation callback for new messages in channel '{channelLocationAndName} ...");
+                    await postCreationCallback.Invoke(messageIds).ConfigureAwait(false);
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, $"Failed to create all messages for channel '{channelLocationAndName}'.");
+            }
+            finally
+            {
+                _logger.LogInformation($"Releasing channel-edit-semaphore on channel '{channelLocationAndName}' ...");
+                semaphore.Release();
+                _logger.LogInformation($"Channel-edit-semaphore on channel '{channelLocationAndName}' released.");
+            }
         }
 
         private async Task EnsureAocRoleMenuReactionsExist(ulong[] messageIds)
@@ -186,6 +224,7 @@
 
         async Task IStaticMessageProvider.EnsureStaticMessagesExist()
         {
+            _logger.LogInformation($"Ensuring that all static messages exist.");
             var expectedChannelMessages = new Dictionary<DiscordChannelID, (List<string> Messages, Func<ulong[], Task> PostCreationCallback)>();
             await LoadAocRoleMenuMessages(expectedChannelMessages).ConfigureAwait(false);
             await LoadWowRoleMenuMessages(expectedChannelMessages).ConfigureAwait(false);
@@ -193,21 +232,26 @@
 
             foreach (var pair in expectedChannelMessages)
             {
+                var channelLocationAndName = _discordAccess.GetChannelLocationAndName(pair.Key);
+                _logger.LogInformation($"Loading existing messages for channel '{channelLocationAndName}' ...");
                 var existingMessages = await _discordAccess.GetBotMessagesInChannel(pair.Key).ConfigureAwait(false);
                 if (existingMessages.Length != pair.Value.Messages.Count)
                 {
                     // If the count is different, we don't have to check every message
+                    _logger.LogInformation($"Messages in channel '{channelLocationAndName}' are incomplete or too many ({existingMessages.Length}/{pair.Value.Messages.Count}).");
                     await CreateMessagesInChannel(pair.Key, pair.Value.Messages, pair.Value.PostCreationCallback).ConfigureAwait(false);
                 }
                 // If the count is the same, check if all messages are the same, in the correct order
                 else if (pair.Value.Messages.Where((t, i) => t != existingMessages[i].Content).Any())
                 {
                     // If there is any message that is not at the same position and equal, we re-create all of them
+                    _logger.LogInformation($"Messages in channel '{channelLocationAndName}' are in the wrong order or have the wrong content.");
                     await CreateMessagesInChannel(pair.Key, pair.Value.Messages, pair.Value.PostCreationCallback).ConfigureAwait(false);
                 }
                 else
                 {
                     // If the count is the same, and all messages are the same, we have to provide some static data to other classes
+                    _logger.LogInformation($"Messages in channel '{channelLocationAndName}' are correct.");
                     if (pair.Key == _appSettings.AshesOfCreationRoleChannelId)
                     {
                         _gameRoleProvider.AocGameRoleMenuMessageID = existingMessages[0].MessageID;

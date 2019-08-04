@@ -400,6 +400,7 @@
                     matchingGame.ShortName = updated.ShortName;
                     matchingGame.PrimaryGameDiscordRoleID = updated.PrimaryGameDiscordRoleID;
                     matchingGame.IncludeInGuildMembersStatistic = updated.IncludeInGuildMembersStatistic;
+                    matchingGame.IncludeInGamesMenu = updated.IncludeInGamesMenu;
                     matchingGame.ModifiedByUserID = (int) userID;
                     matchingGame.ModifiedAtTimestamp = DateTime.UtcNow;
 

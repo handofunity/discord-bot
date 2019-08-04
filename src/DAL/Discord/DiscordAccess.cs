@@ -752,17 +752,22 @@
             var messagesToDelete = new List<IMessage>();
             var messageCollection = channel.GetMessagesAsync();
             var enumerator = messageCollection.GetEnumerator();
+            _logger.LogTrace($"Fetching messages to delete in channel {channelID} ...");
             while (await enumerator.MoveNext().ConfigureAwait(false))
             {
                 if (enumerator.Current == null) continue;
                 messagesToDelete.AddRange(enumerator.Current.Where(m => m.Author.Id == _client.CurrentUser.Id));
             }
 
+            var current = 0;
             await messagesToDelete.PerformBulkOperation(async message =>
             {
+                current++;
                 try
                 {
+                    _logger.LogTrace($"Channel {channelID}: Deleting message {current}/{messagesToDelete.Count} with ID {message.Id}.");
                     await message.DeleteAsync().ConfigureAwait(false);
+                    _logger.LogTrace($"Channel {channelID}: Deleted message {current}/{messagesToDelete.Count} with ID {message.Id}.");
                 }
                 catch (Exception e)
                 {
@@ -783,10 +788,14 @@
             var channel = (ITextChannel)GetGuild().GetChannel((ulong)channelID);
             var result = new List<ulong>();
 
+            var current = 0;
             await messages.PerformBulkOperation(async message =>
             {
+                current++;
+                _logger.LogTrace($"Channel {channelID}: Creating message {current}/{messages.Length} ...");
                 var createdMessage = await channel.SendMessageAsync(message).ConfigureAwait(false);
                 result.Add(createdMessage.Id);
+                _logger.LogTrace($"Channel {channelID}: Created message {current}/{messages.Length} with ID {createdMessage.Id}.");
             }).ConfigureAwait(false);
 
             return result.ToArray();
@@ -827,6 +836,13 @@
         {
             var gu = GetGuildUserById(userID);
             return string.IsNullOrWhiteSpace(gu.Nickname) ? gu.Username : gu.Nickname;
+        }
+
+        string IDiscordAccess.GetChannelLocationAndName(DiscordChannelID discordChannelID)
+        {
+            var g = GetGuild();
+            var channel = g.TextChannels.Single(m => m.Id == (ulong) discordChannelID);
+            return $"/{channel.Category.Name}/{channel.Name}";
         }
 
         #endregion
