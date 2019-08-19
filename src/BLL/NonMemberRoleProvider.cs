@@ -42,23 +42,20 @@
 #pragma warning restore CS4014 // Fire & Forget
         }
 
-        private static Role MapNonMemberEmojiToRole(string emoji)
+        private static Role MapNonMemberEmojiToRole(EmojiDefinition emoji)
         {
-            switch (emoji)
-            {
-                case Constants.NonMemberRolesEmojis.Wave:
-                    return Role.FriendOfMember;
-                case Constants.NonMemberRolesEmojis.Thinking:
-                    return Role.Guest;
-                case Constants.NonMemberRolesEmojis.GameInterestAshesOfCreation:
-                    return Role.GameInterestAshesOfCreation;
-                case Constants.NonMemberRolesEmojis.GameInterestWorldOfWarcraftClassic:
-                    return Role.GameInterestWorldOfWarcraftClassic;
-                case Constants.NonMemberRolesEmojis.GameInterestOath:
-                    return Role.GameInterestOath;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(emoji));
-            }
+            if (emoji.Equals(Constants.NonMemberRolesEmojis.Wave))
+                return Role.FriendOfMember;
+            if (emoji.Equals(Constants.NonMemberRolesEmojis.Thinking))
+                return Role.Guest;
+            if (emoji.Equals(Constants.NonMemberRolesEmojis.GameInterestAshesOfCreation))
+                return Role.GameInterestAshesOfCreation;
+            if (emoji.Equals(Constants.NonMemberRolesEmojis.GameInterestWorldOfWarcraftClassic))
+                return Role.GameInterestWorldOfWarcraftClassic;
+            if (emoji.Equals(Constants.NonMemberRolesEmojis.GameInterestOath))
+                return Role.GameInterestOath;
+
+            throw new ArgumentOutOfRangeException(nameof(emoji));
         }
 
         IDiscordAccess INonMemberRoleProvider.DiscordAccess
@@ -68,7 +65,7 @@
 
         async Task INonMemberRoleProvider.SetNonMemberRole(DiscordChannelID channelID,
                                                            DiscordUserID userID,
-                                                           string emoji)
+                                                           EmojiDefinition emoji)
         {
             if (!_userStore.TryGetUser(userID, out var user))
                 return;
@@ -89,7 +86,7 @@
 
         async Task INonMemberRoleProvider.RevokeNonMemberRole(DiscordChannelID channelID,
                                                               DiscordUserID userID,
-                                                              string emoji)
+                                                              EmojiDefinition emoji)
         {
             if (!_userStore.TryGetUser(userID, out var user))
                 return;

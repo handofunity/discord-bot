@@ -148,8 +148,11 @@
             await _databaseAccess.UpdateUserInfoLastSeen(user, DateTime.UtcNow).ConfigureAwait(false);
         }
 
-        async Task IDiscordUserEventHandler.HandleReactionAdded(DiscordChannelID channelID, DiscordUserID userID, ulong messageID, string emoji)
+        async Task IDiscordUserEventHandler.HandleReactionAdded(DiscordChannelID channelID, DiscordUserID userID, ulong messageID, EmojiDefinition emoji)
         {
+            if (emoji == null)
+                return;
+
             // Channel must be a role channel
             if (channelID != _appSettings.AshesOfCreationRoleChannelId
                 && channelID != _appSettings.WorldOfWarcraftRoleChannelId
@@ -180,8 +183,11 @@
             }
         }
 
-        async Task IDiscordUserEventHandler.HandleReactionRemoved(DiscordChannelID channelID, DiscordUserID userID, ulong messageID, string emoji)
+        async Task IDiscordUserEventHandler.HandleReactionRemoved(DiscordChannelID channelID, DiscordUserID userID, ulong messageID, EmojiDefinition emoji)
         {
+            if (emoji == null)
+                return;
+
             // Channel must be a role channel
             if (channelID != _appSettings.AshesOfCreationRoleChannelId
                 && channelID != _appSettings.WorldOfWarcraftRoleChannelId

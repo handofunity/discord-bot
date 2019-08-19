@@ -3,7 +3,6 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Text;
     using System.Threading.Tasks;
     using JetBrains.Annotations;
     using Microsoft.Extensions.Logging;
@@ -81,54 +80,48 @@
 #pragma warning restore CS4014 // Fire & Forget
         }
 
-        private static string AocEmojiToClassName(string emoji)
+        private static string AocEmojiToClassName(EmojiDefinition emoji)
         {
-            switch (emoji)
-            {
-                case Constants.AocRoleEmojis.Bard:
-                    return nameof(Constants.AocRoleEmojis.Bard);
-                case Constants.AocRoleEmojis.Cleric:
-                    return nameof(Constants.AocRoleEmojis.Cleric);
-                case Constants.AocRoleEmojis.Fighter:
-                    return nameof(Constants.AocRoleEmojis.Fighter);
-                case Constants.AocRoleEmojis.Mage:
-                    return nameof(Constants.AocRoleEmojis.Mage);
-                case Constants.AocRoleEmojis.Ranger:
-                    return nameof(Constants.AocRoleEmojis.Ranger);
-                case Constants.AocRoleEmojis.Rogue:
-                    return nameof(Constants.AocRoleEmojis.Rogue);
-                case Constants.AocRoleEmojis.Summoner:
-                    return nameof(Constants.AocRoleEmojis.Summoner);
-                case Constants.AocRoleEmojis.Tank:
-                    return nameof(Constants.AocRoleEmojis.Tank);
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(emoji), $"Emoji '{emoji}' is unknown.");
-            }
+            if (emoji.Equals(Constants.AocRoleEmojis.Bard))
+                return nameof(Constants.AocRoleEmojis.Bard);
+            if (emoji.Equals(Constants.AocRoleEmojis.Cleric))
+                return nameof(Constants.AocRoleEmojis.Cleric);
+            if (emoji.Equals(Constants.AocRoleEmojis.Fighter))
+                return nameof(Constants.AocRoleEmojis.Fighter);
+            if (emoji.Equals(Constants.AocRoleEmojis.Mage))
+                return nameof(Constants.AocRoleEmojis.Mage);
+            if (emoji.Equals(Constants.AocRoleEmojis.Ranger))
+                return nameof(Constants.AocRoleEmojis.Ranger);
+            if (emoji.Equals(Constants.AocRoleEmojis.Rogue))
+                return nameof(Constants.AocRoleEmojis.Rogue);
+            if (emoji.Equals(Constants.AocRoleEmojis.Summoner))
+                return nameof(Constants.AocRoleEmojis.Summoner);
+            if (emoji.Equals(Constants.AocRoleEmojis.Tank))
+                return nameof(Constants.AocRoleEmojis.Tank);
+
+            throw new ArgumentOutOfRangeException(nameof(emoji), "Emoji is unknown.");
         }
 
-        private static string WowEmojiToClassName(string emoji)
+        private static string WowEmojiToClassName(EmojiDefinition emoji)
         {
-            switch (emoji)
-            {
-                case Constants.WowRoleEmojis.Druid:
-                    return nameof(Constants.WowRoleEmojis.Druid);
-                case Constants.WowRoleEmojis.Hunter:
-                    return nameof(Constants.WowRoleEmojis.Hunter);
-                case Constants.WowRoleEmojis.Mage:
-                    return nameof(Constants.WowRoleEmojis.Mage);
-                case Constants.WowRoleEmojis.Paladin:
-                    return nameof(Constants.WowRoleEmojis.Paladin);
-                case Constants.WowRoleEmojis.Priest:
-                    return nameof(Constants.WowRoleEmojis.Priest);
-                case Constants.WowRoleEmojis.Rogue:
-                    return nameof(Constants.WowRoleEmojis.Rogue);
-                case Constants.WowRoleEmojis.Warlock:
-                    return nameof(Constants.WowRoleEmojis.Warlock);
-                case Constants.WowRoleEmojis.Warrior:
-                    return nameof(Constants.WowRoleEmojis.Warrior);
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(emoji), $"Emoji '{emoji}' is unknown.");
-            }
+            if (emoji.Equals(Constants.WowRoleEmojis.Druid))
+                return nameof(Constants.WowRoleEmojis.Druid);
+            if (emoji.Equals(Constants.WowRoleEmojis.Hunter))
+                return nameof(Constants.WowRoleEmojis.Hunter);
+            if (emoji.Equals(Constants.WowRoleEmojis.Mage))
+                return nameof(Constants.WowRoleEmojis.Mage);
+            if (emoji.Equals(Constants.WowRoleEmojis.Paladin))
+                return nameof(Constants.WowRoleEmojis.Paladin);
+            if (emoji.Equals(Constants.WowRoleEmojis.Priest))
+                return nameof(Constants.WowRoleEmojis.Priest);
+            if (emoji.Equals(Constants.WowRoleEmojis.Rogue))
+                return nameof(Constants.WowRoleEmojis.Rogue);
+            if (emoji.Equals(Constants.WowRoleEmojis.Warlock))
+                return nameof(Constants.WowRoleEmojis.Warlock);
+            if (emoji.Equals(Constants.WowRoleEmojis.Warrior))
+                return nameof(Constants.WowRoleEmojis.Warrior);
+
+            throw new ArgumentOutOfRangeException(nameof(emoji), "Emoji is unknown.");
         }
 
         #endregion
@@ -197,7 +190,7 @@
             return result;
         }
 
-        async Task IGameRoleProvider.SetGameRole(DiscordChannelID channelID, DiscordUserID userID, AvailableGame game, string emoji)
+        async Task IGameRoleProvider.SetGameRole(DiscordChannelID channelID, DiscordUserID userID, AvailableGame game, EmojiDefinition emoji)
         {
             if (!_userStore.TryGetUser(userID, out var user))
                 return;
@@ -229,7 +222,7 @@
             }
         }
 
-        async Task IGameRoleProvider.RevokeGameRole(DiscordChannelID channelID, DiscordUserID userID, AvailableGame game, string emoji)
+        async Task IGameRoleProvider.RevokeGameRole(DiscordChannelID channelID, DiscordUserID userID, AvailableGame game, EmojiDefinition emoji)
         {
             if (!_userStore.TryGetUser(userID, out var user))
                 return;

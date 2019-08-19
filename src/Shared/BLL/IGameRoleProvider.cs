@@ -24,9 +24,9 @@
 
         IReadOnlyList<EmbedData> GetGameInfoAsEmbedData([CanBeNull] string filter);
 
-        Task SetGameRole(DiscordChannelID channelID, DiscordUserID userID, AvailableGame game, string emoji);
+        Task SetGameRole(DiscordChannelID channelID, DiscordUserID userID, AvailableGame game, EmojiDefinition emoji);
 
-        Task RevokeGameRole(DiscordChannelID channelID, DiscordUserID userID, AvailableGame game, string emoji);
+        Task RevokeGameRole(DiscordChannelID channelID, DiscordUserID userID, AvailableGame game, EmojiDefinition emoji);
 
         Task SetPrimaryGameRole(DiscordChannelID channelID,
                                 DiscordUserID userID,

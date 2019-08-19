@@ -164,7 +164,7 @@
         /// <param name="messageID">The ID of the message to add the reactions to.</param>
         /// <param name="reactions">The reactions to add.</param>
         /// <returns>An awaitable <see cref="Task"/>.</returns>
-        Task AddReactionsToMessage(DiscordChannelID channelID, ulong messageID, string[] reactions);
+        Task AddReactionsToMessage(DiscordChannelID channelID, ulong messageID, EmojiDefinition[] reactions);
 
         /// <summary>
         /// Counts the guild members having the <paramref name="roleID"/>.

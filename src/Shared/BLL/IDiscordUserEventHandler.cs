@@ -23,8 +23,8 @@
 
         Task HandleStatusChanged(DiscordUserID userID, bool wasOnline, bool isOnline);
 
-        Task HandleReactionAdded(DiscordChannelID channelID, DiscordUserID userID, ulong messageID, string emote);
+        Task HandleReactionAdded(DiscordChannelID channelID, DiscordUserID userID, ulong messageID, EmojiDefinition emote);
 
-        Task HandleReactionRemoved(DiscordChannelID channelID, DiscordUserID userID, ulong messageID, string emote);
+        Task HandleReactionRemoved(DiscordChannelID channelID, DiscordUserID userID, ulong messageID, EmojiDefinition emote);
     }
 }

@@ -41,40 +41,40 @@
 
         public static class AocRoleEmojis
         {
-            public const string Bard = "\uD83C\uDFB5"; // :musical_note:
-            public const string Cleric = "\uD83C\uDFE5"; // :hospital:
-            public const string Fighter = "\u2694"; // :crossed_swords:
-            public const string Mage = "\uD83C\uDF86"; // :fireworks:
-            public const string Ranger = "\uD83C\uDFF9"; // :bow_and_arrow:
-            public const string Rogue = "\uD83D\uDC65"; // :busts_in_silhouette:
-            public const string Summoner = "\uD83D\uDC23"; // :hatching_chick:
-            public const string Tank = "\uD83D\uDEE1"; // :shield:
+            public static readonly EmojiDefinition Bard = new EmojiDefinition("\uD83C\uDFB5"); // :musical_note:
+            public static readonly EmojiDefinition Cleric = new EmojiDefinition("\uD83C\uDFE5"); // :hospital:
+            public static readonly EmojiDefinition Fighter = new EmojiDefinition("\u2694"); // :crossed_swords:
+            public static readonly EmojiDefinition Mage = new EmojiDefinition("\uD83C\uDF86"); // :fireworks:
+            public static readonly EmojiDefinition Ranger = new EmojiDefinition("\uD83C\uDFF9"); // :bow_and_arrow:
+            public static readonly EmojiDefinition Rogue = new EmojiDefinition("\uD83D\uDC65"); // :busts_in_silhouette:
+            public static readonly EmojiDefinition Summoner = new EmojiDefinition("\uD83D\uDC23"); // :hatching_chick:
+            public static readonly EmojiDefinition Tank = new EmojiDefinition("\uD83D\uDEE1"); // :shield:
         }
 
         public static class WowRoleEmojis
         {
-            public const string Druid = "\uD83C\uDF33"; // :deciduous_tree:
-            public const string Hunter = "\uD83C\uDFF9"; // :bow_and_arrow:
-            public const string Mage = "\uD83C\uDF86"; // :fireworks:
-            public const string Paladin = "\u2733"; // :eight_spoked_asterisk: 
-            public const string Priest = "\uD83C\uDFE5"; // :hospital:
-            public const string Rogue = "\uD83D\uDC65"; // :busts_in_silhouette:
-            public const string Warlock = "\uD83D\uDD73"; // :hole:
-            public const string Warrior = "\uD83D\uDEE1"; // :shield:
+            public static readonly EmojiDefinition Druid = new EmojiDefinition("WOWDruid", 607933001107636264);
+            public static readonly EmojiDefinition Hunter = new EmojiDefinition("WOWHunter", 607945148005089282);
+            public static readonly EmojiDefinition Mage = new EmojiDefinition("WOWMage", 607933001199779872);
+            public static readonly EmojiDefinition Paladin = new EmojiDefinition("WOWPaladin", 607933001095184384);
+            public static readonly EmojiDefinition Priest = new EmojiDefinition("WOWPriest", 607933001250242580);
+            public static readonly EmojiDefinition Rogue = new EmojiDefinition("WOWRogue", 607933000751251477);
+            public static readonly EmojiDefinition Warlock = new EmojiDefinition("WOWWarlock", 607933001174745089);
+            public static readonly EmojiDefinition Warrior = new EmojiDefinition("WOWWarrior", 607933001090727946);
         }
 
         public static class GamesRolesEmojis
         {
-            public const string Joystick = "\uD83D\uDD79"; // :joystick: 
+            public static readonly EmojiDefinition Joystick = new EmojiDefinition("\uD83D\uDD79"); // :joystick: 
         }
 
         public static class NonMemberRolesEmojis
         {
-            public const string Wave = "\uD83D\uDC4B"; // :wave:
-            public const string Thinking = "\uD83E\uDD14"; // :thinking:
-            public const string GameInterestAshesOfCreation = "AshesofCreation";
-            public const string GameInterestWorldOfWarcraftClassic = "WoWClassic";
-            public const string GameInterestOath = "oath";
+            public static readonly EmojiDefinition Wave = new EmojiDefinition("\uD83D\uDC4B"); // :wave:
+            public static readonly EmojiDefinition Thinking = new EmojiDefinition("\uD83E\uDD14"); // :thinking:
+            public static readonly EmojiDefinition GameInterestAshesOfCreation = new EmojiDefinition("AshesofCreation", null);
+            public static readonly EmojiDefinition GameInterestWorldOfWarcraftClassic = new EmojiDefinition("WoWClassic", null);
+            public static readonly EmojiDefinition GameInterestOath = new EmojiDefinition("oath", null);
         }
     }
 }

@@ -7,6 +7,7 @@
     using Microsoft.Extensions.Logging;
     using Shared.BLL;
     using Shared.DAL;
+    using Shared.Objects;
 
     [UsedImplicitly]
     public class BotEngine : IBotEngine
@@ -57,6 +58,7 @@
             var cts = new CancellationTokenSource();
 
             _logger.LogInformation("Starting bot...");
+            EmojiDefinition.InitializeAll();
 
             // Create connection to Discord
             await Connect().ConfigureAwait(false);

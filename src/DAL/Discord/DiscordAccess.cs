@@ -474,6 +474,19 @@
                     .ToArray();
         }
 
+        private static EmojiDefinition ParseToEmojiDefinition(IEmote e)
+        {
+            switch (e)
+            {
+                case Emoji emoji:
+                    return EmojiDefinition.AllEmojis.SingleOrDefault(m => m.Unicode == emoji.Name);
+                case Emote emote:
+                    return EmojiDefinition.AllEmojis.SingleOrDefault(m => m.Name == emote.Name && (m.Id.HasValue && m.Id.Value == emote.Id || m.EmojiKind == EmojiDefinition.Kind.ReadonlyCustomEmote));
+                default:
+                    throw new NotSupportedException("Unknown emote type.");
+            }
+        }
+
         #endregion
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -801,15 +814,20 @@
             return result.ToArray();
         }
 
-        async Task IDiscordAccess.AddReactionsToMessage(DiscordChannelID channelID, ulong messageID, string[] reactions)
+        async Task IDiscordAccess.AddReactionsToMessage(DiscordChannelID channelID, ulong messageID, EmojiDefinition[] reactions)
         {
             var channel = (ITextChannel)GetGuild().GetChannel((ulong)channelID);
             var message = (IUserMessage)await channel.GetMessageAsync(messageID).ConfigureAwait(false);
 
             await reactions.PerformBulkOperation(async reaction =>
             {
-                var e = new Emoji(reaction);
-                await message.AddReactionAsync(e).ConfigureAwait(false);
+                IEmote emote;
+                if (reaction.EmojiKind == EmojiDefinition.Kind.UnicodeEmoji)
+                    emote = new Emoji(reaction.Unicode);
+                else
+                    emote = Emote.Parse($"<:{reaction.Name}:{reaction.Id.Value}>");
+
+                await message.AddReactionAsync(emote).ConfigureAwait(false);
             }).ConfigureAwait(false);
         }
 
@@ -983,7 +1001,7 @@
 
             // Fire & Forget
             Task.Run(async () => await _discordUserEventHandler
-                                       .HandleReactionRemoved((DiscordChannelID)channel.Id, (DiscordUserID)reaction.UserId, message.Id, reaction.Emote.Name)
+                                       .HandleReactionRemoved((DiscordChannelID)channel.Id, (DiscordUserID)reaction.UserId, message.Id, ParseToEmojiDefinition(reaction.Emote))
                                        .ConfigureAwait(false)).ConfigureAwait(false);
             return Task.CompletedTask;
         }
@@ -1000,7 +1018,7 @@
 
             // Fire & Forget
             Task.Run(async () => await _discordUserEventHandler
-                                       .HandleReactionAdded((DiscordChannelID) channel.Id, (DiscordUserID) reaction.UserId, message.Id, reaction.Emote.Name)
+                                       .HandleReactionAdded((DiscordChannelID) channel.Id, (DiscordUserID) reaction.UserId, message.Id, ParseToEmojiDefinition(reaction.Emote))
                                        .ConfigureAwait(false)).ConfigureAwait(false);
             return Task.CompletedTask;
         }
