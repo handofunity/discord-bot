@@ -167,18 +167,26 @@
         Task AddReactionsToMessage(DiscordChannelID channelID, ulong messageID, EmojiDefinition[] reactions);
 
         /// <summary>
-        /// Counts the guild members having the <paramref name="roleID"/>.
+        /// Counts the guild members having the <paramref name="roleIDs"/>.
         /// </summary>
-        /// <param name="roleID">The ID of the role to count.</param>
-        /// <returns>The amount of guild members having the <paramref name="roleID"/>.</returns>
-        int CountGuildMembersWithRole(ulong roleID);
+        /// <param name="roleIDs">The IDs of the roles to count.</param>
+        /// <returns>The amount of guild members having the <paramref name="roleIDs"/>.</returns>
+        int CountGuildMembersWithRoles(ulong[] roleIDs);
 
         /// <summary>
-        /// Counts the guild members having the <paramref name="roleName"/>.
+        /// Counts the guild members having the <paramref name="roleIDs"/> and not having the <paramref name="roleIDsToExclude"/>.
         /// </summary>
-        /// <param name="roleName">The name of the role to count.</param>
-        /// <returns>The amount of guild members having the <paramref name="roleName"/>.</returns>
-        int CountGuildMembersWithRole(string roleName);
+        /// <param name="roleIDs">The IDs of the roles to count.</param>
+        /// <param name="roleIDsToExclude">The role IDs that will skip a count of the guild member.</param>
+        /// <returns>The amount of guild members having the <paramref name="roleIDs"/> and not the <paramref name="roleIDsToExclude"/>.</returns>
+        int CountGuildMembersWithRoles(ulong[] roleIDs, ulong[] roleIDsToExclude);
+
+        /// <summary>
+        /// Counts the guild members having the <paramref name="roleNames"/>.
+        /// </summary>
+        /// <param name="roleNames">The names of the roles to count.</param>
+        /// <returns>The amount of guild members having the <paramref name="roleNames"/>.</returns>
+        int CountGuildMembersWithRoles(string[] roleNames);
 
         /// <summary>
         /// Checks if the given <paramref name="roleID"/> exists.

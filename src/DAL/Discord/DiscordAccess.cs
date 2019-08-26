@@ -464,13 +464,14 @@
 
         private static bool IsOnline(IPresence gu) => gu.Status != UserStatus.Offline && gu.Status != UserStatus.Invisible;
 
-        private SocketGuildUser[] GetGuildMembersWithRole(ulong roleID)
+        private SocketGuildUser[] GetGuildMembersWithRoles(ulong[] roleIDs, ulong[] roleIDsToExclude)
         {
             var g = GetGuild();
             return g.Users
                     .Where(m => _userStore.TryGetUser((DiscordUserID) m.Id, out var user)
                                 && user.IsGuildMember
-                                && m.Roles.Any(r => r.Id == roleID))
+                                && (roleIDs == null || roleIDs.Intersect(m.Roles.Select(r => r.Id)).Count() == roleIDs.Length)
+                                && (roleIDsToExclude == null || !roleIDsToExclude.Intersect(m.Roles.Select(r => r.Id)).Any()))
                     .ToArray();
         }
 
@@ -831,16 +832,27 @@
             }).ConfigureAwait(false);
         }
 
-        int IDiscordAccess.CountGuildMembersWithRole(ulong roleID)
+        int IDiscordAccess.CountGuildMembersWithRoles(ulong[] roleIDs)
         {
-            var guildMembers = GetGuildMembersWithRole(roleID);
+            var guildMembers = GetGuildMembersWithRoles(roleIDs, null);
             return guildMembers.Length;
         }
 
-        int IDiscordAccess.CountGuildMembersWithRole(string roleName)
+        int IDiscordAccess.CountGuildMembersWithRoles(ulong[] roleIDs,
+                                                      ulong[] roleIDsToExclude)
         {
-            var role = GetRoleByName(roleName);
-            var guildMembers = GetGuildMembersWithRole(role.Id);
+            var guildMembers = GetGuildMembersWithRoles(roleIDs, roleIDsToExclude);
+            return guildMembers.Length;
+        }
+
+        int IDiscordAccess.CountGuildMembersWithRoles(string[] roleNames)
+        {
+            var roleIDs = new List<ulong>();
+            foreach (var roleName in roleNames)
+            {
+                roleIDs.Add(GetRoleByName(roleName).Id);
+            }
+            var guildMembers = GetGuildMembersWithRoles(roleIDs.ToArray(), null);
             return guildMembers.Length;
         }
 
