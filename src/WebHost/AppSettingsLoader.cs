@@ -51,6 +51,8 @@
                 throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.FriendOrGuestMessageId)}' must be a correct ID.");
             if (settings.NonMemberGameInterestMessageId == default)
                 throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.NonMemberGameInterestMessageId)}' must be a correct ID.");
+            if (settings.VoiceChannelCategoryId == default)
+                throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.VoiceChannelCategoryId)}' must be a correct ID.");
             if (settings.DesiredTimeZones.Length == 0)
                 throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.DesiredTimeZones)}' cannot be empty.");
             if (settings.SpamLimits.Length == 0)

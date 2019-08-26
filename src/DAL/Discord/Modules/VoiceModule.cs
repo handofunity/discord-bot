@@ -1,0 +1,74 @@
+﻿namespace HoU.GuildBot.DAL.Discord.Modules
+{
+    using System.Text.RegularExpressions;
+    using System.Threading.Tasks;
+    using global::Discord.Commands;
+    using global::Discord.WebSocket;
+    using JetBrains.Annotations;
+    using Preconditions;
+    using Shared.Attributes;
+    using Shared.BLL;
+    using Shared.DAL;
+    using Shared.Enums;
+    using Shared.Objects;
+    using Shared.StrongTypes;
+
+    [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
+    public class VoiceModule : ModuleBaseHoU
+    {
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////
+        #region Fields
+
+        private readonly IVoiceChannelManager _voiceChannelManager;
+
+        #endregion
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////
+        #region Constructors
+
+        public VoiceModule(IVoiceChannelManager voiceChannelManager)
+        {
+            _voiceChannelManager = voiceChannelManager;
+        }
+
+        #endregion
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////
+        #region Commands
+
+        [Command("voice")]
+        [CommandCategory(CommandCategory.MemberManagement, 4)]
+        [Name("Creates a voice channel")]
+        [Summary("Creates a voice channel for a specific numbers of users, and deletes the channel after everyone left the channel.")]
+        [Remarks("Syntax: _voice \"CHANNEL-NAME\" USER-LIMIT_ e.g.: _voice \"My channel\" 5_ to create a voice channel called \"My channel\" with a maximum of 5 users.\r\n" +
+                 "Channel name must be unique and not empty. Only letters, digits and spaces are allowed.\r\n" +
+                 "User limit must be equal to two or greater.")]
+        [RequireContext(ContextType.Guild)]
+        [ResponseContext(ResponseType.AlwaysSameChannel)]
+        [RolePrecondition(Role.AnyGuildMember)]
+        public async Task WhoIsAsync([Remainder] string remainder)
+        {
+            var regex = new Regex(@"^""(?<name>[\w ]+)"" (?<maxUsers>\d+)$");
+            var match = regex.Match(remainder);
+            if (!match.Success)
+            {
+                await ReplyAsync("Couldn't parse command parameter from message content. Please use the help function to see the correct command syntax.")
+                   .ConfigureAwait(false);
+                return;
+            }
+
+            var error = await _voiceChannelManager.CreateVoiceChannel(match.Groups["name"].Value, int.Parse(match.Groups["maxUsers"].Value))
+                                                  .ConfigureAwait(false);
+            if (error == null)
+            {
+                await ReplyAsync($"{Context.User.Mention}: Voice channel \"{match.Groups["name"].Value}\" has been created successfully.").ConfigureAwait(false);
+            }
+            else
+            {
+                await ReplyAsync($"{Context.User.Mention}: Failed to create voice channel. Reason: `{error}`").ConfigureAwait(false);
+            }
+        }
+
+        #endregion
+    }
+}

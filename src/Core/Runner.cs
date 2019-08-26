@@ -69,6 +69,7 @@
                .AddSingleton<INonMemberRoleProvider, NonMemberRoleProvider>()
                .AddSingleton<IGameRoleProvider, GameRoleProvider>()
                .AddSingleton<IStaticMessageProvider, StaticMessageProvider>()
+               .AddSingleton<IVoiceChannelManager, VoiceChannelManager>()
                // Transients
                .AddTransient<IHelpProvider, HelpProvider>()
                .AddTransient<IVacationProvider, VacationProvider>()

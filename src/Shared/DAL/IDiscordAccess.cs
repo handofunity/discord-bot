@@ -215,5 +215,23 @@
         /// <param name="discordChannelID">The ID of the discord channel to get the name for.</param>
         /// <returns>The name of the channel.</returns>
         string GetChannelLocationAndName(DiscordChannelID discordChannelID);
+
+        /// <summary>
+        /// Creates a temporary voice channel.
+        /// </summary>
+        /// <param name="voiceChannelCategoryId">The ID of the category where the voice channel should be placed.</param>
+        /// <param name="name">The name of the voice channel.</param>
+        /// <param name="maxUsers">The maximum number of users allowed into the voice channel.</param>
+        /// <returns>The ID of the created channel, or an error while creating it.</returns>
+        Task<(ulong VoiceChannelId, string Error)> CreateVoiceChannel(ulong voiceChannelCategoryId,
+                                                                      string name,
+                                                                      int maxUsers);
+
+        /// <summary>
+        /// Deletes the voice channel, if it's empty.
+        /// </summary>
+        /// <param name="voiceChannelId">The ID of the voice channel to delete.</param>
+        /// <returns><b>True</b>, if the voice channel was deleted or doesn't exist, otherwise <b>false</b>.</returns>
+        Task<bool> DeleteVoiceChannelIfEmpty(ulong voiceChannelId);
     }
 }

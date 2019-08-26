@@ -881,6 +881,44 @@
             return $"/{channel.Category.Name}/{channel.Name}";
         }
 
+        async Task<(ulong VoiceChannelId, string Error)> IDiscordAccess.CreateVoiceChannel(ulong voiceChannelCategoryId,
+                                                                                           string name,
+                                                                                           int maxUsers)
+        {
+            var g = GetGuild();
+            try
+            {
+                if (g.VoiceChannels.Any(m => m.Name == name))
+                    return (0, "Voice channel with same name already exists.");
+
+                var voiceChannel = await g.CreateVoiceChannelAsync(name,
+                                                                   properties =>
+                                                                   {
+                                                                       properties.UserLimit = maxUsers;
+                                                                       properties.CategoryId = voiceChannelCategoryId;
+                                                                   });
+                return (voiceChannel.Id, null);
+            }
+            catch (Exception e)
+            {
+                return (0, e.Message);
+            }
+        }
+
+        async Task<bool> IDiscordAccess.DeleteVoiceChannelIfEmpty(ulong voiceChannelId)
+        {
+            var g = GetGuild();
+            var voiceChannel = g.GetVoiceChannel(voiceChannelId);
+            if (voiceChannel == null)
+                return true;
+
+            if (voiceChannel.Users.Count > 0)
+                return false;
+
+            await voiceChannel.DeleteAsync();
+            return true;
+        }
+
         #endregion
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////

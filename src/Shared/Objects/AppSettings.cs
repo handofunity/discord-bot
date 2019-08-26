@@ -116,6 +116,11 @@
         public ulong NonMemberGameInterestMessageId { get; set; }
 
         /// <summary>
+        /// Gets or sets the category ID for voice channels.
+        /// </summary>
+        public ulong VoiceChannelCategoryId { get; set; }
+
+        /// <summary>
         /// Gets or sets an array of <see cref="DesiredTimeZone"/> instances.
         /// </summary>
         public DesiredTimeZone[] DesiredTimeZones { get; set; }
