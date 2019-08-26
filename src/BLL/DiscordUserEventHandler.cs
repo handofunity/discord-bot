@@ -93,6 +93,12 @@
                                                       $"has left the server on {now:D} at {now:HH:mm:ss} UTC.")
                                         .ConfigureAwait(false);
                 }
+                // If it has been less than 10 minutes, write to the #public-chat, so people will know that a new user left before greeting them.
+                else
+                {
+                    await _discordAccess.CreateBotMessageInWelcomeChannel($"User `{username}#{discriminatorValue}` has left the server.")
+                                        .ConfigureAwait(false);
+                }
             }).ConfigureAwait(false);
 #pragma warning restore CS4014 // Fire & Forget
         }

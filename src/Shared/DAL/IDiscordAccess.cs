@@ -158,6 +158,13 @@
         Task<ulong[]> CreateBotMessagesInChannel(DiscordChannelID channelID, string[] messages);
 
         /// <summary>
+        /// Creates the <paramref name="message"/> in the servers welcome channel.
+        /// </summary>
+        /// <param name="message">The message to create.</param>
+        /// <returns>An awaitable <see cref="Task"/>.</returns>
+        Task CreateBotMessageInWelcomeChannel(string message);
+
+        /// <summary>
         /// Adds the <paramref name="reactions"/> to the given <paramref name="messageID"/> in the <paramref name="channelID"/>.
         /// </summary>
         /// <param name="channelID">The ID of the channel where the <paramref name="messageID"/> can be found.</param>

@@ -815,6 +815,12 @@
             return result.ToArray();
         }
 
+        async Task IDiscordAccess.CreateBotMessageInWelcomeChannel(string message)
+        {
+            var g = GetGuild();
+            await g.SystemChannel.SendMessageAsync(message).ConfigureAwait(false);
+        }
+
         async Task IDiscordAccess.AddReactionsToMessage(DiscordChannelID channelID, ulong messageID, EmojiDefinition[] reactions)
         {
             var channel = (ITextChannel)GetGuild().GetChannel((ulong)channelID);
