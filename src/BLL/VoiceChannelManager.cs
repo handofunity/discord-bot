@@ -2,12 +2,15 @@
 {
     using System;
     using System.Threading.Tasks;
+    using Shared.StrongTypes;
     using Shared.BLL;
     using Shared.DAL;
     using Shared.Objects;
 
     public class VoiceChannelManager : IVoiceChannelManager
     {
+        private const string InsufficientPermissionsMessage = "The bot has insufficient permissions for your current voice channel.";
+
         private readonly IDiscordAccess _discordAccess;
         private readonly AppSettings _appSettings;
 
@@ -44,6 +47,36 @@
 #pragma warning restore CS4014 // Fire & forget
 
             return null;
+        }
+
+        async Task<string> IVoiceChannelManager.TryToMuteUsers(DiscordUserID userId,
+                                                               string mention)
+        {
+            var userVoiceChannelId = _discordAccess.GetUsersVoiceChannelId(userId);
+            if (userVoiceChannelId == null)
+                return null;
+
+            var didSetMuteState = await _discordAccess.SetUsersMuteStateInVoiceChannel(userVoiceChannelId.Value, true)
+                                                      .ConfigureAwait(false);
+
+            return didSetMuteState
+                       ? null
+                       : $"{mention}: " + InsufficientPermissionsMessage;
+        }
+
+        async Task<string> IVoiceChannelManager.TryToUnmuteUsers(DiscordUserID userId,
+                                                                 string mention)
+        {
+            var userVoiceChannelId = _discordAccess.GetUsersVoiceChannelId(userId);
+            if (userVoiceChannelId == null)
+                return null;
+
+            var didSetMuteState = await _discordAccess.SetUsersMuteStateInVoiceChannel(userVoiceChannelId.Value, false)
+                                                      .ConfigureAwait(false);
+
+            return didSetMuteState
+                       ? null
+                       : $"{mention}: " + InsufficientPermissionsMessage;
         }
     }
 }

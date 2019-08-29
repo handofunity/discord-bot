@@ -7,6 +7,7 @@
         Help = 2,
         MemberInformation = 3,
         MemberManagement = 4,
-        GameAshesOfCreation = 5
+        GameAshesOfCreation = 5,
+        Voice = 6
     }
 }

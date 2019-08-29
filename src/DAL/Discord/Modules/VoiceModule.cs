@@ -37,7 +37,7 @@
         #region Commands
 
         [Command("voice")]
-        [CommandCategory(CommandCategory.MemberManagement, 4)]
+        [CommandCategory(CommandCategory.Voice, 1)]
         [Name("Creates a voice channel")]
         [Summary("Creates a voice channel for a specific numbers of users, and deletes the channel after everyone left the channel.")]
         [Remarks("Syntax: _voice \"CHANNEL-NAME\" USER-LIMIT_ e.g.: _voice \"My channel\" 5_ to create a voice channel called \"My channel\" with a maximum of 5 users.\r\n" +
@@ -46,7 +46,7 @@
         [RequireContext(ContextType.Guild)]
         [ResponseContext(ResponseType.AlwaysSameChannel)]
         [RolePrecondition(Role.AnyGuildMember)]
-        public async Task WhoIsAsync([Remainder] string remainder)
+        public async Task CreateVoiceChannelAsync([Remainder] string remainder)
         {
             var regex = new Regex(@"^""(?<name>[\w ]+)"" (?<maxUsers>\d+)$");
             var match = regex.Match(remainder);
@@ -67,6 +67,38 @@
             {
                 await ReplyAsync($"{Context.User.Mention}: Failed to create voice channel. Reason: `{error}`").ConfigureAwait(false);
             }
+        }
+
+        [Command("mute")]
+        [CommandCategory(CommandCategory.Voice, 2)]
+        [Name("Mute all users")]
+        [Summary("Mutes all players in the current channel with permissions below the bot.")]
+        [RequireContext(ContextType.Guild)]
+        [ResponseContext(ResponseType.AlwaysSameChannel)]
+        [RolePrecondition(Role.Leader | Role.Officer | Role.Coordinator)]
+        public async Task MuteUsersAsync()
+        {
+            var error = await _voiceChannelManager.TryToMuteUsers((DiscordUserID) Context.User.Id,
+                                                                  Context.User.Mention)
+                                                  .ConfigureAwait(false);
+            if (error != null)
+                await ReplyAsync(error).ConfigureAwait(false);
+        }
+
+        [Command("unmute")]
+        [CommandCategory(CommandCategory.Voice, 3)]
+        [Name("Unmute all users")]
+        [Summary("Unmutes all players in the current channel with permissions below the bot.")]
+        [RequireContext(ContextType.Guild)]
+        [ResponseContext(ResponseType.AlwaysSameChannel)]
+        [RolePrecondition(Role.Leader | Role.Officer | Role.Coordinator)]
+        public async Task UnmuteUsersAsync()
+        {
+            var error = await _voiceChannelManager.TryToUnmuteUsers((DiscordUserID) Context.User.Id,
+                                                                    Context.User.Mention)
+                                                  .ConfigureAwait(false);
+            if (error != null)
+                await ReplyAsync(error).ConfigureAwait(false);
         }
 
         #endregion

@@ -365,11 +365,16 @@
             _logger.Log(ToLogLevel(msg.Severity), 0, prefix + msg.Message, msg.Exception, FormatLogMessage);
         }
 
-        private bool CanManageRolesForUserInternal(DiscordUserID userID)
+        private bool CanBotModifyUser(DiscordUserID userID)
         {
             var gu = GetGuildUserById(userID);
+            return CanBotModifyUser(gu);
+        }
+
+        private bool CanBotModifyUser(SocketGuildUser user)
+        {
             var botUser = GetGuildUserById((DiscordUserID)_client.CurrentUser.Id);
-            return botUser.Roles.Max(m => m.Position) > gu.Roles.Max(m => m.Position);
+            return botUser.Roles.Max(m => m.Position) > user.Roles.Max(m => m.Position);
         }
 
         private async Task UpdateGuildUserRoles(DiscordUserID userID, Role oldRoles, Role newRoles)
@@ -426,7 +431,7 @@
                                            IReadOnlyCollection<SocketRole> previousRoles,
                                            IReadOnlyCollection<SocketRole> currentRoles)
         {
-            if (!CanManageRolesForUserInternal(discordUserId))
+            if (!CanBotModifyUser(discordUserId))
                 return;
 
             const string groupRolePrefix = "⁣⁣― ";
@@ -712,7 +717,7 @@
 
         bool IDiscordAccess.CanManageRolesForUser(DiscordUserID userID)
         {
-            return CanManageRolesForUserInternal(userID);
+            return CanBotModifyUser(userID);
         }
 
         async Task IDiscordAccess.SendWelcomeMessage(DiscordUserID userID)
@@ -916,6 +921,33 @@
                 return false;
 
             await voiceChannel.DeleteAsync();
+            return true;
+        }
+
+        DiscordChannelID? IDiscordAccess.GetUsersVoiceChannelId(DiscordUserID userId)
+        {
+            var gu = GetGuildUserById(userId);
+            return (DiscordChannelID?)gu.VoiceChannel?.Id;
+        }
+
+        async Task<bool> IDiscordAccess.SetUsersMuteStateInVoiceChannel(DiscordChannelID voiceChannelId,
+                                                                        bool mute)
+        {
+            var g = GetGuild();
+            var voiceChannel = g.GetVoiceChannel((ulong) voiceChannelId);
+            var botGuildUser = GetGuildUserById((DiscordUserID) _client.CurrentUser.Id);
+            var permissions = botGuildUser.GetPermissions(voiceChannel);
+            if (!permissions.MuteMembers)
+                return false;
+
+            foreach (var voiceChannelUser in voiceChannel.Users)
+            {
+                if (CanBotModifyUser(voiceChannelUser)
+                    && voiceChannelUser.IsMuted != mute)
+                    await voiceChannelUser.ModifyAsync(properties => properties.Mute = mute)
+                                          .ConfigureAwait(false);
+            }
+
             return true;
         }
 

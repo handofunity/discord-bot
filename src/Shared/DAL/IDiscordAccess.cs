@@ -233,5 +233,21 @@
         /// <param name="voiceChannelId">The ID of the voice channel to delete.</param>
         /// <returns><b>True</b>, if the voice channel was deleted or doesn't exist, otherwise <b>false</b>.</returns>
         Task<bool> DeleteVoiceChannelIfEmpty(ulong voiceChannelId);
+
+        /// <summary>
+        /// Gets the <see cref="DiscordChannelID"/> of the users voice channel, if he's in any.
+        /// </summary>
+        /// <param name="userId">The ID of the user.</param>
+        /// <returns>The <see cref="DiscordChannelID"/> of the users current voice channel.</returns>
+        DiscordChannelID? GetUsersVoiceChannelId(DiscordUserID userId);
+
+        /// <summary>
+        /// Sets the mute state of all users in the <paramref name="voiceChannelId"/> below the bot to the value of <paramref name="mute"/>.
+        /// </summary>
+        /// <param name="voiceChannelId">The ID of the voice channel.</param>
+        /// <param name="mute"><b>True</b>, if the users should be muted, otherwise <b>false</b>.</param>
+        /// <returns><b>True</b>, when the bot is allowed to change the mute-state in the <paramref name="voiceChannelId"/> and successfully did, otherwise <b>false</b>.</returns>
+        Task<bool> SetUsersMuteStateInVoiceChannel(DiscordChannelID voiceChannelId,
+                                                   bool mute);
     }
 }
