@@ -43,13 +43,15 @@
         private EmbedData CreateEmbedDataForWhoIs(User user)
         {
             var userName = _discordAccess.GetUserNames(new[] { user.DiscordUserID })[user.DiscordUserID];
+            var avatarId = _discordAccess.GetAvatarId(user.DiscordUserID);
             return new EmbedData
             {
                 Color = Colors.LightGreen,
                 Title = $"\"Who is\" information about {userName}",
                 Fields = new[]
                 {
-                    new EmbedField("DiscordUserID", user.DiscordUserID, false),
+                    new EmbedField("DiscordUserID", user.DiscordUserID, true),
+                    new EmbedField("DiscordAvatarID", avatarId ?? "<null>", true),
                     new EmbedField("InternalUserID", user.InternalUserID, false),
                     new EmbedField("Is Guild Member", user.IsGuildMember, false),
                     new EmbedField("Bot Permission Roles", user.Roles, false),

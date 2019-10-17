@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using Enums;
+    using JetBrains.Annotations;
     using Objects;
     using StrongTypes;
 
@@ -249,5 +250,12 @@
         /// <returns><b>True</b>, when the bot is allowed to change the mute-state in the <paramref name="voiceChannelId"/> and successfully did, otherwise <b>false</b>.</returns>
         Task<bool> SetUsersMuteStateInVoiceChannel(DiscordChannelID voiceChannelId,
                                                    bool mute);
+
+        /// <summary>
+        /// Gets the ID of the avatar for the <paramref name="userId"/>, if the user has any avatar set.
+        /// </summary>
+        /// <param name="userId">The <see cref="DiscordUserID"/> of the user to get the avatar ID for.</param>
+        /// <returns>The avatar ID, or <b>null</b>.</returns>
+        [CanBeNull] string GetAvatarId(DiscordUserID userId);
     }
 }

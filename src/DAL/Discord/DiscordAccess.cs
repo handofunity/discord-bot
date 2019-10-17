@@ -951,6 +951,12 @@
             return true;
         }
 
+        string IDiscordAccess.GetAvatarId(DiscordUserID userId)
+        {
+            var gu = GetGuildUserById(userId);
+            return gu.AvatarId;
+        }
+
         #endregion
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
