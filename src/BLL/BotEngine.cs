@@ -106,8 +106,8 @@
                 await _discordAccess.LogToDiscord($"Bot started on **{_botInformationProvider.GetEnvironmentName()}** in version {_botInformationProvider.GetFormatedVersion()}.").ConfigureAwait(false);
                 // Start privacy provider clean up
                 _privacyProvider.Start();
-                // Register background jobs
-                // Sync all users every 15 minutes
+                // Register background jobs (HangFire).
+                // Sync all users every full hour.
                 RecurringJob.AddOrUpdate<UnitsSyncService>("sync-users-to-UNITS", service => service.SyncAllUsers(), "0 0-23 * * *");
             }
 

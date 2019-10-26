@@ -21,7 +21,7 @@
     {
         private BackgroundJobServer _backgroundJobServer;
 
-        private static readonly Version BotVersion = new Version(3, 8, 0);
+        private static readonly Version BotVersion = new Version(3, 8, 1);
 
         private ILogger<Runner> _logger;
 

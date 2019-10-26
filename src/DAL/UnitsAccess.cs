@@ -45,7 +45,13 @@
                     httpClient.DefaultRequestHeaders.Accept.Clear();
                     httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-                    await GetAndSetBearerToken(httpClient, false);
+                    var tokenSet = await GetAndSetBearerToken(httpClient, false);
+                    if (!tokenSet)
+                    {
+                        // If the Bearer token is not set, the HTTP request will fail anyway.
+                        // Instead of invoking it, just return.
+                        return;
+                    }
 
                     var response = await invokeHttpRequest(httpClient);
 
@@ -63,8 +69,15 @@
                         if (isExpired)
                         {
                             // If the token is expired, refresh the token.
-                            await GetAndSetBearerToken(httpClient, true);
-                            // Then perform the request again.
+                            tokenSet = await GetAndSetBearerToken(httpClient, true);
+                            if (!tokenSet)
+                            {
+                                // If the Bearer token is not set, the HTTP request will fail anyway.
+                                // Instead of invoking it, just return.
+                                return;
+                            }
+
+                            // If the token is set, perform the request again.
                             response = await invokeHttpRequest(httpClient);
                         }
                     }
@@ -75,13 +88,13 @@
             }
         }
 
-        private async Task GetAndSetBearerToken(HttpClient httpClient,
-                                                bool refresh)
+        private async Task<bool> GetAndSetBearerToken(HttpClient httpClient,
+                                                      bool refresh)
         {
             if (!refresh && _lastBearerToken != null)
             {
                 httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _lastBearerToken);
-                return;
+                return true;
             }
 
             _lastBearerToken = null;
@@ -101,7 +114,7 @@
             {
                 var baseExceptionMessage = e.GetBaseException().Message;
                 await LogRequestErrorAsync(TokenEndpoint, baseExceptionMessage);
-                return;
+                return false;
             }
 
             if (response.IsSuccessStatusCode)
@@ -111,11 +124,11 @@
                 _lastBearerToken = responseObject.Token;
 
                 httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _lastBearerToken);
+                return true;
             }
-            else
-            {
-                await LogRequestErrorAsync(TokenEndpoint, $"HTTP {(int)response.StatusCode} {response.StatusCode}");
-            }
+
+            await LogRequestErrorAsync(TokenEndpoint, $"HTTP {(int) response.StatusCode} {response.StatusCode}");
+            return false;
         }
 
         private async Task LogRequestErrorAsync(string endpoint,
