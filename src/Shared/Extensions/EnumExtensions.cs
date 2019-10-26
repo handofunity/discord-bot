@@ -21,6 +21,8 @@
                     return "Member Management";
                 case CommandCategory.GameAshesOfCreation:
                     return "Ashes of Creation";
+                case CommandCategory.Voice:
+                    return nameof(CommandCategory.Voice);
                 default:
                     throw new ArgumentOutOfRangeException(nameof(commandCategory), commandCategory, null);
             }
