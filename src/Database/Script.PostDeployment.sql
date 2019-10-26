@@ -4,10 +4,15 @@
 -------------------------------------------
 -------------------------------------------
 
-:r .\Scripts\CreateUser.sql
+:r .\Scripts\CreatePrimaryUser.sql
 GO
-:r .\Scripts\GrantPermissions.sql
+:r .\Scripts\GrantPermissionsToPrimaryUser.sql
 GO
+:r .\Scripts\CreateHangFireUser.sql
+GO
+:r .\Scripts\GrantPermissionsToHangFireUser.sql
+GO
+
 ----------------------------------------------------
 ----------------------------------------------------
 ----- VERSION SPECIFIC POST DEPLOYMENT SCRIPTS -----

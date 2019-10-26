@@ -23,23 +23,23 @@ namespace HoU.GuildBot.Shared.StrongTypes
 	[GeneratedCode("Herdo.StrongTypes.StrongTypeGenerator", "1.0.0")]
 	[Serializable]
 	public partial struct InternalUserID : IEquatable<InternalUserID>, IComparable<InternalUserID>, ISerializable, IXmlSerializable
-	{
-		/// <summary>
-		/// Actual backing field which holds the value.
-		/// </summary>
-		/// <remarks>This field is basically readonly, but must be non-readonly due to the XML-deserialization which will be called from outside the constructor.</remarks>
-		private System.Int32 _value;
+    {
+        /// <summary>
+        /// Actual backing property which holds the value.
+        /// </summary>
+        /// <remarks>This property is basically readonly, but must be non-readonly due to the XML-deserialization which will be called from outside the constructor.</remarks>
+        public System.Int32 V { get; set; }
 
 		[ExcludeFromCodeCoverage]
 		private InternalUserID(System.Int32 value)
 	    {
-	        _value = value;
+	        V = value;
 	    }
 
 		[ExcludeFromCodeCoverage]
 		private InternalUserID(SerializationInfo info, StreamingContext context)
 		{
-            _value = (System.Int32)info.GetValue("v", typeof(System.Int32));
+            V = (System.Int32)info.GetValue("v", typeof(System.Int32));
 		}
 
 	    /// <summary>
@@ -61,7 +61,7 @@ namespace HoU.GuildBot.Shared.StrongTypes
 		[ExcludeFromCodeCoverage]
 	    public static explicit operator System.Int32(InternalUserID value)
 	    {
-	        return value._value;
+	        return value.V;
 	    }
 
 		/// <summary>
@@ -74,7 +74,7 @@ namespace HoU.GuildBot.Shared.StrongTypes
 		{
 			if (ReferenceEquals(null, other)) return false;
 			if (ReferenceEquals(this, other)) return true;
-			return _value == other._value;
+			return V == other.V;
 		}
 		
 		/// <summary>
@@ -97,9 +97,9 @@ namespace HoU.GuildBot.Shared.StrongTypes
 		[ExcludeFromCodeCoverage]
 		public override int GetHashCode()
 		{
-			if (Equals(null, _value))
+			if (Equals(null, V))
 				return 0;
-			return _value.GetHashCode();
+			return V.GetHashCode();
 		}
 
 		/// <summary>
@@ -110,9 +110,9 @@ namespace HoU.GuildBot.Shared.StrongTypes
 		[ExcludeFromCodeCoverage]
 		public int CompareTo(InternalUserID other)
 		{
-			if (Equals(null, _value))
+			if (Equals(null, V))
 				return 1;
-			return _value.CompareTo(other._value);
+			return V.CompareTo(other.V);
 		}
 
         /// <summary>
@@ -127,7 +127,7 @@ namespace HoU.GuildBot.Shared.StrongTypes
 	        if (ReferenceEquals(first, second))
 	            return true;
 
-	        return first._value == second._value;
+	        return first.V == second.V;
 	    }
 
         /// <summary>
@@ -149,16 +149,16 @@ namespace HoU.GuildBot.Shared.StrongTypes
 		[ExcludeFromCodeCoverage]
 	    public override string ToString()
 	    {
-	        if ((object) _value == null)
+	        if ((object) V == null)
 	            return null;
-	        return _value.ToString();
+	        return V.ToString();
 	    }
 				
 		[ExcludeFromCodeCoverage]
 		[SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.SerializationFormatter)]
 		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context)
 		{
-			info.AddValue("v", _value);
+			info.AddValue("v", V);
 		}
 		
 		[ExcludeFromCodeCoverage]
@@ -170,13 +170,13 @@ namespace HoU.GuildBot.Shared.StrongTypes
 		[ExcludeFromCodeCoverage]
 	    void IXmlSerializable.ReadXml(XmlReader reader)
 	    {
-	        _value = (System.Int32)reader.ReadElementContentAs(typeof(System.Int32), null);
+	        V = (System.Int32)reader.ReadElementContentAs(typeof(System.Int32), null);
 	    }
 		
 		[ExcludeFromCodeCoverage]
 	    void IXmlSerializable.WriteXml(XmlWriter writer)
 	    {
-            writer.WriteString(XmlConvert.ToString(_value));
+            writer.WriteString(XmlConvert.ToString(V));
 	    }
 	}
 
@@ -186,23 +186,23 @@ namespace HoU.GuildBot.Shared.StrongTypes
 	[GeneratedCode("Herdo.StrongTypes.StrongTypeGenerator", "1.0.0")]
 	[Serializable]
 	public partial struct DiscordUserID : IEquatable<DiscordUserID>, IComparable<DiscordUserID>, ISerializable, IXmlSerializable
-	{
-		/// <summary>
-		/// Actual backing field which holds the value.
-		/// </summary>
-		/// <remarks>This field is basically readonly, but must be non-readonly due to the XML-deserialization which will be called from outside the constructor.</remarks>
-		private System.UInt64 _value;
+    {
+        /// <summary>
+        /// Actual backing property which holds the value.
+        /// </summary>
+        /// <remarks>This property is basically readonly, but must be non-readonly due to the XML-deserialization which will be called from outside the constructor.</remarks>
+        public System.UInt64 V { get; set; }
 
-		[ExcludeFromCodeCoverage]
+        [ExcludeFromCodeCoverage]
 		private DiscordUserID(System.UInt64 value)
 	    {
-	        _value = value;
+	        V = value;
 	    }
 
 		[ExcludeFromCodeCoverage]
 		private DiscordUserID(SerializationInfo info, StreamingContext context)
 		{
-            _value = (System.UInt64)info.GetValue("v", typeof(System.UInt64));
+            V = (System.UInt64)info.GetValue("v", typeof(System.UInt64));
 		}
 
 	    /// <summary>
@@ -224,7 +224,7 @@ namespace HoU.GuildBot.Shared.StrongTypes
 		[ExcludeFromCodeCoverage]
 	    public static explicit operator System.UInt64(DiscordUserID value)
 	    {
-	        return value._value;
+	        return value.V;
 	    }
 
 		/// <summary>
@@ -237,7 +237,7 @@ namespace HoU.GuildBot.Shared.StrongTypes
 		{
 			if (ReferenceEquals(null, other)) return false;
 			if (ReferenceEquals(this, other)) return true;
-			return _value == other._value;
+			return V == other.V;
 		}
 		
 		/// <summary>
@@ -260,9 +260,9 @@ namespace HoU.GuildBot.Shared.StrongTypes
 		[ExcludeFromCodeCoverage]
 		public override int GetHashCode()
 		{
-			if (Equals(null, _value))
+			if (Equals(null, V))
 				return 0;
-			return _value.GetHashCode();
+			return V.GetHashCode();
 		}
 
 		/// <summary>
@@ -273,9 +273,9 @@ namespace HoU.GuildBot.Shared.StrongTypes
 		[ExcludeFromCodeCoverage]
 		public int CompareTo(DiscordUserID other)
 		{
-			if (Equals(null, _value))
+			if (Equals(null, V))
 				return 1;
-			return _value.CompareTo(other._value);
+			return V.CompareTo(other.V);
 		}
 
         /// <summary>
@@ -290,7 +290,7 @@ namespace HoU.GuildBot.Shared.StrongTypes
 	        if (ReferenceEquals(first, second))
 	            return true;
 
-	        return first._value == second._value;
+	        return first.V == second.V;
 	    }
 
         /// <summary>
@@ -312,16 +312,16 @@ namespace HoU.GuildBot.Shared.StrongTypes
 		[ExcludeFromCodeCoverage]
 	    public override string ToString()
 	    {
-	        if ((object) _value == null)
+	        if ((object) V == null)
 	            return null;
-	        return _value.ToString();
+	        return V.ToString();
 	    }
 				
 		[ExcludeFromCodeCoverage]
 		[SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.SerializationFormatter)]
 		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context)
 		{
-			info.AddValue("v", _value);
+			info.AddValue("v", V);
 		}
 		
 		[ExcludeFromCodeCoverage]
@@ -333,13 +333,13 @@ namespace HoU.GuildBot.Shared.StrongTypes
 		[ExcludeFromCodeCoverage]
 	    void IXmlSerializable.ReadXml(XmlReader reader)
 	    {
-	        _value = (System.UInt64)reader.ReadElementContentAs(typeof(System.UInt64), null);
+	        V = (System.UInt64)reader.ReadElementContentAs(typeof(System.UInt64), null);
 	    }
 		
 		[ExcludeFromCodeCoverage]
 	    void IXmlSerializable.WriteXml(XmlWriter writer)
 	    {
-            writer.WriteString(XmlConvert.ToString(_value));
+            writer.WriteString(XmlConvert.ToString(V));
 	    }
 	}
 
@@ -349,23 +349,23 @@ namespace HoU.GuildBot.Shared.StrongTypes
 	[GeneratedCode("Herdo.StrongTypes.StrongTypeGenerator", "1.0.0")]
 	[Serializable]
 	public partial struct DiscordChannelID : IEquatable<DiscordChannelID>, IComparable<DiscordChannelID>, ISerializable, IXmlSerializable
-	{
-		/// <summary>
-		/// Actual backing field which holds the value.
-		/// </summary>
-		/// <remarks>This field is basically readonly, but must be non-readonly due to the XML-deserialization which will be called from outside the constructor.</remarks>
-		private System.UInt64 _value;
+    {
+        /// <summary>
+        /// Actual backing property which holds the value.
+        /// </summary>
+        /// <remarks>This property is basically readonly, but must be non-readonly due to the XML-deserialization which will be called from outside the constructor.</remarks>
+        public System.UInt64 V { get; set; }
 
-		[ExcludeFromCodeCoverage]
+        [ExcludeFromCodeCoverage]
 		private DiscordChannelID(System.UInt64 value)
 	    {
-	        _value = value;
+	        V = value;
 	    }
 
 		[ExcludeFromCodeCoverage]
 		private DiscordChannelID(SerializationInfo info, StreamingContext context)
 		{
-            _value = (System.UInt64)info.GetValue("v", typeof(System.UInt64));
+            V = (System.UInt64)info.GetValue("v", typeof(System.UInt64));
 		}
 
 	    /// <summary>
@@ -387,7 +387,7 @@ namespace HoU.GuildBot.Shared.StrongTypes
 		[ExcludeFromCodeCoverage]
 	    public static explicit operator System.UInt64(DiscordChannelID value)
 	    {
-	        return value._value;
+	        return value.V;
 	    }
 
 		/// <summary>
@@ -400,7 +400,7 @@ namespace HoU.GuildBot.Shared.StrongTypes
 		{
 			if (ReferenceEquals(null, other)) return false;
 			if (ReferenceEquals(this, other)) return true;
-			return _value == other._value;
+			return V == other.V;
 		}
 		
 		/// <summary>
@@ -423,9 +423,9 @@ namespace HoU.GuildBot.Shared.StrongTypes
 		[ExcludeFromCodeCoverage]
 		public override int GetHashCode()
 		{
-			if (Equals(null, _value))
+			if (Equals(null, V))
 				return 0;
-			return _value.GetHashCode();
+			return V.GetHashCode();
 		}
 
 		/// <summary>
@@ -436,9 +436,9 @@ namespace HoU.GuildBot.Shared.StrongTypes
 		[ExcludeFromCodeCoverage]
 		public int CompareTo(DiscordChannelID other)
 		{
-			if (Equals(null, _value))
+			if (Equals(null, V))
 				return 1;
-			return _value.CompareTo(other._value);
+			return V.CompareTo(other.V);
 		}
 
         /// <summary>
@@ -453,7 +453,7 @@ namespace HoU.GuildBot.Shared.StrongTypes
 	        if (ReferenceEquals(first, second))
 	            return true;
 
-	        return first._value == second._value;
+	        return first.V == second.V;
 	    }
 
         /// <summary>
@@ -475,16 +475,16 @@ namespace HoU.GuildBot.Shared.StrongTypes
 		[ExcludeFromCodeCoverage]
 	    public override string ToString()
 	    {
-	        if ((object) _value == null)
+	        if ((object) V == null)
 	            return null;
-	        return _value.ToString();
+	        return V.ToString();
 	    }
 				
 		[ExcludeFromCodeCoverage]
 		[SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.SerializationFormatter)]
 		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context)
 		{
-			info.AddValue("v", _value);
+			info.AddValue("v", V);
 		}
 		
 		[ExcludeFromCodeCoverage]
@@ -496,13 +496,13 @@ namespace HoU.GuildBot.Shared.StrongTypes
 		[ExcludeFromCodeCoverage]
 	    void IXmlSerializable.ReadXml(XmlReader reader)
 	    {
-	        _value = (System.UInt64)reader.ReadElementContentAs(typeof(System.UInt64), null);
+	        V = (System.UInt64)reader.ReadElementContentAs(typeof(System.UInt64), null);
 	    }
 		
 		[ExcludeFromCodeCoverage]
 	    void IXmlSerializable.WriteXml(XmlWriter writer)
 	    {
-            writer.WriteString(XmlConvert.ToString(_value));
+            writer.WriteString(XmlConvert.ToString(V));
 	    }
 	}
 }

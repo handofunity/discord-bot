@@ -16,6 +16,11 @@
         bool IsConnected { get; }
 
         /// <summary>
+        /// Gets if the 'Hand of Unity' guild is available.
+        /// </summary>
+        bool IsGuildAvailable { get; }
+
+        /// <summary>
         /// Tries to establish a connection to Discord.
         /// </summary>
         /// <param name="connectedHandler"><see cref="Func{TResult}"/> that will be invoked when the connection has been established.</param>
@@ -257,5 +262,18 @@
         /// <param name="userId">The <see cref="DiscordUserID"/> of the user to get the avatar ID for.</param>
         /// <returns>The avatar ID, or <b>null</b>.</returns>
         [CanBeNull] string GetAvatarId(DiscordUserID userId);
+
+        /// <summary>
+        /// Gets all users that have one or more of the <paramref name="allowedRoles"/>.
+        /// </summary>
+        /// <param name="allowedRoles">The roles that are allowed for users in the result set.</param>
+        /// <returns>All users with their allowed roles and detailed information.</returns>
+        UserModel[] GetUsersInRoles(string[] allowedRoles);
+
+        /// <summary>
+        /// Gets the leadership mention string.
+        /// </summary>
+        /// <returns>A mention for Leaders and Officers.</returns>
+        string GetLeadershipMention();
     }
 }

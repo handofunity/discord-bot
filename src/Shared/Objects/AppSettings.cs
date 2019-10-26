@@ -136,13 +136,32 @@
         public ulong[] ChannelIDsWithDisabledSpamProtection { get; set; }
 
         /// <summary>
-        /// Gets or sets the connection string.
+        /// Gets or sets the base address of the UNIT system.
+        /// </summary>
+        public string UnitsBaseAddress { get; set; }
+
+        /// <summary>
+        /// Gets or sets the secret used to authenticate with the UNIT system.
+        /// </summary>
+        public string UnitsAccessSecret { get; set; }
+
+        /// <summary>
+        /// Gets or sets the primary connection string used to access database objects part of the solution.
         /// </summary>
         /// <remarks>Should either be a IP/TCP connection, or a named connection. For IP/TCP connections, see example.</remarks>
         /// <example>IPv4: "Server=169.100.10.154\\MSSQLSERVER,1433;Database=hou-guild;User Id=hou-guildbot;Password=PASSWORD;"
         /// IPv6: "Server=fe80::2011:f831:9281:1ffb%23\\MSSQLSERVER,1433;Database=hou-guild;User Id=hou-guildbot;Password=PASSWORD;"
         /// IPv6: "Server=fe80::2011:f831:9281:1ffb\\MSSQLSERVER,1433;Database=hou-guild;User Id=hou-guildbot;Password=PASSWORD;"</example>
         public string HandOfUnityConnectionString { get; set; }
+
+        /// <summary>
+        /// Gets or sets the HangFire connection string used to access database objects part of HangFire.
+        /// </summary>
+        /// <remarks>Should either be a IP/TCP connection, or a named connection. For IP/TCP connections, see example.</remarks>
+        /// <example>IPv4: "Server=169.100.10.154\\MSSQLSERVER,1433;Database=hou-guild;User Id=hou-guildbot;Password=PASSWORD;"
+        /// IPv6: "Server=fe80::2011:f831:9281:1ffb%23\\MSSQLSERVER,1433;Database=hou-guild;User Id=hou-guildbot;Password=PASSWORD;"
+        /// IPv6: "Server=fe80::2011:f831:9281:1ffb\\MSSQLSERVER,1433;Database=hou-guild;User Id=hou-guildbot;Password=PASSWORD;"</example>
+        public string HangFireConnectionString { get; set; }
 
         public IConfiguration LoggingConfiguration { get; set; }
     }

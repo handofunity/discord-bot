@@ -21,6 +21,7 @@
 
             // Read settings not in the AppSettings section
             settings.HandOfUnityConnectionString = configuration.GetConnectionString("HandOfUnityGuild");
+            settings.HangFireConnectionString = configuration.GetConnectionString("HangFire");
             settings.LoggingConfiguration = configuration.GetSection("Logging");
 
             // Validate everything to make sure that not an empty or incomplete setting file is used
@@ -61,6 +62,8 @@
                 throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.SpamLimits)}' must have exactly one entry without the {nameof(SpamLimit.RestrictToChannelID)} set.");
             if (settings.SpamLimits.GroupBy(m => m.RestrictToChannelID).Any(m => m.Count() > 1))
                 throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.SpamLimits)}' contains duplicate {nameof(SpamLimit.RestrictToChannelID)}s.");
+            if (string.IsNullOrWhiteSpace(settings.UnitsBaseAddress))
+                throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.UnitsBaseAddress)}' cannot be empty.");
         }
     }
 }

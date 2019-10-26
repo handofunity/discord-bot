@@ -288,10 +288,10 @@
         private async Task LogToDiscordInternal(string message)
         {
             var g = GetGuild();
-            var lc = g.GetTextChannel((ulong)_appSettings.LoggingChannelId);
+            var lc = g?.GetTextChannel((ulong)_appSettings.LoggingChannelId);
             if (lc == null)
             {
-                // Channel can be null because the guild is currently unavailable.
+                // Guild or channel can be null because the guild is currently unavailable.
                 // In this case, store the messages in a queue and send them later.
                 // Otherwise throw.
                 if (_guildAvailable)
@@ -312,7 +312,7 @@
         private IRole GetRoleByName(string name, SocketGuild guild = null)
         {
             var g = guild ?? GetGuild();
-            return g.Roles.Single(m => m.Name == name);
+            return g.Roles.SingleOrDefault(m => m.Name == name);
         }
 
         private LogLevel ToLogLevel(LogSeverity severity)
@@ -480,6 +480,16 @@
                     .ToArray();
         }
 
+        private SocketGuildUser[] GetGuildMembersWithAnyGivenRole(SocketGuild guild,
+                                                                  ulong[] roleIDs)
+        {
+            return guild.Users
+                        .Where(m => _userStore.TryGetUser((DiscordUserID) m.Id, out var user)
+                                    && user.IsGuildMember
+                                    && (roleIDs == null || roleIDs.Intersect(m.Roles.Select(r => r.Id)).Any()))
+                        .ToArray();
+        }
+
         private static EmojiDefinition ParseToEmojiDefinition(IEmote e)
         {
             switch (e)
@@ -499,6 +509,8 @@
         #region IDiscordAccess Members
 
         bool IDiscordAccess.IsConnected => _client.ConnectionState == ConnectionState.Connected;
+
+        bool IDiscordAccess.IsGuildAvailable => _guildAvailable;
 
         async Task IDiscordAccess.Connect(Func<Task> connectedHandler, Func<Task> disconnectedHandler)
         {
@@ -955,6 +967,40 @@
         {
             var gu = GetGuildUserById(userId);
             return gu.AvatarId;
+        }
+
+        UserModel[] IDiscordAccess.GetUsersInRoles(string[] allowedRoles)
+        {
+            var g = GetGuild();
+            if (g == null)
+                return new UserModel[0];
+
+            var allowedRoleIds = allowedRoles.Select(allowedRole => GetRoleByName(allowedRole, g))
+                                             .Where(m => m != null)
+                                             .Select(m => m.Id)
+                                             .ToArray();
+            var users = GetGuildMembersWithAnyGivenRole(g, allowedRoleIds);
+            return users.Select(m => new UserModel
+                         {
+                             DiscordUserId = (DiscordUserID)m.Id,
+                             Username = m.Username,
+                             Discriminator = (short)m.DiscriminatorValue,
+                             Nickname = m.Nickname,
+                             AvatarId = m.AvatarId,
+                             Roles = m.Roles
+                                      .Where(r => allowedRoleIds.Contains(r.Id))
+                                      .Select(r => r.Name)
+                                      .ToArray()
+                         })
+                        .ToArray();
+        }
+
+        string IDiscordAccess.GetLeadershipMention()
+        {
+            var g = GetGuild();
+            var leaderRole = GetRoleByName(Constants.RoleNames.LeaderRoleName, g);
+            var officerRole = GetRoleByName(Constants.RoleNames.OfficerRoleName, g);
+            return $"{leaderRole.Mention} {officerRole.Mention}";
         }
 
         #endregion

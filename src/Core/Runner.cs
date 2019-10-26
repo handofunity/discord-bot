@@ -1,10 +1,13 @@
 ﻿namespace HoU.GuildBot.Core
 {
     using System;
+    using System.Net.Http;
     using BLL;
     using DAL;
     using DAL.Database;
     using DAL.Discord;
+    using Hangfire;
+    using Hangfire.SqlServer;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
@@ -16,25 +19,40 @@
 
     public class Runner
     {
-        private static readonly Version BotVersion = new Version(3, 7, 0);
+        private BackgroundJobServer _backgroundJobServer;
+
+        private static readonly Version BotVersion = new Version(3, 8, 0);
 
         private ILogger<Runner> _logger;
 
         public void Run(string environment, AppSettings settings)
         {
-            // Retrieve settings
-
             // Prepare IoC
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddSingleton(settings);
             RegisterLogging(serviceCollection, settings.LoggingConfiguration, environment);
             RegisterDAL(serviceCollection);
             RegisterBLL(serviceCollection, environment);
+            RegisterHangFire(serviceCollection, settings);
             var serviceProvider = serviceCollection.BuildServiceProvider();
 
             _logger = serviceProvider.GetService<ILogger<Runner>>();
             _logger.LogInformation($"Starting up {nameof(IBotEngine)}...");
+            
+            RunHangFireServer(serviceProvider);
+            RunBotEngine(serviceProvider);
+        }
 
+        private void RunHangFireServer(IServiceProvider serviceProvider)
+        {
+            GlobalConfiguration.Configuration.UseActivator(new ContainerJobActivator(serviceProvider));
+
+            var jobStorage = serviceProvider.GetService<JobStorage>();
+            _backgroundJobServer = new BackgroundJobServer(jobStorage);
+        }
+
+        private static void RunBotEngine(IServiceProvider serviceProvider)
+        {
             // Resolve bot engine
             var botEngine = serviceProvider.GetService<IBotEngine>();
 
@@ -44,6 +62,7 @@
 
         public void NotifyShutdown(string message)
         {
+            _backgroundJobServer?.Dispose();
             _logger.LogCritical("Unexpected shutdown: " + message);
         }
 
@@ -76,7 +95,9 @@
                .AddTransient<IGuildInfoProvider, GuildInfoProvider>()
                .AddTransient<IUserInfoProvider, UserInfoProvider>()
                .AddTransient<IImageProvider, ImageProvider>()
-               .AddTransient<ITimeInformationProvider, TimeInformationProvider>();
+               .AddTransient<ITimeInformationProvider, TimeInformationProvider>()
+                // Triggered as scheduled HangFire job
+               .AddTransient<UnitsSyncService>();
         }
 
         private static void RegisterDAL(IServiceCollection serviceCollection)
@@ -84,6 +105,7 @@
             serviceCollection.AddSingleton<IDatabaseAccess, DatabaseAccess>();
             serviceCollection.AddSingleton<IDiscordAccess, DiscordAccess>();
             serviceCollection.AddSingleton<IWebAccess, WebAccess>();
+            serviceCollection.AddSingleton<IUnitsAccess, UnitsAccess>();
         }
 
         private static void RegisterLogging(IServiceCollection serviceCollection, IConfiguration loggingConfiguration, string environment)
@@ -101,6 +123,28 @@
                         break;
                 }
             });
+        }
+
+        private void RegisterHangFire(ServiceCollection serviceCollection,
+                                      AppSettings settings)
+        {
+            serviceCollection.AddHangfire(config =>
+            {
+                config.SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+                      .UseSimpleAssemblyNameTypeSerializer()
+                      .UseRecommendedSerializerSettings()
+                      .UseSqlServerStorage(settings.HangFireConnectionString,
+                                           new SqlServerStorageOptions
+                                           {
+                                               CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+                                               SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+                                               QueuePollInterval = TimeSpan.Zero,
+                                               UseRecommendedIsolationLevel = true,
+                                               UsePageLocksOnDequeue = true,
+                                               DisableGlobalLocks = true
+                                           });
+            });
+            serviceCollection.AddHangfireServer();
         }
     }
 }

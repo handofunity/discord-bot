@@ -92,11 +92,11 @@ foreach (XElement strongType in strongTypes)
 	[Serializable]
 	public partial struct <#= typeName #><#= BuildDerivation(typeName) #>
 	{
-		/// <summary>
-		/// Actual backing field which holds the value.
-		/// </summary>
-		/// <remarks>This field is basically readonly, but must be non-readonly due to the XML-deserialization which will be called from outside the constructor.</remarks>
-		private <#= internalType #> _value;
+        /// <summary>
+        /// Actual backing property which holds the value.
+        /// </summary>
+        /// <remarks>This property is basically readonly, but must be non-readonly due to the XML-deserialization which will be called from outside the constructor.</remarks>
+		public <#= internalType #> V { get; set; }
 
 		[ExcludeFromCodeCoverage]
 		private <#= typeName #>(<#= internalType #> value)

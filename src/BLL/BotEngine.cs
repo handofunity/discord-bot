@@ -3,6 +3,7 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using Hangfire;
     using JetBrains.Annotations;
     using Microsoft.Extensions.Logging;
     using Shared.BLL;
@@ -105,6 +106,9 @@
                 await _discordAccess.LogToDiscord($"Bot started on **{_botInformationProvider.GetEnvironmentName()}** in version {_botInformationProvider.GetFormatedVersion()}.").ConfigureAwait(false);
                 // Start privacy provider clean up
                 _privacyProvider.Start();
+                // Register background jobs
+                // Sync all users every 15 minutes
+                RecurringJob.AddOrUpdate<UnitsSyncService>("sync-users-to-UNITS", service => service.SyncAllUsers(), "0 0-23 * * *");
             }
 
             _logger.LogInformation("Bot ready.");

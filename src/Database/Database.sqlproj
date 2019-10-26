@@ -23,8 +23,8 @@
     <SqlServerVerification>False</SqlServerVerification>
     <IncludeCompositeObjects>True</IncludeCompositeObjects>
     <TargetDatabaseSet>True</TargetDatabaseSet>
-    <DacVersion>2.1.1</DacVersion>
-    <DacDescription>Removed default constraint on config.Game.IncludeInGamesMenu column.</DacDescription>
+    <DacVersion>2.2.0</DacVersion>
+    <DacDescription>Added HangFire support</DacDescription>
     <DefaultCollation>Latin1_General_CI_AS</DefaultCollation>
     <Recovery>SIMPLE</Recovery>
     <TargetFrameworkProfile />
@@ -74,8 +74,8 @@
   <ItemGroup>
     <None Include="Database_LOCAL.publish.xml" />
     <None Include="SqlSchemaCompare.scmp" />
-    <None Include="Scripts\GrantPermissions.sql" />
-    <None Include="Scripts\CreateUser.sql" />
+    <None Include="Scripts\GrantPermissionsToPrimaryUser.sql" />
+    <None Include="Scripts\CreatePrimaryUser.sql" />
     <Build Include="Security\config.sql" />
     <None Include="Scripts\AddMessage_FirstServerJoinWelcome.sql" />
     <None Include="Scripts\AddInitialGames.sql" />
@@ -87,6 +87,7 @@
     <None Include="Scripts\AddMessage_GamesRolesMenu.sql" />
     <None Include="Scripts\FillGameTable_IncludeInGuildMembersStatisticColumn.sql" />
     <None Include="Properties\ssdtlifecycle.json" />
+    <None Include="Scripts\CreateHangFireUser.sql" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="Security\hou.sql" />
@@ -97,6 +98,7 @@
     <Build Include="hou\Tables\UserInfo.sql" />
     <Build Include="config\Tables\GameRole.sql" />
     <None Include="Scripts\AddMessage_WowRoleMenu.sql" />
+    <None Include="Scripts\GrantPermissionsToHangFireUser.sql" />
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="Script.PostDeployment.sql" />
