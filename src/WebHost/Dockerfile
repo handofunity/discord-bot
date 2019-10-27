@@ -24,4 +24,8 @@ RUN dotnet publish "WebHost.csproj" -c Release -o /app
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app .
+
+RUN useradd -d /home/houguildbotuser -m -s /bin/bash houguildbotuser
+USER houguildbotuser
+
 ENTRYPOINT ["dotnet", "HoU.GuildBot.WebHost.dll"]

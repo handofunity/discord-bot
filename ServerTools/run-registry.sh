@@ -5,8 +5,15 @@ REGISTRY_INTERNAL_PORT="$(sed -nr "/^\[Network\]/ { :l /^RegistryInternalPort[ ]
 docker run -d \
   --name registry \
   --restart always \
+  --read-only \
+  --cpus="0.5" \
+  --cpu-shares=128 \
+  --memory=192m \
+  --memory-swap=400m \
+  --security-opt="no-new-privileges:true" \
+  --pids-limit=100 \
   -v /var/docker-registry:/var/lib/registry \
-  -v /etc/ssl/caddy/acme/acme-v02.api.letsencrypt.org/sites/$REGISTRY_HOST:/certs \
+  -v /etc/ssl/caddy/acme/acme-v02.api.letsencrypt.org/sites/$REGISTRY_HOST:/certs:ro \
   -e REGISTRY_HTTP_ADDR=0.0.0.0:$REGISTRY_INTERNAL_PORT \
   -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/$REGISTRY_HOST.crt \
   -e REGISTRY_HTTP_TLS_KEY=/certs/$REGISTRY_HOST.key \
