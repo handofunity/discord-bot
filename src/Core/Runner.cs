@@ -1,7 +1,6 @@
 ﻿namespace HoU.GuildBot.Core
 {
     using System;
-    using System.Net.Http;
     using BLL;
     using DAL;
     using DAL.Database;
@@ -11,7 +10,7 @@
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
-    using NLog.Extensions.Logging;
+    using Serilog;
     using Shared.BLL;
     using Shared.DAL;
     using Shared.Objects;
@@ -21,26 +20,33 @@
     {
         private BackgroundJobServer _backgroundJobServer;
 
-        private static readonly Version BotVersion = new Version(3, 8, 2);
+        private static readonly Version BotVersion = new Version(4, 0, 0);
 
         private ILogger<Runner> _logger;
 
         public void Run(string environment, AppSettings settings)
         {
-            // Prepare IoC
-            var serviceCollection = new ServiceCollection();
-            serviceCollection.AddSingleton(settings);
-            RegisterLogging(serviceCollection, settings.LoggingConfiguration, environment);
-            RegisterDAL(serviceCollection);
-            RegisterBLL(serviceCollection, environment);
-            RegisterHangFire(serviceCollection, settings);
-            var serviceProvider = serviceCollection.BuildServiceProvider();
+            try
+            {
+                // Prepare IoC
+                var serviceCollection = new ServiceCollection();
+                serviceCollection.AddSingleton(settings);
+                RegisterLogging(serviceCollection, settings.CompleteConfiguration);
+                RegisterDAL(serviceCollection);
+                RegisterBLL(serviceCollection, environment);
+                RegisterHangFire(serviceCollection, settings);
+                var serviceProvider = serviceCollection.BuildServiceProvider();
 
-            _logger = serviceProvider.GetService<ILogger<Runner>>();
-            _logger.LogInformation($"Starting up {nameof(IBotEngine)}...");
-            
-            RunHangFireServer(serviceProvider);
-            RunBotEngine(serviceProvider);
+                _logger = serviceProvider.GetService<ILogger<Runner>>();
+                _logger.LogInformation($"Starting up {nameof(IBotEngine)}...");
+
+                RunHangFireServer(serviceProvider);
+                RunBotEngine(serviceProvider);
+            }
+            finally
+            {
+                Log.CloseAndFlush();
+            }
         }
 
         private void RunHangFireServer(IServiceProvider serviceProvider)
@@ -108,20 +114,15 @@
             serviceCollection.AddSingleton<IUnitsAccess, UnitsAccess>();
         }
 
-        private static void RegisterLogging(IServiceCollection serviceCollection, IConfiguration loggingConfiguration, string environment)
+        private static void RegisterLogging(IServiceCollection serviceCollection, IConfiguration completeConfiguration)
         {
+            Log.Logger = new LoggerConfiguration()
+                        .ReadFrom.Configuration(completeConfiguration)
+                        .CreateLogger();
+
             serviceCollection.AddLogging(builder =>
             {
-                builder.AddConfiguration(loggingConfiguration);
-                switch (environment)
-                {
-                    case "Development":
-                        builder.AddDebug();
-                        break;
-                    case "Production":
-                        builder.AddNLog();
-                        break;
-                }
+                builder.AddSerilog();
             });
         }
 

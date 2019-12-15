@@ -22,7 +22,7 @@
             // Read settings not in the AppSettings section
             settings.HandOfUnityConnectionString = configuration.GetConnectionString("HandOfUnityGuild");
             settings.HangFireConnectionString = configuration.GetConnectionString("HangFire");
-            settings.LoggingConfiguration = configuration.GetSection("Logging");
+            settings.CompleteConfiguration = configuration;
 
             // Validate everything to make sure that not an empty or incomplete setting file is used
             ValidateSettings(settings);

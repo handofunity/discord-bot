@@ -6,6 +6,7 @@
     using System.Text;
     using System.Threading.Tasks;
     using JetBrains.Annotations;
+    using Microsoft.Extensions.Logging;
     using Shared.DAL;
     using Shared.Objects;
 
@@ -14,12 +15,15 @@
     {
         private readonly IDiscordAccess _discordAccess;
         private readonly IUnitsAccess _unitsAccess;
+        private readonly ILogger<UnitsSyncService> _logger;
 
         public UnitsSyncService(IDiscordAccess discordAccess,
-                                IUnitsAccess unitsAccess)
+                                IUnitsAccess unitsAccess,
+                                ILogger<UnitsSyncService> logger)
         {
             _discordAccess = discordAccess ?? throw new ArgumentNullException(nameof(discordAccess));
             _unitsAccess = unitsAccess ?? throw new ArgumentNullException(nameof(unitsAccess));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         private void SanitizeUsers(IEnumerable<UserModel> users)
@@ -40,7 +44,7 @@
             var allowedRoles = await _unitsAccess.GetValidRoleNamesAsync();
             if (allowedRoles == null)
             {
-                await _discordAccess.LogToDiscord("Failed to synchronize all users: unable to fetch allowed roles.");
+                _logger.LogWarning("Failed to synchronize all users: unable to fetch allowed roles.");
                 return;
             }
 
@@ -86,7 +90,7 @@
             }
             else
             {
-                await _discordAccess.LogToDiscord("Failed to synchronize all users: unable to fetch allowed users.");
+                _logger.LogWarning("Failed to synchronize all users: unable to fetch allowed users.");
             }
         }
     }

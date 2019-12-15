@@ -13,7 +13,6 @@ docker run -d \
   --memory-swap=400m \
   --security-opt="no-new-privileges:true" \
   --pids-limit=100 \
-  -v /var/log/hand-of-unity/guild-bot:/app/logs \
   -v /usr/share/fonts/:/usr/share/fonts/external/:ro \
   -e COMPlus_EnableDiagnostics=0 \
   $REGISTRY_HOST:$REGISTRY_EXTERNAL_PORT/houguildbotwebhost:latest

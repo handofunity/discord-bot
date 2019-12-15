@@ -163,6 +163,6 @@
         /// IPv6: "Server=fe80::2011:f831:9281:1ffb\\MSSQLSERVER,1433;Database=hou-guild;User Id=hou-guildbot;Password=PASSWORD;"</example>
         public string HangFireConnectionString { get; set; }
 
-        public IConfiguration LoggingConfiguration { get; set; }
+        public IConfiguration CompleteConfiguration { get; set; }
     }
 }
