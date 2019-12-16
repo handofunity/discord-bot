@@ -20,7 +20,7 @@
     {
         private BackgroundJobServer _backgroundJobServer;
 
-        private static readonly Version BotVersion = new Version(4, 0, 0);
+        private static readonly Version BotVersion = new Version(4, 0, 1);
 
         private ILogger<Runner> _logger;
 
@@ -119,6 +119,8 @@
             Log.Logger = new LoggerConfiguration()
                         .ReadFrom.Configuration(completeConfiguration)
                         .CreateLogger();
+
+            Log.Information("Initialized logger.");
 
             serviceCollection.AddLogging(builder =>
             {
