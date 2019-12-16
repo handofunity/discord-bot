@@ -44,7 +44,7 @@
             var allowedRoles = await _unitsAccess.GetValidRoleNamesAsync();
             if (allowedRoles == null)
             {
-                _logger.LogWarning("Failed to synchronize all users: unable to fetch allowed roles.");
+                _logger.LogWarning("Failed to synchronize all users: {Reason}.", "unable to fetch allowed roles");
                 return;
             }
 
@@ -90,7 +90,7 @@
             }
             else
             {
-                _logger.LogWarning("Failed to synchronize all users: unable to fetch allowed users.");
+                _logger.LogWarning("Failed to synchronize all users: {Reason}.", "unable to fetch allowed users");
             }
         }
     }

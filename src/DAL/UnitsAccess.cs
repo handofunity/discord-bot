@@ -7,26 +7,27 @@
     using System.Net.Http.Headers;
     using System.Text;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Logging;
     using Newtonsoft.Json;
     using Shared.DAL;
     using Shared.Objects;
 
     public class UnitsAccess : IUnitsAccess
     {
-        private const string TokenEndpoint = "/bot-api/auth/token";
-        private const string RoleNamesEndpoint = "/bot-api/discordsync/valid-role-names";
-        private const string PushAllUsersEndpoint = "/bot-api/discordsync/all-users";
+        private const string TokenRoute = "/bot-api/auth/token";
+        private const string RoleNamesRoute = "/bot-api/discordsync/valid-role-names";
+        private const string PushAllUsersRoute = "/bot-api/discordsync/all-users";
 
-        private readonly IDiscordAccess _discordAccess;
         private readonly AppSettings _appSettings;
+        private readonly ILogger<UnitsAccess> _logger;
 
         private string _lastBearerToken;
 
-        public UnitsAccess(IDiscordAccess discordAccess,
-                           AppSettings appSettings)
+        public UnitsAccess(AppSettings appSettings,
+                           ILogger<UnitsAccess> logger)
         {
-            _discordAccess = discordAccess ?? throw new ArgumentNullException(nameof(discordAccess));
             _appSettings = appSettings ?? throw new ArgumentNullException(nameof(appSettings));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         private async Task UseHttpClient(Func<HttpClient, Task<HttpResponseMessage>> invokeHttpRequest,
@@ -108,12 +109,12 @@
                     ClientSecret = _appSettings.UnitsAccessSecret
                 };
                 var serialized = JsonConvert.SerializeObject(request);
-                response = await httpClient.PostAsync(TokenEndpoint, new StringContent(serialized, Encoding.UTF8, "application/json"));
+                response = await httpClient.PostAsync(TokenRoute, new StringContent(serialized, Encoding.UTF8, "application/json"));
             }
             catch (HttpRequestException e)
             {
                 var baseExceptionMessage = e.GetBaseException().Message;
-                await LogRequestErrorAsync(TokenEndpoint, baseExceptionMessage);
+                LogRequestError(TokenRoute, baseExceptionMessage);
                 return false;
             }
 
@@ -127,14 +128,20 @@
                 return true;
             }
 
-            await LogRequestErrorAsync(TokenEndpoint, $"HTTP {(int) response.StatusCode} {response.StatusCode}");
+            LogRequestError(TokenRoute, response.StatusCode);
             return false;
         }
 
-        private async Task LogRequestErrorAsync(string endpoint,
-                                                string message)
+        private void LogRequestError(string route,
+                                     string reason)
         {
-            await _discordAccess.LogToDiscord($"{nameof(UnitsAccess)} - Failed to call '{_appSettings.UnitsBaseAddress}{endpoint}': {message}");
+            _logger.LogWarning("Failed to call '{HttpAddress}{Route}': {Reason}", _appSettings.UnitsBaseAddress, route, reason);
+        }
+
+        private void LogRequestError(string route,
+                                     HttpStatusCode statusCode)
+        {
+            _logger.LogWarning("Failed to call '{HttpAddress}{Route}': {Reason} {HttpStatusCodeName} {HttpStatusCode}", _appSettings.UnitsBaseAddress, route, "HTTP Status Code", statusCode.ToString(), (int)statusCode);
         }
 
         async Task<string[]> IUnitsAccess.GetValidRoleNamesAsync()
@@ -145,12 +152,12 @@
             {
                 try
                 {
-                    return await httpClient.GetAsync(RoleNamesEndpoint);
+                    return await httpClient.GetAsync(RoleNamesRoute);
                 }
                 catch (HttpRequestException e)
                 {
                     var baseExceptionMessage = e.GetBaseException().Message;
-                    await LogRequestErrorAsync(RoleNamesEndpoint, baseExceptionMessage);
+                    LogRequestError(RoleNamesRoute, baseExceptionMessage);
                     return null;
                 }
             }
@@ -161,7 +168,7 @@
                     return;
                 if (!responseMessage.IsSuccessStatusCode)
                 {
-                    await LogRequestErrorAsync(RoleNamesEndpoint, $"HTTP {(int)responseMessage.StatusCode} {responseMessage.StatusCode}");
+                    LogRequestError(RoleNamesRoute, responseMessage.StatusCode);
                     return;
                 }
 
@@ -190,12 +197,12 @@
             {
                 try
                 {
-                    return await httpClient.PostAsync(PushAllUsersEndpoint, requestContent);
+                    return await httpClient.PostAsync(PushAllUsersRoute, requestContent);
                 }
                 catch (HttpRequestException e)
                 {
                     var baseExceptionMessage = e.GetBaseException().Message;
-                    await LogRequestErrorAsync(PushAllUsersEndpoint, baseExceptionMessage);
+                    LogRequestError(PushAllUsersRoute, baseExceptionMessage);
                     return null;
                 }
             }
@@ -211,7 +218,7 @@
                 }
                 else
                 {
-                    await LogRequestErrorAsync(PushAllUsersEndpoint, $"HTTP {(int) responseMessage.StatusCode} {responseMessage.StatusCode}");
+                    LogRequestError(PushAllUsersRoute, responseMessage.StatusCode);
                 }
             }
 
