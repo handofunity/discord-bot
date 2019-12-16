@@ -11,5 +11,4 @@ docker run \
   -e "ACCEPT_EULA=Y" \
   -e "BASE_URI=https://logs.handofunity.eu/" \
   -v "/var/log/hand-of-unity/seq:/data" \
-  -p "10661:80" \
   datalust/seq:latest
