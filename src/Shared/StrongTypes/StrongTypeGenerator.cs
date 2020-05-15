@@ -1,11 +1,5 @@
-﻿using System;
-using System.CodeDom.Compiler;
-using System.Diagnostics.CodeAnalysis;
-using System.Runtime.Serialization;
-using System.Security.Permissions;
-using System.Xml;
-using System.Xml.Schema;
-using System.Xml.Serialization;
+﻿// ReSharper disable IdentifierTypo
+// ReSharper disable CommentTypo
 // ReSharper disable PartialTypeWithSinglePart
 // ReSharper disable InheritdocConsiderUsage
 // ReSharper disable RedundantNameQualifier
@@ -13,22 +7,39 @@ using System.Xml.Serialization;
 // ReSharper disable ReferenceEqualsWithValueType
 // ReSharper disable ConditionIsAlwaysTrueOrFalse
 // ReSharper disable NonReadonlyMemberInGetHashCode
+// ReSharper disable RedundantCast
 // ReSharper disable RedundantCast.0
+// ReSharper disable SpecifyACultureInStringConversionExplicitly
+// ReSharper disable ArrangeThisQualifier
+// ReSharper disable StringCompareToIsCultureSpecific
+// ReSharper disable RedundantToStringCall
+
+using System;
+using System.CodeDom.Compiler;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.Serialization;
+using System.Security.Permissions;
+using System.Xml;
+using System.Xml.Schema;
+using System.Xml.Serialization;
+using JetBrains.Annotations;
 
 namespace HoU.GuildBot.Shared.StrongTypes
 {
 	/// <summary>
 	/// Implements the strong type <see cref="InternalUserID" />.
 	/// </summary>
-	[GeneratedCode("Herdo.StrongTypes.StrongTypeGenerator", "1.0.0")]
+	[GeneratedCode("Herdo.StrongTypes.StrongTypeGenerator", "2.1.0")]
 	[Serializable]
-	public partial struct InternalUserID : IEquatable<InternalUserID>, IComparable<InternalUserID>, ISerializable, IXmlSerializable
-    {
+	[Newtonsoft.Json.JsonConverter(typeof(InternalUserID.NewtonsoftJsonConverter))]
+		public partial struct InternalUserID : IEquatable<InternalUserID>, IComparable<InternalUserID>, IComparable, ISerializable, IXmlSerializable
+	{
         /// <summary>
         /// Actual backing property which holds the value.
         /// </summary>
         /// <remarks>This property is basically readonly, but must be non-readonly due to the XML-deserialization which will be called from outside the constructor.</remarks>
-        public System.Int32 V { get; set; }
+        [UsedImplicitly]
+		public System.Int32 V { get; set; }
 
 		[ExcludeFromCodeCoverage]
 		private InternalUserID(System.Int32 value)
@@ -74,7 +85,7 @@ namespace HoU.GuildBot.Shared.StrongTypes
 		{
 			if (ReferenceEquals(null, other)) return false;
 			if (ReferenceEquals(this, other)) return true;
-			return V == other.V;
+			return this.V == other.V;
 		}
 		
 		/// <summary>
@@ -101,6 +112,27 @@ namespace HoU.GuildBot.Shared.StrongTypes
 				return 0;
 			return V.GetHashCode();
 		}
+        
+        /// <summary>
+        /// Compares the current instance with another object of the same type and returns
+        /// an integer that indicates whether the current instance precedes, follows, or
+        /// occurs in the same position in the sort order as the other object.
+        /// </summary>
+        /// <param name="obj">An object to compare with this instance.</param>
+        /// <exception cref="System.ArgumentException"><paramref name="obj"/> is not the same type as this instance.</exception>
+        /// <returns>
+        /// A value that indicates the relative order of the objects being compared. The
+        /// return value has these meanings: Value Meaning Less than zero This instance precedes
+        /// obj in the sort order. Zero This instance occurs in the same position in the
+        /// sort order as obj. Greater than zero This instance follows obj in the sort order.
+        /// </returns>
+        [ExcludeFromCodeCoverage]
+        int IComparable.CompareTo(object obj)
+        {
+            if (obj is InternalUserID other)
+                return CompareTo(other);
+            throw new ArgumentException($"{nameof(obj)} is not of the same type as this instance.", nameof(obj));
+        }
 
 		/// <summary>
         /// Compares this instance to a specified <see cref="InternalUserID"/> and returns an indication of their relative values.
@@ -127,7 +159,7 @@ namespace HoU.GuildBot.Shared.StrongTypes
 	        if (ReferenceEquals(first, second))
 	            return true;
 
-	        return first.V == second.V;
+			return first.V == second.V;
 	    }
 
         /// <summary>
@@ -149,8 +181,10 @@ namespace HoU.GuildBot.Shared.StrongTypes
 		[ExcludeFromCodeCoverage]
 	    public override string ToString()
 	    {
-	        if ((object) V == null)
+	        if ((object)V == null)
+#pragma warning disable CS8603 // Possible null reference return.
 	            return null;
+#pragma warning restore CS8603 // Possible null reference return.
 	        return V.ToString();
 	    }
 				
@@ -164,7 +198,9 @@ namespace HoU.GuildBot.Shared.StrongTypes
 		[ExcludeFromCodeCoverage]
 		XmlSchema IXmlSerializable.GetSchema()
 	    {
+#pragma warning disable CS8603 // Possible null reference return.
 	        return null;
+#pragma warning restore CS8603 // Possible null reference return.
 	    }
 		
 		[ExcludeFromCodeCoverage]
@@ -178,22 +214,49 @@ namespace HoU.GuildBot.Shared.StrongTypes
 	    {
             writer.WriteString(XmlConvert.ToString(V));
 	    }
-	}
+
+		public sealed class NewtonsoftJsonConverter : Newtonsoft.Json.JsonConverter
+        {
+		    [ExcludeFromCodeCoverage]
+            public override void WriteJson(Newtonsoft.Json.JsonWriter writer, object value, Newtonsoft.Json.JsonSerializer serializer)
+			{
+				var instance = (InternalUserID)value;
+				writer.WriteValue(instance.V);
+			}
+			
+		    [ExcludeFromCodeCoverage]
+            public override object ReadJson(Newtonsoft.Json.JsonReader reader, Type objectType, object existingValue, Newtonsoft.Json.JsonSerializer serializer)
+            {
+			    if (reader.Value == null && Nullable.GetUnderlyingType(objectType) != null)
+				    return null;
+
+                var instance = default(InternalUserID);
+                instance.V = (System.Int32) Convert.ChangeType(reader.Value, typeof(System.Int32));
+                return instance;
+			}
+			
+		    [ExcludeFromCodeCoverage]
+            public override bool CanConvert(Type objectType) => objectType == typeof(InternalUserID);
+        }
+        
+            }
 
 	/// <summary>
 	/// Implements the strong type <see cref="DiscordUserID" />.
 	/// </summary>
-	[GeneratedCode("Herdo.StrongTypes.StrongTypeGenerator", "1.0.0")]
+	[GeneratedCode("Herdo.StrongTypes.StrongTypeGenerator", "2.1.0")]
 	[Serializable]
-	public partial struct DiscordUserID : IEquatable<DiscordUserID>, IComparable<DiscordUserID>, ISerializable, IXmlSerializable
-    {
+	[Newtonsoft.Json.JsonConverter(typeof(DiscordUserID.NewtonsoftJsonConverter))]
+		public partial struct DiscordUserID : IEquatable<DiscordUserID>, IComparable<DiscordUserID>, IComparable, ISerializable, IXmlSerializable
+	{
         /// <summary>
         /// Actual backing property which holds the value.
         /// </summary>
         /// <remarks>This property is basically readonly, but must be non-readonly due to the XML-deserialization which will be called from outside the constructor.</remarks>
-        public System.UInt64 V { get; set; }
+        [UsedImplicitly]
+		public System.UInt64 V { get; set; }
 
-        [ExcludeFromCodeCoverage]
+		[ExcludeFromCodeCoverage]
 		private DiscordUserID(System.UInt64 value)
 	    {
 	        V = value;
@@ -237,7 +300,7 @@ namespace HoU.GuildBot.Shared.StrongTypes
 		{
 			if (ReferenceEquals(null, other)) return false;
 			if (ReferenceEquals(this, other)) return true;
-			return V == other.V;
+			return this.V == other.V;
 		}
 		
 		/// <summary>
@@ -264,6 +327,27 @@ namespace HoU.GuildBot.Shared.StrongTypes
 				return 0;
 			return V.GetHashCode();
 		}
+        
+        /// <summary>
+        /// Compares the current instance with another object of the same type and returns
+        /// an integer that indicates whether the current instance precedes, follows, or
+        /// occurs in the same position in the sort order as the other object.
+        /// </summary>
+        /// <param name="obj">An object to compare with this instance.</param>
+        /// <exception cref="System.ArgumentException"><paramref name="obj"/> is not the same type as this instance.</exception>
+        /// <returns>
+        /// A value that indicates the relative order of the objects being compared. The
+        /// return value has these meanings: Value Meaning Less than zero This instance precedes
+        /// obj in the sort order. Zero This instance occurs in the same position in the
+        /// sort order as obj. Greater than zero This instance follows obj in the sort order.
+        /// </returns>
+        [ExcludeFromCodeCoverage]
+        int IComparable.CompareTo(object obj)
+        {
+            if (obj is DiscordUserID other)
+                return CompareTo(other);
+            throw new ArgumentException($"{nameof(obj)} is not of the same type as this instance.", nameof(obj));
+        }
 
 		/// <summary>
         /// Compares this instance to a specified <see cref="DiscordUserID"/> and returns an indication of their relative values.
@@ -290,7 +374,7 @@ namespace HoU.GuildBot.Shared.StrongTypes
 	        if (ReferenceEquals(first, second))
 	            return true;
 
-	        return first.V == second.V;
+			return first.V == second.V;
 	    }
 
         /// <summary>
@@ -312,8 +396,10 @@ namespace HoU.GuildBot.Shared.StrongTypes
 		[ExcludeFromCodeCoverage]
 	    public override string ToString()
 	    {
-	        if ((object) V == null)
+	        if ((object)V == null)
+#pragma warning disable CS8603 // Possible null reference return.
 	            return null;
+#pragma warning restore CS8603 // Possible null reference return.
 	        return V.ToString();
 	    }
 				
@@ -327,7 +413,9 @@ namespace HoU.GuildBot.Shared.StrongTypes
 		[ExcludeFromCodeCoverage]
 		XmlSchema IXmlSerializable.GetSchema()
 	    {
+#pragma warning disable CS8603 // Possible null reference return.
 	        return null;
+#pragma warning restore CS8603 // Possible null reference return.
 	    }
 		
 		[ExcludeFromCodeCoverage]
@@ -341,22 +429,49 @@ namespace HoU.GuildBot.Shared.StrongTypes
 	    {
             writer.WriteString(XmlConvert.ToString(V));
 	    }
-	}
+
+		public sealed class NewtonsoftJsonConverter : Newtonsoft.Json.JsonConverter
+        {
+		    [ExcludeFromCodeCoverage]
+            public override void WriteJson(Newtonsoft.Json.JsonWriter writer, object value, Newtonsoft.Json.JsonSerializer serializer)
+			{
+				var instance = (DiscordUserID)value;
+				writer.WriteValue(instance.V);
+			}
+			
+		    [ExcludeFromCodeCoverage]
+            public override object ReadJson(Newtonsoft.Json.JsonReader reader, Type objectType, object existingValue, Newtonsoft.Json.JsonSerializer serializer)
+            {
+			    if (reader.Value == null && Nullable.GetUnderlyingType(objectType) != null)
+				    return null;
+
+                var instance = default(DiscordUserID);
+                instance.V = reader.Value == null ? default : reader.Value is System.Numerics.BigInteger bi ? (System.UInt64)bi : reader.Value is System.Int64 @long ? (System.UInt64)@long : System.UInt64.TryParse(reader.Value.ToString(), out var parsedUInt64) ? parsedUInt64 : default;
+                return instance;
+			}
+			
+		    [ExcludeFromCodeCoverage]
+            public override bool CanConvert(Type objectType) => objectType == typeof(DiscordUserID);
+        }
+        
+            }
 
 	/// <summary>
 	/// Implements the strong type <see cref="DiscordChannelID" />.
 	/// </summary>
-	[GeneratedCode("Herdo.StrongTypes.StrongTypeGenerator", "1.0.0")]
+	[GeneratedCode("Herdo.StrongTypes.StrongTypeGenerator", "2.1.0")]
 	[Serializable]
-	public partial struct DiscordChannelID : IEquatable<DiscordChannelID>, IComparable<DiscordChannelID>, ISerializable, IXmlSerializable
-    {
+	[Newtonsoft.Json.JsonConverter(typeof(DiscordChannelID.NewtonsoftJsonConverter))]
+		public partial struct DiscordChannelID : IEquatable<DiscordChannelID>, IComparable<DiscordChannelID>, IComparable, ISerializable, IXmlSerializable
+	{
         /// <summary>
         /// Actual backing property which holds the value.
         /// </summary>
         /// <remarks>This property is basically readonly, but must be non-readonly due to the XML-deserialization which will be called from outside the constructor.</remarks>
-        public System.UInt64 V { get; set; }
+        [UsedImplicitly]
+		public System.UInt64 V { get; set; }
 
-        [ExcludeFromCodeCoverage]
+		[ExcludeFromCodeCoverage]
 		private DiscordChannelID(System.UInt64 value)
 	    {
 	        V = value;
@@ -400,7 +515,7 @@ namespace HoU.GuildBot.Shared.StrongTypes
 		{
 			if (ReferenceEquals(null, other)) return false;
 			if (ReferenceEquals(this, other)) return true;
-			return V == other.V;
+			return this.V == other.V;
 		}
 		
 		/// <summary>
@@ -427,6 +542,27 @@ namespace HoU.GuildBot.Shared.StrongTypes
 				return 0;
 			return V.GetHashCode();
 		}
+        
+        /// <summary>
+        /// Compares the current instance with another object of the same type and returns
+        /// an integer that indicates whether the current instance precedes, follows, or
+        /// occurs in the same position in the sort order as the other object.
+        /// </summary>
+        /// <param name="obj">An object to compare with this instance.</param>
+        /// <exception cref="System.ArgumentException"><paramref name="obj"/> is not the same type as this instance.</exception>
+        /// <returns>
+        /// A value that indicates the relative order of the objects being compared. The
+        /// return value has these meanings: Value Meaning Less than zero This instance precedes
+        /// obj in the sort order. Zero This instance occurs in the same position in the
+        /// sort order as obj. Greater than zero This instance follows obj in the sort order.
+        /// </returns>
+        [ExcludeFromCodeCoverage]
+        int IComparable.CompareTo(object obj)
+        {
+            if (obj is DiscordChannelID other)
+                return CompareTo(other);
+            throw new ArgumentException($"{nameof(obj)} is not of the same type as this instance.", nameof(obj));
+        }
 
 		/// <summary>
         /// Compares this instance to a specified <see cref="DiscordChannelID"/> and returns an indication of their relative values.
@@ -453,7 +589,7 @@ namespace HoU.GuildBot.Shared.StrongTypes
 	        if (ReferenceEquals(first, second))
 	            return true;
 
-	        return first.V == second.V;
+			return first.V == second.V;
 	    }
 
         /// <summary>
@@ -475,8 +611,10 @@ namespace HoU.GuildBot.Shared.StrongTypes
 		[ExcludeFromCodeCoverage]
 	    public override string ToString()
 	    {
-	        if ((object) V == null)
+	        if ((object)V == null)
+#pragma warning disable CS8603 // Possible null reference return.
 	            return null;
+#pragma warning restore CS8603 // Possible null reference return.
 	        return V.ToString();
 	    }
 				
@@ -490,7 +628,9 @@ namespace HoU.GuildBot.Shared.StrongTypes
 		[ExcludeFromCodeCoverage]
 		XmlSchema IXmlSerializable.GetSchema()
 	    {
+#pragma warning disable CS8603 // Possible null reference return.
 	        return null;
+#pragma warning restore CS8603 // Possible null reference return.
 	    }
 		
 		[ExcludeFromCodeCoverage]
@@ -504,5 +644,30 @@ namespace HoU.GuildBot.Shared.StrongTypes
 	    {
             writer.WriteString(XmlConvert.ToString(V));
 	    }
-	}
+
+		public sealed class NewtonsoftJsonConverter : Newtonsoft.Json.JsonConverter
+        {
+		    [ExcludeFromCodeCoverage]
+            public override void WriteJson(Newtonsoft.Json.JsonWriter writer, object value, Newtonsoft.Json.JsonSerializer serializer)
+			{
+				var instance = (DiscordChannelID)value;
+				writer.WriteValue(instance.V);
+			}
+			
+		    [ExcludeFromCodeCoverage]
+            public override object ReadJson(Newtonsoft.Json.JsonReader reader, Type objectType, object existingValue, Newtonsoft.Json.JsonSerializer serializer)
+            {
+			    if (reader.Value == null && Nullable.GetUnderlyingType(objectType) != null)
+				    return null;
+
+                var instance = default(DiscordChannelID);
+                instance.V = reader.Value == null ? default : reader.Value is System.Numerics.BigInteger bi ? (System.UInt64)bi : reader.Value is System.Int64 @long ? (System.UInt64)@long : System.UInt64.TryParse(reader.Value.ToString(), out var parsedUInt64) ? parsedUInt64 : default;
+                return instance;
+			}
+			
+		    [ExcludeFromCodeCoverage]
+            public override bool CanConvert(Type objectType) => objectType == typeof(DiscordChannelID);
+        }
+        
+            }
 }

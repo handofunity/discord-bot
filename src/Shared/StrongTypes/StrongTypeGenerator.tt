@@ -18,7 +18,7 @@ Host.SetFileExtension(".cs");
 var hostServiceProvider = (IServiceProvider)Host;
 if (hostServiceProvider == null)
 	throw new ArgumentNullException("Could not obtain IServiceProvider");
-var dte = (EnvDTE.DTE) hostServiceProvider.GetService(typeof(EnvDTE.DTE));
+var dte = (EnvDTE.DTE) hostServiceProvider.GetCOMService(typeof(EnvDTE.DTE));
 if (dte == null)
 	throw new ArgumentNullException("Could not obtain DTE from host");
 var templateProjectItem = dte.Solution.FindProjectItem(Host.TemplateFile);
@@ -27,14 +27,8 @@ var defaultNamespace = templateProjectItem.ContainingProject.Properties.Item("De
 /***********************************/
 /*             HEADER              */
 /***********************************/
-#>using System;
-using System.CodeDom.Compiler;
-using System.Diagnostics.CodeAnalysis;
-using System.Runtime.Serialization;
-using System.Security.Permissions;
-using System.Xml;
-using System.Xml.Schema;
-using System.Xml.Serialization;
+#>// ReSharper disable IdentifierTypo
+// ReSharper disable CommentTypo
 // ReSharper disable PartialTypeWithSinglePart
 // ReSharper disable InheritdocConsiderUsage
 // ReSharper disable RedundantNameQualifier
@@ -42,7 +36,22 @@ using System.Xml.Serialization;
 // ReSharper disable ReferenceEqualsWithValueType
 // ReSharper disable ConditionIsAlwaysTrueOrFalse
 // ReSharper disable NonReadonlyMemberInGetHashCode
+// ReSharper disable RedundantCast
 // ReSharper disable RedundantCast.0
+// ReSharper disable SpecifyACultureInStringConversionExplicitly
+// ReSharper disable ArrangeThisQualifier
+// ReSharper disable StringCompareToIsCultureSpecific
+// ReSharper disable RedundantToStringCall
+
+using System;
+using System.CodeDom.Compiler;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.Serialization;
+using System.Security.Permissions;
+using System.Xml;
+using System.Xml.Schema;
+using System.Xml.Serialization;
+using JetBrains.Annotations;
 
 <# var ns = defaultNamespace + ".StrongTypes"; #>
 namespace <#= ns #>
@@ -63,6 +72,11 @@ foreach (XElement strongType in strongTypes)
 {
 	var typeName = strongType.Attribute("name").Value;
 	var internalType = strongType.Attribute("internalType").Value;
+
+	XAttribute provideNewtonsoftJsonConverterAttribute = strongType.Attribute("provideNewtonsoftJsonConverter");
+	bool provideNewtonsoftJsonConverter = provideNewtonsoftJsonConverterAttribute == null ? true : (bool)provideNewtonsoftJsonConverterAttribute;
+	XAttribute provideSystemTextJsonConverterAttribute = strongType.Attribute("provideSystemTextJsonConverter");
+	bool provideSystemTextJsonConverter = provideSystemTextJsonConverterAttribute == null ? true : (bool)provideSystemTextJsonConverterAttribute;
 
 	XElement validateElement = strongType.Element(xmlNamespace + "validate");
 	bool validate = validateElement == null ? false : (bool)validateElement;
@@ -88,20 +102,25 @@ foreach (XElement strongType in strongTypes)
 	/// <summary>
 	/// <#= CustomDescriptionText(typeName, customDescription) #>
 	/// </summary>
-	[GeneratedCode("Herdo.StrongTypes.StrongTypeGenerator", "1.0.0")]
+	[GeneratedCode("Herdo.StrongTypes.StrongTypeGenerator", "2.1.0")]
 	[Serializable]
+	<# if (provideNewtonsoftJsonConverter) { #>[Newtonsoft.Json.JsonConverter(typeof(<#= typeName #>.NewtonsoftJsonConverter))]
+<# } #>
+	<# if (provideSystemTextJsonConverter) { #>[System.Text.Json.Serialization.JsonConverter(typeof(<#= typeName #>.SystemTextJsonConverter))]
+<# } #>
 	public partial struct <#= typeName #><#= BuildDerivation(typeName) #>
 	{
         /// <summary>
         /// Actual backing property which holds the value.
         /// </summary>
         /// <remarks>This property is basically readonly, but must be non-readonly due to the XML-deserialization which will be called from outside the constructor.</remarks>
+        [UsedImplicitly]
 		public <#= internalType #> V { get; set; }
 
 		[ExcludeFromCodeCoverage]
 		private <#= typeName #>(<#= internalType #> value)
 	    {
-	        _value = <#= AddValidation(validate, "value") #>;
+	        V = <#= AddValidation(validate, "value") #>;
 	    }
 
 		[ExcludeFromCodeCoverage]
@@ -110,7 +129,7 @@ foreach (XElement strongType in strongTypes)
 <#
 			var callInputCtor = string.Format("({0})info.GetValue(\"v\", typeof({0}))", internalType);
 #>
-            _value = <#= AddValidation(validate, callInputCtor) #>;
+            V = <#= AddValidation(validate, callInputCtor) #>;
 		}
 
 	    /// <summary>
@@ -132,7 +151,7 @@ foreach (XElement strongType in strongTypes)
 		[ExcludeFromCodeCoverage]
 	    public static explicit operator <#= internalType #>(<#= typeName #> value)
 	    {
-	        return value._value;
+	        return value.V;
 	    }
 
 		/// <summary>
@@ -145,7 +164,7 @@ foreach (XElement strongType in strongTypes)
 		{
 			if (ReferenceEquals(null, other)) return false;
 			if (ReferenceEquals(this, other)) return true;
-			return _value == other._value;
+			return <#= GetEqualsImplementation(Type.GetType(internalType), "this", "other") #>;
 		}
 		
 		/// <summary>
@@ -168,10 +187,31 @@ foreach (XElement strongType in strongTypes)
 		[ExcludeFromCodeCoverage]
 		public override int GetHashCode()
 		{
-			if (Equals(null, _value))
+			if (Equals(null, V))
 				return 0;
-			return _value.GetHashCode();
+			return V.GetHashCode();
 		}
+        
+        /// <summary>
+        /// Compares the current instance with another object of the same type and returns
+        /// an integer that indicates whether the current instance precedes, follows, or
+        /// occurs in the same position in the sort order as the other object.
+        /// </summary>
+        /// <param name="obj">An object to compare with this instance.</param>
+        /// <exception cref="System.ArgumentException"><paramref name="obj"/> is not the same type as this instance.</exception>
+        /// <returns>
+        /// A value that indicates the relative order of the objects being compared. The
+        /// return value has these meanings: Value Meaning Less than zero This instance precedes
+        /// obj in the sort order. Zero This instance occurs in the same position in the
+        /// sort order as obj. Greater than zero This instance follows obj in the sort order.
+        /// </returns>
+        [ExcludeFromCodeCoverage]
+        int IComparable.CompareTo(object obj)
+        {
+            if (obj is <#= typeName #> other)
+                return CompareTo(other);
+            throw new ArgumentException($"{nameof(obj)} is not of the same type as this instance.", nameof(obj));
+        }
 
 		/// <summary>
         /// Compares this instance to a specified <see cref="<#= typeName #>"/> and returns an indication of their relative values.
@@ -181,9 +221,9 @@ foreach (XElement strongType in strongTypes)
 		[ExcludeFromCodeCoverage]
 		public int CompareTo(<#= typeName #> other)
 		{
-			if (Equals(null, _value))
+			if (Equals(null, V))
 				return 1;
-			return _value.CompareTo(other._value);
+			return V.CompareTo(other.V);
 		}
 <# if (HasOperator(Type.GetType(internalType), excludeOperators, Expression.Equal)) { #>
 
@@ -199,7 +239,7 @@ foreach (XElement strongType in strongTypes)
 	        if (ReferenceEquals(first, second))
 	            return true;
 
-	        return first._value == second._value;
+			return <#= GetEqualsImplementation(Type.GetType(internalType), "first", "second") #>;
 	    }
 <# } #>
 <# if (HasOperator(Type.GetType(internalType), excludeOperators, Expression.NotEqual)) { #>
@@ -227,7 +267,7 @@ foreach (XElement strongType in strongTypes)
         [ExcludeFromCodeCoverage]
         public static bool operator <(<#= typeName #> first, <#= typeName #> second)
 	    {
-	        return first._value < second._value;
+	        return first.V < second.V;
 	    }
 <# } #>
 <# if (HasOperator(Type.GetType(internalType), excludeOperators, Expression.GreaterThan)) { #>
@@ -241,7 +281,7 @@ foreach (XElement strongType in strongTypes)
         [ExcludeFromCodeCoverage]
         public static bool operator >(<#= typeName #> first, <#= typeName #> second)
 	    {
-	        return first._value > second._value;
+	        return first.V > second.V;
 	    }
 <# } #>
 <# if (HasOperator(Type.GetType(internalType), excludeOperators, Expression.LessThanOrEqual)) { #>
@@ -255,7 +295,7 @@ foreach (XElement strongType in strongTypes)
         [ExcludeFromCodeCoverage]
         public static bool operator <=(<#= typeName #> first, <#= typeName #> second)
 	    {
-	        return first._value <= second._value;
+	        return first.V <= second.V;
 	    }
 <# } #>
 <# if (HasOperator(Type.GetType(internalType), excludeOperators, Expression.GreaterThanOrEqual)) { #>
@@ -269,7 +309,7 @@ foreach (XElement strongType in strongTypes)
         [ExcludeFromCodeCoverage]
         public static bool operator >=(<#= typeName #> first, <#= typeName #> second)
 	    {
-	        return first._value >= second._value;
+	        return first.V >= second.V;
         }
 <# } #>
 <# if (HasOperator(Type.GetType(internalType), excludeOperators, Expression.Add)) { #>
@@ -284,7 +324,7 @@ foreach (XElement strongType in strongTypes)
         [ExcludeFromCodeCoverage]
         public static <#= typeName #> operator +(<#= typeName #> summand1, <#= typeName #> summand2)
         {
-            return (<#= typeName #>) (summand1._value + summand2._value);
+            return (<#= typeName #>) (summand1.V + summand2.V);
         }
 <# } #>
 <# if (HasOperator(Type.GetType(internalType), excludeOperators, Expression.Subtract)) { #>
@@ -297,9 +337,9 @@ foreach (XElement strongType in strongTypes)
         /// <exception cref="InvalidCastException">The validation of the difference value failed.</exception>
         /// <returns>The difference value.</returns>
         [ExcludeFromCodeCoverage]
-        public static <#= typeName #> operator -(<#= typeName #> minuend, <#= typeName #> subtrahend)
+        public static <#= GetSubtractResultType(typeName, Type.GetType(internalType)) #> operator -(<#= typeName #> minuend, <#= typeName #> subtrahend)
         {
-            return (<#= typeName #>)(minuend._value - subtrahend._value);
+            return (<#= GetSubtractResultType(typeName, Type.GetType(internalType)) #>)(minuend.V - subtrahend.V);
         }
 <# } #>
 <# if (HasOperator(Type.GetType(internalType), excludeOperators, Expression.Increment)) { #>
@@ -313,7 +353,7 @@ foreach (XElement strongType in strongTypes)
         [ExcludeFromCodeCoverage]
         public static <#= typeName #> operator ++(<#= typeName #> value)
 	    {
-	        return (<#= typeName #>) (++value._value);
+	        return (<#= typeName #>) (++value.V);
         }
 <# } #>
 <# if (HasOperator(Type.GetType(internalType), excludeOperators, Expression.Decrement)) { #>
@@ -327,7 +367,7 @@ foreach (XElement strongType in strongTypes)
         [ExcludeFromCodeCoverage]
         public static <#= typeName #> operator --(<#= typeName #> value)
 	    {
-	        return (<#= typeName #>) (--value._value);
+	        return (<#= typeName #>) (--value.V);
         }
 <# } #>
 
@@ -338,8 +378,10 @@ foreach (XElement strongType in strongTypes)
 		[ExcludeFromCodeCoverage]
 	    public override string ToString()
 	    {
-	        if ((object) _value == null)
+	        if ((object)V == null)
+#pragma warning disable CS8603 // Possible null reference return.
 	            return null;
+#pragma warning restore CS8603 // Possible null reference return.
 	        return <#= FormatStringOutput(internalType, formatString) #>;
 	    }
 		<# if (validate) { #>
@@ -347,10 +389,15 @@ foreach (XElement strongType in strongTypes)
 		[ExcludeFromCodeCoverage]
 		private static <#= internalType #> Validate(<#= internalType #> value)
 		{
-			if (!IsValid(value, out var validationError))
+		    var isValid = true;
+			string validationError = null;
+			ValidateInternalValue(value, ref isValid, ref validationError);
+			if (!isValid)
 				throw new InvalidCastException("Invalid cast into the strong type. The validation failed. Error: " + validationError);
 			return value;
 		}
+
+		static partial void ValidateInternalValue(<#= internalType #> value, ref bool isValid, ref string validationError);
 		<# } if (Type.GetType(internalType) == typeof(System.DateTime)) { #>
 		
 		[ExcludeFromCodeCoverage]
@@ -372,13 +419,15 @@ foreach (XElement strongType in strongTypes)
 		[SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.SerializationFormatter)]
 		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context)
 		{
-			info.AddValue("v", _value);
+			info.AddValue("v", V);
 		}
 		
 		[ExcludeFromCodeCoverage]
 		XmlSchema IXmlSerializable.GetSchema()
 	    {
+#pragma warning disable CS8603 // Possible null reference return.
 	        return null;
+#pragma warning restore CS8603 // Possible null reference return.
 	    }
 		
 		[ExcludeFromCodeCoverage]
@@ -387,7 +436,7 @@ foreach (XElement strongType in strongTypes)
 <#
 			var callInputReadXml = CreateReadXmlCallInput(internalType);
 #>
-	        _value = <#= AddValidation(validate, callInputReadXml) #>;
+	        V = <#= AddValidation(validate, callInputReadXml) #>;
 	    }
 		
 		[ExcludeFromCodeCoverage]
@@ -395,7 +444,48 @@ foreach (XElement strongType in strongTypes)
 	    {
             writer.WriteString(<#= ConvertValueToXml(internalType) #>);
 	    }
-	}
+
+		<# if (provideNewtonsoftJsonConverter) { #>public sealed class NewtonsoftJsonConverter : Newtonsoft.Json.JsonConverter
+        {
+		    [ExcludeFromCodeCoverage]
+            public override void WriteJson(Newtonsoft.Json.JsonWriter writer, object value, Newtonsoft.Json.JsonSerializer serializer)
+			{
+				var instance = (<#= typeName #>)value;
+				writer.WriteValue(instance.V);
+			}
+			
+		    [ExcludeFromCodeCoverage]
+            public override object ReadJson(Newtonsoft.Json.JsonReader reader, Type objectType, object existingValue, Newtonsoft.Json.JsonSerializer serializer)
+            {
+			    if (reader.Value == null && Nullable.GetUnderlyingType(objectType) != null)
+				    return null;
+
+                var instance = default(<#= typeName #>);
+                instance.V = <#= GetNewtonsoftJsonReadFunc(Type.GetType(internalType)) #>;
+                return instance;
+			}
+			
+		    [ExcludeFromCodeCoverage]
+            public override bool CanConvert(Type objectType) => objectType == typeof(<#= typeName #>);
+        }
+<# } #>
+        
+        <# if (provideSystemTextJsonConverter) { #>public sealed class SystemTextJsonConverter : System.Text.Json.Serialization.JsonConverter<<#= typeName #>>
+        {
+		    [ExcludeFromCodeCoverage]
+            public override <#= typeName #> Read(ref System.Text.Json.Utf8JsonReader reader, Type typeToConvert, System.Text.Json.JsonSerializerOptions options)
+            {
+                return (<#= typeName #>)reader.Get<#= internalType.Replace("System.", "") #>();
+            }
+
+			[ExcludeFromCodeCoverage]
+            public override void Write(System.Text.Json.Utf8JsonWriter writer, <#= typeName #> value, System.Text.Json.JsonSerializerOptions options)
+            {
+				writer.Write<#= GetSystemTextJsonWriteMethodType(internalType) #>Value(value.V);
+            }
+        }
+<# } #>
+    }
 <#
 }
 
@@ -445,7 +535,7 @@ private static string CustomDescriptionText(string typeName, string customDescri
 private static string BuildDerivation(string typeName)
 {
 	var sb = new StringBuilder(" : ");
-	sb.Append(string.Format("IEquatable<{0}>, IComparable<{0}>, ISerializable, IXmlSerializable", typeName));
+	sb.Append(string.Format("IEquatable<{0}>, IComparable<{0}>, IComparable, ISerializable, IXmlSerializable", typeName));
 	return sb.ToString();
 }
 
@@ -459,11 +549,11 @@ private static string AddValidation(bool validate, string callInput)
 private static string FormatStringOutput(string internalType, string formatString)
 {
 	if (formatString == null)
-		return "_value.ToString()";
+		return "V.ToString()";
 	var t = Type.GetType(internalType);
 	if (t == typeof(string))
-		return string.Format("String.Format(\"{0}\", _value)", formatString);
-	return string.Format("_value.ToString(\"{0}\")", formatString);
+		return string.Format("String.Format(\"{0}\", V)", formatString);
+	return string.Format("V.ToString(\"{0}\")", formatString);
 }
 
 public static string CreateReadXmlCallInput(string internalType)
@@ -481,16 +571,71 @@ public static string ConvertValueToXml(string internalType)
 	var t = Type.GetType(internalType);
 	if (t == typeof(System.DateTime))
 	{
-		return "XmlConvert.ToString(_value, GetSerializationMode(_value))";
+		return "XmlConvert.ToString(V, GetSerializationMode(V))";
 	}
 	else if (t == typeof(System.String))
 	{
-		return "_value";
+		return "V";
 	}
 	else
 	{
-		return "XmlConvert.ToString(_value)";
+		return "XmlConvert.ToString(V)";
 	}
+}
+
+public static string GetSystemTextJsonWriteMethodType(string internalType)
+{
+	var t = Type.GetType(internalType);
+	if (t == typeof(System.Boolean))
+	    return "Boolean";
+	if (t == typeof(System.Byte)
+	 || t == typeof(System.SByte)
+	 || t == typeof(System.UInt16)
+	 || t == typeof(System.UInt32)
+	 || t == typeof(System.UInt64)
+	 || t == typeof(System.Int16)
+	 || t == typeof(System.Int32)
+	 || t == typeof(System.Int64)
+	 || t == typeof(System.Decimal)
+	 || t == typeof(System.Double)
+	 || t == typeof(System.Single))
+	    return "Number";
+	return "String";
+}
+
+public static string GetSubtractResultType(string typeName, Type t)
+{
+    if (t == typeof(System.DateTime) || t == typeof(System.DateTimeOffset))
+	    return "System.TimeSpan";
+	return typeName;
+}
+
+public static string GetEqualsImplementation(Type t, string left, string right)
+{
+	if (t == typeof(System.Single))
+	{
+	    return string.Format("Math.Abs({0}.V - {0}.V) < System.Single.Epsilon", left, right);
+	}
+	if (t == typeof(System.Double))
+	{
+	    return string.Format("Math.Abs({0}.V - {0}.V) < System.Double.Epsilon", left, right);
+	}
+
+	return string.Format("{0}.V == {1}.V", left, right);
+}
+
+public static string GetNewtonsoftJsonReadFunc(Type t)
+{
+    if (t == typeof(System.UInt64))
+	{
+	    return "reader.Value == null ? default : reader.Value is System.Numerics.BigInteger bi ? (System.UInt64)bi : reader.Value is System.Int64 @long ? (System.UInt64)@long : System.UInt64.TryParse(reader.Value.ToString(), out var parsedUInt64) ? parsedUInt64 : default";
+	}
+	if (t == typeof(System.Guid))
+	{
+	    return "reader.Value == null ? default : Guid.Parse((string) reader.Value)";
+	}
+
+	return string.Format("({0}) Convert.ChangeType(reader.Value, typeof({0}))", t.FullName);
 }
 
 // Exceptions for HasOperator method

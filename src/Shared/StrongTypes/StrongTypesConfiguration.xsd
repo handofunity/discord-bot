@@ -1,5 +1,23 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xs:schema id="strongTypes" targetNamespace="https://www.github.com/Herdo/strongtypes" xmlns:mstns="https://www.github.com/Herdo/strongtypes" xmlns="https://www.github.com/Herdo/strongtypes" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" attributeFormDefault="qualified" elementFormDefault="qualified">
+  <xs:simpleType name="allowedBaseType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="System.Boolean" />
+      <xs:enumeration value="System.Byte" />
+      <xs:enumeration value="System.Decimal" />
+      <xs:enumeration value="System.Double" />
+      <xs:enumeration value="System.Guid" />
+      <xs:enumeration value="System.Int16" />
+      <xs:enumeration value="System.Int32" />
+      <xs:enumeration value="System.Int64" />
+      <xs:enumeration value="System.SByte" />
+      <xs:enumeration value="System.Single" />
+      <xs:enumeration value="System.String" />
+      <xs:enumeration value="System.UInt16" />
+      <xs:enumeration value="System.UInt32" />
+      <xs:enumeration value="System.UInt64" />
+    </xs:restriction>
+  </xs:simpleType>
   <xs:element name="strongTypes" msdata:IsDataSet="true" msdata:Locale="en-US">
     <xs:complexType>
       <xs:choice minOccurs="0" maxOccurs="unbounded">
@@ -12,7 +30,9 @@
               <xs:element name="excludeOperator" type="xs:string" minOccurs="0" maxOccurs="unbounded" msdata:Ordinal="2" />
             </xs:sequence>
             <xs:attribute name="name" use="required" form="unqualified" type="xs:string" />
-            <xs:attribute name="internalType" use="required" form="unqualified" type="xs:string" />
+            <xs:attribute name="internalType" use="required" form="unqualified" type="allowedBaseType" />
+            <xs:attribute name="provideNewtonsoftJsonConverter" form="unqualified" type="xs:boolean" fixed="false" />
+            <xs:attribute name="provideSystemTextJsonConverter" form="unqualified" type="xs:boolean" fixed="false" />
           </xs:complexType>
         </xs:element>
       </xs:choice>

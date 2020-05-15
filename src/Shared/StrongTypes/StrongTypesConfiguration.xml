@@ -2,7 +2,9 @@
 <strongTypes xmlns="https://www.github.com/Herdo/strongtypes"
              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
              xsi:schemaLocation="https://www.github.com/Herdo/strongtypes StrongTypesConfiguration.xsd">
-  <strongType name="InternalUserID" internalType="System.Int32">
+  <strongType name="InternalUserID"
+              internalType="System.Int32"
+              provideSystemTextJsonConverter="false">
     <excludeOperator>Add</excludeOperator>
     <excludeOperator>Subtract</excludeOperator>
     <excludeOperator>Increment</excludeOperator>
@@ -12,7 +14,9 @@
     <excludeOperator>LessThanOrEqual</excludeOperator>
     <excludeOperator>GreaterThanOrEqual</excludeOperator>
   </strongType>
-  <strongType name="DiscordUserID" internalType="System.UInt64">
+  <strongType name="DiscordUserID"
+              internalType="System.UInt64"
+              provideSystemTextJsonConverter="false">
     <excludeOperator>Add</excludeOperator>
     <excludeOperator>Subtract</excludeOperator>
     <excludeOperator>Increment</excludeOperator>
@@ -22,7 +26,9 @@
     <excludeOperator>LessThanOrEqual</excludeOperator>
     <excludeOperator>GreaterThanOrEqual</excludeOperator>
   </strongType>
-  <strongType name="DiscordChannelID" internalType="System.UInt64">
+  <strongType name="DiscordChannelID"
+              internalType="System.UInt64"
+              provideSystemTextJsonConverter="false">
     <excludeOperator>Add</excludeOperator>
     <excludeOperator>Subtract</excludeOperator>
     <excludeOperator>Increment</excludeOperator>
