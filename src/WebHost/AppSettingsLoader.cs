@@ -64,6 +64,8 @@
                 throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.SpamLimits)}' contains duplicate {nameof(SpamLimit.RestrictToChannelID)}s.");
             if (string.IsNullOrWhiteSpace(settings.UnitsBaseAddress))
                 throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.UnitsBaseAddress)}' cannot be empty.");
+            if (string.IsNullOrWhiteSpace(settings.UnityHubBaseAddress))
+                throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.UnityHubBaseAddress)}' cannot be empty.");
         }
     }
 }

@@ -146,6 +146,16 @@
         public string UnitsAccessSecret { get; set; }
 
         /// <summary>
+        /// Gets or sets the base address of the Unity Hub.
+        /// </summary>
+        public string UnityHubBaseAddress { get; set; }
+
+        /// <summary>
+        /// Gets or sets the secret used to authenticate with the Unity Hub.
+        /// </summary>
+        public string UnityHubAccessSecret { get; set; }
+
+        /// <summary>
         /// Gets or sets the primary connection string used to access database objects part of the solution.
         /// </summary>
         /// <remarks>Should either be a IP/TCP connection, or a named connection. For IP/TCP connections, see example.</remarks>

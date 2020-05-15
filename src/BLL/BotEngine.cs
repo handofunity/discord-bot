@@ -107,8 +107,9 @@
                 // Start privacy provider clean up
                 _privacyProvider.Start();
                 // Register background jobs (HangFire).
-                // Sync all users every full hour.
+                // Sync all users every 15 minutes.
                 RecurringJob.AddOrUpdate<UnitsSyncService>("sync-users-to-UNITS", service => service.SyncAllUsers(), "0,15,30,45 0-23 * * *");
+                RecurringJob.AddOrUpdate<UnityHubSyncService>("sync-users-to-UnityHub", service => service.SyncAllUsers(), "* * * * *");
             }
 
             _logger.LogInformation("Bot ready.");

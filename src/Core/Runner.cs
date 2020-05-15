@@ -103,7 +103,8 @@
                .AddTransient<IImageProvider, ImageProvider>()
                .AddTransient<ITimeInformationProvider, TimeInformationProvider>()
                 // Triggered as scheduled HangFire job
-               .AddTransient<UnitsSyncService>();
+               .AddTransient<UnitsSyncService>()
+               .AddTransient<UnityHubSyncService>();
         }
 
         private static void RegisterDAL(IServiceCollection serviceCollection)
@@ -112,6 +113,7 @@
             serviceCollection.AddSingleton<IDiscordAccess, DiscordAccess>();
             serviceCollection.AddSingleton<IWebAccess, WebAccess>();
             serviceCollection.AddSingleton<IUnitsAccess, UnitsAccess>();
+            serviceCollection.AddSingleton<IUnityHubAccess, UnityHubAccess>();
         }
 
         private static void RegisterLogging(IServiceCollection serviceCollection, IConfiguration completeConfiguration)
