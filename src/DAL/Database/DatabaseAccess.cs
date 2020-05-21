@@ -58,7 +58,7 @@
             Model.User[] dbObjects;
             using (var entities = GetDbContext())
             {
-                dbObjects = await entities.User.ToArrayAsync().ConfigureAwait(false);
+                dbObjects = await entities.User.AsQueryable().ToArrayAsync().ConfigureAwait(false);
             }
 
             return dbObjects.Select(ToPoco).ToArray();
@@ -68,7 +68,7 @@
         {
             using (var entities = GetDbContext())
             {
-                var existingUserIDs = await entities.User.Select(m => m.DiscordUserID).ToArrayAsync().ConfigureAwait(false);
+                var existingUserIDs = await entities.User.AsQueryable().Select(m => m.DiscordUserID).ToArrayAsync().ConfigureAwait(false);
                 var missingUserIDs = userIDs.Except(existingUserIDs.Select(m => (DiscordUserID)(ulong)m)).ToArray();
 
                 if (!missingUserIDs.Any())
@@ -95,7 +95,7 @@
             using (var entities = GetDbContext())
             {
                 var decUserID = (decimal)userID;
-                var dbObject = await entities.User.SingleOrDefaultAsync(m => m.DiscordUserID == decUserID).ConfigureAwait(false);
+                var dbObject = await entities.User.AsQueryable().SingleOrDefaultAsync(m => m.DiscordUserID == decUserID).ConfigureAwait(false);
                 if (dbObject != null)
                     return (ToPoco(dbObject), false);
 
@@ -115,7 +115,7 @@
         {
             using (var entities = GetDbContext())
             {
-                var local = await entities.Message.ToArrayAsync().ConfigureAwait(false);
+                var local = await entities.Message.AsQueryable().ToArrayAsync().ConfigureAwait(false);
                 return local.Select(m => (m.Name, m.Description, m.Content)).ToArray();
             }
         }
@@ -124,7 +124,7 @@
         {
             using (var entities = GetDbContext())
             {
-                var match = await entities.Message.SingleOrDefaultAsync(m => m.Name == name).ConfigureAwait(false);
+                var match = await entities.Message.AsQueryable().SingleOrDefaultAsync(m => m.Name == name).ConfigureAwait(false);
                 return match?.Content;
             }
         }
@@ -133,7 +133,7 @@
         {
             using (var entities = GetDbContext())
             {
-                var match = await entities.Message.SingleOrDefaultAsync(m => m.Name == name).ConfigureAwait(false);
+                var match = await entities.Message.AsQueryable().SingleOrDefaultAsync(m => m.Name == name).ConfigureAwait(false);
                 if (match == null)
                     return false;
 
@@ -150,6 +150,7 @@
             {
                 // Check if colliding entry exists
                 var collisions = await entities.Vacation
+                                               .AsQueryable()
                                                .AnyAsync(m => m.UserID == internalUserId
                                                            && end >= m.Start
                                                            && start <= m.End)
@@ -176,6 +177,7 @@
             {
                 // Find the matching vacation
                 var match = await entities.Vacation
+                                          .AsQueryable()
                                           .SingleOrDefaultAsync(m => m.UserID == (int)user.InternalUserID
                                                                   && m.Start == start
                                                                   && m.End == end)
@@ -194,7 +196,7 @@
             using (var entities = GetDbContext())
             {
                 // Get past vacations - we don't need to keep those in the database
-                var pastVacations = await entities.Vacation.Where(m => m.End < DateTime.Today).ToArrayAsync().ConfigureAwait(false);
+                var pastVacations = await entities.Vacation.AsQueryable().Where(m => m.End < DateTime.Today).ToArrayAsync().ConfigureAwait(false);
                 if (!pastVacations.Any())
                     return;
                 // If any vacations in the past are still in the database, delete them
@@ -207,7 +209,7 @@
         {
             using (var entities = GetDbContext())
             {
-                var vacations = await entities.Vacation.Where(m => m.UserID == (int)user.InternalUserID).ToArrayAsync().ConfigureAwait(false);
+                var vacations = await entities.Vacation.AsQueryable().Where(m => m.UserID == (int)user.InternalUserID).ToArrayAsync().ConfigureAwait(false);
                 if (!vacations.Any())
                     return;
                 // If the user has any vacations in the database, delete them
@@ -221,6 +223,7 @@
             using (var entities = GetDbContext())
             {
                 var localItems = await entities.Vacation
+                                               .AsQueryable()
                                                .Where(m => m.End >= DateTime.Today)
                                                .Join(entities.User, vacation => vacation.UserID, u => u.UserID, (vacation, u) => new {u.DiscordUserID, vacation.Start, vacation.End, vacation.Note})
                                                .ToArrayAsync()
@@ -234,6 +237,7 @@
             using (var entities = GetDbContext())
             {
                 var localItems = await entities.Vacation
+                                               .AsQueryable()
                                                .Where(m => m.End >= DateTime.Today)
                                                .Join(entities.User, vacation => vacation.UserID, u => u.UserID, (vacation, u) => new { u.UserID, u.DiscordUserID, vacation.Start, vacation.End, vacation.Note })
                                                .Where(m => m.UserID == (int)user.InternalUserID)
@@ -248,6 +252,7 @@
             using (var entities = GetDbContext())
             {
                 var localItems = await entities.Vacation
+                                               .AsQueryable()
                                                .Where(m => date >= m.Start
                                                         && date <= m.End)
                                                .Join(entities.User, vacation => vacation.UserID, user => user.UserID, (vacation, user) => new { user.DiscordUserID, vacation.Start, vacation.End, vacation.Note })
@@ -286,7 +291,7 @@
         {
             using (var entities = GetDbContext())
             {
-                var existingInfo = await entities.UserInfo.SingleOrDefaultAsync(m => m.UserID == (decimal)user.InternalUserID).ConfigureAwait(false);
+                var existingInfo = await entities.UserInfo.AsQueryable().SingleOrDefaultAsync(m => m.UserID == (decimal)user.InternalUserID).ConfigureAwait(false);
                 if (existingInfo != null)
                 {
                     existingInfo.LastSeen = lastSeen;
@@ -312,7 +317,7 @@
             {
                 foreach (var user in users)
                 {
-                    var ui = await entities.UserInfo.SingleOrDefaultAsync(m => m.UserID == (int)user.InternalUserID).ConfigureAwait(false);
+                    var ui = await entities.UserInfo.AsQueryable().SingleOrDefaultAsync(m => m.UserID == (int)user.InternalUserID).ConfigureAwait(false);
                     result.Add((user.InternalUserID, ui?.LastSeen));
                 }
             }
@@ -324,7 +329,7 @@
         {
             using (var entities = GetDbContext())
             {
-                var ui = await entities.UserInfo.SingleOrDefaultAsync(m => m.UserID == (int)user.InternalUserID).ConfigureAwait(false);
+                var ui = await entities.UserInfo.AsQueryable().SingleOrDefaultAsync(m => m.UserID == (int)user.InternalUserID).ConfigureAwait(false);
                 if (ui != null)
                 {
                     entities.UserInfo.Remove(ui);
@@ -337,7 +342,7 @@
         {
             using (var context = GetDbContext())
             {
-                var game = await context.Game.SingleOrDefaultAsync(m => m.ShortName == shortName).ConfigureAwait(false);
+                var game = await context.Game.AsQueryable().SingleOrDefaultAsync(m => m.ShortName == shortName).ConfigureAwait(false);
                 return game?.GameID;
             }
         }
@@ -347,7 +352,7 @@
             using (var context = GetDbContext())
             {
                 var decDiscordRoleID = (decimal)discordRoleID;
-                var gameRole = await context.GameRole.SingleOrDefaultAsync(m => m.DiscordRoleID == decDiscordRoleID).ConfigureAwait(false);
+                var gameRole = await context.GameRole.AsQueryable().SingleOrDefaultAsync(m => m.DiscordRoleID == decDiscordRoleID).ConfigureAwait(false);
                 if (gameRole == null)
                     return null;
                 return (gameRole.GameRoleID, gameRole.RoleName);
@@ -363,7 +368,7 @@
             {
                 using (var transaction = context.Database.BeginTransaction())
                 {
-                    var matchingGame = await context.Game.SingleOrDefaultAsync(m => m.LongName == gameLongName || m.ShortName == gameShortName).ConfigureAwait(false);
+                    var matchingGame = await context.Game.AsQueryable().SingleOrDefaultAsync(m => m.LongName == gameLongName || m.ShortName == gameShortName).ConfigureAwait(false);
                     if (matchingGame != null)
                         return (false, "A game with the same long or short name already exists.");
 
@@ -392,7 +397,7 @@
             {
                 using (var transaction = context.Database.BeginTransaction())
                 {
-                    var matchingGame = await context.Game.SingleOrDefaultAsync(m => m.GameID == gameID).ConfigureAwait(false);
+                    var matchingGame = await context.Game.AsQueryable().SingleOrDefaultAsync(m => m.GameID == gameID).ConfigureAwait(false);
                     if (matchingGame == null)
                         return (false, $"Game with the GameID {gameID} couldn't be found.");
 
@@ -452,13 +457,13 @@
                 using (var transaction = context.Database.BeginTransaction())
                 {
                     var decDiscordRoleID = (decimal)discordRoleID;
-                    var matchingDiscordRoleID = await context.GameRole.SingleOrDefaultAsync(m => m.DiscordRoleID == decDiscordRoleID).ConfigureAwait(false);
+                    var matchingDiscordRoleID = await context.GameRole.AsQueryable().SingleOrDefaultAsync(m => m.DiscordRoleID == decDiscordRoleID).ConfigureAwait(false);
                     if (matchingDiscordRoleID != null)
                         return (false, matchingDiscordRoleID.GameID == gameID
                                            ? "The DiscordRoleID is already is use for this game."
                                            : "The DiscordRoleID is already in use for another game.");
 
-                    var matchingGameRoleName = await context.GameRole.AnyAsync(m => m.GameID == gameID && m.RoleName == roleName).ConfigureAwait(false);
+                    var matchingGameRoleName = await context.GameRole.AsQueryable().AnyAsync(m => m.GameID == gameID && m.RoleName == roleName).ConfigureAwait(false);
                     if (matchingGameRoleName)
                         return (false, "A role with the same name is already assigned to the game.");
 
@@ -487,7 +492,7 @@
             {
                 using (var transaction = context.Database.BeginTransaction())
                 {
-                    var gameRole = await context.GameRole.SingleOrDefaultAsync(m => m.GameRoleID == gameRoleID).ConfigureAwait(false);
+                    var gameRole = await context.GameRole.AsQueryable().SingleOrDefaultAsync(m => m.GameRoleID == gameRoleID).ConfigureAwait(false);
                     if (gameRole == null)
                         return (false, "Couldn't find game role by ID.");
 
@@ -510,7 +515,7 @@
             {
                 using (var transaction = context.Database.BeginTransaction())
                 {
-                    var gameRole = await context.GameRole.SingleOrDefaultAsync(m => m.GameRoleID == gameRoleID).ConfigureAwait(false);
+                    var gameRole = await context.GameRole.AsQueryable().SingleOrDefaultAsync(m => m.GameRoleID == gameRoleID).ConfigureAwait(false);
                     if (gameRole == null)
                         return (false, "Couldn't find game role by ID.");
 

@@ -17,6 +17,7 @@
         #region Fields
 
         private readonly ILogger<BotEngine> _logger;
+        private readonly AppSettings _appSettings;
         private readonly IDiscordAccess _discordAccess;
         private readonly IBotInformationProvider _botInformationProvider;
         private readonly IPrivacyProvider _privacyProvider;
@@ -28,11 +29,13 @@
         #region Constructors
 
         public BotEngine(ILogger<BotEngine> logger,
+                         AppSettings appSettings,
                          IDiscordAccess discordAccess,
                          IBotInformationProvider botInformationProvider,
                          IPrivacyProvider privacyProvider)
         {
             _logger = logger;
+            _appSettings = appSettings;
             _discordAccess = discordAccess;
             _botInformationProvider = botInformationProvider;
             _privacyProvider = privacyProvider;
@@ -106,10 +109,22 @@
                 await _discordAccess.LogToDiscord($"Bot started on **{_botInformationProvider.GetEnvironmentName()}** in version {_botInformationProvider.GetFormatedVersion()}.").ConfigureAwait(false);
                 // Start privacy provider clean up
                 _privacyProvider.Start();
+
                 // Register background jobs (HangFire).
-                // Sync all users every 15 minutes.
+                // Sync all users every 15 minutes to UNITS.
                 RecurringJob.AddOrUpdate<UnitsSyncService>("sync-users-to-UNITS", service => service.SyncAllUsers(), "0,15,30,45 0-23 * * *");
-                RecurringJob.AddOrUpdate<UnityHubSyncService>("sync-users-to-UnityHub", service => service.SyncAllUsers(), "* * * * *");
+                // Sync all users every 15 minutes to UnityHub.
+                RecurringJob.AddOrUpdate<UnityHubSyncService>("sync-users-to-UnityHub", service => service.SyncAllUsers(), "0,15,30,45 0-23 * * *");
+                // Send personal reminders as scheduled.
+                if (_appSettings.PersonalReminders != null)
+                {
+                    foreach (var personalReminder in _appSettings.PersonalReminders)
+                    {
+                        RecurringJob.AddOrUpdate<PersonalReminderService>($"personal-reminder-{personalReminder.ReminderId}",
+                                                                          service => service.SendReminderAsync(personalReminder.ReminderId),
+                                                                          personalReminder.CronSchedule);
+                    }
+                }
             }
 
             _logger.LogInformation("Bot ready.");

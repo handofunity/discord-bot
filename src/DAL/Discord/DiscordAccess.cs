@@ -761,8 +761,8 @@
             var result = new List<TextMessage>();
             var channel = (ITextChannel)GetGuild().GetChannel((ulong)channelID);
             var messageCollection = channel.GetMessagesAsync();
-            var enumerator = messageCollection.GetEnumerator();
-            while (await enumerator.MoveNext().ConfigureAwait(false))
+            var enumerator = messageCollection.GetAsyncEnumerator();
+            while (await enumerator.MoveNextAsync().ConfigureAwait(false))
             {
                 if (enumerator.Current != null)
                 {
@@ -782,9 +782,9 @@
             var channel = (ITextChannel)GetGuild().GetChannel((ulong)channelID);
             var messagesToDelete = new List<IMessage>();
             var messageCollection = channel.GetMessagesAsync();
-            var enumerator = messageCollection.GetEnumerator();
+            var enumerator = messageCollection.GetAsyncEnumerator();
             _logger.LogTrace($"Fetching messages to delete in channel {channelID} ...");
-            while (await enumerator.MoveNext().ConfigureAwait(false))
+            while (await enumerator.MoveNextAsync().ConfigureAwait(false))
             {
                 if (enumerator.Current == null) continue;
                 messagesToDelete.AddRange(enumerator.Current.Where(m => m.Author.Id == _client.CurrentUser.Id));

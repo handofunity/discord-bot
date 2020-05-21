@@ -156,6 +156,11 @@
         public string UnityHubAccessSecret { get; set; }
 
         /// <summary>
+        /// Gets or sets the personal reminders to send periodically.
+        /// </summary>
+        public PersonalReminder[] PersonalReminders { get; set; }
+
+        /// <summary>
         /// Gets or sets the primary connection string used to access database objects part of the solution.
         /// </summary>
         /// <remarks>Should either be a IP/TCP connection, or a named connection. For IP/TCP connections, see example.</remarks>

@@ -104,7 +104,8 @@
                .AddTransient<ITimeInformationProvider, TimeInformationProvider>()
                 // Triggered as scheduled HangFire job
                .AddTransient<UnitsSyncService>()
-               .AddTransient<UnityHubSyncService>();
+               .AddTransient<UnityHubSyncService>()
+               .AddTransient<PersonalReminderService>();
         }
 
         private static void RegisterDAL(IServiceCollection serviceCollection)
