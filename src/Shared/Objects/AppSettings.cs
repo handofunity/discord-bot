@@ -136,14 +136,9 @@
         public ulong[] ChannelIDsWithDisabledSpamProtection { get; set; }
 
         /// <summary>
-        /// Gets or sets the base address of the UNIT system.
+        /// Gets or sets the UNITS sync access data.
         /// </summary>
-        public string UnitsBaseAddress { get; set; }
-
-        /// <summary>
-        /// Gets or sets the secret used to authenticate with the UNIT system.
-        /// </summary>
-        public string UnitsAccessSecret { get; set; }
+        public UnitsSyncData[] UnitsAccess { get; set; }
 
         /// <summary>
         /// Gets or sets the base address of the Unity Hub.

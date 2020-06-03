@@ -50,13 +50,13 @@ namespace HoU.GuildBot.DAL
         private void LogRequestError(string route,
                                      string reason)
         {
-            _logger.LogWarning("Failed to call '{HttpAddress}{Route}': {Reason}", _appSettings.UnitsBaseAddress, route, reason);
+            _logger.LogWarning("Failed to call '{HttpAddress}{Route}': {Reason}", _appSettings.UnityHubBaseAddress, route, reason);
         }
 
         private void LogRequestError(string route,
                                      HttpStatusCode statusCode)
         {
-            _logger.LogWarning("Failed to call '{HttpAddress}{Route}': {Reason} {HttpStatusCodeName} {HttpStatusCode}", _appSettings.UnitsBaseAddress, route, "HTTP Status Code", statusCode.ToString(), (int)statusCode);
+            _logger.LogWarning("Failed to call '{HttpAddress}{Route}': {Reason} {HttpStatusCodeName} {HttpStatusCode}", _appSettings.UnityHubBaseAddress, route, "HTTP Status Code", statusCode.ToString(), (int)statusCode);
         }
 
         string[] IUnityHubAccess.GetValidRoleNames()
