@@ -50,7 +50,7 @@
                 if (allowedRoles == null)
                 {
                     _logger.LogWarning("Failed to synchronize all users: {Reason}.", "unable to fetch allowed roles");
-                    return;
+                    continue;
                 }
 
                 var users = _discordAccess.GetUsersInRoles(allowedRoles);
