@@ -20,7 +20,7 @@
     {
         private BackgroundJobServer _backgroundJobServer;
 
-        private static readonly Version BotVersion = new Version(4, 2, 1);
+        private static readonly Version BotVersion = new Version(4, 3, 0);
 
         private ILogger<Runner> _logger;
 
@@ -102,8 +102,8 @@
                .AddTransient<IUserInfoProvider, UserInfoProvider>()
                .AddTransient<IImageProvider, ImageProvider>()
                .AddTransient<ITimeInformationProvider, TimeInformationProvider>()
+               .AddTransient<IUnitsSyncService, UnitsSyncService>()
                 // Triggered as scheduled HangFire job
-               .AddTransient<UnitsSyncService>()
                .AddTransient<UnityHubSyncService>()
                .AddTransient<PersonalReminderService>();
         }

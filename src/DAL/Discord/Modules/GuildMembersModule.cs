@@ -15,15 +15,18 @@
         #region Fields
 
         private readonly IGuildInfoProvider _guildInfoProvider;
+        private readonly IUnitsSyncService _unitsSyncService;
 
         #endregion
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region Constructors
 
-        public GuildMembersModule(IGuildInfoProvider guildInfoProvider)
+        public GuildMembersModule(IGuildInfoProvider guildInfoProvider,
+                                  IUnitsSyncService unitsSyncService)
         {
             _guildInfoProvider = guildInfoProvider;
+            _unitsSyncService = unitsSyncService;
         }
 
         #endregion
@@ -44,6 +47,18 @@
             var data = _guildInfoProvider.GetGuildMemberStatus();
             var embed = data.ToEmbed();
             await ReplyAsync(string.Empty, false, embed).ConfigureAwait(false);
+        }
+
+        [Command("sync-units")]
+        [CommandCategory(CommandCategory.MemberInformation, 2)]
+        [Name("Sync with UNITS")]
+        [Summary("Manually syncs the guild members with the UNIT system")]
+        [RequireContext(ContextType.Guild)]
+        [ResponseContext(ResponseType.AlwaysSameChannel)]
+        [RolePrecondition(Role.Leader | Role.Officer)]
+        public async Task SyncUnitsAsync()
+        {
+            await _unitsSyncService.SyncAllUsers().ConfigureAwait(false);
         }
 
         #endregion

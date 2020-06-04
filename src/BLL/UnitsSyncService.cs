@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using HoU.GuildBot.Shared.BLL;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
 using HoU.GuildBot.Shared.DAL;
@@ -10,7 +11,7 @@ using HoU.GuildBot.Shared.Objects;
 namespace HoU.GuildBot.BLL
 {
     [UsedImplicitly]
-    public class UnitsSyncService
+    public class UnitsSyncService : IUnitsSyncService
     {
         private readonly IDiscordAccess _discordAccess;
         private readonly IUnitsAccess _unitsAccess;
@@ -43,6 +44,7 @@ namespace HoU.GuildBot.BLL
             return result;
         }
 
+        // Do NOT implement this as explicit implementation, as it cannot be triggered by hangfire then!
         public async Task SyncAllUsers()
         {
             if (!_discordAccess.IsConnected || !_discordAccess.IsGuildAvailable)
@@ -61,6 +63,7 @@ namespace HoU.GuildBot.BLL
                 if (users.Any())
                 {
                     users = SanitizeUsers(users);
+                    _logger.LogInformation("Sending {Count} users to the UNITS system at {Address} ...", users.Length, unitsSyncData.BaseAddress);
                     var result = await _unitsAccess.SendAllUsersAsync(unitsSyncData, users);
                     if (result != null)
                     {

@@ -112,7 +112,7 @@
 
                 // Register background jobs (HangFire).
                 // Sync all users every 15 minutes to UNITS.
-                RecurringJob.AddOrUpdate<UnitsSyncService>("sync-users-to-UNITS", service => service.SyncAllUsers(), "0,15,30,45 0-23 * * *");
+                RecurringJob.AddOrUpdate<IUnitsSyncService>("sync-users-to-UNITS", service => service.SyncAllUsers(), "0,15,30,45 0-23 * * *");
                 // Sync all users every 15 minutes to UnityHub.
                 RecurringJob.AddOrUpdate<UnityHubSyncService>("sync-users-to-UnityHub", service => service.SyncAllUsers(), "0,15,30,45 0-23 * * *");
                 // Send personal reminders as scheduled.
