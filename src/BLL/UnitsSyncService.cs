@@ -1,15 +1,14 @@
-﻿namespace HoU.GuildBot.BLL
-{
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
-    using JetBrains.Annotations;
-    using Microsoft.Extensions.Logging;
-    using Shared.DAL;
-    using Shared.Objects;
+﻿using System;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using JetBrains.Annotations;
+using Microsoft.Extensions.Logging;
+using HoU.GuildBot.Shared.DAL;
+using HoU.GuildBot.Shared.Objects;
 
+namespace HoU.GuildBot.BLL
+{
     [UsedImplicitly]
     public class UnitsSyncService
     {
@@ -29,14 +28,19 @@
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        private void SanitizeUsers(IEnumerable<UserModel> users)
+        private UserModel[] SanitizeUsers(UserModel[] users)
         {
-            foreach (var userModel in users)
+            var usersWithAocRole = _discordAccess.GetUsersInRoles(new[] {"Ashes of Creation (AoC)"});
+            var result = users.Where(m => usersWithAocRole.Any(user => user.DiscordUserId == m.DiscordUserId)).ToArray();
+
+            foreach (var userModel in result)
             {
                 // Remove "a_" prefix of animated avatar IDs
                 if (userModel.AvatarId != null && userModel.AvatarId.StartsWith("a_"))
                     userModel.AvatarId = userModel.AvatarId.Substring(2);
             }
+
+            return result;
         }
 
         public async Task SyncAllUsers()
@@ -56,7 +60,7 @@
                 var users = _discordAccess.GetUsersInRoles(allowedRoles);
                 if (users.Any())
                 {
-                    SanitizeUsers(users);
+                    users = SanitizeUsers(users);
                     var result = await _unitsAccess.SendAllUsersAsync(unitsSyncData, users);
                     if (result != null)
                     {
@@ -72,8 +76,16 @@
                             sb.AppendLine($"Updated {result.UpdatedUserRoleRelations} user-role relations.");
                         if (result.Errors != null && result.Errors.Any())
                         {
-                            var leadershipMention = _discordAccess.GetLeadershipMention();
-                            sb.AppendLine($"**{leadershipMention} - errors synchronizing Discord with the UNIT system:**");
+                            var utcNow = DateTime.UtcNow;
+                            if (utcNow.Hour == 15 && utcNow.Minute < 15)
+                            {
+                                var leadershipMention = _discordAccess.GetLeadershipMention();
+                                sb.AppendLine($"**{leadershipMention} - errors synchronizing Discord with the UNIT system:**");
+                            }
+                            else
+                            {
+                                sb.AppendLine("**Errors synchronizing Discord with the UNIT system:**");
+                            }
                             for (var index = 0; index < result.Errors.Count; index++)
                             {
                                 var error = result.Errors[index];
