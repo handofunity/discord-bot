@@ -65,48 +65,58 @@ namespace HoU.GuildBot.BLL
                     users = SanitizeUsers(users);
                     _logger.LogInformation("Sending {Count} users to the UNITS system at {Address} ...", users.Length, unitsSyncData.BaseAddress);
                     var result = await _unitsAccess.SendAllUsersAsync(unitsSyncData, users);
-                    if (result != null)
+                    if (result == null)
+                        continue;
+
+                    var utcNow = DateTime.UtcNow;
+                    var notificationRequired = utcNow.Hour == 15 && utcNow.Minute < 15;
+                    var onlySkippedUsers = result.SkippedUsers > 0
+                                           && result.CreatedUsers == 0
+                                           && result.UpdatedUsers == 0
+                                           && result.UpdatedUserRoleRelations == 0
+                                           && (result.Errors?.Count ?? 0) == 0;
+                    var shouldPostResults = notificationRequired || !onlySkippedUsers;
+                    if (!shouldPostResults)
+                        continue;
+
+                    var sb = new StringBuilder($"Synchronized {users.Length} users with the UNIT system at {unitsSyncData.BaseAddress}:");
+                    sb.AppendLine();
+                    if (result.CreatedUsers > 0)
+                        sb.AppendLine($"Created {result.CreatedUsers} users.");
+                    if (result.UpdatedUsers > 0)
+                        sb.AppendLine($"Updated {result.UpdatedUsers} users.");
+                    if (result.SkippedUsers > 0)
+                        sb.AppendLine($"Skipped {result.SkippedUsers} users.");
+                    if (result.UpdatedUserRoleRelations > 0)
+                        sb.AppendLine($"Updated {result.UpdatedUserRoleRelations} user-role relations.");
+                    if (result.Errors != null && result.Errors.Any())
                     {
-                        var sb = new StringBuilder($"Synchronized {users.Length} users with the UNIT system:");
-                        sb.AppendLine();
-                        if (result.CreatedUsers > 0)
-                            sb.AppendLine($"Created {result.CreatedUsers} users.");
-                        if (result.UpdatedUsers > 0)
-                            sb.AppendLine($"Updated {result.UpdatedUsers} users.");
-                        if (result.SkippedUsers > 0)
-                            sb.AppendLine($"Skipped {result.SkippedUsers} users.");
-                        if (result.UpdatedUserRoleRelations > 0)
-                            sb.AppendLine($"Updated {result.UpdatedUserRoleRelations} user-role relations.");
-                        if (result.Errors != null && result.Errors.Any())
+                        if (notificationRequired)
                         {
-                            var utcNow = DateTime.UtcNow;
-                            if (utcNow.Hour == 15 && utcNow.Minute < 15)
-                            {
-                                var leadershipMention = _discordAccess.GetLeadershipMention();
-                                sb.AppendLine($"**{leadershipMention} - errors synchronizing Discord with the UNIT system:**");
-                            }
-                            else
-                            {
-                                sb.AppendLine("**Errors synchronizing Discord with the UNIT system:**");
-                            }
-                            for (var index = 0; index < result.Errors.Count; index++)
-                            {
-                                var error = result.Errors[index];
-                                var errorMessage = $"`{error}`";
-
-                                // Check if this error message would create a too long Discord message.
-                                if (sb.Length + errorMessage.Length > 1900 && index < result.Errors.Count - 1 || sb.Length + errorMessage.Length > 2000)
-                                {
-                                    sb.AppendLine($"**{result.Errors.Count - index} more errors were truncated from this message.**");
-                                    break;
-                                }
-
-                                sb.AppendLine(errorMessage);
-                            }
+                            var leadershipMention = _discordAccess.GetLeadershipMention();
+                            sb.AppendLine($"**{leadershipMention} - errors synchronizing Discord with the UNIT system:**");
                         }
+                        else
+                        {
+                            sb.AppendLine("**Errors synchronizing Discord with the UNIT system:**");
+                        }
+                        for (var index = 0; index < result.Errors.Count; index++)
+                        {
+                            var error = result.Errors[index];
+                            var errorMessage = $"`{error}`";
 
-                        await _discordAccess.LogToDiscord(sb.ToString());
+                            // Check if this error message would create a too long Discord message.
+                            if (sb.Length + errorMessage.Length > 1900 && index < result.Errors.Count - 1 || sb.Length + errorMessage.Length > 2000)
+                            {
+                                sb.AppendLine($"**{result.Errors.Count - index} more errors were truncated from this message.**");
+                                break;
+                            }
+
+                            sb.AppendLine(errorMessage);
+                        }
                     }
+
+                    await _discordAccess.LogToDiscord(sb.ToString());
                 }
                 else
                 {
