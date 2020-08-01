@@ -131,7 +131,7 @@
         [Alias("addgame")]
         [RequireContext(ContextType.Guild)]
         [ResponseContext(ResponseType.AlwaysSameChannel)]
-        [RolePrecondition(Role.Developer | Role.Leader)]
+        [RolePrecondition(Role.Developer | Role.Leader | Role.Officer)]
         public async Task AddGameAsync([Remainder] string messageContent)
         {
             // Parse message content
@@ -169,7 +169,7 @@
         [Alias("editgame")]
         [RequireContext(ContextType.Guild)]
         [ResponseContext(ResponseType.AlwaysSameChannel)]
-        [RolePrecondition(Role.Developer | Role.Leader)]
+        [RolePrecondition(Role.Developer | Role.Leader | Role.Officer)]
         public async Task EditGameAsync([Remainder] string messageContent)
         {
             // Parse message content
@@ -242,7 +242,7 @@
         [Alias("addgamerole")]
         [RequireContext(ContextType.Guild)]
         [ResponseContext(ResponseType.AlwaysSameChannel)]
-        [RolePrecondition(Role.Developer | Role.Leader)]
+        [RolePrecondition(Role.Developer | Role.Leader | Role.Officer)]
         public async Task AddGameRoleAsync([Remainder] string messageContent)
         {
             // Parse message content
@@ -281,7 +281,7 @@
         [Alias("editgamerole")]
         [RequireContext(ContextType.Guild)]
         [ResponseContext(ResponseType.AlwaysSameChannel)]
-        [RolePrecondition(Role.Developer | Role.Leader)]
+        [RolePrecondition(Role.Developer | Role.Leader | Role.Officer)]
         public async Task EditGameRoleAsync([Remainder] string messageContent)
         {
             // Parse message content
@@ -352,7 +352,7 @@
         [Alias("listgames")]
         [RequireContext(ContextType.Guild)]
         [ResponseContext(ResponseType.AlwaysSameChannel)]
-        [RolePrecondition(Role.Developer | Role.Leader)]
+        [RolePrecondition(Role.Developer | Role.Leader | Role.Officer)]
         public Task ListGames()
         {
             var embedData = _gameRoleProvider.GetGameInfoAsEmbedData(null);
@@ -376,7 +376,7 @@
         [Alias("showgame", "game")]
         [RequireContext(ContextType.Guild)]
         [ResponseContext(ResponseType.AlwaysSameChannel)]
-        [RolePrecondition(Role.Developer | Role.Leader)]
+        [RolePrecondition(Role.Developer | Role.Leader | Role.Officer)]
         public Task ShowGame([Remainder] string messageContent)
         {
             Task.Run(async () =>
