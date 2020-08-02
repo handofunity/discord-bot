@@ -123,6 +123,26 @@ namespace HoU.GuildBot.DAL.UNITS
                                                                                                                 endTime,
                                                                                                                 isAllDay));
 
+            connection.On<int, string, DateTime, DateTime, DateTime, DateTime, bool>(nameof(IUnitsBotClient
+                                                                                               .ReceiveEventRescheduledMessageAsync),
+                                                                                     (appointmentId,
+                                                                                      title,
+                                                                                      startTimeOld,
+                                                                                      endTimeOld,
+                                                                                      startTimeNew,
+                                                                                      endTimeNew,
+                                                                                      isAllDay) =>
+                                                                                         _botClient
+                                                                                            .ReceiveEventRescheduledMessageAsync(unitsSyncData
+                                                                                                                                    .BaseAddress,
+                                                                                                                                 appointmentId,
+                                                                                                                                 title,
+                                                                                                                                 startTimeOld,
+                                                                                                                                 endTimeOld,
+                                                                                                                                 startTimeNew,
+                                                                                                                                 endTimeNew,
+                                                                                                                                 isAllDay));
+
             _requiresTokenRefresh.Add(unitsSyncData.BaseAddress, false);
             _hubConnections.Add(unitsSyncData.BaseAddress, connection);
 
