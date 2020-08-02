@@ -48,6 +48,8 @@
                 throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.WorldOfWarcraftRoleChannelId)}' must be a correct ID.");
             if (settings.GamesRolesChannelId == default)
                 throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.GamesRolesChannelId)}' must be a correct ID.");
+            if (settings.UnitsNotificationsChannelId == default)
+                throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.UnitsNotificationsChannelId)}' must be a correct ID.");
             if (settings.FriendOrGuestMessageId == default)
                 throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.FriendOrGuestMessageId)}' must be a correct ID.");
             if (settings.NonMemberGameInterestMessageId == default)

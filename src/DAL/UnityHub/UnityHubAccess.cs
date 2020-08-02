@@ -9,7 +9,7 @@ using HoU.GuildBot.Shared.Objects;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
-namespace HoU.GuildBot.DAL
+namespace HoU.GuildBot.DAL.UnityHub
 {
     public class UnityHubAccess : IUnityHubAccess
     {

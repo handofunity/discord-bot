@@ -106,6 +106,21 @@
         }
 
         /// <summary>
+        /// Gets the Discord ID of the channel that is used for notifications from the UNIT system.
+        /// </summary>
+        public DiscordChannelID UnitsNotificationsChannelId { get; private set; }
+
+        /// <summary>
+        /// Property to bind the value of <see cref="GamesRolesChannelId"/> from the app settings.
+        /// </summary>
+        // ReSharper disable once UnusedMember.Local
+        private ulong UnitsNotificationsChannelIdValue
+        {
+            get => (ulong)UnitsNotificationsChannelId;
+            set => UnitsNotificationsChannelId = (DiscordChannelID)value;
+        }
+
+        /// <summary>
         /// Gets or sets the message ID used for friend and guest reactions.
         /// </summary>
         public ulong FriendOrGuestMessageId { get; set; }

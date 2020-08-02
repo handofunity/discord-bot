@@ -1,32 +1,31 @@
-﻿using System.Collections.Generic;
-using System;
+﻿using System;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using HoU.GuildBot.Shared.DAL;
+using HoU.GuildBot.Shared.Extensions;
+using HoU.GuildBot.Shared.Objects;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using HoU.GuildBot.Shared.DAL;
-using HoU.GuildBot.Shared.Objects;
 
-namespace HoU.GuildBot.DAL
+namespace HoU.GuildBot.DAL.UNITS
 {
     public class UnitsAccess : IUnitsAccess
     {
-        private const string TokenRoute = "/bot-api/auth/token";
         private const string RoleNamesRoute = "/bot-api/discordsync/valid-role-names";
         private const string PushAllUsersRoute = "/bot-api/discordsync/all-users";
 
+        private readonly IUnitsBearerTokenManager _bearerTokenManager;
         private readonly ILogger<UnitsAccess> _logger;
 
-        private readonly Dictionary<string, string> _lastBearerTokens;
-
-        public UnitsAccess(ILogger<UnitsAccess> logger)
+        public UnitsAccess(IUnitsBearerTokenManager bearerTokenManager,
+                           ILogger<UnitsAccess> logger)
         {
+            _bearerTokenManager = bearerTokenManager ?? throw new ArgumentNullException(nameof(bearerTokenManager));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _lastBearerTokens = new Dictionary<string, string>();
         }
 
         private async Task UseHttpClient(Func<HttpClient, Task<HttpResponseMessage>> invokeHttpRequest,
@@ -47,7 +46,7 @@ namespace HoU.GuildBot.DAL
                     httpClient.DefaultRequestHeaders.Accept.Clear();
                     httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-                    var tokenSet = await GetAndSetBearerToken(httpClient, baseAddress, secret, false);
+                    var tokenSet = await _bearerTokenManager.GetAndSetBearerToken(httpClient, baseAddress, secret, false);
                     if (!tokenSet)
                     {
                         // If the Bearer token is not set, the HTTP request will fail anyway.
@@ -71,7 +70,7 @@ namespace HoU.GuildBot.DAL
                         if (isExpired)
                         {
                             // If the token is expired, refresh the token.
-                            tokenSet = await GetAndSetBearerToken(httpClient, baseAddress, secret, true);
+                            tokenSet = await _bearerTokenManager.GetAndSetBearerToken(httpClient, baseAddress, secret, true);
                             if (!tokenSet)
                             {
                                 // If the Bearer token is not set, the HTTP request will fail anyway.
@@ -90,63 +89,6 @@ namespace HoU.GuildBot.DAL
             }
         }
 
-        private async Task<bool> GetAndSetBearerToken(HttpClient httpClient,
-                                                      string baseAddress,
-                                                      string secret,
-                                                      bool refresh)
-        {
-            if (!refresh && _lastBearerTokens.TryGetValue(baseAddress, out var lastToken))
-            {
-                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", lastToken);
-                return true;
-            }
-            
-            HttpResponseMessage response;
-            try
-            {
-                var request = new BotAuthenticationRequest
-                {
-                    ClientId = typeof(UnitsAccess).FullName,
-                    ClientSecret = secret
-                };
-                var serialized = JsonConvert.SerializeObject(request);
-                response = await httpClient.PostAsync(TokenRoute, new StringContent(serialized, Encoding.UTF8, "application/json"));
-            }
-            catch (HttpRequestException e)
-            {
-                var baseExceptionMessage = e.GetBaseException().Message;
-                LogRequestError(baseAddress, TokenRoute, baseExceptionMessage);
-                return false;
-            }
-
-            if (response.IsSuccessStatusCode)
-            {
-                var stringContent = await response.Content.ReadAsStringAsync();
-                var responseObject = JsonConvert.DeserializeObject<BotAuthenticationResponse>(stringContent);
-                _lastBearerTokens[baseAddress] = responseObject.Token;
-
-                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _lastBearerTokens[baseAddress]);
-                return true;
-            }
-
-            LogRequestError(baseAddress, TokenRoute, response.StatusCode);
-            return false;
-        }
-
-        private void LogRequestError(string baseAddress,
-                                     string route,
-                                     string reason)
-        {
-            _logger.LogWarning("Failed to call '{HttpAddress}{Route}': {Reason}", baseAddress, route, reason);
-        }
-
-        private void LogRequestError(string baseAddress,
-                                     string route,
-                                     HttpStatusCode statusCode)
-        {
-            _logger.LogWarning("Failed to call '{HttpAddress}{Route}': {Reason} {HttpStatusCodeName} {HttpStatusCode}", baseAddress, route, "HTTP Status Code", statusCode.ToString(), (int)statusCode);
-        }
-
         async Task<string[]> IUnitsAccess.GetValidRoleNamesAsync(UnitsSyncData unitsSyncData)
         {
             string[] methodResult = null;
@@ -160,7 +102,7 @@ namespace HoU.GuildBot.DAL
                 catch (HttpRequestException e)
                 {
                     var baseExceptionMessage = e.GetBaseException().Message;
-                    LogRequestError(unitsSyncData.BaseAddress, RoleNamesRoute, baseExceptionMessage);
+                    _logger.LogRequestError(unitsSyncData.BaseAddress, RoleNamesRoute, baseExceptionMessage);
                     return null;
                 }
             }
@@ -171,7 +113,7 @@ namespace HoU.GuildBot.DAL
                     return;
                 if (!responseMessage.IsSuccessStatusCode)
                 {
-                    LogRequestError(unitsSyncData.BaseAddress, RoleNamesRoute, responseMessage.StatusCode);
+                    _logger.LogRequestError(unitsSyncData.BaseAddress, RoleNamesRoute, responseMessage.StatusCode);
                     return;
                 }
 
@@ -206,7 +148,7 @@ namespace HoU.GuildBot.DAL
                 catch (HttpRequestException e)
                 {
                     var baseExceptionMessage = e.GetBaseException().Message;
-                    LogRequestError(unitsSyncData.BaseAddress, PushAllUsersRoute, baseExceptionMessage);
+                    _logger.LogRequestError(unitsSyncData.BaseAddress, PushAllUsersRoute, baseExceptionMessage);
                     return null;
                 }
             }
@@ -222,7 +164,7 @@ namespace HoU.GuildBot.DAL
                 }
                 else
                 {
-                    LogRequestError(unitsSyncData.BaseAddress, PushAllUsersRoute, responseMessage.StatusCode);
+                    _logger.LogRequestError(unitsSyncData.BaseAddress, PushAllUsersRoute, responseMessage.StatusCode);
                 }
             }
 

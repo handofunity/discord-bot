@@ -1,4 +1,7 @@
-﻿namespace HoU.GuildBot.Core
+﻿using HoU.GuildBot.DAL.UNITS;
+using HoU.GuildBot.DAL.UnityHub;
+
+namespace HoU.GuildBot.Core
 {
     using System;
     using BLL;
@@ -20,7 +23,7 @@
     {
         private BackgroundJobServer _backgroundJobServer;
 
-        private static readonly Version BotVersion = new Version(4, 3, 0);
+        private static readonly Version BotVersion = new Version(4, 4, 0);
 
         private ILogger<Runner> _logger;
 
@@ -95,6 +98,7 @@
                .AddSingleton<IGameRoleProvider, GameRoleProvider>()
                .AddSingleton<IStaticMessageProvider, StaticMessageProvider>()
                .AddSingleton<IVoiceChannelManager, VoiceChannelManager>()
+               .AddSingleton<IUnitsBotClient, UnitsBotClient>()
                // Transients
                .AddTransient<IHelpProvider, HelpProvider>()
                .AddTransient<IVacationProvider, VacationProvider>()
@@ -113,7 +117,9 @@
             serviceCollection.AddSingleton<IDatabaseAccess, DatabaseAccess>();
             serviceCollection.AddSingleton<IDiscordAccess, DiscordAccess>();
             serviceCollection.AddSingleton<IWebAccess, WebAccess>();
+            serviceCollection.AddSingleton<IUnitsBearerTokenManager, UnitsBearerTokenManager>();
             serviceCollection.AddSingleton<IUnitsAccess, UnitsAccess>();
+            serviceCollection.AddSingleton<IUnitsSignalRClient, UnitsSignalRClient>();
             serviceCollection.AddSingleton<IUnityHubAccess, UnityHubAccess>();
         }
 

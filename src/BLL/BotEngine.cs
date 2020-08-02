@@ -1,4 +1,6 @@
-﻿namespace HoU.GuildBot.BLL
+﻿using System.Linq;
+
+namespace HoU.GuildBot.BLL
 {
     using System;
     using System.Threading;
@@ -19,6 +21,7 @@
         private readonly ILogger<BotEngine> _logger;
         private readonly AppSettings _appSettings;
         private readonly IDiscordAccess _discordAccess;
+        private readonly IUnitsSignalRClient _unitsSignalRClient;
         private readonly IBotInformationProvider _botInformationProvider;
         private readonly IPrivacyProvider _privacyProvider;
         private bool _isFirstConnect;
@@ -31,12 +34,14 @@
         public BotEngine(ILogger<BotEngine> logger,
                          AppSettings appSettings,
                          IDiscordAccess discordAccess,
+                         IUnitsSignalRClient unitsSignalRClient,
                          IBotInformationProvider botInformationProvider,
                          IPrivacyProvider privacyProvider)
         {
             _logger = logger;
             _appSettings = appSettings;
             _discordAccess = discordAccess;
+            _unitsSignalRClient = unitsSignalRClient;
             _botInformationProvider = botInformationProvider;
             _privacyProvider = privacyProvider;
             _isFirstConnect = true;
@@ -124,6 +129,12 @@
                                                                           service => service.SendReminderAsync(personalReminder.ReminderId),
                                                                           personalReminder.CronSchedule);
                     }
+                }
+
+                // Connect to UNITS to receive push notifications
+                foreach (var unitsSyncData in _appSettings.UnitsAccess.Where(m => !string.IsNullOrWhiteSpace(m.BaseAddress) && !string.IsNullOrWhiteSpace(m.Secret)))
+                {
+                    await _unitsSignalRClient.ConnectAsync(unitsSyncData);
                 }
             }
 
