@@ -93,7 +93,7 @@
         [CommandCategory(CommandCategory.Administration, 5)]
         [Name("Set a specific bot message")]
         [Summary("Sets a specific, configurable message the bot uses.")]
-        [Remarks("Syntax: _set message \"NAME\" \"CONTENT\"_ e.g.: _set message \"FirstServerJoinWelcome\" \"Welcome to the server!\"_")]
+        [Remarks("Syntax: _set message \"NAME\" \"CONTENT\"_ e.g.: _set message \"GamesRolesMenu\" \"Choose your game roles!\"_")]
         [Alias("setmessage")]
         [RequireContext(ContextType.Guild)]
         [ResponseContext(ResponseType.AlwaysSameChannel)]

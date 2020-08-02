@@ -21,7 +21,6 @@
 
         public static class MessageNames
         {
-            public const string FirstServerJoinWelcome = "FirstServerJoinWelcome";
             public const string AocRoleMenu = "AocRoleMenu";
             public const string WowRoleMenu = "WowRoleMenu";
             public const string GamesRolesMenu = "GamesRolesMenu";

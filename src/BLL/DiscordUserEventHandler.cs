@@ -52,18 +52,6 @@
             set => _discordAccess = value;
         }
 
-        void IDiscordUserEventHandler.HandleJoined(DiscordUserID userID, Role roles)
-        {
-#pragma warning disable CS4014 // Fire & forget
-            Task.Run(async () =>
-            {
-                var result = await _userStore.GetOrAddUser(userID, roles).ConfigureAwait(false);
-                if (result.IsNew)
-                    await _discordAccess.SendWelcomeMessage(userID).ConfigureAwait(false);
-            }).ConfigureAwait(false);
-#pragma warning restore CS4014 // Fire & forget
-        }
-
         void IDiscordUserEventHandler.HandleLeft(DiscordUserID userID,
                                                  string username,
                                                  ushort discriminatorValue,

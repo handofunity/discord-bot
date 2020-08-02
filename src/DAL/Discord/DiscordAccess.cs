@@ -568,8 +568,6 @@
                 _client.GuildAvailable += Client_GuildAvailable;
                 _client.GuildUnavailable -= Client_GuildUnavailable;
                 _client.GuildUnavailable += Client_GuildUnavailable;
-                _client.UserJoined -= Client_UserJoined;
-                _client.UserJoined += Client_UserJoined;
                 _client.UserLeft -= Client_UserLeft;
                 _client.UserLeft += Client_UserLeft;
                 _client.GuildMemberUpdated -= Client_GuildMemberUpdated;
@@ -730,25 +728,6 @@
         bool IDiscordAccess.CanManageRolesForUser(DiscordUserID userID)
         {
             return CanBotModifyUser(userID);
-        }
-
-        async Task IDiscordAccess.SendWelcomeMessage(DiscordUserID userID)
-        {
-            var guildUser = GetGuildUserById(userID);
-            var message = await _messageProvider.GetMessage(Constants.MessageNames.FirstServerJoinWelcome).ConfigureAwait(false);
-            var privateChannel = await guildUser.GetOrCreateDMChannelAsync().ConfigureAwait(false);
-            try
-            {
-                await privateChannel.SendMessageAsync(message).ConfigureAwait(false);
-            }
-            catch (HttpException e) when (e.DiscordCode == 50007)
-            {
-                _logger.LogDebug($"Couldn't send welcome message to '{guildUser.Username}', because private messages are probably blocked.");
-            }
-            catch (Exception e)
-            {
-                _logger.LogError($"Couldn't send welcome message to '{guildUser.Username}' due to an unexpected error: {e}");
-            }
         }
 
         string IDiscordAccess.GetRoleMention(string roleName)
@@ -1070,12 +1049,6 @@
 
             _guildAvailable = false;
 
-            return Task.CompletedTask;
-        }
-
-        private Task Client_UserJoined(SocketGuildUser guildUser)
-        {
-            _discordUserEventHandler.HandleJoined((DiscordUserID)guildUser.Id, SocketRoleToRole(guildUser.Roles));
             return Task.CompletedTask;
         }
 

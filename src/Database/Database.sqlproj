@@ -23,8 +23,8 @@
     <SqlServerVerification>False</SqlServerVerification>
     <IncludeCompositeObjects>True</IncludeCompositeObjects>
     <TargetDatabaseSet>True</TargetDatabaseSet>
-    <DacVersion>2.2.0</DacVersion>
-    <DacDescription>Added HangFire support</DacDescription>
+    <DacVersion>2.2.1</DacVersion>
+    <DacDescription>Removed "FirstServerJoinWelcome" message</DacDescription>
     <DefaultCollation>Latin1_General_CI_AS</DefaultCollation>
     <Recovery>SIMPLE</Recovery>
     <TargetFrameworkProfile />
@@ -99,6 +99,7 @@
     <Build Include="config\Tables\GameRole.sql" />
     <None Include="Scripts\AddMessage_WowRoleMenu.sql" />
     <None Include="Scripts\GrantPermissionsToHangFireUser.sql" />
+    <None Include="Scripts\RemoveMessage_FirstServerJoinWelcome.sql" />
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="Script.PostDeployment.sql" />
