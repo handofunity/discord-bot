@@ -275,5 +275,14 @@
         /// <param name="embedData">The <see cref="EmbedData"/> to send.</param>
         /// <returns>An awaitable <see cref="Task"/>.</returns>
         Task SendUnitsNotificationAsync(EmbedData embedData);
+
+        /// <summary>
+        /// Sends the <paramref name="embedData"/> as a notification in the <see cref="AppSettings.UnitsNotificationsChannelId"/>.
+        /// </summary>
+        /// <param name="embedData">The <see cref="EmbedData"/> to send.</param>
+        /// <param name="usersToNotify">The users to notify about the <paramref name="embedData"/>.</param>
+        /// <returns>An awaitable <see cref="Task"/>.</returns>
+        Task SendUnitsNotificationAsync(EmbedData embedData,
+                                        DiscordUserID[] usersToNotify);
     }
 }

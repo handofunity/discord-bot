@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using HoU.GuildBot.Shared.StrongTypes;
 
 namespace HoU.GuildBot.Shared.BLL
 {
@@ -20,5 +21,11 @@ namespace HoU.GuildBot.Shared.BLL
                                                  DateTime startTimeNew,
                                                  DateTime endTimeNew,
                                                  bool isAllDay);
+
+        Task ReceiveEventCanceledMessageAsync(string eventName,
+                                              DateTime startTime,
+                                              DateTime endTime,
+                                              bool isAllDay,
+                                              DiscordUserID[] usersToNotify);
     }
 }

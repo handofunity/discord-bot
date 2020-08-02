@@ -1,4 +1,6 @@
-﻿namespace HoU.GuildBot.DAL.Discord
+﻿using System.Text;
+
+namespace HoU.GuildBot.DAL.Discord
 {
     using System;
     using System.Collections.Generic;
@@ -35,7 +37,6 @@
         private readonly ISpamGuard _spamGuard;
         private readonly IIgnoreGuard _ignoreGuard;
         private readonly ICommandRegistry _commandRegistry;
-        private readonly IMessageProvider _messageProvider;
         private readonly IGameRoleProvider _gameRoleProvider;
         private readonly IStaticMessageProvider _staticMessageProvider;
         private readonly IDiscordUserEventHandler _discordUserEventHandler;
@@ -76,7 +77,6 @@
                              ISpamGuard spamGuard,
                              IIgnoreGuard ignoreGuard,
                              ICommandRegistry commandRegistry,
-                             IMessageProvider messageProvider,
                              INonMemberRoleProvider nonMemberRoleProvider,
                              IGameRoleProvider gameRoleProvider,
                              IStaticMessageProvider staticMessageProvider,
@@ -89,7 +89,6 @@
             _spamGuard = spamGuard;
             _ignoreGuard = ignoreGuard;
             _commandRegistry = commandRegistry;
-            _messageProvider = messageProvider;
             _gameRoleProvider = gameRoleProvider;
             _staticMessageProvider = staticMessageProvider;
             _discordUserEventHandler = discordUserEventHandler;
@@ -984,10 +983,74 @@
 
         async Task IDiscordAccess.SendUnitsNotificationAsync(EmbedData embedData)
         {
-            var g = GetGuild();
-            var channel = g.GetTextChannel((ulong) _appSettings.UnitsNotificationsChannelId);
-            var embed = embedData.ToEmbed();
-            await channel.SendMessageAsync(null, false, embed).ConfigureAwait(false);
+            try
+            {
+                var g = GetGuild();
+                var channel = g.GetTextChannel((ulong)_appSettings.UnitsNotificationsChannelId);
+                var embed = embedData.ToEmbed();
+                await channel.SendMessageAsync(null, false, embed).ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Failed to send UNITS notification.");
+            }
+        }
+
+        public async Task SendUnitsNotificationAsync(EmbedData embedData,
+                                                     DiscordUserID[] usersToNotify)
+        {
+            try
+            {
+                var g = GetGuild();
+                var channel = g.GetTextChannel((ulong)_appSettings.UnitsNotificationsChannelId);
+                var embed = embedData.ToEmbed();
+                var notifications = new List<string>();
+                var allMentions = new Queue<string>(usersToNotify.Select(m => m.ToMention() + " "));
+                var totalLength = allMentions.Sum(m => m.Length);
+                var totalMessagesRequired = (int)Math.Ceiling(totalLength / 1500d);
+                if (totalMessagesRequired == 1)
+                {
+                    notifications.Add(string.Join(string.Empty, allMentions));
+                }
+                else
+                {
+                    string addToNext = null;
+                    for (var i = 0; i < totalMessagesRequired; i++)
+                    {
+                        var sb = new StringBuilder();
+                        if (addToNext != null)
+                        {
+                            sb.Append(addToNext);
+                            addToNext = null;
+                        }
+
+                        while (allMentions.TryDequeue(out var nextMention))
+                        {
+                            if (sb.Length + nextMention.Length > 1500)
+                            {
+                                addToNext = nextMention;
+                                break;
+                            }
+
+                            sb.Append(nextMention);
+                        }
+                        notifications.Add(sb.ToString());
+                    }
+                }
+                await channel.SendMessageAsync(notifications[0], false, embed).ConfigureAwait(false);
+                if (notifications.Count > 1)
+                {
+                    foreach (var notification in notifications.Skip(1))
+                    {
+                        await Task.Delay(500);
+                        await channel.SendMessageAsync(notification);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Failed to send UNITS notification with mentions.");
+            }
         }
 
         #endregion

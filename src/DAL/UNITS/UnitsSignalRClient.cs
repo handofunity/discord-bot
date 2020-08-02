@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using HoU.GuildBot.Shared.BLL;
 using HoU.GuildBot.Shared.DAL;
 using HoU.GuildBot.Shared.Objects;
+using HoU.GuildBot.Shared.StrongTypes;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Logging;
 using Serilog;
@@ -142,6 +143,9 @@ namespace HoU.GuildBot.DAL.UNITS
                                                                                                                                  startTimeNew,
                                                                                                                                  endTimeNew,
                                                                                                                                  isAllDay));
+
+            connection.On<string, DateTime, DateTime, bool, DiscordUserID[]>(nameof(IUnitsBotClient.ReceiveEventCanceledMessageAsync),
+                                                                             _botClient.ReceiveEventCanceledMessageAsync);
 
             _requiresTokenRefresh.Add(unitsSyncData.BaseAddress, false);
             _hubConnections.Add(unitsSyncData.BaseAddress, connection);

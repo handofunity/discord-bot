@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using HoU.GuildBot.Shared.BLL;
 using HoU.GuildBot.Shared.DAL;
-using HoU.GuildBot.Shared.Extensions;
 using HoU.GuildBot.Shared.Objects;
 using HoU.GuildBot.Shared.StrongTypes;
 
@@ -94,6 +93,27 @@ namespace HoU.GuildBot.BLL
                 Fields = fields.ToArray()
             };
             await _discordAccess.SendUnitsNotificationAsync(embed);
+        }
+
+        public async Task ReceiveEventCanceledMessageAsync(string eventName,
+                                                           DateTime startTime,
+                                                           DateTime endTime,
+                                                           bool isAllDay,
+                                                           DiscordUserID[] usersToNotify)
+        {
+            var fields = new List<EmbedField>
+            {
+                new EmbedField("Title", eventName, false)
+            };
+            AddTimeRelatedFields(fields, startTime, endTime, isAllDay, null);
+            var embed = new EmbedData
+            {
+                Title = "Event canceled",
+                Color = Colors.Red,
+                Description = "An event was canceled in UNITS.",
+                Fields = fields.ToArray()
+            };
+            await _discordAccess.SendUnitsNotificationAsync(embed, usersToNotify);
         }
     }
 }
