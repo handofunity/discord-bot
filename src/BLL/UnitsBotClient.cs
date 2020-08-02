@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using HoU.GuildBot.Shared.BLL;
 using HoU.GuildBot.Shared.DAL;
@@ -76,7 +77,8 @@ namespace HoU.GuildBot.BLL
                                                                        DateTime endTimeOld,
                                                                        DateTime startTimeNew,
                                                                        DateTime endTimeNew,
-                                                                       bool isAllDay)
+                                                                       bool isAllDay,
+                                                                       DiscordUserID[] usersToNotify)
         {
             var fields = new List<EmbedField>
             {
@@ -88,11 +90,19 @@ namespace HoU.GuildBot.BLL
             var embed = new EmbedData
             {
                 Title = "Event was rescheduled",
-                Color = Colors.LightOrange,
+                Color = Colors.Orange,
                 Description = "An existing event was rescheduled in UNITS.",
                 Fields = fields.ToArray()
             };
-            await _discordAccess.SendUnitsNotificationAsync(embed);
+
+            if (usersToNotify != null && usersToNotify.Any())
+            {
+                await _discordAccess.SendUnitsNotificationAsync(embed, usersToNotify);
+            }
+            else
+            {
+                await _discordAccess.SendUnitsNotificationAsync(embed);
+            }
         }
 
         public async Task ReceiveEventCanceledMessageAsync(string eventName,

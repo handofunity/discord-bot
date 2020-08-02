@@ -124,25 +124,28 @@ namespace HoU.GuildBot.DAL.UNITS
                                                                                                                 endTime,
                                                                                                                 isAllDay));
 
-            connection.On<int, string, DateTime, DateTime, DateTime, DateTime, bool>(nameof(IUnitsBotClient
-                                                                                               .ReceiveEventRescheduledMessageAsync),
-                                                                                     (appointmentId,
-                                                                                      title,
-                                                                                      startTimeOld,
-                                                                                      endTimeOld,
-                                                                                      startTimeNew,
-                                                                                      endTimeNew,
-                                                                                      isAllDay) =>
-                                                                                         _botClient
-                                                                                            .ReceiveEventRescheduledMessageAsync(unitsSyncData
-                                                                                                                                    .BaseAddress,
-                                                                                                                                 appointmentId,
-                                                                                                                                 title,
-                                                                                                                                 startTimeOld,
-                                                                                                                                 endTimeOld,
-                                                                                                                                 startTimeNew,
-                                                                                                                                 endTimeNew,
-                                                                                                                                 isAllDay));
+            connection.On<int, string, DateTime, DateTime, DateTime, DateTime, bool, DiscordUserID[]>(nameof(IUnitsBotClient
+                                                                                                                .ReceiveEventRescheduledMessageAsync
+                                                                                                      ),
+                                                                                                      (appointmentId,
+                                                                                                       title,
+                                                                                                       startTimeOld,
+                                                                                                       endTimeOld,
+                                                                                                       startTimeNew,
+                                                                                                       endTimeNew,
+                                                                                                       isAllDay,
+                                                                                                       usersToNotify) =>
+                                                                                                          _botClient
+                                                                                                             .ReceiveEventRescheduledMessageAsync(unitsSyncData
+                                                                                                                                                     .BaseAddress,
+                                                                                                                                                  appointmentId,
+                                                                                                                                                  title,
+                                                                                                                                                  startTimeOld,
+                                                                                                                                                  endTimeOld,
+                                                                                                                                                  startTimeNew,
+                                                                                                                                                  endTimeNew,
+                                                                                                                                                  isAllDay,
+                                                                                                                                                  usersToNotify));
 
             connection.On<string, DateTime, DateTime, bool, DiscordUserID[]>(nameof(IUnitsBotClient.ReceiveEventCanceledMessageAsync),
                                                                              _botClient.ReceiveEventCanceledMessageAsync);

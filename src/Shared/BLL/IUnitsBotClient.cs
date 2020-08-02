@@ -20,7 +20,8 @@ namespace HoU.GuildBot.Shared.BLL
                                                  DateTime endTimeOld,
                                                  DateTime startTimeNew,
                                                  DateTime endTimeNew,
-                                                 bool isAllDay);
+                                                 bool isAllDay,
+                                                 DiscordUserID[] usersToNotify);
 
         Task ReceiveEventCanceledMessageAsync(string eventName,
                                               DateTime startTime,
