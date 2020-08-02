@@ -75,19 +75,30 @@ GRANT SELECT, UPDATE ON [config].[Message] TO [hou-guildbot];
 GRANT SELECT, INSERT, UPDATE, DELETE ON [config].[Game] TO [hou-guildbot];
 GRANT SELECT, INSERT, UPDATE, DELETE ON [config].[GameRole] TO [hou-guildbot]
 GO
-IF NOT EXISTS(SELECT principal_id FROM [sys].[server_principals] WHERE name = 'HangFireUser') BEGIN
-   -- check if the login exists, if not, it has to be setup manually
-    RAISERROR ('Login ''HangFireUser'' is missing.', 16, 1)
-	RETURN;
-END
+IF NOT EXISTS
+(
+    SELECT
+        [principal_id]
+    FROM  [sys].[server_principals]
+    WHERE [name] COLLATE Latin1_General_CI_AS = 'HangFireUser' COLLATE Latin1_General_CI_AS
+)
+    BEGIN
+        -- check if the login exists, if not, it has to be setup manually
+        RAISERROR('Login ''HangFireUser'' is missing.', 16, 1);
+        RETURN;
+END;
 GO
 
-IF EXISTS(SELECT principal_id FROM [sys].[database_principals] WHERE name = 'HangFireUser') BEGIN
-	DROP USER [HangFireUser];
-END
-GO
-
-CREATE USER [HangFireUser] FOR LOGIN [HangFireUser];
+IF NOT EXISTS
+(
+    SELECT
+        [principal_id]
+    FROM  [sys].[database_principals]
+    WHERE [name] COLLATE Latin1_General_CI_AS = 'HangFireUser' COLLATE Latin1_General_CI_AS
+)
+    BEGIN
+        CREATE USER [HangFireUser] FOR LOGIN [HangFireUser];
+    END;
 GO
 GO
 IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE [name] = 'HangFire') EXEC ('CREATE SCHEMA [HangFire]')
