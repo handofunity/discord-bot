@@ -1003,6 +1003,14 @@
             return $"{leaderRole.Mention} {officerRole.Mention}";
         }
 
+        async Task IDiscordAccess.SendUnitsNotificationAsync(EmbedData embedData)
+        {
+            var g = GetGuild();
+            var channel = g.GetTextChannel((ulong) _appSettings.UnitsNotificationsChannelId);
+            var embed = embedData.ToEmbed();
+            await channel.SendMessageAsync(null, false, embed).ConfigureAwait(false);
+        }
+
         #endregion
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////

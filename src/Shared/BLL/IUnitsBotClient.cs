@@ -5,7 +5,8 @@ namespace HoU.GuildBot.Shared.BLL
 {
     public interface IUnitsBotClient
     {
-        Task ReceiveEventCreatedMessageAsync(int appointmentId,
+        Task ReceiveEventCreatedMessageAsync(string baseAddress,
+                                             int appointmentId,
                                              string eventName,
                                              DateTime startTime,
                                              DateTime endTime,

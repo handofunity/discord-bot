@@ -111,7 +111,17 @@ namespace HoU.GuildBot.DAL.UNITS
             };
 
             connection.On<int, string, DateTime, DateTime, bool>(nameof(IUnitsBotClient.ReceiveEventCreatedMessageAsync),
-                                                                 _botClient.ReceiveEventCreatedMessageAsync);
+                                                                 (appointmentId,
+                                                                  title,
+                                                                  startTime,
+                                                                  endTime,
+                                                                  isAllDay) =>
+                                                                     _botClient.ReceiveEventCreatedMessageAsync(unitsSyncData.BaseAddress,
+                                                                                                                appointmentId,
+                                                                                                                title,
+                                                                                                                startTime,
+                                                                                                                endTime,
+                                                                                                                isAllDay));
 
             _requiresTokenRefresh.Add(unitsSyncData.BaseAddress, false);
             _hubConnections.Add(unitsSyncData.BaseAddress, connection);
