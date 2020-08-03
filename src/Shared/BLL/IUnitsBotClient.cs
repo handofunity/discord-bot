@@ -28,5 +28,9 @@ namespace HoU.GuildBot.Shared.BLL
                                               DateTime endTime,
                                               bool isAllDay,
                                               DiscordUserID[] usersToNotify);
+
+        Task ReceiveEventAttendanceConfirmedAsync(string baseAddress,
+                                                  int appointmentId,
+                                                  DiscordUserID userToNotify);
     }
 }

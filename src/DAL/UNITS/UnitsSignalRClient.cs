@@ -150,6 +150,12 @@ namespace HoU.GuildBot.DAL.UNITS
             connection.On<string, DateTime, DateTime, bool, DiscordUserID[]>(nameof(IUnitsBotClient.ReceiveEventCanceledMessageAsync),
                                                                              _botClient.ReceiveEventCanceledMessageAsync);
 
+            connection.On<int, DiscordUserID>(nameof(IUnitsBotClient.ReceiveEventAttendanceConfirmedAsync),
+                                              (appointmentId,
+                                               userToNotify) => _botClient.ReceiveEventAttendanceConfirmedAsync(unitsSyncData.BaseAddress,
+                                                                                                                appointmentId,
+                                                                                                                userToNotify));
+
             _requiresTokenRefresh.Add(unitsSyncData.BaseAddress, false);
             _hubConnections.Add(unitsSyncData.BaseAddress, connection);
 

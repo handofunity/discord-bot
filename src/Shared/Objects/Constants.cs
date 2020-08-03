@@ -77,5 +77,10 @@
             public static readonly EmojiDefinition GameInterestShopTitans = new EmojiDefinition("ShopTitans", null);
             public static readonly EmojiDefinition GameInterestFinalFantasy14 = new EmojiDefinition("FinalFantasy", null);
         }
+
+        //public static class OtherEmojis
+        //{
+        //    public static readonly EmojiDefinition
+        //}
     }
 }

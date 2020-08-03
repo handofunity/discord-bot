@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using HoU.GuildBot.Shared.BLL;
 using HoU.GuildBot.Shared.DAL;
+using HoU.GuildBot.Shared.Extensions;
 using HoU.GuildBot.Shared.Objects;
 using HoU.GuildBot.Shared.StrongTypes;
 
@@ -18,11 +19,15 @@ namespace HoU.GuildBot.BLL
             _discordAccess = discordAccess ?? throw new ArgumentNullException(nameof(discordAccess));
         }
 
-        private void AddTimeRelatedFields(List<EmbedField> fields,
-                                          DateTime startTime,
-                                          DateTime endTime,
-                                          bool isAllDay,
-                                          string postfix)
+        private static string GetEventUrl(string baseAddress,
+                                              int appointmentId) =>
+            $"{baseAddress}/events/{appointmentId}";
+
+        private static void AddTimeRelatedFields(List<EmbedField> fields,
+                                                 DateTime startTime,
+                                                 DateTime endTime,
+                                                 bool isAllDay,
+                                                 string postfix)
         {
             var duration = isAllDay ? endTime.Date.AddDays(1) - startTime.Date : endTime - startTime;
             if (isAllDay)
@@ -59,12 +64,13 @@ namespace HoU.GuildBot.BLL
                 new EmbedField("Title", eventName, false)
             };
             AddTimeRelatedFields(fields, startTime, endTime, isAllDay, null);
-            fields.Add(new EmbedField("Details", $"{baseAddress}/events/{appointmentId}", false));
             var embed = new EmbedData
             {
-                Title = "New event created",
+                Title = ":calendar: Event created",
+                Url = GetEventUrl(baseAddress, appointmentId),
                 Color = Colors.Green,
-                Description = "A new event was created in UNITS.",
+                Description = "A new event was created in UNITS. " +
+                              "Click to open the event in your browser.",
                 Fields = fields.ToArray()
             };
             await _discordAccess.SendUnitsNotificationAsync(embed);
@@ -86,12 +92,14 @@ namespace HoU.GuildBot.BLL
             };
             AddTimeRelatedFields(fields, startTimeOld, endTimeOld, isAllDay, " (Old)");
             AddTimeRelatedFields(fields, startTimeNew, endTimeNew, isAllDay, " (New)");
-            fields.Add(new EmbedField("Details", $"{baseAddress}/events/{appointmentId}", false));
             var embed = new EmbedData
             {
-                Title = "Event was rescheduled",
+                Title = ":calendar: Event rescheduled",
+                Url = GetEventUrl(baseAddress, appointmentId),
                 Color = Colors.Orange,
-                Description = "An existing event was rescheduled in UNITS.",
+                Description = "An existing event was rescheduled in UNITS. " +
+                              "If you're being mentioned, you've signed up to the old times. " +
+                              "Click to open the event in your browser and to sign-up again!",
                 Fields = fields.ToArray()
             };
 
@@ -118,12 +126,27 @@ namespace HoU.GuildBot.BLL
             AddTimeRelatedFields(fields, startTime, endTime, isAllDay, null);
             var embed = new EmbedData
             {
-                Title = "Event canceled",
+                Title = ":calendar: Event canceled",
                 Color = Colors.Red,
-                Description = "An event was canceled in UNITS.",
+                Description = "An existing event was canceled in UNITS.",
                 Fields = fields.ToArray()
             };
             await _discordAccess.SendUnitsNotificationAsync(embed, usersToNotify);
+        }
+
+        async Task IUnitsBotClient.ReceiveEventAttendanceConfirmedAsync(string baseAddress,
+                                                                        int appointmentId,
+                                                                        DiscordUserID userToNotify)
+        {
+            var embed = new EmbedData
+            {
+                Title = ":calendar: Event attendance confirmed",
+                Url = GetEventUrl(baseAddress, appointmentId),
+                Color = Colors.Green,
+                Description = "Your event attendance has been confirmed. " +
+                              "Click to open the event in your browser."
+            };
+            await _discordAccess.SendUnitsNotificationAsync(embed, new []{userToNotify});
         }
     }
 }

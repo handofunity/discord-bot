@@ -12,6 +12,8 @@
             var builder = new EmbedBuilder();
             if (ed.Title != null)
                 builder.Title = ed.Title;
+            if (ed.Url != null)
+                builder.Url = ed.Url;
             if (ed.Color != null)
                 builder.Color = new Color(ed.Color.Value.R, ed.Color.Value.G, ed.Color.Value.B);
             if (ed.Description != null)
