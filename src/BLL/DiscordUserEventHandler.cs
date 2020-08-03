@@ -52,6 +52,14 @@
             set => _discordAccess = value;
         }
 
+        void IDiscordUserEventHandler.HandleJoined(DiscordUserID userID, Role roles)
+        {
+            _ = Task.Run(async () =>
+            {
+                await _userStore.AddUserIfNewAsync(userID, roles).ConfigureAwait(false);
+            }).ConfigureAwait(false);
+        }
+
         void IDiscordUserEventHandler.HandleLeft(DiscordUserID userID,
                                                  string username,
                                                  ushort discriminatorValue,
@@ -60,8 +68,7 @@
         {
             if(!_userStore.TryGetUser(userID, out var user))
                 return;
-#pragma warning disable CS4014 // Fire & Forget
-            Task.Run(async () =>
+            _ = Task.Run(async () =>
             {
                 await _userStore.RemoveUser(userID).ConfigureAwait(false);
                 await _privacyProvider.DeleteUserRelatedData(user).ConfigureAwait(false);
@@ -88,7 +95,6 @@
                                         .ConfigureAwait(false);
                 }
             }).ConfigureAwait(false);
-#pragma warning restore CS4014 // Fire & Forget
         }
 
         UserRolesChangedResult IDiscordUserEventHandler.HandleRolesChanged(DiscordUserID userID, Role oldRoles, Role newRoles)

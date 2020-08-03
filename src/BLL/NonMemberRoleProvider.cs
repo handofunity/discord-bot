@@ -54,6 +54,10 @@
                 return Role.GameInterestWorldOfWarcraftClassic;
             if (emoji.Equals(Constants.NonMemberRolesEmojis.GameInterestOath))
                 return Role.GameInterestOath;
+            if (emoji.Equals(Constants.NonMemberRolesEmojis.GameInterestShopTitans))
+                return Role.GameInterestShopTitans;
+            if (emoji.Equals(Constants.NonMemberRolesEmojis.GameInterestFinalFantasy14))
+                return Role.GameInterestFinalFantasy14;
 
             throw new ArgumentOutOfRangeException(nameof(emoji));
         }

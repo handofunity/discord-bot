@@ -53,10 +53,10 @@
         /// <param name="userID">The external Discord user ID.</param>
         /// <param name="roles">The current roles of the user.</param>
         /// <exception cref="InvalidOperationException">The store is not initialized.</exception>
-        /// <returns>A tupple containing the <see cref="User"/> object and the state, if it is a new user or an existing user.</returns>
+        /// <returns>An awaitable <see cref="Task"/>.</returns>
         /// <remarks>If the store doesn't know any user with the <paramref name="userID"/>,
-        /// the object is added to the store and database, and <b>IsNew</b> will be <b>true</b>.</remarks>
-        Task<(User User, bool IsNew)> GetOrAddUser(DiscordUserID userID, Role roles);
+        /// the object is added to the store and database.</remarks>
+        Task AddUserIfNewAsync(DiscordUserID userID, Role roles);
 
         /// <summary>
         /// Removes the user by the <see cref="DiscordUserID"/>.

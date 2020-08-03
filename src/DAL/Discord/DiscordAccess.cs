@@ -30,7 +30,7 @@ namespace HoU.GuildBot.DAL.Discord
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         #region Fields
 
-        private static readonly Dictionary<string, Role> RoleMapping;
+        private static readonly Dictionary<string, Role> _roleMapping;
         private readonly ILogger<DiscordAccess> _logger;
         private readonly AppSettings _appSettings;
         private readonly IServiceProvider _serviceProvider;
@@ -54,7 +54,7 @@ namespace HoU.GuildBot.DAL.Discord
 
         static DiscordAccess()
         {
-            RoleMapping = new Dictionary<string, Role>
+            _roleMapping = new Dictionary<string, Role>
             {
                 {"Developer", Role.Developer},
                 {"Leader", Role.Leader},
@@ -67,7 +67,9 @@ namespace HoU.GuildBot.DAL.Discord
                 {"Friend of Member", Role.FriendOfMember},
                 {"AoC Interest", Role.GameInterestAshesOfCreation },
                 {"WoW Classic Interest", Role.GameInterestWorldOfWarcraftClassic },
-                {"Oath Interest", Role.GameInterestOath }
+                {"Oath Interest", Role.GameInterestOath },
+                {"Shop Titans Interest", Role.GameInterestShopTitans },
+                {"FFXIV Interest", Role.GameInterestFinalFantasy14 }
             };
         }
 
@@ -277,7 +279,7 @@ namespace HoU.GuildBot.DAL.Discord
             var r = Role.NoRole;
             foreach (var socketRole in roles)
             {
-                if (RoleMapping.TryGetValue(socketRole.Name, out var role))
+                if (_roleMapping.TryGetValue(socketRole.Name, out var role))
                     r = r | role;
             }
 
@@ -567,6 +569,8 @@ namespace HoU.GuildBot.DAL.Discord
                 _client.GuildAvailable += Client_GuildAvailable;
                 _client.GuildUnavailable -= Client_GuildUnavailable;
                 _client.GuildUnavailable += Client_GuildUnavailable;
+                _client.UserJoined -= Client_UserJoined;
+                _client.UserJoined += Client_UserJoined;
                 _client.UserLeft -= Client_UserLeft;
                 _client.UserLeft += Client_UserLeft;
                 _client.GuildMemberUpdated -= Client_GuildMemberUpdated;
@@ -613,7 +617,7 @@ namespace HoU.GuildBot.DAL.Discord
         async Task<bool> IDiscordAccess.TryAddNonMemberRole(DiscordUserID userID,
                                                             Role targetRole)
         {
-            var roleDisplayName = RoleMapping.Single(m => m.Value == targetRole).Key;
+            var roleDisplayName = _roleMapping.Single(m => m.Value == targetRole).Key;
             var role = GetRoleByName(roleDisplayName);
             var gu = GetGuildUserById(userID);
             if (gu.Roles.Any(m => m.Id == role.Id))
@@ -633,7 +637,7 @@ namespace HoU.GuildBot.DAL.Discord
         async Task<bool> IDiscordAccess.TryRevokeNonMemberRole(DiscordUserID userID,
                                                                Role targetRole)
         {
-            var roleDisplayName = RoleMapping.Single(m => m.Value == targetRole).Key;
+            var roleDisplayName = _roleMapping.Single(m => m.Value == targetRole).Key;
             var role = GetRoleByName(roleDisplayName);
             var gu = GetGuildUserById(userID);
             if (gu.Roles.All(m => m.Id != role.Id))
@@ -1112,6 +1116,12 @@ namespace HoU.GuildBot.DAL.Discord
 
             _guildAvailable = false;
 
+            return Task.CompletedTask;
+        }
+
+        private Task Client_UserJoined(SocketGuildUser guildUser)
+        {
+            _discordUserEventHandler.HandleJoined((DiscordUserID)guildUser.Id, SocketRoleToRole(guildUser.Roles));
             return Task.CompletedTask;
         }
 

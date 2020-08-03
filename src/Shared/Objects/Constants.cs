@@ -71,9 +71,11 @@
         {
             public static readonly EmojiDefinition Wave = new EmojiDefinition("\uD83D\uDC4B"); // :wave:
             public static readonly EmojiDefinition Thinking = new EmojiDefinition("\uD83E\uDD14"); // :thinking:
-            public static readonly EmojiDefinition GameInterestAshesOfCreation = new EmojiDefinition("AshesofCreation", null);
+            public static readonly EmojiDefinition GameInterestAshesOfCreation = new EmojiDefinition("AshesOfCreation", null);
             public static readonly EmojiDefinition GameInterestWorldOfWarcraftClassic = new EmojiDefinition("WoWClassic", null);
-            public static readonly EmojiDefinition GameInterestOath = new EmojiDefinition("oath", null);
+            public static readonly EmojiDefinition GameInterestOath = new EmojiDefinition("Oath", null);
+            public static readonly EmojiDefinition GameInterestShopTitans = new EmojiDefinition("ShopTitans", null);
+            public static readonly EmojiDefinition GameInterestFinalFantasy14 = new EmojiDefinition("FinalFantasy", null);
         }
     }
 }

@@ -11,6 +11,8 @@
     {
         IDiscordAccess DiscordAccess { set; }
 
+        void HandleJoined(DiscordUserID userID, Role roles);
+
         void HandleLeft(DiscordUserID userID,
                         string username,
                         ushort discriminatorValue,

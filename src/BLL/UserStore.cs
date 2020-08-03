@@ -168,11 +168,10 @@
             }
         }
 
-        async Task<(User User, bool IsNew)> IUserStore.GetOrAddUser(DiscordUserID userID, Role roles)
+        async Task IUserStore.AddUserIfNewAsync(DiscordUserID userID, Role roles)
         {
             var result = await GetUserInternal(userID).ConfigureAwait(false);
             result.User.Roles = roles;
-            return result;
         }
 
         async Task IUserStore.RemoveUser(DiscordUserID userID)
