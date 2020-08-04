@@ -70,8 +70,8 @@
                 || string.IsNullOrWhiteSpace(settings.UnitsAccess[0].Secret))
                 throw new InvalidOperationException($"At least one AppSetting '{nameof(AppSettings.UnitsAccess)}' is required.");
 
-            //if (string.IsNullOrWhiteSpace(settings.UnityHubBaseAddress))
-            //    throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.UnityHubBaseAddress)}' cannot be empty.");
+            if (string.IsNullOrWhiteSpace(settings.UnityHubBaseAddress))
+                throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.UnityHubBaseAddress)}' cannot be empty.");
         }
     }
 }
