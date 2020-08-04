@@ -10,6 +10,15 @@
             if (ed == null)
                 return null;
             var builder = new EmbedBuilder();
+            if (ed.Author != null)
+                builder.Author = new EmbedAuthorBuilder
+                {
+                    Name = ed.Author,
+                    Url = ed.AuthorUrl,
+                    IconUrl = ed.AuthorIconUrl
+                };
+            if (ed.ThumbnailUrl != null)
+                builder.ThumbnailUrl = ed.ThumbnailUrl;
             if (ed.Title != null)
                 builder.Title = ed.Title;
             if (ed.Url != null)

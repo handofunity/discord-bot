@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Reflection;
 using System.Threading.Tasks;
 using HoU.GuildBot.Shared.BLL;
 using HoU.GuildBot.Shared.DAL;
 using HoU.GuildBot.Shared.Objects;
-using HoU.GuildBot.Shared.StrongTypes;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Logging;
 using Serilog;
@@ -34,7 +35,45 @@ namespace HoU.GuildBot.DAL.UNITS
             _requiresTokenRefresh = new Dictionary<string, bool>();
         }
 
-        public async Task ConnectAsync(UnitsSyncData unitsSyncData)
+        private void RegisterHandlers(HubConnection connection,
+                                      string baseAddress)
+        {
+            var methods = typeof(IUnitsBotClient)
+                         .GetMethods(BindingFlags.Instance | BindingFlags.Public)
+                         .Where(m => m.Name.StartsWith("Receive")
+                                     && m.ReturnType == typeof(Task))
+                         .ToArray();
+            foreach (var method in methods)
+            {
+                var allParameters = method.GetParameters();
+                var firstParameter = allParameters.FirstOrDefault();
+                var withBaseAddress = firstParameter != null
+                                      && firstParameter.Name == "baseAddress"
+                                      && firstParameter.ParameterType == typeof(string);
+                if (withBaseAddress)
+                {
+                    connection.On(method.Name,
+                                  allParameters.Skip(1).Select(m => m.ParameterType).ToArray(),
+                                  async parameters =>
+                                  {
+                                      if (method.Invoke(_botClient, new object[] { baseAddress }.Concat(parameters).ToArray()) is Task response)
+                                          await response;
+                                  });
+                }
+                else
+                {
+                    connection.On(method.Name,
+                                  allParameters.Select(m => m.ParameterType).ToArray(),
+                                  async parameters =>
+                                  {
+                                      if (method.Invoke(_botClient, parameters) is Task response)
+                                          await response;
+                                  });
+                }
+            }
+        }
+
+        async Task IUnitsSignalRClient.ConnectAsync(UnitsSyncData unitsSyncData)
         {
             if (_hubConnections.ContainsKey(unitsSyncData.BaseAddress))
                 return;
@@ -111,50 +150,8 @@ namespace HoU.GuildBot.DAL.UNITS
                 } while (connection.State != HubConnectionState.Connected);
             };
 
-            connection.On<int, string, DateTime, DateTime, bool>(nameof(IUnitsBotClient.ReceiveEventCreatedMessageAsync),
-                                                                 (appointmentId,
-                                                                  title,
-                                                                  startTime,
-                                                                  endTime,
-                                                                  isAllDay) =>
-                                                                     _botClient.ReceiveEventCreatedMessageAsync(unitsSyncData.BaseAddress,
-                                                                                                                appointmentId,
-                                                                                                                title,
-                                                                                                                startTime,
-                                                                                                                endTime,
-                                                                                                                isAllDay));
-
-            connection.On<int, string, DateTime, DateTime, DateTime, DateTime, bool, DiscordUserID[]>(nameof(IUnitsBotClient
-                                                                                                                .ReceiveEventRescheduledMessageAsync
-                                                                                                      ),
-                                                                                                      (appointmentId,
-                                                                                                       title,
-                                                                                                       startTimeOld,
-                                                                                                       endTimeOld,
-                                                                                                       startTimeNew,
-                                                                                                       endTimeNew,
-                                                                                                       isAllDay,
-                                                                                                       usersToNotify) =>
-                                                                                                          _botClient
-                                                                                                             .ReceiveEventRescheduledMessageAsync(unitsSyncData
-                                                                                                                                                     .BaseAddress,
-                                                                                                                                                  appointmentId,
-                                                                                                                                                  title,
-                                                                                                                                                  startTimeOld,
-                                                                                                                                                  endTimeOld,
-                                                                                                                                                  startTimeNew,
-                                                                                                                                                  endTimeNew,
-                                                                                                                                                  isAllDay,
-                                                                                                                                                  usersToNotify));
-
-            connection.On<string, DateTime, DateTime, bool, DiscordUserID[]>(nameof(IUnitsBotClient.ReceiveEventCanceledMessageAsync),
-                                                                             _botClient.ReceiveEventCanceledMessageAsync);
-
-            connection.On<int, DiscordUserID>(nameof(IUnitsBotClient.ReceiveEventAttendanceConfirmedAsync),
-                                              (appointmentId,
-                                               userToNotify) => _botClient.ReceiveEventAttendanceConfirmedAsync(unitsSyncData.BaseAddress,
-                                                                                                                appointmentId,
-                                                                                                                userToNotify));
+            RegisterHandlers(connection,
+                             unitsSyncData.BaseAddress);
 
             _requiresTokenRefresh.Add(unitsSyncData.BaseAddress, false);
             _hubConnections.Add(unitsSyncData.BaseAddress, connection);

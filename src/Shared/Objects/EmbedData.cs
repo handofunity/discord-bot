@@ -2,6 +2,14 @@
 {
     public class EmbedData
     {
+        public string Author { get; set; }
+
+        public string AuthorUrl { get; set; }
+
+        public string AuthorIconUrl { get; set; }
+
+        public string ThumbnailUrl { get; set; }
+
         public string Title { get; set; }
 
         public string Url { get; set; }

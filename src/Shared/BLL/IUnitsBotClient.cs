@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Threading.Tasks;
 using HoU.GuildBot.Shared.StrongTypes;
+using JetBrains.Annotations;
 
 namespace HoU.GuildBot.Shared.BLL
 {
     public interface IUnitsBotClient
     {
+        // See UnitsSignalRClient.RegisterHandlers
+        [UsedImplicitly]
         Task ReceiveEventCreatedMessageAsync(string baseAddress,
                                              int appointmentId,
                                              string eventName,
@@ -13,6 +16,8 @@ namespace HoU.GuildBot.Shared.BLL
                                              DateTime endTime,
                                              bool isAllDay);
 
+        // See UnitsSignalRClient.RegisterHandlers
+        [UsedImplicitly]
         Task ReceiveEventRescheduledMessageAsync(string baseAddress, 
                                                  int appointmentId,
                                                  string eventName,
@@ -23,12 +28,17 @@ namespace HoU.GuildBot.Shared.BLL
                                                  bool isAllDay,
                                                  DiscordUserID[] usersToNotify);
 
-        Task ReceiveEventCanceledMessageAsync(string eventName,
+        // See UnitsSignalRClient.RegisterHandlers
+        [UsedImplicitly]
+        Task ReceiveEventCanceledMessageAsync(string baseAddress,
+                                              string eventName,
                                               DateTime startTime,
                                               DateTime endTime,
                                               bool isAllDay,
                                               DiscordUserID[] usersToNotify);
 
+        // See UnitsSignalRClient.RegisterHandlers
+        [UsedImplicitly]
         Task ReceiveEventAttendanceConfirmedAsync(string baseAddress,
                                                   int appointmentId,
                                                   DiscordUserID userToNotify);
