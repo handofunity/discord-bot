@@ -131,11 +131,23 @@ namespace HoU.GuildBot.BLL
                     }
                 }
 
-                // Connect to UNITS to receive push notifications
-                foreach (var unitsSyncData in _appSettings.UnitsAccess.Where(m => !string.IsNullOrWhiteSpace(m.BaseAddress) && !string.IsNullOrWhiteSpace(m.Secret)))
+                _ = Task.Run(async () =>
                 {
-                    await _unitsSignalRClient.ConnectAsync(unitsSyncData);
-                }
+                    try
+                    {
+                        // Connect to UNITS to receive push notifications
+                        foreach (var unitsSyncData in _appSettings.UnitsAccess.Where(m => !string.IsNullOrWhiteSpace(m.BaseAddress)
+                                                                                          && !string.IsNullOrWhiteSpace(m.Secret)
+                                                                                          && m.ConnectToNotificationHub))
+                        {
+                            await _unitsSignalRClient.ConnectAsync(unitsSyncData);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.LogCritical(e, "Failed to initialize SignalR connections.");
+                    }
+                });
             }
 
             _logger.LogInformation("Bot ready.");
