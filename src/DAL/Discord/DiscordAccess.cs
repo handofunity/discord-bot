@@ -1047,7 +1047,7 @@ namespace HoU.GuildBot.DAL.Discord
                     foreach (var notification in notifications.Skip(1))
                     {
                         await Task.Delay(500);
-                        await channel.SendMessageAsync(notification);
+                        await channel.SendMessageAsync(notification, false, embed);
                     }
                 }
             }

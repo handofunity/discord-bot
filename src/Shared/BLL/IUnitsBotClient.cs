@@ -39,8 +39,15 @@ namespace HoU.GuildBot.Shared.BLL
 
         // See UnitsSignalRClient.RegisterHandlers
         [UsedImplicitly]
-        Task ReceiveEventAttendanceConfirmedAsync(string baseAddress,
+        Task ReceiveEventAttendanceConfirmedMessageAsync(string baseAddress,
+                                                         int appointmentId,
+                                                         DiscordUserID userToNotify);
+
+        // See UnitsSignalRClient.RegisterHandlers
+        [UsedImplicitly]
+        Task ReceiveEventStartingSoonMessageAsync(string baseAddress,
                                                   int appointmentId,
-                                                  DiscordUserID userToNotify);
+                                                  DateTime startTime,
+                                                  DiscordUserID[] usersToNotify);
     }
 }

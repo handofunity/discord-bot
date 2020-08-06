@@ -145,12 +145,20 @@ namespace HoU.GuildBot.BLL
                                       Colors.Red);
             embed.Description = "An existing event was canceled in UNITS.";
             embed.Fields = fields.ToArray();
-            await _discordAccess.SendUnitsNotificationAsync(embed, usersToNotify);
+
+            if (usersToNotify != null && usersToNotify.Any())
+            {
+                await _discordAccess.SendUnitsNotificationAsync(embed, usersToNotify);
+            }
+            else
+            {
+                await _discordAccess.SendUnitsNotificationAsync(embed);
+            }
         }
 
-        async Task IUnitsBotClient.ReceiveEventAttendanceConfirmedAsync(string baseAddress,
-                                                                        int appointmentId,
-                                                                        DiscordUserID userToNotify)
+        async Task IUnitsBotClient.ReceiveEventAttendanceConfirmedMessageAsync(string baseAddress,
+                                                                               int appointmentId,
+                                                                               DiscordUserID userToNotify)
         {
             var embed = GetEventEmbed(baseAddress,
                                       "Event attendance confirmed",
@@ -158,7 +166,30 @@ namespace HoU.GuildBot.BLL
             embed.Url = GetEventUrl(baseAddress, appointmentId);
             embed.Description = $"Your [event attendance]({embed.Url}) has been confirmed. " +
                                 "Click to open the event in your browser.";
-            await _discordAccess.SendUnitsNotificationAsync(embed, new []{userToNotify});
+            await _discordAccess.SendUnitsNotificationAsync(embed, new[] {userToNotify});
+        }
+
+        async Task IUnitsBotClient.ReceiveEventStartingSoonMessageAsync(string baseAddress,
+                                                                        int appointmentId,
+                                                                        DateTime startTime,
+                                                                        DiscordUserID[] usersToNotify)
+        {
+            var minutes = (int)(startTime - DateTime.UtcNow).TotalMinutes;
+            var embed = GetEventEmbed(baseAddress,
+                                      "Event starting soon",
+                                      Colors.LightOrange);
+            embed.Url = GetEventUrl(baseAddress, appointmentId);
+            embed.Description = $"Your [event]({embed.Url}) is starting in {minutes} minutes. " +
+                                "Click to open the event in your browser.";
+
+            if (usersToNotify != null && usersToNotify.Any())
+            {
+                await _discordAccess.SendUnitsNotificationAsync(embed, usersToNotify);
+            }
+            else
+            {
+                await _discordAccess.SendUnitsNotificationAsync(embed);
+            }
         }
     }
 }
