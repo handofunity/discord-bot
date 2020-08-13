@@ -64,14 +64,6 @@
                 throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.SpamLimits)}' must have exactly one entry without the {nameof(SpamLimit.RestrictToChannelID)} set.");
             if (settings.SpamLimits.GroupBy(m => m.RestrictToChannelID).Any(m => m.Count() > 1))
                 throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.SpamLimits)}' contains duplicate {nameof(SpamLimit.RestrictToChannelID)}s.");
-            if (settings.UnitsAccess == null
-                || settings.UnitsAccess.Length == 0
-                || string.IsNullOrWhiteSpace(settings.UnitsAccess[0].BaseAddress)
-                || string.IsNullOrWhiteSpace(settings.UnitsAccess[0].Secret))
-                throw new InvalidOperationException($"At least one AppSetting '{nameof(AppSettings.UnitsAccess)}' is required.");
-
-            if (string.IsNullOrWhiteSpace(settings.UnityHubBaseAddress))
-                throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.UnityHubBaseAddress)}' cannot be empty.");
         }
     }
 }

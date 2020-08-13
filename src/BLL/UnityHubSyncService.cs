@@ -14,14 +14,17 @@ namespace HoU.GuildBot.BLL
     {
         private readonly IDiscordAccess _discordAccess;
         private readonly IUnityHubAccess _unityHubAccess;
+        private readonly AppSettings _appSettings;
         private readonly ILogger<UnityHubSyncService> _logger;
 
         public UnityHubSyncService(IDiscordAccess discordAccess,
                                    IUnityHubAccess unityHubAccess,
+                                   AppSettings appSettings,
                                    ILogger<UnityHubSyncService> logger)
         {
             _discordAccess = discordAccess ?? throw new ArgumentNullException(nameof(discordAccess));
             _unityHubAccess = unityHubAccess ?? throw new ArgumentNullException(nameof(unityHubAccess));
+            _appSettings = appSettings ?? throw new ArgumentNullException(nameof(appSettings));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -37,6 +40,18 @@ namespace HoU.GuildBot.BLL
 
         public async Task SyncAllUsers()
         {
+            if (string.IsNullOrWhiteSpace(_appSettings.UnityHubBaseAddress))
+            {
+                _logger.LogWarning("UnityHub base address not configured.");
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(_appSettings.UnityHubAccessSecret))
+            {
+                _logger.LogWarning("UnityHub access secret not configured.");
+                return;
+            }
+
             if (!_discordAccess.IsConnected || !_discordAccess.IsGuildAvailable)
                 return;
 

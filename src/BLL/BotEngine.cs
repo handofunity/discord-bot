@@ -133,19 +133,27 @@ namespace HoU.GuildBot.BLL
 
                 _ = Task.Run(async () =>
                 {
-                    try
+                    if (_appSettings.UnitsAccess == null
+                        || _appSettings.UnitsAccess.Length == 0)
                     {
-                        // Connect to UNITS to receive push notifications
-                        foreach (var unitsSyncData in _appSettings.UnitsAccess.Where(m => !string.IsNullOrWhiteSpace(m.BaseAddress)
-                                                                                          && !string.IsNullOrWhiteSpace(m.Secret)
-                                                                                          && m.ConnectToNotificationHub))
-                        {
-                            await _unitsSignalRClient.ConnectAsync(unitsSyncData);
-                        }
+                        _logger.LogWarning("No UNITS access configured.");
                     }
-                    catch (Exception e)
+                    else
                     {
-                        _logger.LogCritical(e, "Failed to initialize SignalR connections.");
+                        try
+                        {
+                            // Connect to UNITS to receive push notifications
+                            foreach (var unitsSyncData in _appSettings.UnitsAccess.Where(m => !string.IsNullOrWhiteSpace(m.BaseAddress)
+                                                                                              && !string.IsNullOrWhiteSpace(m.Secret)
+                                                                                              && m.ConnectToNotificationHub))
+                            {
+                                await _unitsSignalRClient.ConnectAsync(unitsSyncData);
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            _logger.LogCritical(e, "Failed to initialize SignalR connections.");
+                        }
                     }
                 });
             }

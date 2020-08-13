@@ -47,11 +47,29 @@ namespace HoU.GuildBot.BLL
         // Do NOT implement this as explicit implementation, as it cannot be triggered by hangfire then!
         public async Task SyncAllUsers()
         {
+            if (_appSettings.UnitsAccess == null || _appSettings.UnitsAccess.Length == 0)
+            {
+                _logger.LogWarning("No UNITS access configured.");
+                return;
+            }
+
             if (!_discordAccess.IsConnected || !_discordAccess.IsGuildAvailable)
                 return;
 
             foreach (var unitsSyncData in _appSettings.UnitsAccess.Where(m => !string.IsNullOrWhiteSpace(m.BaseAddress) && !string.IsNullOrWhiteSpace(m.Secret)))
             {
+                if (string.IsNullOrWhiteSpace(unitsSyncData.BaseAddress))
+                {
+                    _logger.LogWarning("UNITS base address not configured.");
+                    continue;
+                }
+
+                if (string.IsNullOrWhiteSpace(unitsSyncData.Secret))
+                {
+                    _logger.LogWarning("UNITS access secret not configured.");
+                    continue;
+                }
+
                 var allowedRoles = await _unitsAccess.GetValidRoleNamesAsync(unitsSyncData);
                 if (allowedRoles == null)
                 {
