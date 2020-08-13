@@ -24,6 +24,8 @@ namespace HoU.GuildBot.DAL.UNITS
         private readonly Dictionary<string, HubConnection> _hubConnections;
         private readonly Dictionary<string, bool> _requiresTokenRefresh;
 
+        private readonly Dictionary<string, HttpClient> _authHttpClients;
+
         public UnitsSignalRClient(IUnitsBearerTokenManager bearerTokenManager,
                                   IUnitsBotClient botClient,
                                   ILogger<UnitsSignalRClient> logger)
@@ -33,6 +35,30 @@ namespace HoU.GuildBot.DAL.UNITS
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _hubConnections = new Dictionary<string, HubConnection>();
             _requiresTokenRefresh = new Dictionary<string, bool>();
+            _authHttpClients = new Dictionary<string, HttpClient>();
+        }
+
+        private HttpClient GetHttpClient(string baseAddress)
+        {
+            if (_authHttpClients.TryGetValue(baseAddress, out var httpClient))
+                return httpClient;
+
+            var httpClientHandler = new HttpClientHandler
+            {
+#if DEBUG
+                ServerCertificateCustomValidationCallback = (message,
+                                                             certificate2,
+                                                             arg3,
+                                                             arg4) => true
+#endif
+            };
+            httpClient = new HttpClient(httpClientHandler) { BaseAddress = new Uri(baseAddress) };
+            httpClient.DefaultRequestHeaders.Accept.Clear();
+            httpClient.DefaultRequestHeaders.Accept
+                      .Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+            _authHttpClients[baseAddress] = httpClient;
+            return httpClient;
         }
 
         private void RegisterHandlers(HubConnection connection,
@@ -99,25 +125,12 @@ namespace HoU.GuildBot.DAL.UNITS
 #endif
                                          options.AccessTokenProvider = async () =>
                                          {
-                                             using var httpClientHandler = new HttpClientHandler
-                                             {
-#if DEBUG
-                                                 ServerCertificateCustomValidationCallback = (message,
-                                                                                              certificate2,
-                                                                                              arg3,
-                                                                                              arg4) => true
-#endif
-                                             };
-                                             using var httpClient = new HttpClient(httpClientHandler) { BaseAddress = new Uri(unitsSyncData.BaseAddress) };
-                                             httpClient.DefaultRequestHeaders.Accept.Clear();
-                                             httpClient.DefaultRequestHeaders.Accept
-                                                       .Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-                                             var token = await _bearerTokenManager.GetBearerTokenAsync(httpClient,
-                                                                                                       unitsSyncData.BaseAddress,
-                                                                                                       unitsSyncData.Secret,
-                                                                                                       _requiresTokenRefresh
-                                                                                                           [unitsSyncData.BaseAddress]);
+                                             var token =
+                                                 await _bearerTokenManager.GetBearerTokenAsync(GetHttpClient(unitsSyncData.BaseAddress),
+                                                                                               unitsSyncData.BaseAddress,
+                                                                                               unitsSyncData.Secret,
+                                                                                               _requiresTokenRefresh
+                                                                                                   [unitsSyncData.BaseAddress]);
                                              _requiresTokenRefresh[unitsSyncData.BaseAddress] = false;
                                              return token;
                                          };

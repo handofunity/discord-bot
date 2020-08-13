@@ -13,6 +13,6 @@ namespace HoU.GuildBot.Shared.DAL
         Task<string> GetBearerTokenAsync(HttpClient httpClient,
                                          string baseAddress,
                                          string secret,
-                                         bool refresh);
+                                         bool forceRefresh);
     }
 }

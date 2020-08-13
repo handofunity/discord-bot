@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -41,10 +42,15 @@ namespace HoU.GuildBot.DAL.UNITS
         public async Task<string> GetBearerTokenAsync(HttpClient httpClient,
                                                       string baseAddress,
                                                       string secret,
-                                                      bool refresh)
+                                                      bool forceRefresh)
         {
-            if (!refresh && _lastBearerTokens.TryGetValue(baseAddress, out var lastToken))
-                return lastToken;
+            if (!forceRefresh && _lastBearerTokens.TryGetValue(baseAddress, out var lastToken))
+            {
+                // Check if token expires within the next 10 seconds.
+                var token = new JwtSecurityToken(lastToken);
+                if (token.ValidTo > DateTime.UtcNow.AddSeconds(10))
+                    return lastToken;
+            }
 
             HttpResponseMessage response;
             try
