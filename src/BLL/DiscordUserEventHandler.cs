@@ -148,7 +148,10 @@
             await _databaseAccess.UpdateUserInfoLastSeen(user, DateTime.UtcNow).ConfigureAwait(false);
         }
 
-        async Task IDiscordUserEventHandler.HandleReactionAdded(DiscordChannelID channelID, DiscordUserID userID, ulong messageID, EmojiDefinition emoji)
+        async Task IDiscordUserEventHandler.HandleReactionAdded(DiscordChannelID channelID,
+                                                                DiscordUserID userID,
+                                                                ulong messageID,
+                                                                EmojiDefinition emoji)
         {
             if (emoji == null)
                 return;

@@ -1,10 +1,13 @@
-﻿namespace HoU.GuildBot.Shared.Objects
+﻿using System.Diagnostics;
+
+namespace HoU.GuildBot.Shared.Objects
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
 
+    [DebuggerDisplay("{" + nameof(DebuggerDisplay) + "}")]
     public sealed class EmojiDefinition : IEquatable<EmojiDefinition>
     {
         private static readonly List<EmojiDefinition> Emojis;
@@ -18,6 +21,11 @@
         public string Name { get; }
 
         public ulong? Id { get; }
+
+        private string DebuggerDisplay =>
+            EmojiKind == Kind.UnicodeEmoji
+                ? $"[{Kind.UnicodeEmoji}] {Unicode}"
+                : $"[{EmojiKind}] {Name} ({Id})";
 
         static EmojiDefinition()
         {

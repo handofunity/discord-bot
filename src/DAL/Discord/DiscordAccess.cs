@@ -498,7 +498,11 @@ namespace HoU.GuildBot.DAL.Discord
                 case Emoji emoji:
                     return EmojiDefinition.AllEmojis.SingleOrDefault(m => m.Unicode == emoji.Name);
                 case Emote emote:
-                    return EmojiDefinition.AllEmojis.SingleOrDefault(m => m.Name == emote.Name && (m.Id.HasValue && m.Id.Value == emote.Id || m.EmojiKind == EmojiDefinition.Kind.ReadonlyCustomEmote));
+                    var matchByName = EmojiDefinition.AllEmojis
+                                                     .Where(m => m.Name == emote.Name)
+                                                     .ToArray();
+                    return matchByName.SingleOrDefault(m => m.Id.HasValue && m.Id.Value == emote.Id
+                                                            || m.EmojiKind == EmojiDefinition.Kind.ReadonlyCustomEmote);
                 default:
                     throw new NotSupportedException("Unknown emote type.");
             }
