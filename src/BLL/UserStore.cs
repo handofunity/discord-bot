@@ -108,6 +108,10 @@
                     _store.Add(user);
                 _isInitialized = true;
                 _logger.LogInformation($"User store initialized with {_store.Count} users.");
+                if (_store.Count < guildUsers.Length)
+                    _logger.LogWarning("Loaded less users into the store ({LoadedCount}) than given ({GivenCount}).",
+                                       _store.Count,
+                                       guildUsers.Length);
             }
             finally
             {
@@ -125,7 +129,10 @@
                     throw new InvalidOperationException("Store is not initialized.");
 
                 user = _store.SingleOrDefault(m => m.DiscordUserID == userID);
-                return user != null;
+                var success = user != null;
+                if (!success)
+                    _logger.LogWarning("Failed to get user {DiscordUserId} from the user store.", userID);
+                return success;
             }
             finally
             {

@@ -383,13 +383,61 @@ namespace HoU.GuildBot.DAL.Discord
             var result = _discordUserEventHandler.HandleRolesChanged(userID, oldRoles, newRoles);
             if (result.IsPromotion)
             {
-                // Log promotion
-                await LogToDiscordInternal(result.LogMessage).ConfigureAwait(false);
+                var charactersValid = await VerifyUsernameCharacters();
+                if (charactersValid)
+                    await AnnouncePromotion();
+            }
 
-                // Announce promotion
-                var g = GetGuild().GetTextChannel((ulong)_appSettings.PromotionAnnouncementChannelId);
-                var embed = result.AnnouncementData.ToEmbed();
-                await g.SendMessageAsync(string.Empty, false, embed).ConfigureAwait(false);
+            async Task<bool> VerifyUsernameCharacters()
+            {
+                try
+                {
+                    var g = GetGuild();
+                    var gu = GetGuildUserById(userID);
+                    var username = gu.Username;
+                    var validCharacters = new Microsoft.AspNetCore.Identity.UserOptions().AllowedUserNameCharacters;
+                    var valid = username.All(character => validCharacters.Contains(character));
+                    if (valid)
+                        return true;
+
+                    var leaderRole = GetRoleByName(Constants.RoleNames.LeaderRoleName, g);
+                    var officerRole = GetRoleByName(Constants.RoleNames.OfficerRoleName, g);
+                    await
+                        LogToDiscordInternal($"{leaderRole.Mention} {officerRole.Mention}: User `{gu.Username}#{gu.DiscriminatorValue}` " +
+                                             "could not be promoted to **Recruit** because of invalid characters in his username.");
+                    var privateChannel = await gu.GetOrCreateDMChannelAsync();
+                    await privateChannel.SendMessageAsync($"Hello `{gu.Username}#{gu.DiscriminatorValue}` - your promotion to the rank **Recruit** failed " +
+                                                          "because your username contains invalid characters. Only the following characters are allowed: " +
+                                                          $"`{validCharacters}`");
+
+                    var recruitRole = GetRoleByName(nameof(Role.Recruit), g);
+                    await gu.RemoveRoleAsync(recruitRole);
+
+                    return false;
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, "Failed to verify username characters of user {DiscordUserId}.", userID);
+                    return true;
+                }
+            }
+
+            async Task AnnouncePromotion()
+            {
+                try
+                {
+                    // Log promotion
+                    await LogToDiscordInternal(result.LogMessage).ConfigureAwait(false);
+
+                    // Announce promotion
+                    var g = GetGuild().GetTextChannel((ulong) _appSettings.PromotionAnnouncementChannelId);
+                    var embed = result.AnnouncementData.ToEmbed();
+                    await g.SendMessageAsync(string.Empty, false, embed).ConfigureAwait(false);
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, "Promotion announcement for user {DiscordUserId} failed.", userID);
+                }
             }
         }
 
@@ -461,11 +509,42 @@ namespace HoU.GuildBot.DAL.Discord
                 previousGroupRolePosition = groupRole.Position;
             }
 
-            var gu = GetGuildUserById(discordUserId);
-            if (groupRolesToAdd.Any())
-                await gu.AddRolesAsync(groupRolesToAdd).ConfigureAwait(false);
-            if (groupRolesToRemove.Any())
-                await gu.RemoveRolesAsync(groupRolesToRemove).ConfigureAwait(false);
+            try
+            {
+                var gu = GetGuildUserById(discordUserId);
+                if (groupRolesToAdd.Any())
+                {
+                    _logger.LogInformation("Adding user {Username} ({DiscordUserId}) to these group roles: {Roles}",
+                                           gu.Username,
+                                           gu.Id,
+                                           string.Join(", ", groupRolesToAdd.Select(m => $"{TrimRoleName(m.Name)} ({m.Id})")));
+                    await gu.AddRolesAsync(groupRolesToAdd);
+                }
+
+                if (groupRolesToRemove.Any())
+                {
+                    _logger.LogInformation("Removing user {Username} ({DiscordUserId}) from these group roles: {Roles}",
+                                           gu.Username,
+                                           gu.Id,
+                                           string.Join(", ", groupRolesToAdd.Select(m => $"{TrimRoleName(m.Name)} ({m.Id})")));
+                    await gu.RemoveRolesAsync(groupRolesToRemove);
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Failed to add or remove user {Username} ({DiscordUserId}) to or from group roles.");
+            }
+
+            static string TrimRoleName(string roleName)
+            {
+                var result = roleName.Trim();
+                while (result.Contains("\u2063"))
+                    result = result.Replace("\u2063", string.Empty);
+                while (result.Contains("\u2002"))
+                    result = result.Replace("\u2002", string.Empty);
+
+                return result;
+            }
         }
 
         private static bool IsOnline(IPresence gu) => gu.Status != UserStatus.Offline && gu.Status != UserStatus.Invisible;

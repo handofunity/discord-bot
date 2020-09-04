@@ -120,9 +120,7 @@
             }
             
             // Return result for announcement and logging the promotion
-            var description = $"Congratulations {user.Mention}, you've been promoted to the rank **{promotedTo}**.";
-            if (promotedTo == Role.Recruit)
-                description += " Welcome aboard!";
+            var description = $"Congratulations {user.Mention}, you've been promoted to the rank **{promotedTo}**. Welcome aboard!";
             var a = new EmbedData
             {
                 Title = "Promotion",

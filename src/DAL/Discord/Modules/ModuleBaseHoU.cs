@@ -13,12 +13,12 @@
         {
             if (Context.IsPrivate)
             {
-                await ReplyAsync(message, false, embed).ConfigureAwait(false);
+                await ReplyAsync(message, false, embed);
             }
             else
             {
-                var privateChannel = await Context.User.GetOrCreateDMChannelAsync().ConfigureAwait(false);
-                await privateChannel.SendMessageAsync(message, false, embed).ConfigureAwait(false);
+                var privateChannel = await Context.User.GetOrCreateDMChannelAsync();
+                await privateChannel.SendMessageAsync(message, false, embed);
             }
         }
 
