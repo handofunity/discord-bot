@@ -1,7 +1,7 @@
-﻿namespace HoU.GuildBot.Shared.Objects
-{
-    using Enums;
+﻿using HoU.GuildBot.Shared.Enums;
 
+namespace HoU.GuildBot.Shared.Objects
+{
     public class CommandInfo
     {
         public string Name { get; }

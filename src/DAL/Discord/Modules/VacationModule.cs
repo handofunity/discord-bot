@@ -1,18 +1,18 @@
-﻿namespace HoU.GuildBot.DAL.Discord.Modules
-{
-    using System;
-    using System.Globalization;
-    using System.Text.RegularExpressions;
-    using System.Threading.Tasks;
-    using global::Discord.Commands;
-    using global::Discord.WebSocket;
-    using JetBrains.Annotations;
-    using Preconditions;
-    using Shared.Attributes;
-    using Shared.BLL;
-    using Shared.Enums;
-    using Shared.StrongTypes;
+﻿using System;
+using System.Globalization;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using global::Discord.Commands;
+using global::Discord.WebSocket;
+using JetBrains.Annotations;
+using HoU.GuildBot.DAL.Discord.Preconditions;
+using HoU.GuildBot.Shared.Attributes;
+using HoU.GuildBot.Shared.BLL;
+using HoU.GuildBot.Shared.Enums;
+using HoU.GuildBot.Shared.StrongTypes;
 
+namespace HoU.GuildBot.DAL.Discord.Modules
+{
     [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
     public class VacationModule : ModuleBaseHoU
     {

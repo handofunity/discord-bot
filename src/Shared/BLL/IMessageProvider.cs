@@ -1,9 +1,9 @@
-﻿namespace HoU.GuildBot.Shared.BLL
-{
-    using System;
-    using System.Threading.Tasks;
-    using Objects;
+﻿using System;
+using System.Threading.Tasks;
+using HoU.GuildBot.Shared.Objects;
 
+namespace HoU.GuildBot.Shared.BLL
+{
     public interface IMessageProvider
     {
         event EventHandler<MessageChangedEventArgs> MessageChanged;

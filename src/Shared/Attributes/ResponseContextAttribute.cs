@@ -1,8 +1,8 @@
-﻿namespace HoU.GuildBot.Shared.Attributes
-{
-    using System;
-    using Enums;
+﻿using System;
+using HoU.GuildBot.Shared.Enums;
 
+namespace HoU.GuildBot.Shared.Attributes
+{
     [AttributeUsage(AttributeTargets.Method)]
     public class ResponseContextAttribute : Attribute
     {

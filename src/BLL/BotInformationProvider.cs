@@ -1,12 +1,12 @@
-﻿namespace HoU.GuildBot.BLL
-{
-    using System;
-    using System.Collections.Generic;
-    using System.Drawing;
-    using System.Linq;
-    using Shared.BLL;
-    using Shared.Objects;
+﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
+using HoU.GuildBot.Shared.BLL;
+using HoU.GuildBot.Shared.Objects;
 
+namespace HoU.GuildBot.BLL
+{
     public class BotInformationProvider : IBotInformationProvider
     {
         private readonly RuntimeInformation _runtimeInformation;

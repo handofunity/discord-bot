@@ -1,7 +1,7 @@
-﻿namespace HoU.GuildBot.Shared.DAL
-{
-    using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
+namespace HoU.GuildBot.Shared.DAL
+{
     public interface IWebAccess
     {
         Task<byte[]> GetDiscordAvatarByUrl(string url);

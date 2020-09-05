@@ -1,10 +1,10 @@
-﻿namespace HoU.GuildBot.Shared.Objects
-{
-    using System;
-    using System.Collections.Generic;
-    using JetBrains.Annotations;
-    using StrongTypes;
+﻿using System;
+using System.Collections.Generic;
+using JetBrains.Annotations;
+using HoU.GuildBot.Shared.StrongTypes;
 
+namespace HoU.GuildBot.Shared.Objects
+{
     public class UserModel
     {
         [NotNull] private string _username;

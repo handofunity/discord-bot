@@ -1,8 +1,8 @@
-﻿namespace HoU.GuildBot.Shared.Exceptions
-{
-    using System;
-    using StrongTypes;
+﻿using System;
+using HoU.GuildBot.Shared.StrongTypes;
 
+namespace HoU.GuildBot.Shared.Exceptions
+{
     public class ChannelNotFoundException : Exception
     {
         ////////////////////////////////////////////////////////////////////////////////////////////////////////

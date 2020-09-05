@@ -1,8 +1,8 @@
-﻿namespace HoU.GuildBot.Shared.Objects
-{
-    using System;
-    using Enums;
+﻿using System;
+using HoU.GuildBot.Shared.Enums;
 
+namespace HoU.GuildBot.Shared.Objects
+{
     public class GameChangedEventArgs
     {
         public AvailableGame Game { get; }

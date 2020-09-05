@@ -1,12 +1,11 @@
 ﻿using System.Diagnostics;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 
 namespace HoU.GuildBot.Shared.Objects
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Reflection;
-
     [DebuggerDisplay("{" + nameof(DebuggerDisplay) + "}")]
     public sealed class EmojiDefinition : IEquatable<EmojiDefinition>
     {

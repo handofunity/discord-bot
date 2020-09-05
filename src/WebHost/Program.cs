@@ -1,18 +1,17 @@
-﻿namespace HoU.GuildBot.WebHost
-{
-    using System;
-    using System.Threading.Tasks;
-    using Core;
-    using Microsoft.AspNetCore;
-    using Microsoft.AspNetCore.Hosting;
+﻿using System;
+using System.Threading.Tasks;
+using HoU.GuildBot.Core;
+using Microsoft.AspNetCore.Hosting;
 
+namespace HoU.GuildBot.WebHost
+{
     public static class Program
     {
-        private static readonly Runner Runner;
+        private static readonly Runner _runner;
 
         static Program()
         {
-            Runner = new Runner();
+            _runner = new Runner();
         }
 
         public static void Main()
@@ -25,20 +24,22 @@
             }
             catch (Exception e)
             {
-                Runner.NotifyShutdown(e.ToString());
+                _runner.NotifyShutdown(e.ToString());
             }
-            Runner.NotifyShutdown("no reason specified");
+
+            _runner.NotifyShutdown("no reason specified");
             Environment.FailFast("Shutting down process due to lacking connection.");
         }
 
         private static IWebHost BuildWebHost() =>
-            WebHost.CreateDefaultBuilder()
-                   .UseStartup<Startup>()
-                   .Build();
+            Microsoft.AspNetCore.WebHost.CreateDefaultBuilder()
+                     .UseStartup<Startup>()
+                     .Build();
 
-        private static void Startup_EnvironmentConfigured(object sender, EnvironmentEventArgs e)
+        private static void Startup_EnvironmentConfigured(object sender,
+                                                          EnvironmentEventArgs e)
         {
-            Runner.Run(e.Environment, e.AppSettings);
+            _runner.Run(e.Environment, e.AppSettings);
         }
     }
 }

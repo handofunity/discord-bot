@@ -1,13 +1,13 @@
-﻿namespace HoU.GuildBot.Shared.BLL
-{
-    using System;
-    using System.Collections.Generic;
-    using System.Threading.Tasks;
-    using DAL;
-    using JetBrains.Annotations;
-    using Objects;
-    using StrongTypes;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using HoU.GuildBot.Shared.DAL;
+using JetBrains.Annotations;
+using HoU.GuildBot.Shared.Objects;
+using HoU.GuildBot.Shared.StrongTypes;
 
+namespace HoU.GuildBot.Shared.BLL
+{
     public interface IGameRoleProvider
     {
         event EventHandler<GameChangedEventArgs> GameChanged;

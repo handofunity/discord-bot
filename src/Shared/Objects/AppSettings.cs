@@ -1,8 +1,9 @@
-﻿namespace HoU.GuildBot.Shared.Objects
-{
-    using Microsoft.Extensions.Configuration;
-    using StrongTypes;
+﻿using JetBrains.Annotations;
+using Microsoft.Extensions.Configuration;
+using HoU.GuildBot.Shared.StrongTypes;
 
+namespace HoU.GuildBot.Shared.Objects
+{
     public class AppSettings
     {
         /// <summary>
@@ -23,11 +24,24 @@
         /// <summary>
         /// Property to bind the value of <see cref="LoggingChannelId"/> from the app settings.
         /// </summary>
-        // ReSharper disable once UnusedMember.Local
         private ulong LoggingChannelIdValue
         {
             get => (ulong) LoggingChannelId;
             set => LoggingChannelId = (DiscordChannelID) value;
+        }
+
+        /// <summary>
+        /// Gets the Discord ID of the community coordinator channel .
+        /// </summary>
+        public DiscordChannelID ComCoordinatorChannelId { get; private set; }
+
+        /// <summary>
+        /// Property to bind the value of <see cref="ComCoordinatorChannelId"/> from the app settings.
+        /// </summary>
+        private ulong ComCoordinatorChannelIdValue
+        {
+            get => (ulong) ComCoordinatorChannelId;
+            set => ComCoordinatorChannelId = (DiscordChannelID) value;
         }
 
         /// <summary>

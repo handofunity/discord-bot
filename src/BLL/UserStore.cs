@@ -1,18 +1,18 @@
-﻿namespace HoU.GuildBot.BLL
-{
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using JetBrains.Annotations;
-    using Microsoft.Extensions.Logging;
-    using Shared.BLL;
-    using Shared.DAL;
-    using Shared.Enums;
-    using Shared.Objects;
-    using Shared.StrongTypes;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using JetBrains.Annotations;
+using Microsoft.Extensions.Logging;
+using HoU.GuildBot.Shared.BLL;
+using HoU.GuildBot.Shared.DAL;
+using HoU.GuildBot.Shared.Enums;
+using HoU.GuildBot.Shared.Objects;
+using HoU.GuildBot.Shared.StrongTypes;
 
+namespace HoU.GuildBot.BLL
+{
     [UsedImplicitly]
     public class UserStore : IUserStore
     {
@@ -48,7 +48,7 @@
         {
             try
             {
-                await _semaphore.WaitAsync().ConfigureAwait(false);
+                await _semaphore.WaitAsync();
 
                 if (!_isInitialized)
                     throw new InvalidOperationException("Store is not initialized.");
@@ -64,9 +64,9 @@
 
             try
             {
-                await _semaphore.WaitAsync().ConfigureAwait(false);
+                await _semaphore.WaitAsync();
                 // If the user wasn't found, make sure it exists in the database and load it
-                var databaseUser = await _databaseAccess.GetOrAddUser(userID).ConfigureAwait(false);
+                var databaseUser = await _databaseAccess.GetOrAddUser(userID);
                 _store.Add(databaseUser.User);
                 return databaseUser;
             }
@@ -83,20 +83,24 @@
 
         bool IUserStore.IsInitialized => _isInitialized;
 
-        async Task IUserStore.Initialize((DiscordUserID UserId, Role Roles)[] guildUsers)
+        async Task IUserStore.Initialize((DiscordUserID UserId, Role Roles)[] guildUsersCurrentlyOnServer)
         {
             if (_isInitialized)
                 return;
             try
             {
-                await _semaphore.WaitAsync().ConfigureAwait(false);
-                _logger.LogInformation("Initializing user store...");
-                _logger.LogInformation("Ensuring all users exist on the database...");
-                await _databaseAccess.EnsureUsersExist(guildUsers.Select(m => m.UserId)).ConfigureAwait(false);
+                await _semaphore.WaitAsync();
+
+                _logger.LogInformation("Initializing user store for {UsersOnServer} users on the server...", guildUsersCurrentlyOnServer.Length);
+                _logger.LogInformation("Ensuring all users exist in the database...");
+                await _databaseAccess.EnsureUsersExist(guildUsersCurrentlyOnServer.Select(m => m.UserId));
+
                 _logger.LogInformation("Loading users from database...");
-                var users = await _databaseAccess.GetAllUsers().ConfigureAwait(false);
-                _logger.LogInformation("Applying Discord information to users...");
-                var existingUsers = users.Join(guildUsers,
+                var usersInDatabase = await _databaseAccess.GetAllUsers();
+                _logger.LogInformation("Loaded {UsersInDatabase} from the database.", usersInDatabase.Length);
+
+                _logger.LogInformation("Intersecting users on server with users in database to apply Discord information for memory-cache...");
+                var existingUsers = usersInDatabase.Join(guildUsersCurrentlyOnServer,
                     user => user.DiscordUserID,
                     tuple => tuple.UserId,
                     (user, tuple) =>
@@ -104,14 +108,11 @@
                         user.Roles = tuple.Roles;
                         return user;
                     }).ToArray();
+
                 foreach (var user in existingUsers)
                     _store.Add(user);
                 _isInitialized = true;
-                _logger.LogInformation($"User store initialized with {_store.Count} users.");
-                if (_store.Count < guildUsers.Length)
-                    _logger.LogWarning("Loaded less users into the store ({LoadedCount}) than given ({GivenCount}).",
-                                       _store.Count,
-                                       guildUsers.Length);
+                _logger.LogInformation($"User store initialized with {_store.Count} users in memory-cache.");
             }
             finally
             {
@@ -177,7 +178,7 @@
 
         async Task IUserStore.AddUserIfNewAsync(DiscordUserID userID, Role roles)
         {
-            var result = await GetUserInternal(userID).ConfigureAwait(false);
+            var result = await GetUserInternal(userID);
             result.User.Roles = roles;
         }
 
@@ -185,7 +186,7 @@
         {
             try
             {
-                await _semaphore.WaitAsync().ConfigureAwait(false);
+                await _semaphore.WaitAsync();
 
                 if (!_isInitialized)
                     throw new InvalidOperationException("Store is not initialized.");

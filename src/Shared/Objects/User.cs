@@ -1,10 +1,10 @@
-﻿namespace HoU.GuildBot.Shared.Objects
-{
-    using System.Threading;
-    using Enums;
-    using Extensions;
-    using StrongTypes;
+﻿using System.Threading;
+using HoU.GuildBot.Shared.Enums;
+using HoU.GuildBot.Shared.Extensions;
+using HoU.GuildBot.Shared.StrongTypes;
 
+namespace HoU.GuildBot.Shared.Objects
+{
     public class User
     {
         ////////////////////////////////////////////////////////////////////////////////////////////////////////

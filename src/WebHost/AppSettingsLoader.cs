@@ -1,11 +1,11 @@
-﻿namespace HoU.GuildBot.WebHost
-{
-    using System;
-    using System.Linq;
-    using Microsoft.Extensions.Configuration;
-    using Microsoft.Extensions.DependencyInjection;
-    using Shared.Objects;
+﻿using System;
+using System.Linq;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using HoU.GuildBot.Shared.Objects;
 
+namespace HoU.GuildBot.WebHost
+{
     internal static class AppSettingsLoader
     {
         internal static void AddAppSettings(this IServiceCollection serviceCollection, IConfiguration configuration)

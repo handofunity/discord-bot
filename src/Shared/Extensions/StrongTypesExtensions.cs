@@ -1,7 +1,7 @@
-﻿namespace HoU.GuildBot.Shared.Extensions
-{
-    using StrongTypes;
+﻿using HoU.GuildBot.Shared.StrongTypes;
 
+namespace HoU.GuildBot.Shared.Extensions
+{
     public static class StrongTypesExtensions
     {
         /// <summary>

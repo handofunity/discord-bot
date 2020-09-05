@@ -1,17 +1,16 @@
 ﻿using System.Linq;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Hangfire;
+using JetBrains.Annotations;
+using Microsoft.Extensions.Logging;
+using HoU.GuildBot.Shared.BLL;
+using HoU.GuildBot.Shared.DAL;
+using HoU.GuildBot.Shared.Objects;
 
 namespace HoU.GuildBot.BLL
 {
-    using System;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using Hangfire;
-    using JetBrains.Annotations;
-    using Microsoft.Extensions.Logging;
-    using Shared.BLL;
-    using Shared.DAL;
-    using Shared.Objects;
-
     [UsedImplicitly]
     public class BotEngine : IBotEngine
     {
@@ -74,8 +73,7 @@ namespace HoU.GuildBot.BLL
 
             // Check if the initial connection to the Discord servers is successful,
             // because this won't be handled by the DisconnectedHandler.
-#pragma warning disable CS4014 // Fire & Forget
-            Task.Run(async () =>
+            _ = Task.Run(async () =>
             {
                 // In case that the Discord servers are unreachable, we won't be able to make a connection
                 // for a few minutes or even hours. Because we don't want to restart and retry too often,
@@ -87,7 +85,6 @@ namespace HoU.GuildBot.BLL
                     cts.CancelAfter(2000);
                 }
             }, CancellationToken.None).ConfigureAwait(false);
-#pragma warning restore CS4014 // Fire & Forget
 
             // Listen to calls and block the current thread
             try

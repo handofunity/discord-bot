@@ -1,17 +1,17 @@
-﻿namespace HoU.GuildBot.BLL
-{
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using JetBrains.Annotations;
-    using Microsoft.Extensions.Logging;
-    using Shared.BLL;
-    using Shared.DAL;
-    using Shared.Enums;
-    using Shared.Objects;
-    using Shared.StrongTypes;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using JetBrains.Annotations;
+using Microsoft.Extensions.Logging;
+using HoU.GuildBot.Shared.BLL;
+using HoU.GuildBot.Shared.DAL;
+using HoU.GuildBot.Shared.Enums;
+using HoU.GuildBot.Shared.Objects;
+using HoU.GuildBot.Shared.StrongTypes;
 
+namespace HoU.GuildBot.BLL
+{
     [UsedImplicitly]
     public class GameRoleProvider : IGameRoleProvider
     {
@@ -70,14 +70,12 @@
 
         private void DeleteMessageAfterDelay(DiscordChannelID channelID, ulong messageID)
         {
-#pragma warning disable CS4014 // Fire & Forget
-            Task.Run(async () =>
+            _ = Task.Run(async () =>
             {
                 // Delete message after 5 minutes
                 await Task.Delay(TimeSpan.FromMinutes(5)).ConfigureAwait(false);
                 await _discordAccess.DeleteBotMessageInChannel(channelID, messageID).ConfigureAwait(false);
             }).ConfigureAwait(false);
-#pragma warning restore CS4014 // Fire & Forget
         }
 
         private static string AocEmojiToClassName(EmojiDefinition emoji)

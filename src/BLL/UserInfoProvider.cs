@@ -1,16 +1,16 @@
-﻿namespace HoU.GuildBot.BLL
-{
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text.RegularExpressions;
-    using System.Threading.Tasks;
-    using JetBrains.Annotations;
-    using Shared.BLL;
-    using Shared.DAL;
-    using Shared.Objects;
-    using Shared.StrongTypes;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using JetBrains.Annotations;
+using HoU.GuildBot.Shared.BLL;
+using HoU.GuildBot.Shared.DAL;
+using HoU.GuildBot.Shared.Objects;
+using HoU.GuildBot.Shared.StrongTypes;
 
+namespace HoU.GuildBot.BLL
+{
     [UsedImplicitly]
     public class UserInfoProvider : IUserInfoProvider
     {

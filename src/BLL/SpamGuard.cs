@@ -1,12 +1,12 @@
-﻿namespace HoU.GuildBot.BLL
-{
-    using System.Collections.Generic;
-    using System.Linq;
-    using JetBrains.Annotations;
-    using Shared.BLL;
-    using Shared.Enums;
-    using Shared.Objects;
+﻿using System.Collections.Generic;
+using System.Linq;
+using JetBrains.Annotations;
+using HoU.GuildBot.Shared.BLL;
+using HoU.GuildBot.Shared.Enums;
+using HoU.GuildBot.Shared.Objects;
 
+namespace HoU.GuildBot.BLL
+{
     [UsedImplicitly]
     public class SpamGuard : ISpamGuard
     {

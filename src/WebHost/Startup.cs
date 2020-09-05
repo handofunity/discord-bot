@@ -1,14 +1,14 @@
-﻿namespace HoU.GuildBot.WebHost
-{
-    using System;
-    using System.Diagnostics;
-    using JetBrains.Annotations;
-    using Microsoft.AspNetCore.Builder;
-    using Microsoft.AspNetCore.Hosting;
-    using Microsoft.Extensions.Configuration;
-    using Microsoft.Extensions.DependencyInjection;
-    using Shared.Objects;
+﻿using System;
+using System.Diagnostics;
+using JetBrains.Annotations;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using HoU.GuildBot.Shared.Objects;
 
+namespace HoU.GuildBot.WebHost
+{
     [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
     public class Startup
     {

@@ -1,7 +1,7 @@
-﻿namespace HoU.GuildBot.Shared.Objects
-{
-    using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
+namespace HoU.GuildBot.Shared.Objects
+{
     public class SyncAllUsersResponse
     {
         public int CreatedUsers { get; set; }

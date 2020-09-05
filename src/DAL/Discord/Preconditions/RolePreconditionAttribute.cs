@@ -1,12 +1,12 @@
-﻿namespace HoU.GuildBot.DAL.Discord.Preconditions
-{
-    using System;
-    using System.Threading.Tasks;
-    using global::Discord.Commands;
-    using Shared.BLL;
-    using Shared.Enums;
-    using Shared.StrongTypes;
+﻿using System;
+using System.Threading.Tasks;
+using global::Discord.Commands;
+using HoU.GuildBot.Shared.BLL;
+using HoU.GuildBot.Shared.Enums;
+using HoU.GuildBot.Shared.StrongTypes;
 
+namespace HoU.GuildBot.DAL.Discord.Preconditions
+{
     [AttributeUsage(AttributeTargets.Method)]
     public class RolePreconditionAttribute : PreconditionAttribute
     {

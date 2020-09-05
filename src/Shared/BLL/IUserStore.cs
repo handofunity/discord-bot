@@ -1,12 +1,12 @@
-﻿namespace HoU.GuildBot.Shared.BLL
-{
-    using System;
-    using System.Collections.Generic;
-    using System.Threading.Tasks;
-    using Enums;
-    using Objects;
-    using StrongTypes;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using HoU.GuildBot.Shared.Enums;
+using HoU.GuildBot.Shared.Objects;
+using HoU.GuildBot.Shared.StrongTypes;
 
+namespace HoU.GuildBot.Shared.BLL
+{
     public interface IUserStore
     {
         /// <summary>

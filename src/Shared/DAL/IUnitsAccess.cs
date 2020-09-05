@@ -1,8 +1,8 @@
-﻿namespace HoU.GuildBot.Shared.DAL
-{
-    using System.Threading.Tasks;
-    using Objects;
+﻿using System.Threading.Tasks;
+using HoU.GuildBot.Shared.Objects;
 
+namespace HoU.GuildBot.Shared.DAL
+{
     public interface IUnitsAccess
     {
         /// <summary>

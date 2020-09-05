@@ -1,8 +1,8 @@
-﻿namespace HoU.GuildBot.DAL.Discord
-{
-    using global::Discord;
-    using Shared.Objects;
+﻿using global::Discord;
+using HoU.GuildBot.Shared.Objects;
 
+namespace HoU.GuildBot.DAL.Discord
+{
     public static class Extensions
     {
         internal static Embed ToEmbed(this EmbedData ed)

@@ -1,7 +1,7 @@
-﻿namespace HoU.GuildBot.Shared.Objects
-{
-    using StrongTypes;
+﻿using HoU.GuildBot.Shared.StrongTypes;
 
+namespace HoU.GuildBot.Shared.Objects
+{
     public class TextMessage
     {
         /// <summary>

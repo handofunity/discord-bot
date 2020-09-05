@@ -1,7 +1,7 @@
-﻿namespace HoU.GuildBot.Shared.Enums
-{
-    using System;
+﻿using System;
 
+namespace HoU.GuildBot.Shared.Enums
+{
     [Flags]
     public enum RequestType
     {

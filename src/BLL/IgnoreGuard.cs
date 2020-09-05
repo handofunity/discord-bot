@@ -1,13 +1,13 @@
-﻿namespace HoU.GuildBot.BLL
-{
-    using System;
-    using System.Collections.Generic;
-    using System.Text.RegularExpressions;
-    using JetBrains.Annotations;
-    using Shared.BLL;
-    using Shared.Objects;
-    using Shared.StrongTypes;
+﻿using System;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
+using JetBrains.Annotations;
+using HoU.GuildBot.Shared.BLL;
+using HoU.GuildBot.Shared.Objects;
+using HoU.GuildBot.Shared.StrongTypes;
 
+namespace HoU.GuildBot.BLL
+{
     [UsedImplicitly]
     public class IgnoreGuard : IIgnoreGuard
     {

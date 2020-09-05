@@ -1,8 +1,8 @@
-﻿namespace HoU.GuildBot.Shared.Objects
-{
-    using System.Collections.Generic;
-    using System.Diagnostics;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
 
+namespace HoU.GuildBot.Shared.Objects
+{
     [DebuggerDisplay("{" + nameof(ToString) + "(),nq}")]
     public class AvailableGame
     {

@@ -1,9 +1,9 @@
-﻿namespace HoU.GuildBot.DAL.Discord.Modules
-{
-    using System.Threading.Tasks;
-    using global::Discord;
-    using global::Discord.Commands;
+﻿using System.Threading.Tasks;
+using global::Discord;
+using global::Discord.Commands;
 
+namespace HoU.GuildBot.DAL.Discord.Modules
+{
     public abstract class ModuleBaseHoU : ModuleBase<SocketCommandContext>
     {
         ////////////////////////////////////////////////////////////////////////////////////////////////////////

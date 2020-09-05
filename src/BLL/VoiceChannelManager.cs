@@ -1,12 +1,12 @@
-﻿namespace HoU.GuildBot.BLL
-{
-    using System;
-    using System.Threading.Tasks;
-    using Shared.StrongTypes;
-    using Shared.BLL;
-    using Shared.DAL;
-    using Shared.Objects;
+﻿using System;
+using System.Threading.Tasks;
+using HoU.GuildBot.Shared.StrongTypes;
+using HoU.GuildBot.Shared.BLL;
+using HoU.GuildBot.Shared.DAL;
+using HoU.GuildBot.Shared.Objects;
 
+namespace HoU.GuildBot.BLL
+{
     public class VoiceChannelManager : IVoiceChannelManager
     {
         private const string InsufficientPermissionsMessage = "The bot has insufficient permissions for your current voice channel.";
@@ -28,13 +28,12 @@
                 return "Max users must be at least 2.";
 
             var (voiceChannelId, error) = await _discordAccess.CreateVoiceChannel(_appSettings.VoiceChannelCategoryId,
-                                                                                                             name,
-                                                                                                             maxUsers);
+                                                                                  name,
+                                                                                  maxUsers);
             if (error != null)
                 return error;
 
-#pragma warning disable CS4014 // Fire & forget
-            Task.Run(async () =>
+            _ = Task.Run(async () =>
             {
                 var checkDelay = new TimeSpan(0, 5, 0);
                 bool deleted;
@@ -44,7 +43,6 @@
                     deleted = await _discordAccess.DeleteVoiceChannelIfEmpty(voiceChannelId);
                 } while (!deleted);
             }).ConfigureAwait(false);
-#pragma warning restore CS4014 // Fire & forget
 
             return null;
         }
@@ -64,7 +62,7 @@
                        : $"{mention}: " + InsufficientPermissionsMessage;
         }
 
-        async Task<string> IVoiceChannelManager.TryToUnmuteUsers(DiscordUserID userId,
+        async Task<string> IVoiceChannelManager.TryToUnMuteUsers(DiscordUserID userId,
                                                                  string mention)
         {
             var userVoiceChannelId = _discordAccess.GetUsersVoiceChannelId(userId);

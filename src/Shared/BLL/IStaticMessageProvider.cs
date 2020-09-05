@@ -1,8 +1,8 @@
-﻿namespace HoU.GuildBot.Shared.BLL
-{
-    using System.Threading.Tasks;
-    using DAL;
+﻿using System.Threading.Tasks;
+using HoU.GuildBot.Shared.DAL;
 
+namespace HoU.GuildBot.Shared.BLL
+{
     public interface IStaticMessageProvider
     {
         IDiscordAccess DiscordAccess { set; }

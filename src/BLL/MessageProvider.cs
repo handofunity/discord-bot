@@ -1,13 +1,13 @@
-﻿namespace HoU.GuildBot.BLL
-{
-    using System;
-    using System.Collections.Concurrent;
-    using System.Threading.Tasks;
-    using JetBrains.Annotations;
-    using Shared.BLL;
-    using Shared.DAL;
-    using Shared.Objects;
+﻿using System;
+using System.Collections.Concurrent;
+using System.Threading.Tasks;
+using JetBrains.Annotations;
+using HoU.GuildBot.Shared.BLL;
+using HoU.GuildBot.Shared.DAL;
+using HoU.GuildBot.Shared.Objects;
 
+namespace HoU.GuildBot.BLL
+{
     [UsedImplicitly]
     public class MessageProvider : IMessageProvider
     {

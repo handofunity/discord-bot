@@ -1,11 +1,11 @@
-﻿namespace HoU.GuildBot.BLL
-{
-    using System.Collections.Generic;
-    using Shared.Objects;
-    using Shared.BLL;
-    using Shared.DAL;
-    using System.Linq;
+﻿using System.Collections.Generic;
+using HoU.GuildBot.Shared.Objects;
+using HoU.GuildBot.Shared.BLL;
+using HoU.GuildBot.Shared.DAL;
+using System.Linq;
 
+namespace HoU.GuildBot.BLL
+{
     public class GuildInfoProvider : IGuildInfoProvider
     {
         ////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -1,8 +1,8 @@
-﻿namespace HoU.GuildBot.WebHost
-{
-    using System;
-    using Shared.Objects;
+﻿using System;
+using HoU.GuildBot.Shared.Objects;
 
+namespace HoU.GuildBot.WebHost
+{
     public class EnvironmentEventArgs : EventArgs
     {
         public string Environment { get; }

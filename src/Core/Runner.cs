@@ -1,29 +1,28 @@
 ﻿using HoU.GuildBot.DAL.UNITS;
 using HoU.GuildBot.DAL.UnityHub;
+using System;
+using HoU.GuildBot.BLL;
+using HoU.GuildBot.DAL;
+using HoU.GuildBot.DAL.Database;
+using HoU.GuildBot.DAL.Discord;
+using Hangfire;
+using Hangfire.SqlServer;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Serilog;
+using HoU.GuildBot.Shared.BLL;
+using HoU.GuildBot.Shared.DAL;
+using HoU.GuildBot.Shared.Objects;
+using DiscordUserEventHandler = HoU.GuildBot.BLL.DiscordUserEventHandler;
 
 namespace HoU.GuildBot.Core
 {
-    using System;
-    using BLL;
-    using DAL;
-    using DAL.Database;
-    using DAL.Discord;
-    using Hangfire;
-    using Hangfire.SqlServer;
-    using Microsoft.Extensions.Configuration;
-    using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.Logging;
-    using Serilog;
-    using Shared.BLL;
-    using Shared.DAL;
-    using Shared.Objects;
-    using DiscordUserEventHandler = BLL.DiscordUserEventHandler;
-
     public class Runner
     {
         private BackgroundJobServer _backgroundJobServer;
 
-        private static readonly Version BotVersion = new Version(4, 5, 0);
+        private static readonly Version BotVersion = new Version(4, 5, 1);
 
         private ILogger<Runner> _logger;
 

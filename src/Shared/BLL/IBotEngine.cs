@@ -1,7 +1,7 @@
-﻿namespace HoU.GuildBot.Shared.BLL
-{
-    using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
+namespace HoU.GuildBot.Shared.BLL
+{
     public interface IBotEngine
     {
         Task Run();

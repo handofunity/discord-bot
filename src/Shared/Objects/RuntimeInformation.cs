@@ -1,7 +1,7 @@
-﻿namespace HoU.GuildBot.Shared.Objects
-{
-    using System;
+﻿using System;
 
+namespace HoU.GuildBot.Shared.Objects
+{
     public class RuntimeInformation
     {
         public string Environment { get; }

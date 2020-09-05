@@ -1,8 +1,8 @@
-﻿namespace HoU.GuildBot.Shared.BLL
-{
-    using System.Collections.Generic;
-    using Objects;
+﻿using System.Collections.Generic;
+using HoU.GuildBot.Shared.Objects;
 
+namespace HoU.GuildBot.Shared.BLL
+{
     public interface IBotInformationProvider
     {
         string GetEnvironmentName();

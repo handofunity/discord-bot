@@ -1,20 +1,20 @@
-﻿namespace HoU.GuildBot.DAL.Discord.Modules
-{
-    using System;
-    using System.Text.RegularExpressions;
-    using System.Threading.Tasks;
-    using global::Discord.Commands;
-    using JetBrains.Annotations;
-    using Microsoft.Extensions.Logging;
-    using Preconditions;
-    using Shared.Attributes;
-    using Shared.BLL;
-    using Shared.DAL;
-    using Shared.Enums;
-    using Shared.Extensions;
-    using Shared.Objects;
-    using Shared.StrongTypes;
+﻿using System;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using global::Discord.Commands;
+using JetBrains.Annotations;
+using Microsoft.Extensions.Logging;
+using HoU.GuildBot.DAL.Discord.Preconditions;
+using HoU.GuildBot.Shared.Attributes;
+using HoU.GuildBot.Shared.BLL;
+using HoU.GuildBot.Shared.DAL;
+using HoU.GuildBot.Shared.Enums;
+using HoU.GuildBot.Shared.Extensions;
+using HoU.GuildBot.Shared.Objects;
+using HoU.GuildBot.Shared.StrongTypes;
 
+namespace HoU.GuildBot.DAL.Discord.Modules
+{
     [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
     public class ConfigurationModule : ModuleBaseHoU
     {
@@ -61,8 +61,7 @@
         public async Task ListAllMessagesAsync()
         {
             var messages = await _messageProvider.ListAllMessages().ConfigureAwait(false);
-#pragma warning disable CS4014 // Fire & forget
-            Task.Run(async () =>
+            _ = Task.Run(async () =>
             {
                 await messages.PerformBulkOperation(async message =>
                 {
@@ -75,7 +74,7 @@
                     await Task.Delay(Constants.GlobalActionDelay).ConfigureAwait(false);
                     var content = message.Content;
                     if (content.StartsWith("```")
-                     && content.EndsWith("```"))
+                        && content.EndsWith("```"))
                     {
                         content = $"`{content.Substring(3, content.Length - 6)}`";
                     }
@@ -86,7 +85,6 @@
                     await ReplyAsync(content);
                 }).ConfigureAwait(false);
             }).ConfigureAwait(false);
-#pragma warning restore CS4014 // Fire & forget
         }
 
         [Command("set message")]

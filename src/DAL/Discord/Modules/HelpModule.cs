@@ -1,15 +1,15 @@
-﻿namespace HoU.GuildBot.DAL.Discord.Modules
-{
-    using System.Threading.Tasks;
-    using global::Discord.Commands;
-    using JetBrains.Annotations;
-    using Preconditions;
-    using Shared.Attributes;
-    using Shared.BLL;
-    using Shared.Enums;
-    using Shared.Extensions;
-    using Shared.StrongTypes;
+﻿using System.Threading.Tasks;
+using global::Discord.Commands;
+using JetBrains.Annotations;
+using HoU.GuildBot.DAL.Discord.Preconditions;
+using HoU.GuildBot.Shared.Attributes;
+using HoU.GuildBot.Shared.BLL;
+using HoU.GuildBot.Shared.Enums;
+using HoU.GuildBot.Shared.Extensions;
+using HoU.GuildBot.Shared.StrongTypes;
 
+namespace HoU.GuildBot.DAL.Discord.Modules
+{
     [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
     public class HelpModule : ModuleBaseHoU
     {

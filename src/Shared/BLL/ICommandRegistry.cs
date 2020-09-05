@@ -1,8 +1,8 @@
-﻿namespace HoU.GuildBot.Shared.BLL
-{
-    using Enums;
-    using Objects;
+﻿using HoU.GuildBot.Shared.Enums;
+using HoU.GuildBot.Shared.Objects;
 
+namespace HoU.GuildBot.Shared.BLL
+{
     public interface ICommandRegistry
     {
         bool CommandsRegistered { get; }

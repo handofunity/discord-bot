@@ -1,8 +1,8 @@
-﻿namespace HoU.GuildBot.Shared.BLL
-{
-    using System.Threading.Tasks;
-    using Objects;
+﻿using System.Threading.Tasks;
+using HoU.GuildBot.Shared.Objects;
 
+namespace HoU.GuildBot.Shared.BLL
+{
     public interface IPrivacyProvider
     {
         /// <summary>

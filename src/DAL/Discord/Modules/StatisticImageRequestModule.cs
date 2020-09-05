@@ -1,15 +1,15 @@
-﻿namespace HoU.GuildBot.DAL.Discord.Modules
-{
-    using System;
-    using System.Threading.Tasks;
-    using global::Discord.Commands;
-    using JetBrains.Annotations;
-    using Microsoft.Extensions.Logging;
-    using Preconditions;
-    using Shared.Attributes;
-    using Shared.BLL;
-    using Shared.Enums;
+﻿using System;
+using System.Threading.Tasks;
+using global::Discord.Commands;
+using JetBrains.Annotations;
+using Microsoft.Extensions.Logging;
+using HoU.GuildBot.DAL.Discord.Preconditions;
+using HoU.GuildBot.Shared.Attributes;
+using HoU.GuildBot.Shared.BLL;
+using HoU.GuildBot.Shared.Enums;
 
+namespace HoU.GuildBot.DAL.Discord.Modules
+{
     [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
     public class StatisticImageRequestModule : ModuleBaseHoU
     {
@@ -44,24 +44,18 @@
         [RequireContext(ContextType.Guild)]
         [ResponseContext(ResponseType.AlwaysSameChannel)]
         [RolePrecondition(Role.AnyGuildMember)]
-        public async Task GetAocRolesImage()
+        public Task GetAocRolesImage()
         {
             var channel = Context.Channel;
 
-#pragma warning disable CS4014 // Fire & forget
-
             // The rest of this runs in a fire & forget task to not block the gateway
-            Task.Run(async () =>
+            _ = Task.Run(async () =>
             {
                 try
                 {
-                    using (channel.EnterTypingState())
-                    {
-                        using (var imageStream = _imageProvider.CreateAocRolesImage())
-                        {
-                            await channel.SendFileAsync(imageStream, "currentAocRoles.png").ConfigureAwait(false);
-                        }
-                    }
+                    using var state = channel.EnterTypingState();
+                    await using var imageStream = _imageProvider.CreateAocRolesImage();
+                    await channel.SendFileAsync(imageStream, "currentAocRoles.png");
                 }
                 catch (Exception e)
                 {
@@ -69,7 +63,7 @@
                 }
             }).ConfigureAwait(false);
 
-#pragma warning restore CS4014 // Fire & forget
+            return Task.CompletedTask;
         }
 
         #endregion

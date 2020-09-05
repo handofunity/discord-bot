@@ -1,13 +1,13 @@
-﻿namespace HoU.GuildBot.Shared.DAL
-{
-    using System;
-    using System.Collections.Generic;
-    using System.Threading.Tasks;
-    using Enums;
-    using JetBrains.Annotations;
-    using Objects;
-    using StrongTypes;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using HoU.GuildBot.Shared.Enums;
+using JetBrains.Annotations;
+using HoU.GuildBot.Shared.Objects;
+using HoU.GuildBot.Shared.StrongTypes;
 
+namespace HoU.GuildBot.Shared.DAL
+{
     public interface IDiscordAccess
     {
         /// <summary>

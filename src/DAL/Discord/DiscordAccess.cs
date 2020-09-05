@@ -1,29 +1,28 @@
 ﻿using System.Text;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
+using Discord;
+using Discord.Commands;
+using Discord.Net;
+using Discord.WebSocket;
+using JetBrains.Annotations;
+using Microsoft.Extensions.Logging;
+using HoU.GuildBot.DAL.Discord.Preconditions;
+using HoU.GuildBot.Shared.Attributes;
+using HoU.GuildBot.Shared.BLL;
+using HoU.GuildBot.Shared.DAL;
+using HoU.GuildBot.Shared.Enums;
+using HoU.GuildBot.Shared.Exceptions;
+using HoU.GuildBot.Shared.Extensions;
+using HoU.GuildBot.Shared.Objects;
+using HoU.GuildBot.Shared.StrongTypes;
+using CommandInfo = Discord.Commands.CommandInfo;
 
 namespace HoU.GuildBot.DAL.Discord
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Net;
-    using System.Threading.Tasks;
-    using global::Discord;
-    using global::Discord.Commands;
-    using global::Discord.Net;
-    using global::Discord.WebSocket;
-    using JetBrains.Annotations;
-    using Microsoft.Extensions.Logging;
-    using Preconditions;
-    using Shared.Attributes;
-    using Shared.BLL;
-    using Shared.DAL;
-    using Shared.Enums;
-    using Shared.Exceptions;
-    using Shared.Extensions;
-    using Shared.Objects;
-    using Shared.StrongTypes;
-    using CommandInfo = global::Discord.Commands.CommandInfo;
-
     [UsedImplicitly]
     public class DiscordAccess : IDiscordAccess
     {
@@ -212,7 +211,7 @@ namespace HoU.GuildBot.DAL.Discord
                 var context = new SocketCommandContext(_client, userMessage);
                 try
                 {
-                    await _commands.ExecuteAsync(context, argPos, _serviceProvider).ConfigureAwait(false);
+                    await _commands.ExecuteAsync(context, argPos, _serviceProvider);
                 }
                 catch (Exception e)
                 {
@@ -225,7 +224,7 @@ namespace HoU.GuildBot.DAL.Discord
         {
             if (result.Error != null && result.Error == CommandError.UnmetPrecondition)
             {
-                if (result.ErrorReason?.ToLower()?.Contains("invalid context for command") == true)
+                if (result.ErrorReason?.ToLower().Contains("invalid context for command") == true)
                 {
                     return "The command used was executed in the wrong context (guild channel or direct message to the bot). " +
                            "Please use the hou!help command to view the valid contexts for the command.";
@@ -264,7 +263,7 @@ namespace HoU.GuildBot.DAL.Discord
                 var cc = commandCategory?.Category ?? CommandCategory.Undefined;
                 var cco = commandCategory?.Order ?? 0;
 
-                // Create POCO
+                // Create PoCo
                 return new Shared.Objects.CommandInfo(ci.Name, ci.Aliases.ToArray(), rt, resp, rr, cc, cco)
                 {
                     Summary = ci.Summary,
@@ -341,7 +340,8 @@ namespace HoU.GuildBot.DAL.Discord
         {
             // Locals
             var handled = false;
-            string FormatLogMessage(string m, Exception e)
+
+            static string FormatLogMessage(string m, Exception e)
             {
                 if (m != null && e != null)
                     return $"{m}: {e}";
@@ -349,12 +349,12 @@ namespace HoU.GuildBot.DAL.Discord
             }
 
             // Handle special cases
-            if (msg.Exception?.InnerException is WebSocketClosedException wsce)
+            if (msg.Exception?.InnerException is WebSocketClosedException webSocketClosedException)
             {
                 // In case of WebSocketClosedException, check for expected behavior, give the exception more meaning and log only the inner exception data
-                if (wsce.CloseCode == 1001)
+                if (webSocketClosedException.CloseCode == 1001)
                 {
-                    _logger.Log(ToLogLevel(msg.Severity), 0, prefix + $"The server sent close 1001 [Going away]: {(string.IsNullOrWhiteSpace(wsce.Reason) ? "<no further reason specified>" : wsce.Reason)}", null, FormatLogMessage);
+                    _logger.Log(ToLogLevel(msg.Severity), 0, prefix + $"The server sent close 1001 [Going away]: {(string.IsNullOrWhiteSpace(webSocketClosedException.Reason) ? "<no further reason specified>" : webSocketClosedException.Reason)}", null, FormatLogMessage);
                     handled = true;
                 }
             }
@@ -400,15 +400,24 @@ namespace HoU.GuildBot.DAL.Discord
                     if (valid)
                         return true;
 
-                    var leaderRole = GetRoleByName(Constants.RoleNames.LeaderRoleName, g);
-                    var officerRole = GetRoleByName(Constants.RoleNames.OfficerRoleName, g);
-                    await
-                        LogToDiscordInternal($"{leaderRole.Mention} {officerRole.Mention}: User `{gu.Username}#{gu.DiscriminatorValue}` " +
-                                             "could not be promoted to **Recruit** because of invalid characters in his username.");
+                    // Get channels for notifications
                     var privateChannel = await gu.GetOrCreateDMChannelAsync();
-                    await privateChannel.SendMessageAsync($"Hello `{gu.Username}#{gu.DiscriminatorValue}` - your promotion to the rank **Recruit** failed " +
-                                                          "because your username contains invalid characters. Only the following characters are allowed: " +
-                                                          $"`{validCharacters}`");
+                    var comCoordinatorChannel = g.GetTextChannel((ulong) _appSettings.ComCoordinatorChannelId);
+
+                    // Prepare messages
+                    var infoMessage = $"User `{gu.Username}#{gu.DiscriminatorValue}` " +
+                                      $"could not be promoted to **Recruit** because of invalid characters in his username (`{gu.Username}`).";
+                    var infoMessageWithHereMentionAndInvalidCharacters =
+                        "@here - " + infoMessage + $"Only the following characters are allowed: `{validCharacters}`";
+                    var privateNotificationMessage =
+                        $"Hello `{gu.Username}#{gu.DiscriminatorValue}` - your promotion to the rank **Recruit** failed " +
+                        $"because your username (`{gu.Username}`) contains invalid characters. Only the following characters are allowed: " +
+                        $"`{validCharacters}`";
+
+                    // Send notifications and log message
+                    await LogToDiscordInternal(infoMessage);
+                    await comCoordinatorChannel.SendMessageAsync(infoMessageWithHereMentionAndInvalidCharacters);
+                    await privateChannel.SendMessageAsync(privateNotificationMessage);
 
                     var recruitRole = GetRoleByName(nameof(Role.Recruit), g);
                     await gu.RemoveRoleAsync(recruitRole);
@@ -1164,13 +1173,15 @@ namespace HoU.GuildBot.DAL.Discord
 
             _guildAvailable = true;
             _logger.LogInformation($"Guild '{guild.Name}' is available.");
-#pragma warning disable CS4014 // Fire & forget
-            Task.Run(async () =>
+            _ = Task.Run(async () =>
             {
                 if (!_userStore.IsInitialized)
                 {
                     // Initialize user store only once
-                    await _userStore.Initialize(guild.Users.Select(m => ((DiscordUserID)m.Id, SocketRoleToRole(m.Roles))).ToArray()).ConfigureAwait(false);
+                    await guild.DownloadUsersAsync();
+                    var allGuildUsers = guild.Users;
+                    var mappedGuildUsers = allGuildUsers.Select(m => ((DiscordUserID) m.Id, SocketRoleToRole(m.Roles))).ToArray();
+                    await _userStore.Initialize(mappedGuildUsers);
                 }
                 
                 if (_gameRoleProvider.Games.Count == 0)
@@ -1183,7 +1194,6 @@ namespace HoU.GuildBot.DAL.Discord
                 await _staticMessageProvider.EnsureStaticMessagesExist().ConfigureAwait(false);
 
             }).ConfigureAwait(false);
-#pragma warning restore CS4014 // Fire & forget
 
             while (_pendingMessages.Count > 0)
             {

@@ -1,14 +1,14 @@
-﻿namespace HoU.GuildBot.BLL
-{
-    using System;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using Shared.BLL;
-    using Shared.DAL;
-    using Shared.Enums;
-    using Shared.Objects;
-    using Shared.StrongTypes;
+﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
+using HoU.GuildBot.Shared.BLL;
+using HoU.GuildBot.Shared.DAL;
+using HoU.GuildBot.Shared.Enums;
+using HoU.GuildBot.Shared.Objects;
+using HoU.GuildBot.Shared.StrongTypes;
 
+namespace HoU.GuildBot.BLL
+{
     public class DiscordUserEventHandler : IDiscordUserEventHandler
     {
         ////////////////////////////////////////////////////////////////////////////////////////////////////////

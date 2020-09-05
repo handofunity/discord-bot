@@ -1,12 +1,12 @@
-﻿namespace HoU.GuildBot.BLL
-{
-    using System.Threading.Tasks;
-    using System.Timers;
-    using JetBrains.Annotations;
-    using Shared.BLL;
-    using Shared.DAL;
-    using Shared.Objects;
+﻿using System.Threading.Tasks;
+using System.Timers;
+using JetBrains.Annotations;
+using HoU.GuildBot.Shared.BLL;
+using HoU.GuildBot.Shared.DAL;
+using HoU.GuildBot.Shared.Objects;
 
+namespace HoU.GuildBot.BLL
+{
     [UsedImplicitly]
     public class PrivacyProvider : IPrivacyProvider
     {

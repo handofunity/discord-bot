@@ -1,8 +1,8 @@
-﻿namespace HoU.GuildBot.Shared.Extensions
-{
-    using System;
-    using Enums;
+﻿using System;
+using HoU.GuildBot.Shared.Enums;
 
+namespace HoU.GuildBot.Shared.Extensions
+{
     public static class EnumExtensions
     {
         public static string GetDisplayName(this CommandCategory commandCategory)

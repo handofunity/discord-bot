@@ -1,7 +1,7 @@
-﻿namespace HoU.GuildBot.Shared.Objects
-{
-    using System;
+﻿using System;
 
+namespace HoU.GuildBot.Shared.Objects
+{
     public static class Constants
     {
         public const string InvalidCommandUsageTitle = ":octagonal_sign: Invalid command usage";

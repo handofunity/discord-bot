@@ -1,8 +1,8 @@
-﻿namespace HoU.GuildBot.Core
-{
-    using System;
-    using Hangfire;
+﻿using System;
+using Hangfire;
 
+namespace HoU.GuildBot.Core
+{
     internal class ContainerJobActivator : JobActivator
     {
         private readonly IServiceProvider _serviceProvider;
