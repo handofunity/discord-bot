@@ -1,6 +1,7 @@
 REGISTRY_HOST="$(sed -nr "/^\[Network\]/ { :l /^RegistryHost[ ]*=/ { s/.*=[ ]*//; p; q;}; n; b l;}" ./settings.registry.production.ini)"
 REGISTRY_EXTERNAL_PORT="$(sed -nr "/^\[Network\]/ { :l /^RegistryExternalPort[ ]*=/ { s/.*=[ ]*//; p; q;}; n; b l;}" ./settings.registry.production.ini)"
 REGISTRY_INTERNAL_PORT="$(sed -nr "/^\[Network\]/ { :l /^RegistryInternalPort[ ]*=/ { s/.*=[ ]*//; p; q;}; n; b l;}" ./settings.registry.production.ini)"
+IP_DOCKER_REGISTRY="$(sed -nr "/^\[Network\]/ { :l /^IpDockerRegistry[ ]*=/ { s/.*=[ ]*//; p; q;}; n; b l;}" ./settings.production.ini)"
 
 docker run -d \
   --name registry \
@@ -12,6 +13,8 @@ docker run -d \
   --memory-swap=400m \
   --security-opt="no-new-privileges:true" \
   --pids-limit=100 \
+  --network docker-network \
+  --ip $IP_DOCKER_REGISTRY \
   -v /var/docker-registry:/var/lib/registry \
   -v /etc/ssl/caddy/acme/acme-v02.api.letsencrypt.org/sites/$REGISTRY_HOST:/certs:ro \
   -e REGISTRY_HTTP_ADDR=0.0.0.0:$REGISTRY_INTERNAL_PORT \
