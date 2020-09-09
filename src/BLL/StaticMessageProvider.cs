@@ -58,10 +58,10 @@ namespace HoU.GuildBot.BLL
             }
         }
 
-#endregion
+        #endregion
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
-#region Private Methods
+        #region Private Methods
 
         private async Task LoadAocRoleMenuMessages(Dictionary<DiscordChannelID, (List<string> Messages, Func<ulong[], Task> PostCreationCallback)> expectedChannelMessages)
         {
@@ -216,10 +216,10 @@ namespace HoU.GuildBot.BLL
             }).ConfigureAwait(false);
         }
 
-#endregion
+        #endregion
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
-#region IStaticMessageProvider Members
+        #region IStaticMessageProvider Members
 
         IDiscordAccess IStaticMessageProvider.DiscordAccess
         {
@@ -272,10 +272,10 @@ namespace HoU.GuildBot.BLL
             }
         }
 
-#endregion
+        #endregion
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
-#region Event Handler
+        #region Event Handler
 
         private void MessageProvider_MessageChanged(object sender, MessageChangedEventArgs e)
         {
@@ -318,6 +318,6 @@ namespace HoU.GuildBot.BLL
             }
         }
 
-#endregion
+        #endregion
     }
 }

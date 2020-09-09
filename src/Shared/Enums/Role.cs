@@ -27,13 +27,13 @@ namespace HoU.GuildBot.Shared.Enums
         /// </summary>
         Member = 16,
         /// <summary>
-        /// Only users with the role <see cref="Recruit"/> may use these commands.
+        /// Only users with the role <see cref="TrialMember"/> may use these commands.
         /// </summary>
-        Recruit = 32,
+        TrialMember = 32,
         /// <summary>
         /// Any user who is a guild member may use these commands.
         /// </summary>
-        AnyGuildMember = Leader | Officer | Coordinator | Member | Recruit,
+        AnyGuildMember = Leader | Officer | Coordinator | Member | TrialMember,
         /// <summary>
         /// Not a guild member, but a <see cref="Guest"/> role.
         /// </summary>

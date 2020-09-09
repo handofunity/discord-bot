@@ -61,7 +61,7 @@ namespace HoU.GuildBot.DAL.Discord
                 {"Community Coordinator", Role.Coordinator},
                 {"WoW Classic Coordinator", Role.Coordinator},
                 {"Member", Role.Member},
-                {"Recruit", Role.Recruit},
+                {"Trial Member", Role.TrialMember},
                 {"Guest", Role.Guest},
                 {"Friend of Member", Role.FriendOfMember},
                 {"AoC Interest", Role.GameInterestAshesOfCreation },
@@ -406,11 +406,11 @@ namespace HoU.GuildBot.DAL.Discord
 
                     // Prepare messages
                     var infoMessage = $"User `{gu.Username}#{gu.DiscriminatorValue}` " +
-                                      $"could not be promoted to **Recruit** because of invalid characters in his username (`{gu.Username}`).";
+                                      $"could not be promoted to **Trial Member** because of invalid characters in his username (`{gu.Username}`).";
                     var infoMessageWithHereMentionAndInvalidCharacters =
                         "@here - " + infoMessage + $"Only the following characters are allowed: `{validCharacters}`";
                     var privateNotificationMessage =
-                        $"Hello `{gu.Username}#{gu.DiscriminatorValue}` - your promotion to the rank **Recruit** failed " +
+                        $"Hello `{gu.Username}#{gu.DiscriminatorValue}` - your promotion to the rank **Trial Member** failed " +
                         $"because your username (`{gu.Username}`) contains invalid characters. Only the following characters are allowed: " +
                         $"`{validCharacters}`";
 
@@ -419,8 +419,8 @@ namespace HoU.GuildBot.DAL.Discord
                     await comCoordinatorChannel.SendMessageAsync(infoMessageWithHereMentionAndInvalidCharacters);
                     await privateChannel.SendMessageAsync(privateNotificationMessage);
 
-                    var recruitRole = GetRoleByName(nameof(Role.Recruit), g);
-                    await gu.RemoveRoleAsync(recruitRole);
+                    var trialMemberRole = GetRoleByName(nameof(Role.TrialMember), g);
+                    await gu.RemoveRoleAsync(trialMemberRole);
 
                     return false;
                 }

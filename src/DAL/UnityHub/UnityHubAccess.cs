@@ -70,7 +70,7 @@ namespace HoU.GuildBot.DAL.UnityHub
                 "AoC Coordinator",
                 "WoW Classic Coordinator",
                 "Member",
-                "Recruit"
+                "Trial Member"
             };
         }
 

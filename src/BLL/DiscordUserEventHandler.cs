@@ -105,14 +105,14 @@ namespace HoU.GuildBot.BLL
 
             // Check if the role change was a promotion
             Role promotedTo;
-            if (!oldRoles.HasFlag(Role.Recruit)
+            if (!oldRoles.HasFlag(Role.TrialMember)
              && !oldRoles.HasFlag(Role.Member)
              && !oldRoles.HasFlag(Role.Coordinator)
              && !oldRoles.HasFlag(Role.Officer)
              && !oldRoles.HasFlag(Role.Leader)
-             && newRoles.HasFlag(Role.Recruit))
+             && newRoles.HasFlag(Role.TrialMember))
             {
-                promotedTo = Role.Recruit;
+                promotedTo = Role.TrialMember;
             }
             else
             {
