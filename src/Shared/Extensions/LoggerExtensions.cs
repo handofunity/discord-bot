@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.Net.Http;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
 namespace HoU.GuildBot.Shared.Extensions
@@ -13,17 +14,30 @@ namespace HoU.GuildBot.Shared.Extensions
             logger.LogWarning("Failed to call '{HttpAddress}{Route}': {Reason}", baseAddress, route, reason);
         }
 
-        public static void LogRequestError(this ILogger logger,
+        public static async Task LogRequestErrorAsync(this ILogger logger,
                                            string baseAddress,
                                            string route,
-                                           HttpStatusCode statusCode)
+                                           HttpResponseMessage responseMessage)
         {
-            logger.LogWarning("Failed to call '{HttpAddress}{Route}': {Reason} {HttpStatusCodeName} {HttpStatusCode}",
+            var statusCode = responseMessage.StatusCode;
+            string responseMessageContent = string.Empty;
+            try
+            {
+                var content = await responseMessage.Content.ReadAsStringAsync();
+                if (!string.IsNullOrWhiteSpace(content))
+                    responseMessageContent = content;
+            }
+            catch
+            {
+                responseMessageContent = string.Empty;
+            }
+            logger.LogWarning("Failed to call '{HttpAddress}{Route}': {Reason} {HttpStatusCodeName} {HttpStatusCode} {ResponseMessageContent}",
                               baseAddress,
                               route,
                               "HTTP Status Code",
                               statusCode.ToString(),
-                              (int) statusCode);
+                              (int) statusCode,
+                              responseMessageContent);
         }
     }
 }

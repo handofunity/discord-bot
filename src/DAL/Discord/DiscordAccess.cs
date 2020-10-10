@@ -972,7 +972,7 @@ namespace HoU.GuildBot.DAL.Discord
             return $"/{channel.Category.Name}/{channel.Name}";
         }
 
-        async Task<(ulong VoiceChannelId, string Error)> IDiscordAccess.CreateVoiceChannel(ulong voiceChannelCategoryId,
+        async Task<(ulong VoiceChannelId, string Error)> IDiscordAccess.CreateVoiceChannel(ulong voiceChannelsCategoryId,
                                                                                            string name,
                                                                                            int maxUsers)
         {
@@ -986,13 +986,65 @@ namespace HoU.GuildBot.DAL.Discord
                                                                    properties =>
                                                                    {
                                                                        properties.UserLimit = maxUsers;
-                                                                       properties.CategoryId = voiceChannelCategoryId;
+                                                                       properties.CategoryId = voiceChannelsCategoryId;
                                                                    });
                 return (voiceChannel.Id, null);
             }
             catch (Exception e)
             {
                 return (0, e.Message);
+            }
+        }
+
+        async Task IDiscordAccess.ReorderChannelsAsync(ulong[] channelIds,
+                                                       ulong positionAboveChannelId)
+        {
+            var g = GetGuild();
+            try
+            {
+                var baseChannel = g.GetChannel(positionAboveChannelId) as INestedChannel;
+                if (baseChannel?.CategoryId == null)
+                {
+                    _logger.LogWarning("Trying to reorder channels, " +
+                                       "but the given base channel ({ChannelId}) to position the channels above is not a nested channel.",
+                                       positionAboveChannelId);
+                    return;
+                }
+
+                if (channelIds.Length == 0)
+                    return;
+
+                var finalList = new List<ReorderChannelProperties>();
+                var baseChannelCategory = g.GetCategoryChannel(baseChannel.CategoryId.Value);
+                var channelsInCategory = baseChannelCategory.Channels
+                                                            .Where(m => !channelIds.Contains(m.Id))
+                                                            .OrderBy(m => m.Position)
+                                                            .ToArray();
+
+                var position = 1;
+                foreach (var channel in channelsInCategory)
+                {
+                    if (channel.Id == positionAboveChannelId)
+                    {
+                        foreach (var channelId in channelIds)
+                        {
+                            finalList.Add(new ReorderChannelProperties(channelId, position));
+                            position++;
+                        }
+                        finalList.Add(new ReorderChannelProperties(channel.Id, position));
+                    }
+                    else
+                    {
+                        finalList.Add(new ReorderChannelProperties(channel.Id, position));
+                    }
+                    position++;
+                }
+                
+                await g.ReorderChannelsAsync(finalList);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Failed to reorder channels.");
             }
         }
 

@@ -15,9 +15,6 @@ namespace HoU.GuildBot.DAL.UNITS
 {
     public class UnitsAccess : IUnitsAccess
     {
-        private const string RoleNamesRoute = "/bot-api/discordsync/valid-role-names";
-        private const string PushAllUsersRoute = "/bot-api/discordsync/all-users";
-
         private readonly IUnitsBearerTokenManager _bearerTokenManager;
         private readonly ILogger<UnitsAccess> _logger;
 
@@ -36,12 +33,12 @@ namespace HoU.GuildBot.DAL.UNITS
             using (var httpClientHandler = new HttpClientHandler())
             {
 #if DEBUG
-                httpClientHandler.ServerCertificateCustomValidationCallback = (message,
-                                                                               certificate2,
-                                                                               arg3,
-                                                                               arg4) => true;
+                httpClientHandler.ServerCertificateCustomValidationCallback = (httpRequestMessage,
+                                                                               certificate,
+                                                                               chain,
+                                                                               policyErrors) => true;
 #endif
-                using (var httpClient = new HttpClient(httpClientHandler) { BaseAddress = new Uri(baseAddress) })
+                using (var httpClient = new HttpClient(httpClientHandler) {BaseAddress = new Uri(baseAddress)})
                 {
                     httpClient.DefaultRequestHeaders.Accept.Clear();
                     httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -66,7 +63,8 @@ namespace HoU.GuildBot.DAL.UNITS
                     if (response.StatusCode == HttpStatusCode.Unauthorized)
                     {
                         // If the first response status code is Unauthorized (401), the token might either be expired, or invalid.
-                        var isExpired = response.Headers.TryGetValues("Token-Expired", out var expiredTokenValues) && expiredTokenValues.Any(m => m?.ToLowerInvariant() == "true");
+                        var isExpired = response.Headers.TryGetValues("Token-Expired", out var expiredTokenValues) &&
+                                        expiredTokenValues.Any(m => m?.ToLowerInvariant() == "true");
                         if (isExpired)
                         {
                             // If the token is expired, refresh the token.
@@ -91,18 +89,20 @@ namespace HoU.GuildBot.DAL.UNITS
 
         async Task<string[]> IUnitsAccess.GetValidRoleNamesAsync(UnitsSyncData unitsSyncData)
         {
+            const string requestPath = "/bot-api/discordsync/valid-role-names";
+
             string[] methodResult = null;
 
             async Task<HttpResponseMessage> ExecuteHttpCall(HttpClient httpClient)
             {
                 try
                 {
-                    return await httpClient.GetAsync(RoleNamesRoute);
+                    return await httpClient.GetAsync(requestPath);
                 }
                 catch (HttpRequestException e)
                 {
                     var baseExceptionMessage = e.GetBaseException().Message;
-                    _logger.LogRequestError(unitsSyncData.BaseAddress, RoleNamesRoute, baseExceptionMessage);
+                    _logger.LogRequestError(unitsSyncData.BaseAddress, requestPath, baseExceptionMessage);
                     return null;
                 }
             }
@@ -113,7 +113,7 @@ namespace HoU.GuildBot.DAL.UNITS
                     return;
                 if (!responseMessage.IsSuccessStatusCode)
                 {
-                    _logger.LogRequestError(unitsSyncData.BaseAddress, RoleNamesRoute, responseMessage.StatusCode);
+                    await _logger.LogRequestErrorAsync(unitsSyncData.BaseAddress, requestPath, responseMessage);
                     return;
                 }
 
@@ -130,6 +130,7 @@ namespace HoU.GuildBot.DAL.UNITS
         async Task<SyncAllUsersResponse> IUnitsAccess.SendAllUsersAsync(UnitsSyncData unitsSyncData,
                                                                         UserModel[] users)
         {
+            const string requestPath = "/bot-api/discordsync/all-users";
             SyncAllUsersResponse methodResult = null;
 
             var request = new SyncAllUsersRequest
@@ -139,16 +140,20 @@ namespace HoU.GuildBot.DAL.UNITS
             var serialized = JsonConvert.SerializeObject(request);
             var requestContent = new StringContent(serialized, Encoding.UTF8, "application/json");
 
+            await UseHttpClient(ExecuteHttpCall, HandleResponseMessage, unitsSyncData.BaseAddress, unitsSyncData.Secret);
+
+            return methodResult;
+
             async Task<HttpResponseMessage> ExecuteHttpCall(HttpClient httpClient)
             {
                 try
                 {
-                    return await httpClient.PostAsync(PushAllUsersRoute, requestContent);
+                    return await httpClient.PostAsync(requestPath, requestContent);
                 }
                 catch (HttpRequestException e)
                 {
                     var baseExceptionMessage = e.GetBaseException().Message;
-                    _logger.LogRequestError(unitsSyncData.BaseAddress, PushAllUsersRoute, baseExceptionMessage);
+                    _logger.LogRequestError(unitsSyncData.BaseAddress, requestPath, baseExceptionMessage);
                     return null;
                 }
             }
@@ -164,13 +169,41 @@ namespace HoU.GuildBot.DAL.UNITS
                 }
                 else
                 {
-                    _logger.LogRequestError(unitsSyncData.BaseAddress, PushAllUsersRoute, responseMessage.StatusCode);
+                    await _logger.LogRequestErrorAsync(unitsSyncData.BaseAddress, requestPath, responseMessage);
                 }
             }
+        }
+
+        async Task IUnitsAccess.SendCreatedVoiceChannelsAsync(UnitsSyncData unitsSyncData,
+                                                              SyncCreatedVoiceChannelsRequest createdVoiceChannelsRequest)
+        {
+            const string requestPath = "/bot-api/discordsync/created-voice-channels";
+            var serialized = JsonConvert.SerializeObject(createdVoiceChannelsRequest);
+            var requestContent = new StringContent(serialized, Encoding.UTF8, "application/json");
 
             await UseHttpClient(ExecuteHttpCall, HandleResponseMessage, unitsSyncData.BaseAddress, unitsSyncData.Secret);
 
-            return methodResult;
+            async Task<HttpResponseMessage> ExecuteHttpCall(HttpClient httpClient)
+            {
+                try
+                {
+                    return await httpClient.PostAsync(requestPath, requestContent);
+                }
+                catch (HttpRequestException e)
+                {
+                    var baseExceptionMessage = e.GetBaseException().Message;
+                    _logger.LogRequestError(unitsSyncData.BaseAddress, requestPath, baseExceptionMessage);
+                    return null;
+                }
+            }
+
+            async Task HandleResponseMessage(HttpResponseMessage responseMessage)
+            {
+                if (responseMessage == null)
+                    return;
+                if (!responseMessage.IsSuccessStatusCode)
+                    await _logger.LogRequestErrorAsync(unitsSyncData.BaseAddress, requestPath, responseMessage);
+            }
         }
     }
 }

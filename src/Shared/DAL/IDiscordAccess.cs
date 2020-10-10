@@ -218,13 +218,22 @@ namespace HoU.GuildBot.Shared.DAL
         /// <summary>
         /// Creates a temporary voice channel.
         /// </summary>
-        /// <param name="voiceChannelCategoryId">The ID of the category where the voice channel should be placed.</param>
+        /// <param name="voiceChannelsCategoryId">The ID of the category where the voice channel should be placed.</param>
         /// <param name="name">The name of the voice channel.</param>
         /// <param name="maxUsers">The maximum number of users allowed into the voice channel.</param>
         /// <returns>The ID of the created channel, or an error while creating it.</returns>
-        Task<(ulong VoiceChannelId, string Error)> CreateVoiceChannel(ulong voiceChannelCategoryId,
+        Task<(ulong VoiceChannelId, string Error)> CreateVoiceChannel(ulong voiceChannelsCategoryId,
                                                                       string name,
                                                                       int maxUsers);
+
+        /// <summary>
+        /// Reorders the <paramref name="channelIds"/> to be in order above the <paramref name="positionAboveChannelId"/>.
+        /// </summary>
+        /// <param name="channelIds">The IDs of the channels to reorder.</param>
+        /// <param name="positionAboveChannelId">The ID of the channel to place the <paramref name="channelIds"/> above.</param>
+        /// <returns>An awaitable <see cref="Task"/>.</returns>
+        Task ReorderChannelsAsync(ulong[] channelIds,
+                             ulong positionAboveChannelId);
 
         /// <summary>
         /// Deletes the voice channel, if it's empty.

@@ -6,16 +6,26 @@ using HoU.GuildBot.Shared.BLL;
 using HoU.GuildBot.Shared.DAL;
 using HoU.GuildBot.Shared.Objects;
 using HoU.GuildBot.Shared.StrongTypes;
+using Microsoft.Extensions.Logging;
 
 namespace HoU.GuildBot.BLL
 {
     public class UnitsBotClient : IUnitsBotClient
     {
         private readonly IDiscordAccess _discordAccess;
+        private readonly IUnitsAccess _unitsAccess;
+        private readonly AppSettings _appSettings;
+        private readonly ILogger<UnitsBotClient> _logger;
 
-        public UnitsBotClient(IDiscordAccess discordAccess)
+        public UnitsBotClient(IDiscordAccess discordAccess,
+                              IUnitsAccess unitsAccess,
+                              AppSettings appSettings,
+                              ILogger<UnitsBotClient> logger)
         {
             _discordAccess = discordAccess ?? throw new ArgumentNullException(nameof(discordAccess));
+            _unitsAccess = unitsAccess ?? throw new ArgumentNullException(nameof(unitsAccess));
+            _appSettings = appSettings ?? throw new ArgumentNullException(nameof(appSettings));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         private static EmbedData GetEventEmbed(string baseAddress,
@@ -189,6 +199,60 @@ namespace HoU.GuildBot.BLL
             else
             {
                 await _discordAccess.SendUnitsNotificationAsync(embed);
+            }
+        }
+
+        async Task IUnitsBotClient.ReceiveCreateEventVoiceChannelsMessageAsync(string baseAddress,
+                                                                               int appointmentId,
+                                                                               bool createGeneralVoiceChannel,
+                                                                               byte maxAmountOfGroups,
+                                                                               byte? maxGroupSize)
+        {
+            var unitsSyncData = _appSettings.UnitsAccess.SingleOrDefault(m => m.BaseAddress == baseAddress);
+            if (unitsSyncData == null)
+            {
+                _logger.LogError($"Cannot find matching sync-endpoint in {nameof(AppSettings)}.{nameof(AppSettings.UnitsAccess)} " +
+                                 "for base address {BaseAddress}.", baseAddress);
+                return;
+            }
+
+            var voiceChannels = new List<EventVoiceChannel>();
+            if (createGeneralVoiceChannel)
+                voiceChannels.Add(new EventVoiceChannel(appointmentId));
+            if (maxAmountOfGroups > 0 && maxGroupSize != null)
+                for (byte groupNumber = 1; groupNumber <= maxAmountOfGroups; groupNumber++)
+                    voiceChannels.Add(new EventVoiceChannel(appointmentId, groupNumber, maxGroupSize.Value));
+
+            var failedVoiceChannels = new List<EventVoiceChannel>();
+            foreach (var eventVoiceChannel in voiceChannels)
+            {
+                var (voiceChannelId, error) = await _discordAccess.CreateVoiceChannel(_appSettings.VoiceChannelCategoryId,
+                                                                                      eventVoiceChannel.DisplayName,
+                                                                                      eventVoiceChannel.MaxUsersInChannel);
+                if (error != null)
+                {
+                    failedVoiceChannels.Add(eventVoiceChannel);
+                    _logger.LogWarning("Failed to create voice channel for event '{AppointmentId}: {Error}'",
+                                       appointmentId,
+                                       error);
+                }
+                else
+                {
+                    eventVoiceChannel.DiscordVoiceChannelIdValue = voiceChannelId;
+                }
+                await Task.Delay(200);
+            }
+
+            foreach (var eventVoiceChannel in failedVoiceChannels)
+                voiceChannels.Remove(eventVoiceChannel);
+
+            if (voiceChannels.Any())
+            {
+                await _discordAccess.ReorderChannelsAsync(voiceChannels.Select(m => m.DiscordVoiceChannelIdValue).ToArray(),
+                                                     _appSettings.UnitsEventVoiceChannelsPositionAboveChannelId);
+
+                await _unitsAccess.SendCreatedVoiceChannelsAsync(unitsSyncData,
+                                                              new SyncCreatedVoiceChannelsRequest(appointmentId, voiceChannels));
             }
         }
     }

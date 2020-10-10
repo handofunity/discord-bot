@@ -49,5 +49,13 @@ namespace HoU.GuildBot.Shared.BLL
                                                   int appointmentId,
                                                   DateTime startTime,
                                                   DiscordUserID[] usersToNotify);
+
+        // See UnitsSignalRClient.RegisterHandlers
+        [UsedImplicitly]
+        Task ReceiveCreateEventVoiceChannelsMessageAsync(string baseAddress,
+                                                         int appointmentId,
+                                                         bool createGeneralVoiceChannel,
+                                                         byte maxAmountOfGroups,
+                                                         byte? maxGroupSize);
     }
 }

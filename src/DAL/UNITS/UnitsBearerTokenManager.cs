@@ -78,7 +78,7 @@ namespace HoU.GuildBot.DAL.UNITS
                 return responseObject.Token;
             }
 
-            _logger.LogRequestError(baseAddress, TokenRoute, response.StatusCode);
+            await _logger.LogRequestErrorAsync(baseAddress, TokenRoute, response);
             return null;
         }
     }

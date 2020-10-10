@@ -22,7 +22,7 @@ namespace HoU.GuildBot.Core
     {
         private BackgroundJobServer _backgroundJobServer;
 
-        private static readonly Version BotVersion = new Version(4, 5, 2);
+        private static readonly Version BotVersion = new Version(4, 6, 0);
 
         private ILogger<Runner> _logger;
 

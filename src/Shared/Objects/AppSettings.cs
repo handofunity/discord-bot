@@ -170,6 +170,11 @@ namespace HoU.GuildBot.Shared.Objects
         public UnitsSyncData[] UnitsAccess { get; set; }
 
         /// <summary>
+        /// Gets or sets the ID of the voice channel above which the voice channels of UNITS events shall be created.
+        /// </summary>
+        public ulong UnitsEventVoiceChannelsPositionAboveChannelId { get; set; }
+
+        /// <summary>
         /// Gets or sets the base address of the Unity Hub.
         /// </summary>
         public string UnityHubBaseAddress { get; set; }
