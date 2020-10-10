@@ -76,7 +76,6 @@ namespace HoU.GuildBot.Shared.Objects
             public static readonly EmojiDefinition GameInterestAshesOfCreation = new EmojiDefinition("AshesofCreation", null);
             public static readonly EmojiDefinition GameInterestWorldOfWarcraftClassic = new EmojiDefinition("WoWClassic", null);
             public static readonly EmojiDefinition GameInterestOath = new EmojiDefinition("Oath", null);
-            public static readonly EmojiDefinition GameInterestShopTitans = new EmojiDefinition("ShopTitans", null);
             public static readonly EmojiDefinition GameInterestFinalFantasy14 = new EmojiDefinition("FinalFantasy", null);
         }
     }
