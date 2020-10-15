@@ -1061,6 +1061,16 @@ namespace HoU.GuildBot.DAL.Discord
             return true;
         }
 
+        async Task IDiscordAccess.DeleteVoiceChannel(ulong voiceChannelId)
+        {
+            var g = GetGuild();
+            var voiceChannel = g.GetVoiceChannel(voiceChannelId);
+            if (voiceChannel == null)
+                return;
+
+            await voiceChannel.DeleteAsync();
+        }
+
         DiscordChannelID? IDiscordAccess.GetUsersVoiceChannelId(DiscordUserID userId)
         {
             var gu = GetGuildUserById(userId);

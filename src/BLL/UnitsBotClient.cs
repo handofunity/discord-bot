@@ -255,5 +255,29 @@ namespace HoU.GuildBot.BLL
                                                               new SyncCreatedVoiceChannelsRequest(appointmentId, voiceChannels));
             }
         }
+
+        async Task IUnitsBotClient.ReceiveDeleteEventVoiceChannelsMessageAsync(string[] voiceChannelIds)
+        {
+            if (voiceChannelIds == null)
+                return;
+            
+            foreach (var voiceChannelIdStr in voiceChannelIds)
+            {
+                if (!ulong.TryParse(voiceChannelIdStr, out var voiceChannelId))
+                    continue;
+
+                try
+                {
+                    await _discordAccess.DeleteVoiceChannel(voiceChannelId);
+                    _logger.LogInformation("Deleted voice channel {VoiceChannelId}.", voiceChannelId);
+                }
+                catch (Exception e)
+                {
+                    _logger.LogWarning(e,
+                                       "Failed to delete voice channel {VoiceChannelId}.",
+                                       voiceChannelId);
+                }
+            }
+        }
     }
 }

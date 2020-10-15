@@ -57,5 +57,9 @@ namespace HoU.GuildBot.Shared.BLL
                                                          bool createGeneralVoiceChannel,
                                                          byte maxAmountOfGroups,
                                                          byte? maxGroupSize);
+
+        // See UnitsSignalRClient.RegisterHandlers
+        [UsedImplicitly]
+        Task ReceiveDeleteEventVoiceChannelsMessageAsync(string[] voiceChannelIds);
     }
 }

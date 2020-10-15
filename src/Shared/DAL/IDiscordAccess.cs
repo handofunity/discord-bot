@@ -241,6 +241,13 @@ namespace HoU.GuildBot.Shared.DAL
         /// <param name="voiceChannelId">The ID of the voice channel to delete.</param>
         /// <returns><b>True</b>, if the voice channel was deleted or doesn't exist, otherwise <b>false</b>.</returns>
         Task<bool> DeleteVoiceChannelIfEmpty(ulong voiceChannelId);
+        
+        /// <summary>
+        /// Deletes the voice channel.
+        /// </summary>
+        /// <param name="voiceChannelId">The ID of the voice channel to delete.</param>
+        /// <returns>An awaitable <see cref="Task"/>.</returns>
+        Task DeleteVoiceChannel(ulong voiceChannelId);
 
         /// <summary>
         /// Gets the <see cref="DiscordChannelID"/> of the users voice channel, if he's in any.
