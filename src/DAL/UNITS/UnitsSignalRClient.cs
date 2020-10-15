@@ -110,11 +110,18 @@ namespace HoU.GuildBot.DAL.UNITS
                                      options =>
                                      {
 #if DEBUG
-                                         options.HttpMessageHandlerFactory = (handler) =>
+                                         options.WebSocketConfiguration = conf =>
+                                         {
+                                             conf.RemoteCertificateValidationCallback = (sender,
+                                                                                         certificate,
+                                                                                         chain,
+                                                                                         errors) => true;
+                                         };
+                                         options.HttpMessageHandlerFactory = handler =>
                                          {
                                              if (handler is HttpClientHandler clientHandler)
                                              {
-                                                 clientHandler.ServerCertificateCustomValidationCallback += (message,
+                                                 clientHandler.ServerCertificateCustomValidationCallback = (message,
                                                                                                              certificate2,
                                                                                                              arg3,
                                                                                                              arg4) => true;
