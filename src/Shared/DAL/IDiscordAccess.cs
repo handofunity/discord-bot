@@ -300,5 +300,12 @@ namespace HoU.GuildBot.Shared.DAL
         /// <returns>An awaitable <see cref="Task"/>.</returns>
         Task SendUnitsNotificationAsync(EmbedData embedData,
                                         DiscordUserID[] usersToNotify);
+
+        /// <summary>
+        /// Gets all users in the given <paramref name="voiceChannelIds"/>.
+        /// </summary>
+        /// <param name="voiceChannelIds">The IDs of the voice channels to check.</param>
+        /// <returns>A dictionary containing the voice channel id as key, and the users in that channel as value.</returns>
+        Dictionary<string, List<DiscordUserID>> GetUsersInVoiceChannels(string[] voiceChannelIds);
     }
 }

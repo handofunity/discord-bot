@@ -1210,6 +1210,26 @@ namespace HoU.GuildBot.DAL.Discord
             }
         }
 
+        Dictionary<string, List<DiscordUserID>> IDiscordAccess.GetUsersInVoiceChannels(string[] voiceChannelIds)
+        {
+            var g = GetGuild();
+            var result = new Dictionary<string, List<DiscordUserID>>();
+            foreach (var voiceChannelIdStr in voiceChannelIds)
+            {
+                if (!ulong.TryParse(voiceChannelIdStr, out var voiceChannelId))
+                    continue;
+
+                var voiceChannel = g.GetVoiceChannel(voiceChannelId);
+                var userIds = voiceChannel.Users
+                                          .Select(m => (DiscordUserID) m.Id)
+                                          .ToList();
+                if (userIds.Any())
+                    result.Add(voiceChannelIdStr, userIds);
+            }
+
+            return result;
+        }
+
         #endregion
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////

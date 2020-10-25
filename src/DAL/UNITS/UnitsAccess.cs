@@ -205,5 +205,37 @@ namespace HoU.GuildBot.DAL.UNITS
                     await _logger.LogRequestErrorAsync(unitsSyncData.BaseAddress, requestPath, responseMessage);
             }
         }
+
+        async Task IUnitsAccess.SendCurrentAttendeesAsync(UnitsSyncData unitsSyncData,
+                                                          SyncCurrentAttendeesRequest currentAttendeesRequest)
+        {
+            const string requestPath = "/bot-api/discordsync/current-attendees";
+            var serialized = JsonConvert.SerializeObject(currentAttendeesRequest);
+            var requestContent = new StringContent(serialized, Encoding.UTF8, "application/json");
+
+            await UseHttpClient(ExecuteHttpCall, HandleResponseMessage, unitsSyncData.BaseAddress, unitsSyncData.Secret);
+
+            async Task<HttpResponseMessage> ExecuteHttpCall(HttpClient httpClient)
+            {
+                try
+                {
+                    return await httpClient.PostAsync(requestPath, requestContent);
+                }
+                catch (HttpRequestException e)
+                {
+                    var baseExceptionMessage = e.GetBaseException().Message;
+                    _logger.LogRequestError(unitsSyncData.BaseAddress, requestPath, baseExceptionMessage);
+                    return null;
+                }
+            }
+
+            async Task HandleResponseMessage(HttpResponseMessage responseMessage)
+            {
+                if (responseMessage == null)
+                    return;
+                if (!responseMessage.IsSuccessStatusCode)
+                    await _logger.LogRequestErrorAsync(unitsSyncData.BaseAddress, requestPath, responseMessage);
+            }
+        }
     }
 }

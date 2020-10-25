@@ -1,5 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using HoU.GuildBot.Shared.Objects;
+using HoU.GuildBot.Shared.StrongTypes;
 
 namespace HoU.GuildBot.Shared.DAL
 {
@@ -29,5 +31,14 @@ namespace HoU.GuildBot.Shared.DAL
         /// <returns>An awaitable <see cref="Task"/>.</returns>
         Task SendCreatedVoiceChannelsAsync(UnitsSyncData unitsSyncData,
                                            SyncCreatedVoiceChannelsRequest createdVoiceChannelsRequest);
+
+        /// <summary>
+        /// Sends the <paramref name="currentAttendeesRequest"/> to the UNIT system.
+        /// </summary>
+        /// <param name="unitsSyncData"></param>
+        /// <param name="currentAttendeesRequest"></param>
+        /// <returns></returns>
+        Task SendCurrentAttendeesAsync(UnitsSyncData unitsSyncData,
+                                       SyncCurrentAttendeesRequest currentAttendeesRequest);
     }
 }

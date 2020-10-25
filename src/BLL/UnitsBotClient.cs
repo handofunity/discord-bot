@@ -279,5 +279,34 @@ namespace HoU.GuildBot.BLL
                 }
             }
         }
+
+        async Task IUnitsBotClient.ReceiveGetCurrentAttendeesMessageAsync(string baseAddress,
+                                                                          int appointmentId,
+                                                                          int checkNumber,
+                                                                          string[] voiceChannelIds)
+        {
+            if (voiceChannelIds == null || voiceChannelIds.Length == 0)
+                return;
+
+            var unitsSyncData = _appSettings.UnitsAccess.SingleOrDefault(m => m.BaseAddress == baseAddress);
+            if (unitsSyncData == null)
+            {
+                _logger.LogError($"Cannot find matching sync-endpoint in {nameof(AppSettings)}.{nameof(AppSettings.UnitsAccess)} " +
+                                 "for base address {BaseAddress}.", baseAddress);
+                return;
+            }
+
+            var voiceChannelUsers = _discordAccess.GetUsersInVoiceChannels(voiceChannelIds);
+            if (voiceChannelUsers.Any())
+            {
+                var request = new SyncCurrentAttendeesRequest(appointmentId,
+                                                              checkNumber,
+                                                              voiceChannelUsers.Select(m => new VoiceChannelAttendees(m.Key,
+                                                                                           m.Value))
+                                                                               .ToList());
+                await _unitsAccess.SendCurrentAttendeesAsync(unitsSyncData,
+                                                             request);
+            }
+        }
     }
 }

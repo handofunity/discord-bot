@@ -61,5 +61,12 @@ namespace HoU.GuildBot.Shared.BLL
         // See UnitsSignalRClient.RegisterHandlers
         [UsedImplicitly]
         Task ReceiveDeleteEventVoiceChannelsMessageAsync(string[] voiceChannelIds);
+
+        // See UnitsSignalRClient.RegisterHandlers
+        [UsedImplicitly]
+        Task ReceiveGetCurrentAttendeesMessageAsync(string baseAddress,
+                                                    int appointmentId,
+                                                    int checkNumber,
+                                                    string[] voiceChannelIds);
     }
 }
