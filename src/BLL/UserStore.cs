@@ -97,7 +97,7 @@ namespace HoU.GuildBot.BLL
 
                 _logger.LogInformation("Loading users from database...");
                 var usersInDatabase = await _databaseAccess.GetAllUsers();
-                _logger.LogInformation("Loaded {UsersInDatabase} from the database.", usersInDatabase.Length);
+                _logger.LogInformation("Loaded {UsersInDatabase} users from the database.", usersInDatabase.Length);
 
                 _logger.LogInformation("Intersecting users on server with users in database to apply Discord information for memory-cache...");
                 var existingUsers = usersInDatabase.Join(guildUsersCurrentlyOnServer,
