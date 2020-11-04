@@ -184,7 +184,7 @@ namespace HoU.GuildBot.BLL
                                                                         DateTime startTime,
                                                                         DiscordUserID[] usersToNotify)
         {
-            var minutes = (int)(startTime - DateTime.UtcNow).TotalMinutes;
+            var minutes = (int)Math.Ceiling((startTime - DateTime.UtcNow).TotalMinutes);
             var embed = GetEventEmbed(baseAddress,
                                       "Event starting soon",
                                       Colors.LightOrange);
