@@ -54,6 +54,8 @@ namespace HoU.GuildBot.BLL
                 return Role.GameInterestOath;
             if (emoji.Equals(Constants.NonMemberRolesEmojis.GameInterestFinalFantasy14))
                 return Role.GameInterestFinalFantasy14;
+            if (emoji.Equals(Constants.NonMemberRolesEmojis.GameInterestWorldOfWarcraftRetail))
+                return Role.GameInterestWorldOfWarcraftRetail;
 
             throw new ArgumentOutOfRangeException(nameof(emoji));
         }

@@ -67,7 +67,8 @@ namespace HoU.GuildBot.DAL.Discord
                 {"AoC Interest", Role.GameInterestAshesOfCreation },
                 {"WoW Classic Interest", Role.GameInterestWorldOfWarcraftClassic },
                 {"Oath Interest", Role.GameInterestOath },
-                {"FFXIV Interest", Role.GameInterestFinalFantasy14 }
+                {"FFXIV Interest", Role.GameInterestFinalFantasy14 },
+                {"WoW Retail Interest", Role.GameInterestWorldOfWarcraftRetail }
             };
         }
 

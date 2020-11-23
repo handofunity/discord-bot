@@ -57,6 +57,10 @@ namespace HoU.GuildBot.Shared.Enums
         /// <summary>
         /// Not a guild member, but interest playing Final Fantasy XIV.
         /// </summary>
-        GameInterestFinalFantasy14 = 2048
+        GameInterestFinalFantasy14 = 2048,
+        /// <summary>
+        /// Not a guild member, but interest playing World of Warcraft retail.
+        /// </summary>
+        GameInterestWorldOfWarcraftRetail = 4096
     }
 }
