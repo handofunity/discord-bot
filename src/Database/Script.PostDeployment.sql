@@ -40,8 +40,8 @@ GO
 -- 1.5.0:
 :r .\Scripts\FillGameTable_IncludeInGuildMembersStatisticColumn.sql
 GO
--- x.y.z:
-*/
 -- 2.2.1
 :r .\Scripts\RemoveMessage_FirstServerJoinWelcome.sql
 GO
+-- x.y.z:
+*/
