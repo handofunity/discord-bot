@@ -45,10 +45,10 @@ namespace HoU.GuildBot.Shared.BLL
                                                      string gameShortName,
                                                      ulong? primaryGameDiscordRoleID);
 
-        Task<(bool Success, string Message, string OldValue)> EditGame(InternalUserID userID,
-                                                                       string gameShortName,
-                                                                       string property,
-                                                                       string newValue);
+        Task<(bool Success, string Message, string OldValue, AvailableGame UpdatedGame)> EditGame(InternalUserID userID,
+            string gameShortName,
+            string property,
+            string newValue);
 
         Task<(bool Success, string Message)> RemoveGame(string gameShortName);
 

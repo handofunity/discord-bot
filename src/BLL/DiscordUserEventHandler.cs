@@ -149,9 +149,10 @@ namespace HoU.GuildBot.BLL
         async Task IDiscordUserEventHandler.HandleReactionAdded(DiscordChannelID channelID,
                                                                 DiscordUserID userID,
                                                                 ulong messageID,
-                                                                EmojiDefinition emoji)
+                                                                EmojiDefinition emoji,
+                                                                string rawEmojiName)
         {
-            if (emoji == null)
+            if (emoji == null && rawEmojiName == null)
                 return;
 
             // Channel must be a role channel
@@ -161,15 +162,15 @@ namespace HoU.GuildBot.BLL
                 && channelID != _appSettings.InfoAndRolesChannelId)
                 return;
 
-            if (messageID == _gameRoleProvider.AocGameRoleMenuMessageID)
+            if (emoji != null && messageID == _gameRoleProvider.AocGameRoleMenuMessageID)
                 // If the message is the AoC role menu message, forward the data to the game role provider
                 await _gameRoleProvider.SetGameRole(channelID, userID, _gameRoleProvider.Games.Single(m => m.ShortName == Constants.RoleMenuGameShortNames.AshesOfCreation), emoji)
                                        .ConfigureAwait(false);
-            else if (messageID == _gameRoleProvider.WowGameRoleMenuMessageID)
+            else if (emoji != null && messageID == _gameRoleProvider.WowGameRoleMenuMessageID)
                 // If the message is the WoW role menu message, forward the data to the game role provider
                 await _gameRoleProvider.SetGameRole(channelID, userID, _gameRoleProvider.Games.Single(m => m.ShortName == Constants.RoleMenuGameShortNames.WorldOfWarcraftClassic), emoji)
                                        .ConfigureAwait(false);
-            else if (emoji == Constants.GamesRolesEmojis.Joystick && _gameRoleProvider.GamesRolesMenuMessageIDs.Contains(messageID))
+            else if (emoji != null && emoji == Constants.GamesRolesEmojis.Joystick && _gameRoleProvider.GamesRolesMenuMessageIDs.Contains(messageID))
             {
                 // If the message is one of the games roles menu messages, forward the data to the game role provider
                 var messages = await _discordAccess.GetBotMessagesInChannel(channelID).ConfigureAwait(false);
@@ -180,13 +181,17 @@ namespace HoU.GuildBot.BLL
             else if (messageID == _appSettings.FriendOrGuestMessageId || messageID == _appSettings.NonMemberGameInterestMessageId)
             {
                 // If the message is from the friend or guest menu, forward the data to the non-member role provider.
-                await _nonMemberRoleProvider.SetNonMemberRole(channelID, userID, emoji).ConfigureAwait(false);
+                await _nonMemberRoleProvider.SetNonMemberRole(channelID, userID, emoji, rawEmojiName).ConfigureAwait(false);
             }
         }
 
-        async Task IDiscordUserEventHandler.HandleReactionRemoved(DiscordChannelID channelID, DiscordUserID userID, ulong messageID, EmojiDefinition emoji)
+        async Task IDiscordUserEventHandler.HandleReactionRemoved(DiscordChannelID channelID,
+                                                                  DiscordUserID userID,
+                                                                  ulong messageID,
+                                                                  EmojiDefinition emoji,
+                                                                  string rawEmojiName)
         {
-            if (emoji == null)
+            if (emoji == null && rawEmojiName == null)
                 return;
 
             // Channel must be a role channel
@@ -196,15 +201,15 @@ namespace HoU.GuildBot.BLL
                 && channelID != _appSettings.InfoAndRolesChannelId)
                 return;
 
-            if (messageID == _gameRoleProvider.AocGameRoleMenuMessageID)
+            if (emoji != null && messageID == _gameRoleProvider.AocGameRoleMenuMessageID)
                 // If the message is the AoC role menu message, forward the data to the game role provider
                 await _gameRoleProvider.RevokeGameRole(channelID, userID, _gameRoleProvider.Games.Single(m => m.ShortName == Constants.RoleMenuGameShortNames.AshesOfCreation), emoji)
                                        .ConfigureAwait(false);
-            else if (messageID == _gameRoleProvider.WowGameRoleMenuMessageID)
+            else if (emoji != null && messageID == _gameRoleProvider.WowGameRoleMenuMessageID)
                 // If the message is the WoW role menu message, forward the data to the game role provider
                 await _gameRoleProvider.RevokeGameRole(channelID, userID, _gameRoleProvider.Games.Single(m => m.ShortName == Constants.RoleMenuGameShortNames.WorldOfWarcraftClassic), emoji)
                                        .ConfigureAwait(false);
-            else if (emoji == Constants.GamesRolesEmojis.Joystick && _gameRoleProvider.GamesRolesMenuMessageIDs.Contains(messageID))
+            else if (emoji != null && emoji == Constants.GamesRolesEmojis.Joystick && _gameRoleProvider.GamesRolesMenuMessageIDs.Contains(messageID))
             {
                 // If the message is one of the games roles menu messages, forward the data to the game role provider
                 var messages = await _discordAccess.GetBotMessagesInChannel(channelID).ConfigureAwait(false);
@@ -215,7 +220,7 @@ namespace HoU.GuildBot.BLL
             else if (messageID == _appSettings.FriendOrGuestMessageId || messageID == _appSettings.NonMemberGameInterestMessageId)
             {
                 // If the message is from the friend or guest menu, forward the data to the non-member role provider.
-                await _nonMemberRoleProvider.RevokeNonMemberRole(channelID, userID, emoji).ConfigureAwait(false);
+                await _nonMemberRoleProvider.RevokeNonMemberRole(channelID, userID, emoji, rawEmojiName).ConfigureAwait(false);
             }
         }
 

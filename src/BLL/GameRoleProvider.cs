@@ -172,6 +172,10 @@ namespace HoU.GuildBot.BLL
                 // Flags
                 fields.Add(new EmbedField(nameof(AvailableGame.IncludeInGuildMembersStatistic), game.IncludeInGuildMembersStatistic, false));
                 fields.Add(new EmbedField(nameof(AvailableGame.IncludeInGamesMenu), game.IncludeInGamesMenu, false));
+                
+                // Game interest
+                fields.Add(new EmbedField(nameof(AvailableGame.GameInterestEmojiName), game.GameInterestEmojiName, false));
+                fields.Add(new EmbedField(nameof(AvailableGame.GameInterestRoleId), game.GameInterestRoleId, false));
 
                 // Game role IDs
                 if (game.AvailableRoles.Count > 0)
@@ -343,20 +347,21 @@ namespace HoU.GuildBot.BLL
             return (true, "The game was added successfully.");
         }
 
-        async Task<(bool Success, string Message, string OldValue)> IGameRoleProvider.EditGame(InternalUserID userID,
-                                                                                               string gameShortName,
-                                                                                               string property,
-                                                                                               string newValue)
+        async Task<(bool Success, string Message, string OldValue, AvailableGame UpdatedGame)> IGameRoleProvider.EditGame(
+            InternalUserID userID,
+            string gameShortName,
+            string property,
+            string newValue)
         {
             // Precondition
             var gameID = await _databaseAccess.TryGetGameID(gameShortName).ConfigureAwait(false);
             if (gameID == null)
-                return (false, $"Couldn't find any game with the short name `{gameShortName}`.", null);
+                return (false, $"Couldn't find any game with the short name `{gameShortName}`.", null, null);
 
             // Act
             var cachedGame = _games.SingleOrDefault(m => m.ShortName == gameShortName);
             if (cachedGame == null)
-                return (false, $"Couldn't find any game with the short name `{gameShortName}`.", null);
+                return (false, $"Couldn't find any game with the short name `{gameShortName}`.", null, null);
 
             var clone = cachedGame.Clone();
 
@@ -366,13 +371,13 @@ namespace HoU.GuildBot.BLL
             {
                 case nameof(AvailableGame.LongName):
                     if (clone.LongName == newValue)
-                        return (false, "New value equals the current value.", null);
+                        return (false, "New value equals the current value.", null, null);
                     oldValue = clone.LongName;
                     clone.LongName = newValue;
                     break;
                 case nameof(AvailableGame.ShortName):
                     if (clone.ShortName == newValue)
-                        return (false, "New value equals the current value.", null);
+                        return (false, "New value equals the current value.", null, null);
                     oldValue = clone.ShortName;
                     clone.ShortName = newValue;
                     break;
@@ -385,34 +390,59 @@ namespace HoU.GuildBot.BLL
                     else
                     {
                         if (!ulong.TryParse(newValue, out var newUlongValue))
-                            return (false, "New value cannot be parsed to type ulong.", null);
+                            return (false, "New value cannot be parsed to type ulong.", null, null);
                         if (clone.PrimaryGameDiscordRoleID == newUlongValue)
-                            return (false, "New value equals the current value.", null);
+                            return (false, "New value equals the current value.", null, null);
                         oldValue = clone.PrimaryGameDiscordRoleID?.ToString() ?? "<null>";
                         clone.PrimaryGameDiscordRoleID = newUlongValue;
                     }
+
                     break;
                 case nameof(AvailableGame.IncludeInGuildMembersStatistic):
                     if (!bool.TryParse(newValue, out var newIncludeInGuildMembersStatisticValue))
-                        return (false, "New value cannot be parsed to type bool.", null);
+                        return (false, "New value cannot be parsed to type bool.", null, null);
                     if (clone.IncludeInGuildMembersStatistic == newIncludeInGuildMembersStatisticValue)
-                        return (false, "New value equals the current value.", null);
+                        return (false, "New value equals the current value.", null, null);
                     oldValue = clone.IncludeInGuildMembersStatistic.ToString();
                     clone.IncludeInGuildMembersStatistic = newIncludeInGuildMembersStatisticValue;
                     break;
                 case nameof(AvailableGame.IncludeInGamesMenu):
                     if (!bool.TryParse(newValue, out var newIncludeInGamesMenuValue))
-                        return (false, "New value cannot be parsed to type bool.", null);
+                        return (false, "New value cannot be parsed to type bool.", null, null);
                     if (clone.IncludeInGamesMenu == newIncludeInGamesMenuValue)
-                        return (false, "New value equals the current value.", null);
+                        return (false, "New value equals the current value.", null, null);
                     oldValue = clone.IncludeInGamesMenu.ToString();
                     clone.IncludeInGamesMenu = newIncludeInGamesMenuValue;
                     break;
+                case nameof(AvailableGame.GameInterestEmojiName):
+                    if (clone.GameInterestEmojiName == newValue)
+                        return (false, "New value equals the current value.", null, null);
+                    oldValue = clone.GameInterestEmojiName;
+                    clone.GameInterestEmojiName = newValue;
+                    break;
+                case nameof(AvailableGame.GameInterestRoleId):
+                    if (newValue == "NULL")
+                    {
+                        oldValue = clone.GameInterestRoleId?.ToString() ?? "<null>";
+                        clone.GameInterestRoleId = null;
+                    }
+                    else
+                    {
+                        if (!ulong.TryParse(newValue, out var newUlongValue))
+                            return (false, "New value cannot be parsed to type ulong.", null, null);
+                        if (clone.GameInterestRoleId == newUlongValue)
+                            return (false, "New value equals the current value.", null, null);
+                        oldValue = clone.GameInterestRoleId?.ToString() ?? "<null>";
+                        clone.GameInterestRoleId = newUlongValue;
+                    }
+
+                    break;
                 default:
-                    return (false, $"The property `{property}` is not valid.", null);
+                    return (false, $"The property `{property}` is not valid.", null, null);
             }
+
             var (success, error) = await _databaseAccess.TryEditGame(userID, gameID.Value, clone).ConfigureAwait(false);
-            if (!success) return (false, $"Failed to edit the game: {error}", null);
+            if (!success) return (false, $"Failed to edit the game: {error}", null, null);
 
             // Update cache
             cachedGame.LongName = clone.LongName;
@@ -420,10 +450,12 @@ namespace HoU.GuildBot.BLL
             cachedGame.PrimaryGameDiscordRoleID = clone.PrimaryGameDiscordRoleID;
             cachedGame.IncludeInGuildMembersStatistic = clone.IncludeInGuildMembersStatistic;
             cachedGame.IncludeInGamesMenu = clone.IncludeInGamesMenu;
+            cachedGame.GameInterestEmojiName = clone.GameInterestEmojiName;
+            cachedGame.GameInterestRoleId = clone.GameInterestRoleId;
 
             GameChanged?.Invoke(this, new GameChangedEventArgs(cachedGame, GameModification.Edited));
 
-            return (true, "The game was edited successfully.", oldValue);
+            return (true, "The game was edited successfully.", oldValue, cachedGame);
         }
 
         async Task<(bool Success, string Message)> IGameRoleProvider.RemoveGame(string gameShortName)

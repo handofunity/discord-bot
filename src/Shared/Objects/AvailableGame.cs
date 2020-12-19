@@ -15,6 +15,10 @@ namespace HoU.GuildBot.Shared.Objects
         public bool IncludeInGuildMembersStatistic { get; set; }
 
         public bool IncludeInGamesMenu { get; set; }
+        
+        public string GameInterestEmojiName { get; set; }
+        
+        public ulong? GameInterestRoleId { get; set; }
 
         public List<AvailableGameRole> AvailableRoles { get; }
 
@@ -31,7 +35,9 @@ namespace HoU.GuildBot.Shared.Objects
                 ShortName = ShortName,
                 PrimaryGameDiscordRoleID = PrimaryGameDiscordRoleID,
                 IncludeInGuildMembersStatistic = IncludeInGuildMembersStatistic,
-                IncludeInGamesMenu = IncludeInGamesMenu
+                IncludeInGamesMenu = IncludeInGamesMenu,
+                GameInterestEmojiName = GameInterestEmojiName,
+                GameInterestRoleId = GameInterestRoleId
             };
 
             foreach (var role in AvailableRoles)

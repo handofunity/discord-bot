@@ -186,13 +186,22 @@ namespace HoU.GuildBot.DAL.Discord.Modules
             var gameShortName = match.Groups["gameShortName"].Value;
             var property = match.Groups["property"].Value;
             var newValue = match.Groups["newValue"].Value;
-            var (success, message, oldValue) = await _gameRoleProvider.EditGame(user.InternalUserID, gameShortName, property, newValue).ConfigureAwait(false);
+            var (success, message, oldValue, updatedGame) =
+                await _gameRoleProvider.EditGame(user.InternalUserID, gameShortName, property, newValue).ConfigureAwait(false);
             if (success)
             {
                 // When the game was edited successfully, log the add
-                var logMessage = $"{Context.User.Username} changed the property **{property}** of the game **{gameShortName}** from **{oldValue}** to **{newValue}**.";
+                var logMessage = $"{Context.User.Username} changed the property **{property}** of the game **{gameShortName}** from **{oldValue ?? "NULL"}** to **{newValue}**.";
                 _logger.LogInformation(logMessage);
                 await _discordAccess.LogToDiscord(logMessage).ConfigureAwait(false);
+                // If the game can be used as "interest role", send an additional message.
+                if (updatedGame != null && updatedGame.GameInterestEmojiName != null && updatedGame.GameInterestRoleId != null)
+                {
+                    var leaderMention = _discordAccess.GetRoleMention(Constants.RoleNames.LeaderRoleName);
+                    var gameInterestNotification =
+                        $"{leaderMention} The game '{updatedGame.LongName}' can now be used as \"game interest\" in the infos and roles channel.";
+                    await _discordAccess.LogToDiscord(gameInterestNotification).ConfigureAwait(false);
+                }
             }
 
             await ReplyAsync(message).ConfigureAwait(false);

@@ -1,1 +1,48 @@
-﻿{"ContextClassName":"HandOfUnityContext","DefaultDacpacSchema":null,"IdReplace":false,"IncludeConnectionString":false,"OutputPath":"Database\\Model","ProjectRootNamespace":"HoU.GuildBot.DAL","SelectedToBeGenerated":0,"Tables":[{"HasPrimaryKey":true,"Name":"config.Game"},{"HasPrimaryKey":true,"Name":"config.GameRole"},{"HasPrimaryKey":true,"Name":"config.Message"},{"HasPrimaryKey":true,"Name":"hou.User"},{"HasPrimaryKey":true,"Name":"hou.UserInfo"},{"HasPrimaryKey":true,"Name":"hou.Vacation"}],"UseDatabaseNames":true,"UseFluentApiOnly":true,"UseHandleBars":false,"UseInflector":false}
+﻿{
+   "ContextClassName": "HandOfUnityContext",
+   "ContextNamespace": null,
+   "DefaultDacpacSchema": null,
+   "FilterSchemas": false,
+   "IncludeConnectionString": false,
+   "ModelNamespace": null,
+   "OutputContextPath": null,
+   "OutputPath": "Database\\Model",
+   "ProjectRootNamespace": "HoU.GuildBot.DAL",
+   "Schemas": null,
+   "SelectedHandlebarsLanguage": 0,
+   "SelectedToBeGenerated": 0,
+   "Tables": [
+      {
+         "Name": "[config].[Game]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[config].[GameRole]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[config].[Message]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[hou].[User]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[hou].[UserInfo]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[hou].[Vacation]",
+         "ObjectType": 0
+      }
+   ],
+   "UseDatabaseNames": true,
+   "UseDbContextSplitting": false,
+   "UseFluentApiOnly": true,
+   "UseHandleBars": false,
+   "UseInflector": false,
+   "UseLegacyPluralizer": false,
+   "UseNodaTime": false,
+   "UseSpatial": false
+}

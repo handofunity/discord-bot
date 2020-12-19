@@ -41,26 +41,6 @@ namespace HoU.GuildBot.Shared.Enums
         /// <summary>
         /// Not a guild member, but a <see cref="FriendOfMember"/> role.
         /// </summary>
-        FriendOfMember = 128,
-        /// <summary>
-        /// Not a guild member, but interest playing Ashes of Creation.
-        /// </summary>
-        GameInterestAshesOfCreation = 256,
-        /// <summary>
-        /// Not a guild member, but interest playing World of Warcraft Classic.
-        /// </summary>
-        GameInterestWorldOfWarcraftClassic = 512,
-        /// <summary>
-        /// Not a guild member, but interest playing Oath.
-        /// </summary>
-        GameInterestOath = 1024,
-        /// <summary>
-        /// Not a guild member, but interest playing Final Fantasy XIV.
-        /// </summary>
-        GameInterestFinalFantasy14 = 2048,
-        /// <summary>
-        /// Not a guild member, but interest playing World of Warcraft retail.
-        /// </summary>
-        GameInterestWorldOfWarcraftRetail = 4096
+        FriendOfMember = 128
     }
 }

@@ -272,7 +272,9 @@ namespace HoU.GuildBot.DAL.Database
                     ShortName = m.ShortName,
                     PrimaryGameDiscordRoleID = m.PrimaryGameDiscordRoleID == null ? null : (ulong?) m.PrimaryGameDiscordRoleID,
                     IncludeInGuildMembersStatistic = m.IncludeInGuildMembersStatistic,
-                    IncludeInGamesMenu = m.IncludeInGamesMenu
+                    IncludeInGamesMenu = m.IncludeInGamesMenu,
+                    GameInterestEmojiName = m.GameInterestEmojiName,
+                    GameInterestRoleId = m.GameInterestRoleId == null ? null : (ulong?) m.GameInterestRoleId
                 };
                 g.AvailableRoles.AddRange(m.GameRole.Select(n => new AvailableGameRole
                 {
@@ -392,6 +394,8 @@ namespace HoU.GuildBot.DAL.Database
             matchingGame.PrimaryGameDiscordRoleID = updated.PrimaryGameDiscordRoleID;
             matchingGame.IncludeInGuildMembersStatistic = updated.IncludeInGuildMembersStatistic;
             matchingGame.IncludeInGamesMenu = updated.IncludeInGamesMenu;
+            matchingGame.GameInterestEmojiName = updated.GameInterestEmojiName;
+            matchingGame.GameInterestRoleId = updated.GameInterestRoleId;
             matchingGame.ModifiedByUserID = (int) userID;
             matchingGame.ModifiedAtTimestamp = DateTime.UtcNow;
 

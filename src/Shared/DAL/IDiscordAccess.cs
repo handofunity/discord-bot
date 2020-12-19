@@ -69,6 +69,15 @@ namespace HoU.GuildBot.Shared.DAL
                                        Role targetRole);
 
         /// <summary>
+        /// Sets the non-member related <paramref name="targetRole"/> for the given <paramref name="userID"/>.
+        /// </summary>
+        /// <param name="userID">The user ID.</param>
+        /// <param name="targetRole">The target role.</param>
+        /// <returns>True, if the role was added, otherwise false. Includes the role name.</returns>
+        Task<(bool Success, string RoleName)> TryAddNonMemberRole(DiscordUserID userID,
+                                                                  ulong targetRole);
+
+        /// <summary>
         /// Revokes the non-member related <paramref name="targetRole"/> from the given <paramref name="userID"/>.
         /// </summary>
         /// <param name="userID">The user ID.</param>
@@ -76,6 +85,15 @@ namespace HoU.GuildBot.Shared.DAL
         /// <returns>True, if the role was revoked, otherwise false.</returns>
         Task<bool> TryRevokeNonMemberRole(DiscordUserID userID,
                                           Role targetRole);
+
+        /// <summary>
+        /// Revokes the non-member related <paramref name="targetRole"/> from the given <paramref name="userID"/>.
+        /// </summary>
+        /// <param name="userID">The user ID.</param>
+        /// <param name="targetRole">The target role.</param>
+        /// <returns>True, if the role was revoked, otherwise false. Includes the role name.</returns>
+        Task<(bool Success, string RoleName)> TryRevokeNonMemberRole(DiscordUserID userID,
+                                                                     ulong targetRole);
 
         /// <summary>
         /// Sets the primary role of the <paramref name="game"/> for the given <paramref name="userID"/>.

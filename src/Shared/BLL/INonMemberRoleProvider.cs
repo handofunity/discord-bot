@@ -9,8 +9,14 @@ namespace HoU.GuildBot.Shared.BLL
     {
         IDiscordAccess DiscordAccess { set; }
 
-        Task SetNonMemberRole(DiscordChannelID channelID, DiscordUserID userID, EmojiDefinition emoji);
+        Task SetNonMemberRole(DiscordChannelID channelID,
+                              DiscordUserID userID,
+                              EmojiDefinition emoji,
+                              string rawEmojiName);
 
-        Task RevokeNonMemberRole(DiscordChannelID channelID, DiscordUserID userID, EmojiDefinition emoji);
+        Task RevokeNonMemberRole(DiscordChannelID channelID,
+                                 DiscordUserID userID,
+                                 EmojiDefinition emoji,
+                                 string rawEmojiName);
     }
 }

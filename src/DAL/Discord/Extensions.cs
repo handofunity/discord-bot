@@ -32,7 +32,7 @@ namespace HoU.GuildBot.DAL.Discord
                 foreach (var fd in ed.Fields)
                 {
                     builder.AddField(fieldBuilder => fieldBuilder.WithName(fd.Name)
-                                                                 .WithValue(fd.Value)
+                                                                 .WithValue(fd.Value ?? "<null>")
                                                                  .WithIsInline(fd.Inline));
                 }
             }

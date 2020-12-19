@@ -63,12 +63,7 @@ namespace HoU.GuildBot.DAL.Discord
                 {"Member", Role.Member},
                 {"Trial Member", Role.TrialMember},
                 {"Guest", Role.Guest},
-                {"Friend of Member", Role.FriendOfMember},
-                {"AoC Interest", Role.GameInterestAshesOfCreation },
-                {"WoW Classic Interest", Role.GameInterestWorldOfWarcraftClassic },
-                {"Oath Interest", Role.GameInterestOath },
-                {"FFXIV Interest", Role.GameInterestFinalFantasy14 },
-                {"WoW Retail Interest", Role.GameInterestWorldOfWarcraftRetail }
+                {"Friend of Member", Role.FriendOfMember}
             };
         }
 
@@ -101,7 +96,7 @@ namespace HoU.GuildBot.DAL.Discord
             _commands = new CommandService();
             _client = new DiscordSocketClient();
             _pendingMessages = new Queue<string>();
-
+            
             _client.Log += LogClient;
             _commands.Log += LogCommands;
         }
@@ -579,7 +574,7 @@ namespace HoU.GuildBot.DAL.Discord
                         .ToArray();
         }
 
-        private static EmojiDefinition ParseToEmojiDefinition(IEmote e)
+        private static EmojiDefinition TryParseToEmojiDefinition(IEmote e)
         {
             switch (e)
             {
@@ -726,6 +721,26 @@ namespace HoU.GuildBot.DAL.Discord
             }
         }
 
+        async Task<(bool Success, string RoleName)> IDiscordAccess.TryAddNonMemberRole(DiscordUserID userID,
+                                                                                       ulong targetRole)
+        {
+            var g = GetGuild();
+            var role = g.GetRole(targetRole);
+            var gu = GetGuildUserById(userID);
+            if (gu.Roles.Any(m => m.Id == role.Id))
+                return (false, role.Name);
+            try
+            {
+                await gu.AddRoleAsync(role).ConfigureAwait(false);
+                return (true, role.Name);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, $"Failed to set game role '{role.Name}' for UserID {userID}.");
+                return (false, role.Name);
+            }
+        }
+
         async Task<bool> IDiscordAccess.TryRevokeNonMemberRole(DiscordUserID userID,
                                                                Role targetRole)
         {
@@ -743,6 +758,26 @@ namespace HoU.GuildBot.DAL.Discord
             {
                 _logger.LogError(e, $"Failed to revoke game role '{role.Name}' for UserID {userID}.");
                 return false;
+            }
+        }
+
+        async Task<(bool Success, string RoleName)> IDiscordAccess.TryRevokeNonMemberRole(DiscordUserID userID,
+                                                                                          ulong targetRole)
+        {
+            var g = GetGuild();
+            var role = g.GetRole(targetRole);
+            var gu = GetGuildUserById(userID);
+            if (gu.Roles.All(m => m.Id != role.Id))
+                return (false, role.Name);
+            try
+            {
+                await gu.RemoveRoleAsync(role).ConfigureAwait(false);
+                return (true, role.Name);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, $"Failed to revoke game role '{role.Name}' for UserID {userID}.");
+                return (false, role.Name);
             }
         }
 
@@ -1368,9 +1403,10 @@ namespace HoU.GuildBot.DAL.Discord
                 return Task.CompletedTask;
             }
 
+            var parsedEmoji = TryParseToEmojiDefinition(reaction.Emote);
             // Fire & Forget
             Task.Run(async () => await _discordUserEventHandler
-                                       .HandleReactionRemoved((DiscordChannelID)channel.Id, (DiscordUserID)reaction.UserId, message.Id, ParseToEmojiDefinition(reaction.Emote))
+                                       .HandleReactionRemoved((DiscordChannelID)channel.Id, (DiscordUserID)reaction.UserId, message.Id, parsedEmoji, reaction.Emote.Name)
                                        .ConfigureAwait(false)).ConfigureAwait(false);
             return Task.CompletedTask;
         }
@@ -1385,9 +1421,10 @@ namespace HoU.GuildBot.DAL.Discord
                 return Task.CompletedTask;
             }
 
+            var parsedEmoji = TryParseToEmojiDefinition(reaction.Emote);
             // Fire & Forget
             Task.Run(async () => await _discordUserEventHandler
-                                       .HandleReactionAdded((DiscordChannelID) channel.Id, (DiscordUserID) reaction.UserId, message.Id, ParseToEmojiDefinition(reaction.Emote))
+                                       .HandleReactionAdded((DiscordChannelID) channel.Id, (DiscordUserID) reaction.UserId, message.Id, parsedEmoji, reaction.Emote.Name)
                                        .ConfigureAwait(false)).ConfigureAwait(false);
             return Task.CompletedTask;
         }
