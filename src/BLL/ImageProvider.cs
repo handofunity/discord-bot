@@ -89,14 +89,15 @@ namespace HoU.GuildBot.BLL
             const int barWidth = 55;
             const int barMaxHeight = 380;
             const int labelsTopOffset = barTopOffset + barMaxHeight + 25;
-            const int infoTextMargin = 5;
+            const int infoTextMargin = 6;
 
             // Collect data
             var game = _gameRoleProvider.Games.Single(m => m.ShortName == Constants.RoleMenuGameShortNames.AshesOfCreation);
             var distribution = _gameRoleProvider.GetGameRoleDistribution(game);
 
-            // Load guild logo
-            var guildLogo = GetImageFromResource("GuildLogo.png");
+            // Load background and foreground image
+            var backgroundImage = GetImageFromResource("AocRolesBackground.png");
+            var foregroundImage = GetImageFromResource("AocRolesForeground.png");
 
             // Create image
             return CreateImage(imageWidth,
@@ -104,27 +105,17 @@ namespace HoU.GuildBot.BLL
                                graphics =>
                                {
                                    var ff = new FontFamily("Arial");
+                                   
+                                   // Draw background image
+                                   graphics.DrawImage(backgroundImage, new PointF(0, 0));
 
-                                   // Background
-                                   graphics.Clear(Color.White);
-
-                                   // Draw guild logo
-                                   graphics.DrawImage(guildLogo, new PointF(0, 0));
-
-                                   // Draw header
-                                   var titleFont = new Font(ff, 28, FontStyle.Bold);
-                                   var title = $"Class Distribution for {game.ShortName}";
-                                   var requiredSize = graphics.MeasureString("title", titleFont);
-                                   var leftOffset = guildLogo.Width;
-                                   var topOffset = (int) ((guildLogo.Height - requiredSize.Height) / 2);
-                                   graphics.DrawString(title, titleFont, Brushes.Black, leftOffset, topOffset);
-
-                                   var infoFont = new Font(ff, 16);
+                                   // Draw meta info
+                                   var infoFont = new Font(ff, 14);
                                    var gameMembersText = $"Game Members: {distribution.GameMembers}";
                                    var createdOnText = $"Created: {DateTime.UtcNow:yyyy-MM-dd}";
                                    var gameMembersRequiredSize = graphics.MeasureString(gameMembersText, infoFont);
                                    var createdOnRequiredSize = graphics.MeasureString(createdOnText, infoFont);
-                                   topOffset = (contentTopOffset - ((int) gameMembersRequiredSize.Height + (int) createdOnRequiredSize.Height + infoTextMargin)) / 2;
+                                   var topOffset = (contentTopOffset - ((int) gameMembersRequiredSize.Height + (int) createdOnRequiredSize.Height + infoTextMargin)) / 2;
                                    graphics.DrawString(gameMembersText, infoFont, Brushes.Black, imageWidth - infoTextMargin - gameMembersRequiredSize.Width, topOffset);
                                    topOffset = topOffset + (int) gameMembersRequiredSize.Height + infoTextMargin;
                                    graphics.DrawString(createdOnText, infoFont, Brushes.Black, imageWidth - infoTextMargin - createdOnRequiredSize.Width, topOffset);
@@ -141,7 +132,7 @@ namespace HoU.GuildBot.BLL
 
                                    // Data
                                    var indent = 0;
-                                   var labelFont = new Font(ff, 14, FontStyle.Bold);
+                                   var labelFont = new Font(ff, 12, FontStyle.Bold);
                                    var amountFont = new Font(ff, 16, FontStyle.Bold);
                                    var pens = new Dictionary<string, Pen>
                                    {
@@ -158,14 +149,14 @@ namespace HoU.GuildBot.BLL
                                    foreach (var d in distribution.RoleDistribution.OrderByDescending(m => m.Value).ThenBy(m => m.Key))
                                    {
                                        // Class label
-                                       requiredSize = graphics.MeasureString(d.Key, labelFont);
+                                       var requiredSize = graphics.MeasureString(d.Key, labelFont);
                                        graphics.DrawString(d.Key, labelFont, Brushes.Black, new PointF(indent + (indentIncrement - requiredSize.Width) / 2, labelsTopOffset));
 
                                        // Bar
                                        var pen = pens[d.Key];
                                        var height = (int) (d.Value / maxCount * barMaxHeight);
                                        var currentBarTopOffset = barTopOffset + barMaxHeight - height;
-                                       leftOffset = indent + (indentIncrement - barWidth) / 2;
+                                       var leftOffset = indent + (indentIncrement - barWidth) / 2;
                                        var rect = new Rectangle(leftOffset, currentBarTopOffset, barWidth, height);
                                        graphics.FillRectangle(pen.Brush, rect);
                                        graphics.DrawRectangle(pen, leftOffset, currentBarTopOffset, barWidth, height);
@@ -180,6 +171,9 @@ namespace HoU.GuildBot.BLL
 
                                        indent += indentIncrement;
                                    }
+
+                                   // Draw foreground image
+                                   graphics.DrawImage(foregroundImage, new PointF(0, 0));
                                });
         }
 

@@ -7,6 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\AocRolesBackground.png" />
+    <None Remove="Resources\AocRolesForeground.png" />
     <None Remove="Resources\GuildLogo.png" />
     <None Remove="Resources\UnitsProfileBadge_HighPoints.png" />
     <None Remove="Resources\UnitsProfileBadge_LowPoints.png" />
@@ -16,6 +18,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Resources\AocRolesBackground.png" />
+    <EmbeddedResource Include="Resources\AocRolesForeground.png" />
     <EmbeddedResource Include="Resources\GuildLogo.png" />
     <EmbeddedResource Include="Resources\UnitsProfileBackground.png" />
     <EmbeddedResource Include="Resources\UnitsProfileBadge_HighPoints.png" />
