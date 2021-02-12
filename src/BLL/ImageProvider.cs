@@ -89,7 +89,8 @@ namespace HoU.GuildBot.BLL
             const int barWidth = 55;
             const int barMaxHeight = 380;
             const int labelsTopOffset = barTopOffset + barMaxHeight + 25;
-            const int infoTextMargin = 6;
+            const int horizontalInfoTextMargin = 15;
+            const int verticalInfoTextMargin = 5;
 
             // Collect data
             var game = _gameRoleProvider.Games.Single(m => m.ShortName == Constants.RoleMenuGameShortNames.AshesOfCreation);
@@ -115,10 +116,10 @@ namespace HoU.GuildBot.BLL
                                    var createdOnText = $"Created: {DateTime.UtcNow:yyyy-MM-dd}";
                                    var gameMembersRequiredSize = graphics.MeasureString(gameMembersText, infoFont);
                                    var createdOnRequiredSize = graphics.MeasureString(createdOnText, infoFont);
-                                   var topOffset = (contentTopOffset - ((int) gameMembersRequiredSize.Height + (int) createdOnRequiredSize.Height + infoTextMargin)) / 2;
-                                   graphics.DrawString(gameMembersText, infoFont, Brushes.Black, imageWidth - infoTextMargin - gameMembersRequiredSize.Width, topOffset);
-                                   topOffset = topOffset + (int) gameMembersRequiredSize.Height + infoTextMargin;
-                                   graphics.DrawString(createdOnText, infoFont, Brushes.Black, imageWidth - infoTextMargin - createdOnRequiredSize.Width, topOffset);
+                                   var topOffset = (contentTopOffset - ((int) gameMembersRequiredSize.Height + (int) createdOnRequiredSize.Height + verticalInfoTextMargin)) / 2;
+                                   graphics.DrawString(gameMembersText, infoFont, Brushes.Black, imageWidth - horizontalInfoTextMargin - gameMembersRequiredSize.Width, topOffset);
+                                   topOffset = topOffset + (int) gameMembersRequiredSize.Height + verticalInfoTextMargin;
+                                   graphics.DrawString(createdOnText, infoFont, Brushes.Black, imageWidth - horizontalInfoTextMargin - createdOnRequiredSize.Width, topOffset);
 
                                    // Lines
                                    var blackPen = new Pen(Color.Black);
