@@ -262,6 +262,17 @@ namespace HoU.GuildBot.BLL
                                });
         }
 
+        Stream IImageProvider.LoadClassListImage()
+        {
+            var content = GetImageFromResource("AoCClassList.jpg");
+            return CreateImage(1629,
+                               916,
+                               graphics =>
+                               {
+                                   graphics.DrawImage(content, new PointF(0, 0));
+                               });
+        }
+
         #endregion
     }
 }

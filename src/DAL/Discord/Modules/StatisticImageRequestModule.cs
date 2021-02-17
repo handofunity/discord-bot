@@ -66,6 +66,36 @@ namespace HoU.GuildBot.DAL.Discord.Modules
             return Task.CompletedTask;
         }
 
+        [Command("aocclasslist")]
+        [CommandCategory(CommandCategory.GameAshesOfCreation, 3)]
+        [Name("Get an image of all aoc classes")]
+        [Summary("Creates and posts an image with all 64 AoC classes.")]
+        [Alias("aoc class list", "aoc classlist", "classlist", "class list")]
+        [RequireContext(ContextType.Guild)]
+        [ResponseContext(ResponseType.AlwaysSameChannel)]
+        [RolePrecondition(Role.AnyGuildMember)]
+        public Task GetAocClassListImage()
+        {
+            var channel = Context.Channel;
+
+            // The rest of this runs in a fire & forget task to not block the gateway
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    using var state = channel.EnterTypingState();
+                    await using var imageStream = _imageProvider.LoadClassListImage();
+                    await channel.SendFileAsync(imageStream, "aocClassList.jpg");
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, $"Failed to provide aoc class list image to channel {channel.Name}.");
+                }
+            }).ConfigureAwait(false);
+
+            return Task.CompletedTask;
+        }
+
         #endregion
     }
 }

@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\AoCClasslist.jpg" />
     <None Remove="Resources\AocRolesBackground.png" />
     <None Remove="Resources\AocRolesForeground.png" />
     <None Remove="Resources\GuildLogo.png" />
@@ -18,6 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Resources\AoCClassList.jpg" />
     <EmbeddedResource Include="Resources\AocRolesBackground.png" />
     <EmbeddedResource Include="Resources\AocRolesForeground.png" />
     <EmbeddedResource Include="Resources\GuildLogo.png" />

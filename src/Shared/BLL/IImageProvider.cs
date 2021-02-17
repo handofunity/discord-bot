@@ -10,5 +10,7 @@ namespace HoU.GuildBot.Shared.BLL
 
         Task<Stream> CreateProfileImage(DiscordUserID userID,
                                         string avatarUrl);
+
+        Stream LoadClassListImage();
     }
 }
