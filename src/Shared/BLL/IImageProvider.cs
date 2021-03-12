@@ -6,7 +6,11 @@ namespace HoU.GuildBot.Shared.BLL
 {
     public interface IImageProvider
     {
-        Stream CreateAocRolesImage();
+        Stream CreateAocClassDistributionImage();
+
+        Stream CreateAocPlayStyleDistributionImage();
+
+        Stream CreateAocRaceDistributionImage();
 
         Task<Stream> CreateProfileImage(DiscordUserID userID,
                                         string avatarUrl);

@@ -21,7 +21,9 @@ namespace HoU.GuildBot.Shared.Objects
 
         public static class MessageNames
         {
-            public const string AocRoleMenu = "AocRoleMenu";
+            public const string AocClassMenu = "AocClassMenu";
+            public const string AocPlayStyleMenu = "AocPlayStyleMenu";
+            public const string AocRaceMenu = "AocRaceMenu";
             public const string WowRoleMenu = "WowRoleMenu";
             public const string GamesRolesMenu = "GamesRolesMenu";
         }
@@ -40,6 +42,7 @@ namespace HoU.GuildBot.Shared.Objects
 
         public static class AocRoleEmojis
         {
+            // Classes
             public static readonly EmojiDefinition Bard = new("\uD83C\uDFB5"); // :musical_note:
             public static readonly EmojiDefinition Cleric = new("\uD83C\uDFE5"); // :hospital:
             public static readonly EmojiDefinition Fighter = new("\u2694"); // :crossed_swords:
@@ -48,6 +51,22 @@ namespace HoU.GuildBot.Shared.Objects
             public static readonly EmojiDefinition Rogue = new("\uD83D\uDC65"); // :busts_in_silhouette:
             public static readonly EmojiDefinition Summoner = new("\uD83D\uDC23"); // :hatching_chick:
             public static readonly EmojiDefinition Tank = new("\uD83D\uDEE1"); // :shield:
+
+            // Play styles
+            public static readonly EmojiDefinition PvP = new("PvP", 817781653245919242);
+            public static readonly EmojiDefinition PvE = new("\uD83D\uDC32"); // :dragon_face:
+            public static readonly EmojiDefinition Crafting = new("\uD83D\uDC8D"); // :ring:
+
+            // Races
+            public static readonly EmojiDefinition Kaelar = new("AoCKaelar", 818553906421301258);
+            public static readonly EmojiDefinition Vaelune = new("AoCVaelune", 818553906111709184);
+            public static readonly EmojiDefinition Empyrean = new("AoCEmpyrean", 818553906488541204);
+            public static readonly EmojiDefinition Pyrai = new("AoCPyrai", 818553906204377160);
+            public static readonly EmojiDefinition Renkai = new("AoCRenKai", 818554358961537035);
+            public static readonly EmojiDefinition Vek = new("AoCVek", 818553905927290880);
+            public static readonly EmojiDefinition Dunir = new("AoCDunir", 818553906304516116);
+            public static readonly EmojiDefinition Nikua = new("AoCNikua", 818553906454986764);
+            public static readonly EmojiDefinition Tulnar = new("AoCTulnar", 818556838828048475);
         }
 
         public static class WowRoleEmojis

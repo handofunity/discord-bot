@@ -14,7 +14,7 @@ namespace HoU.GuildBot.Shared.BLL
 
         IDiscordAccess DiscordAccess { set; }
 
-        ulong AocGameRoleMenuMessageID { get; set; }
+        ulong[] AocGameRoleMenuMessageIDs { get; set; }
 
         ulong WowGameRoleMenuMessageID { get; set; }
 

@@ -7,8 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\AoCClassForeground.png" />
     <None Remove="Resources\AoCClasslist.jpg" />
+    <None Remove="Resources\AoCPlaystyleForeground.png" />
+    <None Remove="Resources\AoCRaceForeground.png" />
     <None Remove="Resources\AocRolesBackground.png" />
+    <None Remove="Resources\AoCRolesBackground_Centered.png" />
+    <None Remove="Resources\AoCRolesBackground_Right.png" />
     <None Remove="Resources\AocRolesForeground.png" />
     <None Remove="Resources\GuildLogo.png" />
     <None Remove="Resources\UnitsProfileBadge_HighPoints.png" />
@@ -19,9 +24,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Resources\AoCClassForeground.png" />
     <EmbeddedResource Include="Resources\AoCClassList.jpg" />
-    <EmbeddedResource Include="Resources\AocRolesBackground.png" />
-    <EmbeddedResource Include="Resources\AocRolesForeground.png" />
+    <EmbeddedResource Include="Resources\AoCPlaystyleForeground.png" />
+    <EmbeddedResource Include="Resources\AoCRaceForeground.png" />
+    <EmbeddedResource Include="Resources\AoCRolesBackground_Centered.png" />
+    <EmbeddedResource Include="Resources\AoCRolesBackground_Right.png" />
     <EmbeddedResource Include="Resources\GuildLogo.png" />
     <EmbeddedResource Include="Resources\UnitsProfileBackground.png" />
     <EmbeddedResource Include="Resources\UnitsProfileBadge_HighPoints.png" />

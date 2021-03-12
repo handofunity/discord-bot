@@ -70,7 +70,9 @@ namespace HoU.GuildBot.BLL
 
             var l = new List<string>
             {
-                await _messageProvider.GetMessage(Constants.MessageNames.AocRoleMenu).ConfigureAwait(false)
+                await _messageProvider.GetMessage(Constants.MessageNames.AocClassMenu).ConfigureAwait(false),
+                await _messageProvider.GetMessage(Constants.MessageNames.AocPlayStyleMenu).ConfigureAwait(false),
+                await _messageProvider.GetMessage(Constants.MessageNames.AocRaceMenu).ConfigureAwait(false)
             };
             expectedChannelMessages[_appSettings.AshesOfCreationRoleChannelId] = (l, EnsureAocRoleMenuReactionsExist);
         }
@@ -147,12 +149,13 @@ namespace HoU.GuildBot.BLL
 
         private async Task EnsureAocRoleMenuReactionsExist(ulong[] messageIds)
         {
-            if (messageIds.Length != 1)
+            if (messageIds.Length != 3)
                 throw new ArgumentException("Unexpected amount of message IDs received.", nameof(messageIds));
 
-            var roleMenuMessageId = messageIds[0];
+            // Class menu
+            var classMenuMessageId = messageIds[0];
             await _discordAccess.AddReactionsToMessage(_appSettings.AshesOfCreationRoleChannelId,
-                roleMenuMessageId,
+                classMenuMessageId,
                 new[]
                 {
                     Constants.AocRoleEmojis.Bard,
@@ -165,7 +168,35 @@ namespace HoU.GuildBot.BLL
                     Constants.AocRoleEmojis.Tank
                 }).ConfigureAwait(false);
 
-            _gameRoleProvider.AocGameRoleMenuMessageID = roleMenuMessageId;
+            // Play style menu
+            var playStyleMenuMessageId = messageIds[1];
+            await _discordAccess.AddReactionsToMessage(_appSettings.AshesOfCreationRoleChannelId,
+                                                       playStyleMenuMessageId,
+                                                       new[]
+                                                       {
+                                                           Constants.AocRoleEmojis.PvE,
+                                                           Constants.AocRoleEmojis.PvP,
+                                                           Constants.AocRoleEmojis.Crafting
+                                                       }).ConfigureAwait(false);
+
+            // Race menu
+            var raceMenuMessageId = messageIds[2];
+            await _discordAccess.AddReactionsToMessage(_appSettings.AshesOfCreationRoleChannelId,
+                                                       raceMenuMessageId,
+                                                       new[]
+                                                       {
+                                                           Constants.AocRoleEmojis.Kaelar,
+                                                           Constants.AocRoleEmojis.Vaelune,
+                                                           Constants.AocRoleEmojis.Empyrean,
+                                                           Constants.AocRoleEmojis.Pyrai,
+                                                           Constants.AocRoleEmojis.Renkai,
+                                                           Constants.AocRoleEmojis.Vek,
+                                                           Constants.AocRoleEmojis.Dunir,
+                                                           Constants.AocRoleEmojis.Nikua,
+                                                           Constants.AocRoleEmojis.Tulnar
+                                                       }).ConfigureAwait(false);
+
+            _gameRoleProvider.AocGameRoleMenuMessageIDs = messageIds.ToArray();
         }
 
         private async Task EnsureWowRoleMenuReactionsExist(ulong[] messageIds)
@@ -258,7 +289,7 @@ namespace HoU.GuildBot.BLL
                     _logger.LogInformation($"Messages in channel '{channelLocationAndName}' are correct.");
                     if (pair.Key == _appSettings.AshesOfCreationRoleChannelId)
                     {
-                        _gameRoleProvider.AocGameRoleMenuMessageID = existingMessages[0].MessageID;
+                        _gameRoleProvider.AocGameRoleMenuMessageIDs = existingMessages.Select(m => m.MessageID).ToArray();
                     }
                     else if (pair.Key == _appSettings.WorldOfWarcraftRoleChannelId)
                     {
@@ -282,14 +313,18 @@ namespace HoU.GuildBot.BLL
             // We can just create the messages here, because the message was changed.
             // There's no need to check if the messages in the channel are the same.
 
-            if (e.MessageName == Constants.MessageNames.AocRoleMenu)
+            if (e.MessageName == Constants.MessageNames.AocClassMenu
+                || e.MessageName == Constants.MessageNames.AocPlayStyleMenu
+                || e.MessageName == Constants.MessageNames.AocRaceMenu)
             {
                 Task.Run(async () =>
                 {
-                    var expectedChannelMessages = new Dictionary<DiscordChannelID, (List<string> Messages, Func<ulong[], Task> PostCreationCallback)>();
+                    var expectedChannelMessages =
+                        new Dictionary<DiscordChannelID, (List<string> Messages, Func<ulong[], Task> PostCreationCallback)>();
                     await LoadAocRoleMenuMessages(expectedChannelMessages).ConfigureAwait(false);
                     var (messages, postCreationCallback) = expectedChannelMessages[_appSettings.AshesOfCreationRoleChannelId];
-                    await CreateMessagesInChannel(_appSettings.AshesOfCreationRoleChannelId, messages, postCreationCallback).ConfigureAwait(false);
+                    await CreateMessagesInChannel(_appSettings.AshesOfCreationRoleChannelId, messages, postCreationCallback)
+                       .ConfigureAwait(false);
                 }).ConfigureAwait(false);
             }
             else if (e.MessageName == Constants.MessageNames.WowRoleMenu)

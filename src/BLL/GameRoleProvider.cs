@@ -57,7 +57,7 @@ namespace HoU.GuildBot.BLL
             return false;
         }
 
-        private async Task<bool> IsValidClassName(DiscordChannelID channelID, User user, AvailableGame game, string className)
+        private async Task<bool> IsValidRoleName(DiscordChannelID channelID, User user, AvailableGame game, string className)
         {
             if (game.AvailableRoles.Any(m => m.RoleName == className))
                 return true;
@@ -78,7 +78,7 @@ namespace HoU.GuildBot.BLL
             }).ConfigureAwait(false);
         }
 
-        private static string AocEmojiToClassName(EmojiDefinition emoji)
+        private static string AocEmojiToRoleName(EmojiDefinition emoji)
         {
             if (emoji.Equals(Constants.AocRoleEmojis.Bard))
                 return nameof(Constants.AocRoleEmojis.Bard);
@@ -96,11 +96,35 @@ namespace HoU.GuildBot.BLL
                 return nameof(Constants.AocRoleEmojis.Summoner);
             if (emoji.Equals(Constants.AocRoleEmojis.Tank))
                 return nameof(Constants.AocRoleEmojis.Tank);
+            if (emoji.Equals(Constants.AocRoleEmojis.PvP))
+                return nameof(Constants.AocRoleEmojis.PvP);
+            if (emoji.Equals(Constants.AocRoleEmojis.PvE))
+                return nameof(Constants.AocRoleEmojis.PvE);
+            if (emoji.Equals(Constants.AocRoleEmojis.Crafting))
+                return nameof(Constants.AocRoleEmojis.Crafting);
+            if (emoji.Equals(Constants.AocRoleEmojis.Kaelar))
+                return nameof(Constants.AocRoleEmojis.Kaelar);
+            if (emoji.Equals(Constants.AocRoleEmojis.Vaelune))
+                return nameof(Constants.AocRoleEmojis.Vaelune);
+            if (emoji.Equals(Constants.AocRoleEmojis.Empyrean))
+                return nameof(Constants.AocRoleEmojis.Empyrean);
+            if (emoji.Equals(Constants.AocRoleEmojis.Pyrai))
+                return nameof(Constants.AocRoleEmojis.Pyrai);
+            if (emoji.Equals(Constants.AocRoleEmojis.Renkai))
+                return nameof(Constants.AocRoleEmojis.Renkai);
+            if (emoji.Equals(Constants.AocRoleEmojis.Vek))
+                return nameof(Constants.AocRoleEmojis.Vek);
+            if (emoji.Equals(Constants.AocRoleEmojis.Dunir))
+                return nameof(Constants.AocRoleEmojis.Dunir);
+            if (emoji.Equals(Constants.AocRoleEmojis.Nikua))
+                return nameof(Constants.AocRoleEmojis.Nikua);
+            if (emoji.Equals(Constants.AocRoleEmojis.Tulnar))
+                return nameof(Constants.AocRoleEmojis.Tulnar);
 
             throw new ArgumentOutOfRangeException(nameof(emoji), "Emoji is unknown.");
         }
 
-        private static string WowEmojiToClassName(EmojiDefinition emoji)
+        private static string WowEmojiToRoleName(EmojiDefinition emoji)
         {
             if (emoji.Equals(Constants.WowRoleEmojis.Druid))
                 return nameof(Constants.WowRoleEmojis.Druid);
@@ -134,7 +158,7 @@ namespace HoU.GuildBot.BLL
             set => _discordAccess = value;
         }
 
-        ulong IGameRoleProvider.AocGameRoleMenuMessageID { get; set; }
+        ulong[] IGameRoleProvider.AocGameRoleMenuMessageIDs { get; set; }
 
         ulong IGameRoleProvider.WowGameRoleMenuMessageID { get; set; }
 
@@ -199,28 +223,28 @@ namespace HoU.GuildBot.BLL
             if (!await CanChangeRoles(channelID, user).ConfigureAwait(false))
                 return;
 
-            string className;
+            string roleName;
             switch (game.ShortName)
             {
                 case Constants.RoleMenuGameShortNames.AshesOfCreation:
-                    className = AocEmojiToClassName(emoji);
+                    roleName = AocEmojiToRoleName(emoji);
                     break;
                 case Constants.RoleMenuGameShortNames.WorldOfWarcraftClassic:
-                    className = WowEmojiToClassName(emoji);
+                    roleName = WowEmojiToRoleName(emoji);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(game), $"Game '{game.ShortName}' ist not valid for '{nameof(IGameRoleProvider.SetGameRole)}'.");
             }
-            if (!await IsValidClassName(channelID, user, game, className))
+            if (!await IsValidRoleName(channelID, user, game, roleName))
                 return;
 
-            var added = await _discordAccess.TryAddGameRole(userID, game, className).ConfigureAwait(false);
+            var added = await _discordAccess.TryAddGameRole(userID, game, roleName).ConfigureAwait(false);
             if (added)
             {
-                var createdMessages = await _discordAccess.CreateBotMessagesInChannel(channelID, new[] { $"{user.Mention}: The class **_{className}_** for the game _{game.LongName}_ was **added**." }).ConfigureAwait(false);
+                var createdMessages = await _discordAccess.CreateBotMessagesInChannel(channelID, new[] { $"{user.Mention}: The role **_{roleName}_** for the game _{game.LongName}_ was **added**." }).ConfigureAwait(false);
                 var messageID = createdMessages[0];
                 DeleteMessageAfterDelay(channelID, messageID);
-                await _discordAccess.LogToDiscord($"User {user.Mention} **added** the role **_{className}_** for the game _{game.LongName}_.").ConfigureAwait(false);
+                await _discordAccess.LogToDiscord($"User {user.Mention} **added** the role **_{roleName}_** for the game _{game.LongName}_.").ConfigureAwait(false);
             }
         }
 
@@ -231,25 +255,25 @@ namespace HoU.GuildBot.BLL
             if (!await CanChangeRoles(channelID, user).ConfigureAwait(false))
                 return;
 
-            string className;
+            string roleName;
             switch (game.ShortName)
             {
                 case Constants.RoleMenuGameShortNames.AshesOfCreation:
-                    className = AocEmojiToClassName(emoji);
+                    roleName = AocEmojiToRoleName(emoji);
                     break;
                 case Constants.RoleMenuGameShortNames.WorldOfWarcraftClassic:
-                    className = WowEmojiToClassName(emoji);
+                    roleName = WowEmojiToRoleName(emoji);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(game), $"Game '{game.ShortName}' ist not valid for '{nameof(IGameRoleProvider.SetGameRole)}'.");
             }
-            if (!await IsValidClassName(channelID, user, game, className))
+            if (!await IsValidRoleName(channelID, user, game, roleName))
                 return;
 
-            var revoked = await _discordAccess.TryRevokeGameRole(userID, game, className).ConfigureAwait(false);
+            var revoked = await _discordAccess.TryRevokeGameRole(userID, game, roleName).ConfigureAwait(false);
             if (revoked)
             {
-                var createdMessages = await _discordAccess.CreateBotMessagesInChannel(channelID, new[] { $"{user.Mention}: The class **_{className}_** for the game _{game.LongName}_ was **revoked**." }).ConfigureAwait(false);
+                var createdMessages = await _discordAccess.CreateBotMessagesInChannel(channelID, new[] { $"{user.Mention}: The role **_{roleName}_** for the game _{game.LongName}_ was **revoked**." }).ConfigureAwait(false);
                 var messageID = createdMessages[0];
                 DeleteMessageAfterDelay(channelID, messageID);
             }

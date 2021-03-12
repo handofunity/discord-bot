@@ -88,6 +88,7 @@
     <None Include="Scripts\FillGameTable_IncludeInGuildMembersStatisticColumn.sql" />
     <None Include="Properties\ssdtlifecycle.json" />
     <None Include="Scripts\CreateHangFireUser.sql" />
+    <None Include="Scripts\AddMessage_AocPlayStyleMenu.sql" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="Security\hou.sql" />
@@ -100,6 +101,8 @@
     <None Include="Scripts\AddMessage_WowRoleMenu.sql" />
     <None Include="Scripts\GrantPermissionsToHangFireUser.sql" />
     <None Include="Scripts\RemoveMessage_FirstServerJoinWelcome.sql" />
+    <None Include="Scripts\AddMessage_AocRaceMenu.sql" />
+    <None Include="Scripts\RenameMessage_AocRoleMenu_AocClassMenu.sql" />
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="Script.PostDeployment.sql" />

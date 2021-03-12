@@ -162,7 +162,7 @@ namespace HoU.GuildBot.BLL
                 && channelID != _appSettings.InfoAndRolesChannelId)
                 return;
 
-            if (emoji != null && messageID == _gameRoleProvider.AocGameRoleMenuMessageID)
+            if (emoji != null && _gameRoleProvider.AocGameRoleMenuMessageIDs.Contains(messageID))
                 // If the message is the AoC role menu message, forward the data to the game role provider
                 await _gameRoleProvider.SetGameRole(channelID, userID, _gameRoleProvider.Games.Single(m => m.ShortName == Constants.RoleMenuGameShortNames.AshesOfCreation), emoji)
                                        .ConfigureAwait(false);
@@ -201,7 +201,7 @@ namespace HoU.GuildBot.BLL
                 && channelID != _appSettings.InfoAndRolesChannelId)
                 return;
 
-            if (emoji != null && messageID == _gameRoleProvider.AocGameRoleMenuMessageID)
+            if (emoji != null && _gameRoleProvider.AocGameRoleMenuMessageIDs.Contains(messageID))
                 // If the message is the AoC role menu message, forward the data to the game role provider
                 await _gameRoleProvider.RevokeGameRole(channelID, userID, _gameRoleProvider.Games.Single(m => m.ShortName == Constants.RoleMenuGameShortNames.AshesOfCreation), emoji)
                                        .ConfigureAwait(false);
