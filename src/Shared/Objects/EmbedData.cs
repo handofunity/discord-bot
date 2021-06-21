@@ -1,4 +1,6 @@
-﻿namespace HoU.GuildBot.Shared.Objects
+﻿using System;
+
+namespace HoU.GuildBot.Shared.Objects
 {
     public class EmbedData
     {
@@ -19,5 +21,9 @@
         public string Description { get; set; }
 
         public EmbedField[] Fields { get; set; }
+
+        public string FooterText { get; set; }
+
+        public DateTimeOffset? Timestamp { get; set; }
     }
 }

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 using HoU.GuildBot.Shared.BLL;
 using HoU.GuildBot.Shared.DAL;
 using HoU.GuildBot.Shared.Objects;
@@ -28,8 +30,21 @@ namespace HoU.GuildBot.BLL
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
+        private static string GetDayOfMonthSuffix(int day)
+        {
+            if (day is >= 11 and <= 13)
+                return "th";
+            return (day % 10) switch
+            {
+                1 => "st",
+                2 => "nd",
+                3 => "rd",
+                _ => "th"
+            };
+        }
+
         private static EmbedData GetEventEmbed(string baseAddress,
-                                               string action,
+                                               string actionOrTitle,
                                                RGB color)
         {
             var iconUrl = GetIconUrl(baseAddress);
@@ -39,7 +54,7 @@ namespace HoU.GuildBot.BLL
                 AuthorUrl = GetEventsUrl(baseAddress),
                 AuthorIconUrl = iconUrl,
                 ThumbnailUrl = iconUrl,
-                Title = $":calendar_spiral: {action}",
+                Title = $":calendar_spiral: {actionOrTitle}",
                 Color = color
             };
         }
@@ -52,47 +67,70 @@ namespace HoU.GuildBot.BLL
                                           int appointmentId) =>
             $"{baseAddress}/events/{appointmentId}";
 
-        private static void AddTimeRelatedFields(List<EmbedField> fields,
-                                                 DateTime startTime,
-                                                 DateTime endTime,
-                                                 bool isAllDay,
-                                                 string postfix)
+        private static void AddTimeField(List<EmbedField> fields,
+                                         DateTime startTime,
+                                         DateTime endTime,
+                                         bool isAllDay,
+                                         string fieldTitlePostfix)
         {
+            // Time
             var duration = isAllDay ? endTime.Date.AddDays(1) - startTime.Date : endTime - startTime;
             if (isAllDay)
             {
+                var timeString = new StringBuilder(startTime.ToString("ddd MMM dd"));
+                timeString.Append(GetDayOfMonthSuffix(startTime.Day) + ", ");
+                timeString.Append(startTime.ToString("yyyy"));
                 if (duration.Days > 1)
                 {
-                    fields.Add(new EmbedField(":calendar: Start Date" + postfix, startTime.Date.ToString("yyyy-MM-dd"), false));
-                    fields.Add(new EmbedField(":calendar: End Date" + postfix, endTime.Date.ToString("yyyy-MM-dd"), false));
-                    fields.Add(new EmbedField(":stopwatch: Duration" + postfix, $"{duration} day", false));
+                    timeString.Append(" - ");
+                    timeString.Append(endTime.ToString("ddd MMM dd"));
+                    timeString.Append(GetDayOfMonthSuffix(endTime.Day) + ", ");
+                    timeString.Append(endTime.ToString("yyyy"));
                 }
-                else
-                {
-                    fields.Add(new EmbedField(":calendar: Date" + postfix, startTime.Date.ToString("yyyy-MM-dd"), false));
-                    fields.Add(new EmbedField(":stopwatch: Duration" + postfix, "1 day", false));
-                }
+
+                fields.Add(new EmbedField("Time" + fieldTitlePostfix, timeString.ToString(), false));
             }
             else
             {
-                fields.Add(new EmbedField(":watch: Start Time" + postfix, startTime.ToString("yyyy-MM-dd HH:mm:ss \"UTC\"zzz"), false));
-                fields.Add(new EmbedField(":watch: End Time" + postfix, endTime.ToString("yyyy-MM-dd HH:mm:ss \"UTC\"zzz"), false));
-                fields.Add(new EmbedField(":stopwatch: Duration" + postfix, $"{duration} h", false));
+                var timeString = new StringBuilder(startTime.ToString("ddd MMM dd"));
+                timeString.Append(GetDayOfMonthSuffix(startTime.Day) + ", ");
+                timeString.Append(startTime.ToString("yyyy"));
+                timeString.Append(" ⋅ ");
+                timeString.Append(startTime.ToString("h tt"));
+                timeString.Append(" - ");
+                timeString.Append(endTime.ToString("h tt"));
+                timeString.Append("UTC");
+                fields.Add(new EmbedField("Time" + fieldTitlePostfix, timeString.ToString(), false));
             }
+        }
+
+        private static void AddLinksField(List<EmbedField> fields,
+                                          string eventName,
+                                          DateTime startTime)
+        {
+
+            // Links to converted time zone
+            const string baseUrl = "https://www.timeanddate.com/worldclock/fixedtime.html";
+            // msg = title URL encoded
+            var msgParam = $"msg={HttpUtility.HtmlEncode(eventName)}";
+            // iso = ISO UTC time
+            var isoParam = $"iso={startTime:yyyyMMdd}T{startTime:HHmmss}";
+            // p1=1440 --> UTC time zone as base time
+            var p1Param = "p1=1440";
+            fields.Add(new EmbedField("Links", $"[Convert time zone]({baseUrl}?{msgParam}&{isoParam}&{p1Param})", false));
         }
 
         async Task IUnitsBotClient.ReceiveEventCreatedMessageAsync(string baseAddress,
                                                                    int appointmentId,
                                                                    string eventName,
+                                                                   string author,
                                                                    DateTime startTime,
                                                                    DateTime endTime,
                                                                    bool isAllDay)
         {
-            var fields = new List<EmbedField>
-            {
-                new EmbedField(":bookmark: Title", eventName, false)
-            };
-            AddTimeRelatedFields(fields, startTime, endTime, isAllDay, null);
+            var fields = new List<EmbedField>();
+            AddTimeField(fields, startTime, endTime, isAllDay, null);
+            AddLinksField(fields, eventName, startTime);
             var embed = GetEventEmbed(baseAddress,
                                       "Event created",
                                       Colors.BrightBlue);
@@ -100,6 +138,8 @@ namespace HoU.GuildBot.BLL
             embed.Description = $"A [new event]({embed.Url}) was created in UNITS. " +
                                 "Click to open the event in your browser.";
             embed.Fields = fields.ToArray();
+            embed.FooterText = $"Created by {author}";
+            embed.Timestamp = startTime;
             await _discordAccess.SendUnitsNotificationAsync(embed);
         }
 
@@ -113,14 +153,12 @@ namespace HoU.GuildBot.BLL
                                                                        bool isAllDay,
                                                                        DiscordUserID[] usersToNotify)
         {
-            var fields = new List<EmbedField>
-            {
-                new EmbedField(":bookmark: Title", eventName, false)
-            };
-            AddTimeRelatedFields(fields, startTimeOld, endTimeOld, isAllDay, " (Old)");
-            AddTimeRelatedFields(fields, startTimeNew, endTimeNew, isAllDay, " (New)");
+            var fields = new List<EmbedField>();
+            AddTimeField(fields, startTimeOld, endTimeOld, isAllDay, " (Old)");
+            AddTimeField(fields, startTimeNew, endTimeNew, isAllDay, " (New)");
+            AddLinksField(fields, eventName, startTimeNew);
             var embed = GetEventEmbed(baseAddress,
-                                      "Event rescheduled",
+                                      eventName,
                                       Colors.Orange);
             embed.Url = GetEventUrl(baseAddress, appointmentId);
             embed.Description = $"An existing event was [rescheduled to a new occurence]({embed.Url}). " +
@@ -145,15 +183,13 @@ namespace HoU.GuildBot.BLL
                                                                     bool isAllDay,
                                                                     DiscordUserID[] usersToNotify)
         {
-            var fields = new List<EmbedField>
-            {
-                new EmbedField(":bookmark: Title", eventName, false)
-            };
-            AddTimeRelatedFields(fields, startTime, endTime, isAllDay, null);
+            var fields = new List<EmbedField>();
+            AddTimeField(fields, startTime, endTime, isAllDay, null);
             var embed = GetEventEmbed(baseAddress,
-                                      "Event canceled",
+                                      eventName,
                                       Colors.Red);
-            embed.Description = "An existing event was canceled in UNITS.";
+            embed.Description = "An existing event was canceled in UNITS. " +
+                                "If you're being mentioned, you've signed up to the canceled event.";
             embed.Fields = fields.ToArray();
 
             if (usersToNotify != null && usersToNotify.Any())

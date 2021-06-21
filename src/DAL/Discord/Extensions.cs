@@ -36,6 +36,10 @@ namespace HoU.GuildBot.DAL.Discord
                                                                  .WithIsInline(fd.Inline));
                 }
             }
+            if (ed.FooterText != null)
+                builder.Footer.Text = ed.FooterText;
+            if (ed.Timestamp != null)
+                builder.Timestamp = ed.Timestamp;
 
             return builder.Build();
         }

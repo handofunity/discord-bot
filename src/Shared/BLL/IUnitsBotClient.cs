@@ -12,6 +12,7 @@ namespace HoU.GuildBot.Shared.BLL
         Task ReceiveEventCreatedMessageAsync(string baseAddress,
                                              int appointmentId,
                                              string eventName,
+                                             string author,
                                              DateTime startTime,
                                              DateTime endTime,
                                              bool isAllDay);
