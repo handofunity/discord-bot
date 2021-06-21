@@ -14,6 +14,11 @@ using Serilog;
 using HoU.GuildBot.Shared.BLL;
 using HoU.GuildBot.Shared.DAL;
 using HoU.GuildBot.Shared.Objects;
+using Serilog.Exceptions;
+using Serilog.Exceptions.Core;
+using Serilog.Exceptions.Destructurers;
+using Serilog.Exceptions.EntityFrameworkCore.Destructurers;
+using Serilog.Exceptions.MsSqlServer.Destructurers;
 using DiscordUserEventHandler = HoU.GuildBot.BLL.DiscordUserEventHandler;
 
 namespace HoU.GuildBot.Core
@@ -126,6 +131,13 @@ namespace HoU.GuildBot.Core
         {
             Log.Logger = new LoggerConfiguration()
                         .ReadFrom.Configuration(completeConfiguration)
+                        .Enrich.WithExceptionDetails(new DestructuringOptionsBuilder()
+                                                    .WithDefaultDestructurers()
+                                                    .WithDestructurers(new IExceptionDestructurer[]
+                                                     {
+                                                         new SqlExceptionDestructurer(),
+                                                         new DbUpdateExceptionDestructurer()
+                                                     }))
                         .CreateLogger();
 
             Log.Information("Initialized logger.");

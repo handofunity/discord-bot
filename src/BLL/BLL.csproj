@@ -40,7 +40,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Hangfire.AspNetCore" Version="1.7.22" />
+    <PackageReference Include="Hangfire.AspNetCore" Version="1.7.23" />
     <PackageReference Include="JetBrains.Annotations" Version="2021.1.0" />
     <PackageReference Include="System.Drawing.Common" Version="5.0.2" />
   </ItemGroup>
