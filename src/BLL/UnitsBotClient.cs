@@ -99,7 +99,7 @@ namespace HoU.GuildBot.BLL
                 timeString.Append(startTime.ToString("h tt"));
                 timeString.Append(" - ");
                 timeString.Append(endTime.ToString("h tt"));
-                timeString.Append("UTC");
+                timeString.Append(" UTC");
                 fields.Add(new EmbedField("Time" + fieldTitlePostfix, timeString.ToString(), false));
             }
         }
@@ -112,7 +112,7 @@ namespace HoU.GuildBot.BLL
             // Links to converted time zone
             const string baseUrl = "https://www.timeanddate.com/worldclock/fixedtime.html";
             // msg = title URL encoded
-            var msgParam = $"msg={HttpUtility.HtmlEncode(eventName)}";
+            var msgParam = $"msg={Uri.EscapeUriString(eventName)}";
             // iso = ISO UTC time
             var isoParam = $"iso={startTime:yyyyMMdd}T{startTime:HHmmss}";
             // p1=1440 --> UTC time zone as base time
@@ -132,13 +132,13 @@ namespace HoU.GuildBot.BLL
             AddTimeField(fields, startTime, endTime, isAllDay, null);
             AddLinksField(fields, eventName, startTime);
             var embed = GetEventEmbed(baseAddress,
-                                      "Event created",
+                                      eventName,
                                       Colors.BrightBlue);
             embed.Url = GetEventUrl(baseAddress, appointmentId);
             embed.Description = $"A [new event]({embed.Url}) was created in UNITS. " +
                                 "Click to open the event in your browser.";
             embed.Fields = fields.ToArray();
-            embed.FooterText = $"Created by {author}";
+            embed.FooterText = $"Created by {author}{Environment.NewLine}Local time";
             embed.Timestamp = startTime;
             await _discordAccess.SendUnitsNotificationAsync(embed);
         }
