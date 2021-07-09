@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using HoU.GuildBot.Shared.Objects;
+using Microsoft.Extensions.Hosting;
 
 namespace HoU.GuildBot.WebHost
 {
@@ -28,7 +29,7 @@ namespace HoU.GuildBot.WebHost
             services.AddAppSettings(Configuration);
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             Trace.WriteLine($"Executing '{nameof(Configure)}' ...");
             string environment;
