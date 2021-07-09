@@ -1266,6 +1266,13 @@ namespace HoU.GuildBot.DAL.Discord
             return result;
         }
 
+        List<DiscordUserID> IDiscordAccess.GetUsersIdsInRole(ulong roleId)
+        {
+            var g = GetGuild();
+            var role = g.GetRole(roleId);
+            return role.Members.Select(roleMember => (DiscordUserID) roleMember.Id).ToList();
+        }
+
         #endregion
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////

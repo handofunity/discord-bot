@@ -127,6 +127,7 @@ namespace HoU.GuildBot.BLL
                                                                           personalReminder.CronSchedule);
                     }
                 }
+                RecurringJob.AddOrUpdate<IRoleRemover>("remove-basement-role", remover => remover.RemoveBasementRolesAsync(), "0 0-23 * * *");
 
                 _ = Task.Run(async () =>
                 {

@@ -325,5 +325,12 @@ namespace HoU.GuildBot.Shared.DAL
         /// <param name="voiceChannelIds">The IDs of the voice channels to check.</param>
         /// <returns>A dictionary containing the voice channel id as key, and the users in that channel as value.</returns>
         Dictionary<string, List<DiscordUserID>> GetUsersInVoiceChannels(string[] voiceChannelIds);
+
+        /// <summary>
+        /// Gets all the <see cref="DiscordUserID"/>s of people having the <paramref name="roleId"/>.
+        /// </summary>
+        /// <param name="roleId">The ID of the role to check.</param>
+        /// <returns>The list of <see cref="DiscordUserID"/> in the role, or empty.</returns>
+        List<DiscordUserID> GetUsersIdsInRole(ulong roleId);
     }
 }

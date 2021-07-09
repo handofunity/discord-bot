@@ -103,6 +103,7 @@ namespace HoU.GuildBot.Core
                .AddSingleton<IStaticMessageProvider, StaticMessageProvider>()
                .AddSingleton<IVoiceChannelManager, VoiceChannelManager>()
                .AddSingleton<IUnitsBotClient, UnitsBotClient>()
+               .AddSingleton<IRoleRemover, RoleRemover>()
                // Transients
                .AddTransient<IHelpProvider, HelpProvider>()
                .AddTransient<IVacationProvider, VacationProvider>()

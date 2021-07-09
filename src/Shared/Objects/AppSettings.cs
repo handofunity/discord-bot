@@ -190,6 +190,11 @@ namespace HoU.GuildBot.Shared.Objects
         public PersonalReminder[] PersonalReminders { get; set; }
 
         /// <summary>
+        /// Gets or sets the ID of the role that's used as basement.
+        /// </summary>
+        public ulong BasementRoleId { get; set; }
+
+        /// <summary>
         /// Gets or sets the primary connection string used to access database objects part of the solution.
         /// </summary>
         /// <remarks>Should either be a IP/TCP connection, or a named connection. For IP/TCP connections, see example.</remarks>
