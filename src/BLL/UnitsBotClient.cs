@@ -204,15 +204,16 @@ namespace HoU.GuildBot.BLL
 
         async Task IUnitsBotClient.ReceiveEventAttendanceConfirmedMessageAsync(string baseAddress,
                                                                                int appointmentId,
-                                                                               DiscordUserID userToNotify)
+                                                                               string eventName,
+                                                                               DiscordUserID[] usersToNotify)
         {
             var embed = GetEventEmbed(baseAddress,
-                                      "Event attendance confirmed",
+                                      eventName,
                                       Colors.Green);
             embed.Url = GetEventUrl(baseAddress, appointmentId);
-            embed.Description = $"Your [event attendance]({embed.Url}) has been confirmed. " +
+            embed.Description = $"Your [event attendance]({embed.Url}) for the event '{eventName}' has been confirmed. " +
                                 "Click to open the event in your browser.";
-            await _discordAccess.SendUnitsNotificationAsync(embed, new[] {userToNotify});
+            await _discordAccess.SendUnitsNotificationAsync(embed, usersToNotify);
         }
 
         async Task IUnitsBotClient.ReceiveEventStartingSoonMessageAsync(string baseAddress,

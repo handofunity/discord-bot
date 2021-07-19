@@ -42,7 +42,8 @@ namespace HoU.GuildBot.Shared.BLL
         [UsedImplicitly]
         Task ReceiveEventAttendanceConfirmedMessageAsync(string baseAddress,
                                                          int appointmentId,
-                                                         DiscordUserID userToNotify);
+                                                         string eventName,
+                                                         DiscordUserID[] usersToNotify);
 
         // See UnitsSignalRClient.RegisterHandlers
         [UsedImplicitly]
