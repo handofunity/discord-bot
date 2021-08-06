@@ -42,8 +42,6 @@ namespace HoU.GuildBot.DAL.Discord
                 builder.Footer = new EmbedFooterBuilder()
                    .WithText(ed.FooterText);
             }
-            if (ed.Timestamp != null)
-                builder.Timestamp = ed.Timestamp;
 
             return builder.Build();
         }

@@ -75,32 +75,40 @@ namespace HoU.GuildBot.BLL
         {
             // Time
             var duration = isAllDay ? endTime.Date.AddDays(1) - startTime.Date : endTime - startTime;
+            var startTimeUnix = startTime - DateTime.UnixEpoch;
+            var endTimeUnix = endTime - DateTime.UnixEpoch;
             if (isAllDay)
             {
-                var timeString = new StringBuilder(startTime.ToString("ddd MMM dd"));
-                timeString.Append(GetDayOfMonthSuffix(startTime.Day) + ", ");
-                timeString.Append(startTime.ToString("yyyy"));
+                var communityTimeString = new StringBuilder(startTime.ToString("ddd MMM dd"));
+                communityTimeString.Append(GetDayOfMonthSuffix(startTime.Day) + ", ");
+                communityTimeString.Append(startTime.ToString("yyyy"));
+                var localTimeString = new StringBuilder($"<t:{startTimeUnix}:D>");
                 if (duration.Days > 1)
                 {
-                    timeString.Append(" - ");
-                    timeString.Append(endTime.ToString("ddd MMM dd"));
-                    timeString.Append(GetDayOfMonthSuffix(endTime.Day) + ", ");
-                    timeString.Append(endTime.ToString("yyyy"));
+                    communityTimeString.Append(" - ");
+                    communityTimeString.Append(endTime.ToString("ddd MMM dd"));
+                    communityTimeString.Append(GetDayOfMonthSuffix(endTime.Day) + ", ");
+                    communityTimeString.Append(endTime.ToString("yyyy"));
+                    localTimeString.Append(" - ");
+                    localTimeString.Append($"<t:{endTimeUnix}:D>");
                 }
 
-                fields.Add(new EmbedField("Time" + fieldTitlePostfix, timeString.ToString(), false));
+                fields.Add(new EmbedField("Community Time" + fieldTitlePostfix, communityTimeString.ToString(), false));
+                fields.Add(new EmbedField("Local Time" + fieldTitlePostfix, localTimeString.ToString(), false));
             }
             else
             {
-                var timeString = new StringBuilder(startTime.ToString("ddd MMM dd"));
-                timeString.Append(GetDayOfMonthSuffix(startTime.Day) + ", ");
-                timeString.Append(startTime.ToString("yyyy"));
-                timeString.Append(" ⋅ ");
-                timeString.Append(startTime.ToString("h tt"));
-                timeString.Append(" - ");
-                timeString.Append(endTime.ToString("h tt"));
-                timeString.Append(" UTC");
-                fields.Add(new EmbedField("Time" + fieldTitlePostfix, timeString.ToString(), false));
+                var communityTimeString = new StringBuilder(startTime.ToString("ddd MMM dd"));
+                communityTimeString.Append(GetDayOfMonthSuffix(startTime.Day) + ", ");
+                communityTimeString.Append(startTime.ToString("yyyy"));
+                communityTimeString.Append(" ⋅ ");
+                communityTimeString.Append(startTime.ToString("h tt"));
+                communityTimeString.Append(" - ");
+                communityTimeString.Append(endTime.ToString("h tt"));
+                communityTimeString.Append(" UTC");
+                var localTimeString = $"<t:{startTimeUnix}:F> - <t:{endTimeUnix}:t>";
+                fields.Add(new EmbedField("Community Time" + fieldTitlePostfix, communityTimeString.ToString(), false));
+                fields.Add(new EmbedField("Local Time" + fieldTitlePostfix, localTimeString.ToString(), false));
             }
         }
 
@@ -139,7 +147,6 @@ namespace HoU.GuildBot.BLL
                                 "Click to open the event in your browser.";
             embed.Fields = fields.ToArray();
             embed.FooterText = $"Created by {author}{Environment.NewLine}Local time";
-            embed.Timestamp = startTime;
             await _discordAccess.SendUnitsNotificationAsync(embed);
         }
 
