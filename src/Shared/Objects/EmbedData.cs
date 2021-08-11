@@ -23,5 +23,7 @@ namespace HoU.GuildBot.Shared.Objects
         public EmbedField[] Fields { get; set; }
 
         public string FooterText { get; set; }
+
+        public string ImageUrl { get; set; }
     }
 }

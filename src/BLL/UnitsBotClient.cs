@@ -8,6 +8,7 @@ using HoU.GuildBot.Shared.BLL;
 using HoU.GuildBot.Shared.DAL;
 using HoU.GuildBot.Shared.Objects;
 using HoU.GuildBot.Shared.StrongTypes;
+using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
 
 namespace HoU.GuildBot.BLL
@@ -134,7 +135,8 @@ namespace HoU.GuildBot.BLL
                                                                    string author,
                                                                    DateTime startTime,
                                                                    DateTime endTime,
-                                                                   bool isAllDay)
+                                                                   bool isAllDay,
+                                                                   string cardUrl)
         {
             var fields = new List<EmbedField>();
             AddTimeField(fields, startTime, endTime, isAllDay, null);
@@ -147,6 +149,8 @@ namespace HoU.GuildBot.BLL
                                 "Click to open the event in your browser.";
             embed.Fields = fields.ToArray();
             embed.FooterText = $"Created by {author}{Environment.NewLine}Local time";
+            if (cardUrl != null)
+                embed.ImageUrl = $"{baseAddress}/{cardUrl}";
             await _discordAccess.SendUnitsNotificationAsync(embed);
         }
 

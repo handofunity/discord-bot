@@ -19,7 +19,7 @@
     <None Remove="nlog-internal.log" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="JetBrains.Annotations" Version="2021.1.0" />
+    <PackageReference Include="JetBrains.Annotations" Version="2021.2.0" />
   </ItemGroup>
   <ItemGroup>
     <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="2.0.3" />
@@ -30,7 +30,7 @@
     <ProjectReference Include="..\Shared\Shared.csproj" />
   </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.8" />
+        <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.11.1" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     </ItemGroup>
   <ItemGroup>

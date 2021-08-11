@@ -43,6 +43,9 @@ namespace HoU.GuildBot.DAL.Discord
                    .WithText(ed.FooterText);
             }
 
+            if (ed.ImageUrl != null)
+                builder.ImageUrl = ed.ImageUrl;
+
             return builder.Build();
         }
     }

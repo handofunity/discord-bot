@@ -15,7 +15,8 @@ namespace HoU.GuildBot.Shared.BLL
                                              string author,
                                              DateTime startTime,
                                              DateTime endTime,
-                                             bool isAllDay);
+                                             bool isAllDay,
+                                             [CanBeNull] string cardUrl);
 
         // See UnitsSignalRClient.RegisterHandlers
         [UsedImplicitly]
