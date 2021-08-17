@@ -78,8 +78,13 @@ namespace HoU.GuildBot.DAL.UNITS
                                       && firstParameter.ParameterType == typeof(string);
                 if (withBaseAddress)
                 {
+                    var actualParameterInfo = allParameters.Skip(1).ToArray();
+                    var actualParameters = string.Join(", ", actualParameterInfo.Select(m => $"{m.ParameterType} {m.Name}"));
+                    _logger.LogDebug("Registration of SignalR handler '{MethodName}' with base address parameter and these actual parameters: {ActualParameters}",
+                                           method.Name,
+                                           actualParameters);
                     connection.On(method.Name,
-                                  allParameters.Skip(1).Select(m => m.ParameterType).ToArray(),
+                                  actualParameterInfo.Select(m => m.ParameterType).ToArray(),
                                   async parameters =>
                                   {
                                       if (method.Invoke(_botClient, new object[] { baseAddress }.Concat(parameters).ToArray()) is Task response)
@@ -88,6 +93,10 @@ namespace HoU.GuildBot.DAL.UNITS
                 }
                 else
                 {
+                    var actualParameters = string.Join(", ", allParameters.Select(m => $"{m.ParameterType} {m.Name}"));
+                    _logger.LogDebug("Registration of SignalR handler '{MethodName}' with these parameters: {ActualParameters}",
+                                     method.Name,
+                                     actualParameters);
                     connection.On(method.Name,
                                   allParameters.Select(m => m.ParameterType).ToArray(),
                                   async parameters =>

@@ -83,7 +83,7 @@ namespace HoU.GuildBot.BLL
                 var communityTimeString = new StringBuilder(startTime.ToString("ddd MMM dd"));
                 communityTimeString.Append(GetDayOfMonthSuffix(startTime.Day) + ", ");
                 communityTimeString.Append(startTime.ToString("yyyy"));
-                var localTimeString = new StringBuilder($"<t:{startTimeUnix}:D>");
+                var localTimeString = new StringBuilder($"<t:{startTimeUnix.TotalSeconds}:D>");
                 if (duration.Days > 1)
                 {
                     communityTimeString.Append(" - ");
@@ -91,7 +91,7 @@ namespace HoU.GuildBot.BLL
                     communityTimeString.Append(GetDayOfMonthSuffix(endTime.Day) + ", ");
                     communityTimeString.Append(endTime.ToString("yyyy"));
                     localTimeString.Append(" - ");
-                    localTimeString.Append($"<t:{endTimeUnix}:D>");
+                    localTimeString.Append($"<t:{endTimeUnix.TotalSeconds}:D>");
                 }
 
                 fields.Add(new EmbedField("Community Time" + fieldTitlePostfix, communityTimeString.ToString(), false));
@@ -107,7 +107,7 @@ namespace HoU.GuildBot.BLL
                 communityTimeString.Append(" - ");
                 communityTimeString.Append(endTime.ToString("h tt"));
                 communityTimeString.Append(" UTC");
-                var localTimeString = $"<t:{startTimeUnix}:F> - <t:{endTimeUnix}:t>";
+                var localTimeString = $"<t:{startTimeUnix.TotalSeconds}:F> - <t:{endTimeUnix.TotalSeconds}:t>";
                 fields.Add(new EmbedField("Community Time" + fieldTitlePostfix, communityTimeString.ToString(), false));
                 fields.Add(new EmbedField("Local Time" + fieldTitlePostfix, localTimeString.ToString(), false));
             }
@@ -138,6 +138,9 @@ namespace HoU.GuildBot.BLL
                                                                    bool isAllDay,
                                                                    string cardUrl)
         {
+            _logger.LogDebug("Received EventCreatedMessage for event \"{EventName}\" (Id: {AppointmentId}).",
+                             eventName,
+                             appointmentId);
             var fields = new List<EmbedField>();
             AddTimeField(fields, startTime, endTime, isAllDay, null);
             AddLinksField(fields, eventName, startTime);
@@ -148,9 +151,18 @@ namespace HoU.GuildBot.BLL
             embed.Description = $"A [new event]({embed.Url}) was created in UNITS. " +
                                 "Click to open the event in your browser.";
             embed.Fields = fields.ToArray();
-            embed.FooterText = $"Created by {author}{Environment.NewLine}Local time";
+            embed.FooterText = $"Created by {author}";
             if (cardUrl != null)
-                embed.ImageUrl = $"{baseAddress}/{cardUrl}";
+            {
+                var imageUrl = $"{baseAddress}/{cardUrl}";
+                _logger.LogDebug("Setting image URL of embed to: {ImageUrl}", imageUrl);
+                embed.ImageUrl = imageUrl;
+            }
+            else
+            {
+                _logger.LogDebug("Image URL for event {AppointmentId} is null.",
+                                 appointmentId);
+            }
             await _discordAccess.SendUnitsNotificationAsync(embed);
         }
 

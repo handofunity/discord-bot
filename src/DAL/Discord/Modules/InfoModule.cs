@@ -9,6 +9,7 @@ using HoU.GuildBot.Shared.Attributes;
 using HoU.GuildBot.Shared.BLL;
 using HoU.GuildBot.Shared.Enums;
 using HoU.GuildBot.Shared.Extensions;
+using Microsoft.Extensions.Logging;
 
 namespace HoU.GuildBot.DAL.Discord.Modules
 {
@@ -20,6 +21,7 @@ namespace HoU.GuildBot.DAL.Discord.Modules
 
         private readonly IBotInformationProvider _botInformationProvider;
         private readonly ITimeInformationProvider _timeInformationProvider;
+        private readonly ILogger<InfoModule> _logger;
 
         #endregion
 
@@ -27,10 +29,12 @@ namespace HoU.GuildBot.DAL.Discord.Modules
         #region Constructors
 
         public InfoModule(IBotInformationProvider botInformationProvider,
-                          ITimeInformationProvider timeInformationProvider)
+                          ITimeInformationProvider timeInformationProvider,
+                          ILogger<InfoModule> logger)
         {
             _botInformationProvider = botInformationProvider;
             _timeInformationProvider = timeInformationProvider;
+            _logger = logger;
         }
 
         #endregion
@@ -48,6 +52,7 @@ namespace HoU.GuildBot.DAL.Discord.Modules
         [RolePrecondition(Role.Developer | Role.Leader)]
         public async Task InfoAsync()
         {
+            _logger.LogDebug("Received \"info\" command request ...");
             var data = _botInformationProvider.GetData();
             var embed = data.ToEmbed();
             await ReplyAsync(string.Empty, false, embed).ConfigureAwait(false);
