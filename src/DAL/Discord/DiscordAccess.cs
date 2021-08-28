@@ -487,7 +487,7 @@ namespace HoU.GuildBot.DAL.Discord
             if (!CanBotModifyUser(discordUserId))
                 return;
 
-            const string groupRolePrefix = "⁣⁣― ";
+            const string groupRolePrefix = "●";
             var rolesRemoved = previousRoles.Except(currentRoles)
                                         .Any(m => !m.Name.StartsWith(groupRolePrefix));
             var rolesAdded = currentRoles.Except(previousRoles)
