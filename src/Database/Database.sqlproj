@@ -103,6 +103,8 @@
     <None Include="Scripts\RemoveMessage_FirstServerJoinWelcome.sql" />
     <None Include="Scripts\AddMessage_AocRaceMenu.sql" />
     <None Include="Scripts\RenameMessage_AocRoleMenu_AocClassMenu.sql" />
+    <None Include="Scripts\AddMessage_NewWorldClassMenu.sql" />
+    <None Include="Scripts\AddMessage_NewWorldProfessionMenu.sql" />
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="Script.PostDeployment.sql" />

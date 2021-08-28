@@ -158,17 +158,26 @@ namespace HoU.GuildBot.BLL
             // Channel must be a role channel
             if (channelID != _appSettings.AshesOfCreationRoleChannelId
                 && channelID != _appSettings.WorldOfWarcraftRoleChannelId
+                && channelID != _appSettings.NewWorldRoleChannelId
                 && channelID != _appSettings.GamesRolesChannelId
                 && channelID != _appSettings.InfoAndRolesChannelId)
                 return;
 
             if (emoji != null && _gameRoleProvider.AocGameRoleMenuMessageIDs.Contains(messageID))
-                // If the message is the AoC role menu message, forward the data to the game role provider
+                // If the message is one of the AoC role menu messages, forward the data to the game role provider
                 await _gameRoleProvider.SetGameRole(channelID, userID, _gameRoleProvider.Games.Single(m => m.ShortName == Constants.RoleMenuGameShortNames.AshesOfCreation), emoji)
                                        .ConfigureAwait(false);
             else if (emoji != null && messageID == _gameRoleProvider.WowGameRoleMenuMessageID)
                 // If the message is the WoW role menu message, forward the data to the game role provider
                 await _gameRoleProvider.SetGameRole(channelID, userID, _gameRoleProvider.Games.Single(m => m.ShortName == Constants.RoleMenuGameShortNames.WorldOfWarcraftClassic), emoji)
+                                       .ConfigureAwait(false);
+            else if (emoji != null && _gameRoleProvider.NewWorldGameRoleMenuMessageIDs.Contains(messageID))
+                // If the message is one of the New World role menu messages, forward the data to the game role provider
+                await _gameRoleProvider.SetGameRole(channelID,
+                                                    userID,
+                                                    _gameRoleProvider.Games.Single(m => m.ShortName ==
+                                                                                        Constants.RoleMenuGameShortNames.NewWorld),
+                                                    emoji)
                                        .ConfigureAwait(false);
             else if (emoji != null && emoji == Constants.GamesRolesEmojis.Joystick && _gameRoleProvider.GamesRolesMenuMessageIDs.Contains(messageID))
             {
@@ -197,6 +206,7 @@ namespace HoU.GuildBot.BLL
             // Channel must be a role channel
             if (channelID != _appSettings.AshesOfCreationRoleChannelId
                 && channelID != _appSettings.WorldOfWarcraftRoleChannelId
+                && channelID != _appSettings.NewWorldRoleChannelId
                 && channelID != _appSettings.GamesRolesChannelId
                 && channelID != _appSettings.InfoAndRolesChannelId)
                 return;
@@ -208,6 +218,14 @@ namespace HoU.GuildBot.BLL
             else if (emoji != null && messageID == _gameRoleProvider.WowGameRoleMenuMessageID)
                 // If the message is the WoW role menu message, forward the data to the game role provider
                 await _gameRoleProvider.RevokeGameRole(channelID, userID, _gameRoleProvider.Games.Single(m => m.ShortName == Constants.RoleMenuGameShortNames.WorldOfWarcraftClassic), emoji)
+                                       .ConfigureAwait(false);
+            else if (emoji != null && _gameRoleProvider.NewWorldGameRoleMenuMessageIDs.Contains(messageID))
+                // If the message is one of the New World role menu messages, forward the data to the game role provider
+                await _gameRoleProvider.RevokeGameRole(channelID,
+                                                       userID,
+                                                       _gameRoleProvider.Games.Single(m => m.ShortName ==
+                                                                                           Constants.RoleMenuGameShortNames.NewWorld),
+                                                       emoji)
                                        .ConfigureAwait(false);
             else if (emoji != null && emoji == Constants.GamesRolesEmojis.Joystick && _gameRoleProvider.GamesRolesMenuMessageIDs.Contains(messageID))
             {

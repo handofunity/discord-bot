@@ -46,6 +46,8 @@ namespace HoU.GuildBot.WebHost
                 throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.AshesOfCreationRoleChannelId)}' must be a correct ID.");
             if (settings.WorldOfWarcraftRoleChannelId == default)
                 throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.WorldOfWarcraftRoleChannelId)}' must be a correct ID.");
+            if (settings.NewWorldRoleChannelId == default)
+                throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.NewWorldRoleChannelId)}' must be a correct ID.");
             if (settings.GamesRolesChannelId == default)
                 throw new InvalidOperationException($"AppSetting '{nameof(AppSettings.GamesRolesChannelId)}' must be a correct ID.");
             if (settings.UnitsNotificationsChannelId == default)

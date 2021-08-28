@@ -105,6 +105,21 @@ namespace HoU.GuildBot.Shared.Objects
         }
 
         /// <summary>
+        /// Gets the Discord ID of the channel that is used for the 'New World' role feature.
+        /// </summary>
+        public DiscordChannelID NewWorldRoleChannelId { get; private set; }
+
+        /// <summary>
+        /// Property to bind the value of <see cref="NewWorldRoleChannelId"/> from the app settings.
+        /// </summary>
+        // ReSharper disable once UnusedMember.Local
+        private ulong NewWorldRoleChannelIdValue
+        {
+            get => (ulong)NewWorldRoleChannelId;
+            set => NewWorldRoleChannelId = (DiscordChannelID)value;
+        }
+
+        /// <summary>
         /// Gets the Discord ID of the channel that is used for the 'Games' role feature.
         /// </summary>
         public DiscordChannelID GamesRolesChannelId { get; private set; }

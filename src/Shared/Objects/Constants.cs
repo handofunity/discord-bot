@@ -25,6 +25,8 @@ namespace HoU.GuildBot.Shared.Objects
             public const string AocPlayStyleMenu = "AocPlayStyleMenu";
             public const string AocRaceMenu = "AocRaceMenu";
             public const string WowRoleMenu = "WowRoleMenu";
+            public const string NewWorldClassMenu = "NewWorldClassMenu";
+            public const string NewWorldProfessionMenu = "NewWorldProfessionMenu";
             public const string GamesRolesMenu = "GamesRolesMenu";
         }
 
@@ -38,6 +40,7 @@ namespace HoU.GuildBot.Shared.Objects
         {
             public const string AshesOfCreation = "AoC";
             public const string WorldOfWarcraftClassic = "WC";
+            public const string NewWorld = "NW";
         }
 
         public static class AocRoleEmojis
@@ -79,6 +82,32 @@ namespace HoU.GuildBot.Shared.Objects
             public static readonly EmojiDefinition Rogue = new("WOWRogue", 607933000751251477);
             public static readonly EmojiDefinition Warlock = new("WOWWarlock", 607933001174745089);
             public static readonly EmojiDefinition Warrior = new("WOWWarrior", 607933001090727946);
+        }
+
+        public static class NewWorldRoleEmojis
+        {
+            // Classes
+            public static readonly EmojiDefinition Tank = new("\uD83D\uDEE1"); // :shield:
+            public static readonly EmojiDefinition Healer = new("\u271D"); // :cross:
+            public static readonly EmojiDefinition Mage = new("\uD83D\uDD25"); // :fire:
+            public static readonly EmojiDefinition Archer = new("\uD83C\uDFF9"); // :bow_and_arrow:
+            public static readonly EmojiDefinition Marksman = new("\uD83D\uDCA5"); // :boom:
+            public static readonly EmojiDefinition Bruiser = new("\u2692"); // :hammer_pick:
+            public static readonly EmojiDefinition Fighter = new("\u2694"); // :crossed_swords:
+
+            // Professions
+            public static readonly EmojiDefinition Weaponsmithing = new("\uD83D\uDDE1"); // :dagger:
+            public static readonly EmojiDefinition Armoring = new("\u2692"); // :hammer_pick:
+            public static readonly EmojiDefinition Engineering = new("\u2699"); // :gear:
+            public static readonly EmojiDefinition Jewelcrafting = new("\uD83D\uDC8E"); // :gem:
+            public static readonly EmojiDefinition Arcana = new("\u2728"); // :sparkles:
+            public static readonly EmojiDefinition Cooking = new("\uD83E\uDD58"); // :shallow_pan_of_food:
+            public static readonly EmojiDefinition Furnishing = new("\uD83E\uDE91"); // :chair:
+            public static readonly EmojiDefinition Smelting = new("\uD83D\uDD25"); // :fire:
+            public static readonly EmojiDefinition Woodworking = new("\uD83E\uDEB5"); // :wood:
+            public static readonly EmojiDefinition Leatherworking = new("\uD83C\uDFC9"); // :rugby_football:
+            public static readonly EmojiDefinition Weaving = new("\uD83E\uDEA1"); // :sewing_needle:
+            public static readonly EmojiDefinition Stonecutting = new("\uD83E\uDEA8"); // :rock:
         }
 
         public static class GamesRolesEmojis
