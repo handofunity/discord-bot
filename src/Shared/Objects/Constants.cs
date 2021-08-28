@@ -89,7 +89,7 @@ namespace HoU.GuildBot.Shared.Objects
             // Classes
             public static readonly EmojiDefinition Tank = new("\uD83D\uDEE1"); // :shield:
             public static readonly EmojiDefinition Healer = new("\u271D"); // :cross:
-            public static readonly EmojiDefinition Mage = new("\uD83D\uDD25"); // :fire:
+            public static readonly EmojiDefinition Mage = new("\u2B50"); // :star:
             public static readonly EmojiDefinition Archer = new("\uD83C\uDFF9"); // :bow_and_arrow:
             public static readonly EmojiDefinition Marksman = new("\uD83D\uDCA5"); // :boom:
             public static readonly EmojiDefinition Bruiser = new("\u2692"); // :hammer_pick:
@@ -97,7 +97,7 @@ namespace HoU.GuildBot.Shared.Objects
 
             // Professions
             public static readonly EmojiDefinition Weaponsmithing = new("\uD83D\uDDE1"); // :dagger:
-            public static readonly EmojiDefinition Armoring = new("\u2692"); // :hammer_pick:
+            public static readonly EmojiDefinition Armoring = new("\uD83D\uDD28"); // :hammer:
             public static readonly EmojiDefinition Engineering = new("\u2699"); // :gear:
             public static readonly EmojiDefinition Jewelcrafting = new("\uD83D\uDC8E"); // :gem:
             public static readonly EmojiDefinition Arcana = new("\u2728"); // :sparkles:
