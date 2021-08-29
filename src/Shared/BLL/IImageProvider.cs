@@ -12,6 +12,10 @@ namespace HoU.GuildBot.Shared.BLL
 
         Stream CreateAocRaceDistributionImage();
 
+        Stream CreateNewWorldClassDistributionImage();
+
+        Stream CreateNewWorldProfessionDistributionImage();
+
         Task<Stream> CreateProfileImage(DiscordUserID userID,
                                         string avatarUrl);
 

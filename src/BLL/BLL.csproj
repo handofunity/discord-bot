@@ -16,6 +16,10 @@
     <None Remove="Resources\AoCRolesBackground_Right.png" />
     <None Remove="Resources\AocRolesForeground.png" />
     <None Remove="Resources\GuildLogo.png" />
+    <None Remove="Resources\NewWorldClassesBackground.png" />
+    <None Remove="Resources\NewWorldClassesForeground.png" />
+    <None Remove="Resources\NewWorldProfessionsBackground.png" />
+    <None Remove="Resources\NewWorldProfessionsForeground.png" />
     <None Remove="Resources\UnitsProfileBadge_HighPoints.png" />
     <None Remove="Resources\UnitsProfileBadge_LowPoints.png" />
     <None Remove="Resources\UnitsProfileBadge_MediumPoints.png" />
@@ -31,6 +35,10 @@
     <EmbeddedResource Include="Resources\AoCRolesBackground_Centered.png" />
     <EmbeddedResource Include="Resources\AoCRolesBackground_Right.png" />
     <EmbeddedResource Include="Resources\GuildLogo.png" />
+    <EmbeddedResource Include="Resources\NewWorldClassesBackground.png" />
+    <EmbeddedResource Include="Resources\NewWorldClassesForeground.png" />
+    <EmbeddedResource Include="Resources\NewWorldProfessionsBackground.png" />
+    <EmbeddedResource Include="Resources\NewWorldProfessionsForeground.png" />
     <EmbeddedResource Include="Resources\UnitsProfileBackground.png" />
     <EmbeddedResource Include="Resources\UnitsProfileBadge_HighPoints.png" />
     <EmbeddedResource Include="Resources\UnitsProfileBadge_LowPoints.png" />

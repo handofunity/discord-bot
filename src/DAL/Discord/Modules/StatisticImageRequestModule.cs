@@ -156,6 +156,66 @@ namespace HoU.GuildBot.DAL.Discord.Modules
             return Task.CompletedTask;
         }
 
+        [Command("nwclasses")]
+        [CommandCategory(CommandCategory.GameNewWorld, 1)]
+        [Name("Get an image about the New World classes")]
+        [Summary("Creates and posts an image that shows the current amount of classes.")]
+        [Alias("new world classes", "nwclassesstatistic", "nw classes statistic", "newworldclasses")]
+        [RequireContext(ContextType.Guild)]
+        [ResponseContext(ResponseType.AlwaysSameChannel)]
+        [RolePrecondition(Role.AnyGuildMember)]
+        public Task GetNewWorldClassesImage()
+        {
+            var channel = Context.Channel;
+
+            // The rest of this runs in a fire & forget task to not block the gateway
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    using var state = channel.EnterTypingState();
+                    await using var imageStream = _imageProvider.CreateNewWorldClassDistributionImage();
+                    await channel.SendFileAsync(imageStream, "currentNewWorldClasses.png");
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, $"Failed to provide New World classes statistic image to channel {channel.Name}.");
+                }
+            }).ConfigureAwait(false);
+
+            return Task.CompletedTask;
+        }
+
+        [Command("nwprofessions")]
+        [CommandCategory(CommandCategory.GameNewWorld, 2)]
+        [Name("Get an image about the New World professions")]
+        [Summary("Creates and posts an image that shows the current amount of professions.")]
+        [Alias("new world professions", "nwprofessionsstatistic", "nw professions statistic", "newworldprofessions")]
+        [RequireContext(ContextType.Guild)]
+        [ResponseContext(ResponseType.AlwaysSameChannel)]
+        [RolePrecondition(Role.AnyGuildMember)]
+        public Task GetNewWorldProfessionsImage()
+        {
+            var channel = Context.Channel;
+
+            // The rest of this runs in a fire & forget task to not block the gateway
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    using var state = channel.EnterTypingState();
+                    await using var imageStream = _imageProvider.CreateNewWorldProfessionDistributionImage();
+                    await channel.SendFileAsync(imageStream, "currentNewWorldProfessions.png");
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, $"Failed to provide New World professions statistic image to channel {channel.Name}.");
+                }
+            }).ConfigureAwait(false);
+
+            return Task.CompletedTask;
+        }
+
         #endregion
     }
 }
