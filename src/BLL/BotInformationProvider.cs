@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using HoU.GuildBot.Shared.BLL;
 using HoU.GuildBot.Shared.Objects;
+using SkiaSharp;
 
 namespace HoU.GuildBot.BLL
 {
@@ -39,11 +39,10 @@ namespace HoU.GuildBot.BLL
 
         Dictionary<byte, string[]> IBotInformationProvider.GetAvailableFonts()
         {
-            var allFonts = FontFamily.Families
-                                     .Where(m => !string.IsNullOrWhiteSpace(m.Name))
-                                     .Select(m => m.Name)
-                                     .OrderBy(m => m)
-                                     .ToArray();
+            var allFonts = SKFontManager.Default.FontFamilies
+                                        .Where(m => !string.IsNullOrWhiteSpace(m))
+                                        .OrderBy(m => m)
+                                        .ToArray();
             var fontGroups = new Dictionary<byte, List<string>>();
             byte fontGroup = 0;
             string pendingFont = null;

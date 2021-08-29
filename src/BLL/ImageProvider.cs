@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -11,23 +9,16 @@ using HoU.GuildBot.Shared.BLL;
 using HoU.GuildBot.Shared.DAL;
 using HoU.GuildBot.Shared.Objects;
 using HoU.GuildBot.Shared.StrongTypes;
+using SkiaSharp;
 
 namespace HoU.GuildBot.BLL
 {
     [UsedImplicitly]
     public class ImageProvider : IImageProvider
     {
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////
-        #region Fields
-
         private readonly IGameRoleProvider _gameRoleProvider;
         private readonly IWebAccess _webAccess;
         private readonly IDiscordAccess _discordAccess;
-
-        #endregion
-
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////
-        #region Constructors
 
         public ImageProvider(IGameRoleProvider gameRoleProvider,
                              IWebAccess webAccess,
@@ -38,24 +29,19 @@ namespace HoU.GuildBot.BLL
             _discordAccess = discordAccess;
         }
 
-        #endregion
-
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////
-        #region Private Methods
-
         private static Stream CreateImage(int width,
                                           int height,
-                                          Action<Graphics> graphicsModifier)
+                                          Action<SKBitmap> bitmapModifier)
         {
-            var image = new Bitmap(width, height);
-            var graphics = Graphics.FromImage(image);
+            var image = SKImage.Create(new SKImageInfo(width, height));
+            var bitmap = SKBitmap.FromImage(image);
 
             // Modify graphic
-            graphicsModifier(graphics);
+            bitmapModifier(bitmap);
 
             // Prepare result stream
             var result = new MemoryStream();
-            image.Save(result, ImageFormat.Png);
+            bitmap.Encode(result, SKEncodedImageFormat.Png, 100);
 
             // Set result pointer back to 0 for the result consumer to read
             result.Position = 0;
@@ -63,37 +49,126 @@ namespace HoU.GuildBot.BLL
             return result;
         }
 
-        private static Image GetImageFromResource(string name)
+        private static SKImage GetImageFromResource(string name)
         {
             var assembly = typeof(ImageProvider).Assembly;
             var guildLogoResourceName = assembly.GetManifestResourceNames().Single(m => m.EndsWith(name));
-            using (var guildLogoStream = assembly.GetManifestResourceStream(guildLogoResourceName))
-            {
-                return Image.FromStream(guildLogoStream, true, true);
-            }
+            using var guildLogoStream = assembly.GetManifestResourceStream(guildLogoResourceName);
+            return SKImage.FromEncodedData(guildLogoStream);
         }
 
-        #endregion
+        private Stream CreateBarChartImage(BarChartDrawingData barChartDrawingData,
+                                           string gameShortName,
+                                           string[] rolesInChart)
+        {
+            // Collect data
+            var game = _gameRoleProvider.Games.Single(m => m.ShortName == gameShortName);
+            var (gameMembers, roleDistribution) = _gameRoleProvider.GetGameRoleDistribution(game);
+            roleDistribution = roleDistribution.Where(m => rolesInChart.Any(r => r.EndsWith(m.Key)))
+                                               .ToDictionary(m => m.Key, m => m.Value);
+            
+            // Load background and foreground image
+            var backgroundImage = GetImageFromResource(barChartDrawingData.BackgroundImageName);
+            var foregroundImage = GetImageFromResource(barChartDrawingData.ForegroundImageName);
 
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////
-        #region IImageProvider Members
+            // Create image
+            return CreateImage(BarChartDrawingData.ImageWidth,
+                               BarChartDrawingData.ImageHeight,
+                               bitmap =>
+                               {
+                                   using var canvas = new SKCanvas(bitmap);
+                                   var arial = SKTypeface.FromFamilyName("Arial");
+                                   var arialBold = SKTypeface.FromFamilyName("Arial", SKFontStyleWeight.Bold, SKFontStyleWidth.Normal, SKFontStyleSlant.Upright);
+
+                                   // Draw background image
+                                   canvas.DrawImage(backgroundImage, 0, 0);
+
+                                   // Draw meta info
+                                   var infoFont = new SKFont(arial, 16f);
+                                   var infoPaint = new SKPaint(infoFont)
+                                   {
+                                       Color = SKColors.Black
+                                   };
+                                   var gameMembersText = $"Game Members: {gameMembers}";
+                                   var createdOnText = $"Created: {DateTime.UtcNow:yyyy-MM-dd}";
+                                   var gameMembersRequiredSize = new SKRect();
+                                   var createdOnRequiredSize = new SKRect();
+                                   infoPaint.MeasureText(gameMembersText, ref gameMembersRequiredSize);
+                                   infoPaint.MeasureText(createdOnText, ref createdOnRequiredSize);
+                                   var metaTopOffset = (BarChartDrawingData.ContentTopOffset -
+                                                        ((int)gameMembersRequiredSize.Height + (int)createdOnRequiredSize.Height +
+                                                         BarChartDrawingData.VerticalInfoTextMargin)) / 2 + 15;
+                                   canvas.DrawText(gameMembersText,
+                                                   BarChartDrawingData.ImageWidth - BarChartDrawingData.HorizontalInfoTextMargin - gameMembersRequiredSize.Width,
+                                                   metaTopOffset,
+                                                   infoFont,
+                                                   infoPaint);
+                                   metaTopOffset = metaTopOffset + (int)gameMembersRequiredSize.Height + BarChartDrawingData.VerticalInfoTextMargin;
+                                   canvas.DrawText(createdOnText,
+                                                   BarChartDrawingData.ImageWidth - BarChartDrawingData.HorizontalInfoTextMargin - createdOnRequiredSize.Width,
+                                                   metaTopOffset,
+                                                   infoFont,
+                                                   infoPaint);
+
+                                   // Data
+                                   var indent = barChartDrawingData.InitialIndent;
+                                   var labelFont = new SKFont(arialBold, barChartDrawingData.LabelFontSize);
+                                   var amountFont = new SKFont(arialBold, 16f);
+                                   double maxCount = roleDistribution.Values.Max();
+                                   foreach (var (roleName, roleCount) in roleDistribution.OrderByDescending(m => m.Value).ThenBy(m => m.Key))
+                                   {
+                                       // Bar label
+                                       var labelPaint = new SKPaint(labelFont) { Color = SKColors.Black };
+                                       var requiredLabelSize = new SKRect();
+                                       labelPaint.MeasureText(roleName, ref requiredLabelSize);
+                                       canvas.DrawText(roleName,
+                                                       indent + (barChartDrawingData.IndentIncrement - requiredLabelSize.Width) / 2,
+                                                       BarChartDrawingData.LabelsTopOffset,
+                                                       labelFont,
+                                                       labelPaint);
+
+                                       // Bar
+                                       var barHeight = (int)(roleCount / maxCount * BarChartDrawingData.BarMaxHeight);
+                                       var topOffset = BarChartDrawingData.BarTopOffset + BarChartDrawingData.BarMaxHeight - barHeight;
+                                       var leftOffset = indent + (barChartDrawingData.IndentIncrement - BarChartDrawingData.BarWidth) / 2;
+                                       var rightOffset = leftOffset + BarChartDrawingData.BarWidth;
+                                       var bottomOffset = topOffset + barHeight;
+                                       var rect = new SKRect(leftOffset, topOffset, rightOffset, bottomOffset);
+                                       var color = barChartDrawingData.BarColors[roleName];
+                                       var barPaint = new SKPaint { Color = color };
+                                       canvas.DrawRect(rect, barPaint);
+
+                                       // Amount label
+                                       var amountPaint = new SKPaint(amountFont) { Color = SKColors.Black };
+                                       var amount = roleCount.ToString(CultureInfo.InvariantCulture);
+                                       amountPaint.MeasureText(amount, ref requiredLabelSize);
+                                       canvas.DrawText(amount,
+                                                       indent + (barChartDrawingData.IndentIncrement - requiredLabelSize.Width) / 2,
+                                                       topOffset - 10 - requiredLabelSize.Height,
+                                                       amountFont,
+                                                       amountPaint);
+
+                                       indent += barChartDrawingData.IndentIncrement;
+                                   }
+
+                                   // Draw foreground image
+                                   canvas.DrawImage(foregroundImage, 0, 0);
+                               });
+        }
 
         Stream IImageProvider.CreateAocClassDistributionImage()
         {
-            const int imageWidth = 1000;
-            const int imageHeight = 600;
-            const int contentTopOffset = 100;
-            const int indentIncrement = 125;
-            const int barTopOffset = contentTopOffset + 50;
-            const int barWidth = 55;
-            const int barMaxHeight = 380;
-            const int labelsTopOffset = barTopOffset + barMaxHeight + 25;
-            const int horizontalInfoTextMargin = 15;
-            const int verticalInfoTextMargin = 5;
-
-            // Collect data
-            var game = _gameRoleProvider.Games.Single(m => m.ShortName == Constants.RoleMenuGameShortNames.AshesOfCreation);
-            var (gameMembers, roleDistribution) = _gameRoleProvider.GetGameRoleDistribution(game);
+            var barColors = new Dictionary<string, SKColor>
+            {
+                { "Fighter", SKColors.BurlyWood },
+                { "Tank", SKColors.CornflowerBlue },
+                { "Mage", SKColors.DarkOrange },
+                { "Summoner", SKColors.Indigo },
+                { "Ranger", SKColors.DarkGreen },
+                { "Cleric", SKColors.Goldenrod },
+                { "Bard", SKColors.LightPink },
+                { "Rogue", SKColors.IndianRed }
+            };
             var rolesInChart = new[]
             {
                 nameof(Constants.AocRoleEmojis.Fighter),
@@ -105,189 +180,52 @@ namespace HoU.GuildBot.BLL
                 nameof(Constants.AocRoleEmojis.Bard),
                 nameof(Constants.AocRoleEmojis.Rogue)
             };
-            roleDistribution = roleDistribution.Where(m => rolesInChart.Any(r => r.EndsWith(m.Key)))
-                                               .ToDictionary(m => m.Key, m => m.Value);
-
-            // Load background and foreground image
-            var backgroundImage = GetImageFromResource("AoCRolesBackground_Right.png");
-            var foregroundImage = GetImageFromResource("AoCClassForeground.png");
-
-            // Create image
-            return CreateImage(imageWidth,
-                               imageHeight,
-                               graphics =>
-                               {
-                                   var ff = new FontFamily("Arial");
-                                   
-                                   // Draw background image
-                                   graphics.DrawImage(backgroundImage, new PointF(0, 0));
-
-                                   // Draw meta info
-                                   var infoFont = new Font(ff, 14);
-                                   var gameMembersText = $"Game Members: {gameMembers}";
-                                   var createdOnText = $"Created: {DateTime.UtcNow:yyyy-MM-dd}";
-                                   var gameMembersRequiredSize = graphics.MeasureString(gameMembersText, infoFont);
-                                   var createdOnRequiredSize = graphics.MeasureString(createdOnText, infoFont);
-                                   var topOffset = (contentTopOffset - ((int) gameMembersRequiredSize.Height + (int) createdOnRequiredSize.Height + verticalInfoTextMargin)) / 2;
-                                   graphics.DrawString(gameMembersText, infoFont, Brushes.Black, imageWidth - horizontalInfoTextMargin - gameMembersRequiredSize.Width, topOffset);
-                                   topOffset = topOffset + (int) gameMembersRequiredSize.Height + verticalInfoTextMargin;
-                                   graphics.DrawString(createdOnText, infoFont, Brushes.Black, imageWidth - horizontalInfoTextMargin - createdOnRequiredSize.Width, topOffset);
-                                   
-                                   // Data
-                                   var indent = 0;
-                                   var labelFont = new Font(ff, 12, FontStyle.Bold);
-                                   var amountFont = new Font(ff, 16, FontStyle.Bold);
-                                   var pens = new Dictionary<string, Pen>
-                                   {
-                                       {"Fighter", new Pen(Color.BurlyWood)},
-                                       {"Tank", new Pen(Color.CornflowerBlue)},
-                                       {"Mage", new Pen(Color.DarkOrange)},
-                                       {"Summoner", new Pen(Color.Indigo)},
-                                       {"Ranger", new Pen(Color.DarkGreen)},
-                                       {"Cleric", new Pen(Color.Goldenrod)},
-                                       {"Bard", new Pen(Color.LightPink)},
-                                       {"Rogue", new Pen(Color.IndianRed)}
-                                   };
-                                   double maxCount = roleDistribution.Values.Max();
-                                   foreach (var d in roleDistribution.OrderByDescending(m => m.Value).ThenBy(m => m.Key))
-                                   {
-                                       // Bar label
-                                       var requiredSize = graphics.MeasureString(d.Key, labelFont);
-                                       graphics.DrawString(d.Key, labelFont, Brushes.Black, new PointF(indent + (indentIncrement - requiredSize.Width) / 2, labelsTopOffset));
-
-                                       // Bar
-                                       var pen = pens[d.Key];
-                                       var height = (int) (d.Value / maxCount * barMaxHeight);
-                                       var currentBarTopOffset = barTopOffset + barMaxHeight - height;
-                                       var leftOffset = indent + (indentIncrement - barWidth) / 2;
-                                       var rect = new Rectangle(leftOffset, currentBarTopOffset, barWidth, height);
-                                       graphics.FillRectangle(pen.Brush, rect);
-                                       graphics.DrawRectangle(pen, leftOffset, currentBarTopOffset, barWidth, height);
-
-                                       // Amount label
-                                       var amount = d.Value.ToString(CultureInfo.InvariantCulture);
-                                       requiredSize = graphics.MeasureString(amount, amountFont);
-                                       graphics.DrawString(amount,
-                                                        amountFont,
-                                                        Brushes.Black,
-                                                        new PointF(indent + (indentIncrement - requiredSize.Width) / 2, currentBarTopOffset - 10 - requiredSize.Height));
-
-                                       indent += indentIncrement;
-                                   }
-
-                                   // Draw foreground image
-                                   graphics.DrawImage(foregroundImage, new PointF(0, 0));
-                               });
+            return CreateBarChartImage(new BarChartDrawingData("AoCRolesBackground_Right.png",
+                                                               "AoCClassForeground.png",
+                                                               barColors,
+                                                               125f,
+                                                               0f),
+                                       Constants.RoleMenuGameShortNames.AshesOfCreation,
+                                       rolesInChart);
         }
 
         Stream IImageProvider.CreateAocPlayStyleDistributionImage()
         {
-            const int imageWidth = 1000;
-            const int imageHeight = 600;
-            const int contentTopOffset = 100;
-            const int indentIncrement = 278;
-            const int barTopOffset = contentTopOffset + 50;
-            const int barWidth = 55;
-            const int barMaxHeight = 380;
-            const int labelsTopOffset = barTopOffset + barMaxHeight + 25;
-            const int horizontalInfoTextMargin = 15;
-            const int verticalInfoTextMargin = 5;
-
-            // Collect data
-            var game = _gameRoleProvider.Games.Single(m => m.ShortName == Constants.RoleMenuGameShortNames.AshesOfCreation);
-            var (gameMembers, roleDistribution) = _gameRoleProvider.GetGameRoleDistribution(game);
+            var barColors = new Dictionary<string, SKColor>
+            {
+                { "PvE", SKColors.Green },
+                { "PvP", SKColors.DarkRed },
+                { "Crafting", SKColors.DarkOrange }
+            };
             var rolesInChart = new[]
             {
                 nameof(Constants.AocRoleEmojis.PvE),
                 nameof(Constants.AocRoleEmojis.PvP),
                 nameof(Constants.AocRoleEmojis.Crafting)
             };
-            roleDistribution = roleDistribution.Where(m => rolesInChart.Any(r => r.EndsWith(m.Key)))
-                                               .ToDictionary(m => m.Key, m => m.Value);
-
-            // Load background and foreground image
-            var backgroundImage = GetImageFromResource("AoCRolesBackground_Centered.png");
-            var foregroundImage = GetImageFromResource("AoCPlaystyleForeground.png");
-
-            // Create image
-            return CreateImage(imageWidth,
-                               imageHeight,
-                               graphics =>
-                               {
-                                   var ff = new FontFamily("Arial");
-
-                                   // Draw background image
-                                   graphics.DrawImage(backgroundImage, new PointF(0, 0));
-
-                                   // Draw meta info
-                                   var infoFont = new Font(ff, 14);
-                                   var gameMembersText = $"Game Members: {gameMembers}";
-                                   var createdOnText = $"Created: {DateTime.UtcNow:yyyy-MM-dd}";
-                                   var gameMembersRequiredSize = graphics.MeasureString(gameMembersText, infoFont);
-                                   var createdOnRequiredSize = graphics.MeasureString(createdOnText, infoFont);
-                                   var topOffset = (contentTopOffset - ((int)gameMembersRequiredSize.Height + (int)createdOnRequiredSize.Height + verticalInfoTextMargin)) / 2;
-                                   graphics.DrawString(gameMembersText, infoFont, Brushes.Black, imageWidth - horizontalInfoTextMargin - gameMembersRequiredSize.Width, topOffset);
-                                   topOffset = topOffset + (int)gameMembersRequiredSize.Height + verticalInfoTextMargin;
-                                   graphics.DrawString(createdOnText, infoFont, Brushes.Black, imageWidth - horizontalInfoTextMargin - createdOnRequiredSize.Width, topOffset);
-                                   
-                                   // Data
-                                   var indent = 83;
-                                   var labelFont = new Font(ff, 12, FontStyle.Bold);
-                                   var amountFont = new Font(ff, 16, FontStyle.Bold);
-                                   var pens = new Dictionary<string, Pen>
-                                   {
-                                       {"PvE", new Pen(Color.Green)},
-                                       {"PvP", new Pen(Color.DarkRed)},
-                                       {"Crafting", new Pen(Color.DarkOrange)}
-                                   };
-                                   double maxCount = roleDistribution.Values.Max();
-                                   foreach (var d in roleDistribution.OrderByDescending(m => m.Value).ThenBy(m => m.Key))
-                                   {
-                                       // Bar label
-                                       var requiredSize = graphics.MeasureString(d.Key, labelFont);
-                                       graphics.DrawString(d.Key, labelFont, Brushes.Black, new PointF(indent + (indentIncrement - requiredSize.Width) / 2, labelsTopOffset));
-
-                                       // Bar
-                                       var pen = pens[d.Key];
-                                       var height = (int)(d.Value / maxCount * barMaxHeight);
-                                       var currentBarTopOffset = barTopOffset + barMaxHeight - height;
-                                       var leftOffset = indent + (indentIncrement - barWidth) / 2;
-                                       var rect = new Rectangle(leftOffset, currentBarTopOffset, barWidth, height);
-                                       graphics.FillRectangle(pen.Brush, rect);
-                                       graphics.DrawRectangle(pen, leftOffset, currentBarTopOffset, barWidth, height);
-
-                                       // Amount label
-                                       var amount = d.Value.ToString(CultureInfo.InvariantCulture);
-                                       requiredSize = graphics.MeasureString(amount, amountFont);
-                                       graphics.DrawString(amount,
-                                                        amountFont,
-                                                        Brushes.Black,
-                                                        new PointF(indent + (indentIncrement - requiredSize.Width) / 2, currentBarTopOffset - 10 - requiredSize.Height));
-
-                                       indent += indentIncrement;
-                                   }
-
-                                   // Draw foreground image
-                                   graphics.DrawImage(foregroundImage, new PointF(0, 0));
-                               });
+            return CreateBarChartImage(new BarChartDrawingData("AoCRolesBackground_Centered.png",
+                                                               "AoCPlaystyleForeground.png",
+                                                               barColors,
+                                                               278f,
+                                                               83f),
+                                       Constants.RoleMenuGameShortNames.AshesOfCreation,
+                                       rolesInChart);
         }
 
         Stream IImageProvider.CreateAocRaceDistributionImage()
         {
-            const int imageWidth = 1000;
-            const int imageHeight = 600;
-            const int contentTopOffset = 100;
-            const float indentIncrement = 110.33f;
-            const int barTopOffset = contentTopOffset + 50;
-            const int barWidth = 55;
-            const int barMaxHeight = 380;
-            const int labelsTopOffset = barTopOffset + barMaxHeight + 25;
-            const int horizontalInfoTextMargin = 15;
-            const int verticalInfoTextMargin = 5;
-
-            // Collect data
-            var game = _gameRoleProvider.Games.Single(m => m.ShortName == Constants.RoleMenuGameShortNames.AshesOfCreation);
-            var (gameMembers, roleDistribution) = _gameRoleProvider.GetGameRoleDistribution(game);
+            var barColors = new Dictionary<string, SKColor>
+            {
+                { "Kaelar", SKColors.CornflowerBlue },
+                { "Vaelune", SKColors.LightSkyBlue },
+                { "Empyrean", SKColors.Indigo },
+                { "Pyrai", SKColors.BlueViolet },
+                { "Renkai", SKColors.SeaGreen },
+                { "Vek", SKColors.ForestGreen },
+                { "Dunir", SKColors.Brown },
+                { "Nikua", SKColors.Crimson },
+                { "Tulnar", SKColors.Gold },
+            };
             var rolesInChart = new[]
             {
                 nameof(Constants.AocRoleEmojis.Kaelar),
@@ -300,98 +238,27 @@ namespace HoU.GuildBot.BLL
                 nameof(Constants.AocRoleEmojis.Nikua),
                 nameof(Constants.AocRoleEmojis.Tulnar)
             };
-            roleDistribution = roleDistribution.Where(m => rolesInChart.Any(r => r.EndsWith(m.Key)))
-                                               .ToDictionary(m => m.Key, m => m.Value);
-
-            // Load background and foreground image
-            var backgroundImage = GetImageFromResource("AoCRolesBackground_Right.png");
-            var foregroundImage = GetImageFromResource("AoCRaceForeground.png");
-
-            // Create image
-            return CreateImage(imageWidth,
-                               imageHeight,
-                               graphics =>
-                               {
-                                   var ff = new FontFamily("Arial");
-
-                                   // Draw background image
-                                   graphics.DrawImage(backgroundImage, new PointF(0, 0));
-
-                                   // Draw meta info
-                                   var infoFont = new Font(ff, 14);
-                                   var gameMembersText = $"Game Members: {gameMembers}";
-                                   var createdOnText = $"Created: {DateTime.UtcNow:yyyy-MM-dd}";
-                                   var gameMembersRequiredSize = graphics.MeasureString(gameMembersText, infoFont);
-                                   var createdOnRequiredSize = graphics.MeasureString(createdOnText, infoFont);
-                                   var topOffset = (contentTopOffset - ((int)gameMembersRequiredSize.Height + (int)createdOnRequiredSize.Height + verticalInfoTextMargin)) / 2;
-                                   graphics.DrawString(gameMembersText, infoFont, Brushes.Black, imageWidth - horizontalInfoTextMargin - gameMembersRequiredSize.Width, topOffset);
-                                   topOffset = topOffset + (int)gameMembersRequiredSize.Height + verticalInfoTextMargin;
-                                   graphics.DrawString(createdOnText, infoFont, Brushes.Black, imageWidth - horizontalInfoTextMargin - createdOnRequiredSize.Width, topOffset);
-
-                                   // Data
-                                   var indent = 3f;
-                                   var labelFont = new Font(ff, 12, FontStyle.Bold);
-                                   var amountFont = new Font(ff, 16, FontStyle.Bold);
-                                   var pens = new Dictionary<string, Pen>
-                                   {
-                                       {"Kaelar", new Pen(Color.CornflowerBlue)},
-                                       {"Vaelune", new Pen(Color.LightSkyBlue)},
-                                       {"Empyrean", new Pen(Color.Indigo)},
-                                       {"Pyrai", new Pen(Color.BlueViolet)},
-                                       {"Renkai", new Pen(Color.SeaGreen)},
-                                       {"Vek", new Pen(Color.ForestGreen)},
-                                       {"Dunir", new Pen(Color.Brown)},
-                                       {"Nikua", new Pen(Color.Crimson)},
-                                       {"Tulnar", new Pen(Color.Gold)},
-                                   };
-                                   double maxCount = roleDistribution.Values.Max();
-                                   foreach (var d in roleDistribution.OrderByDescending(m => m.Value).ThenBy(m => m.Key))
-                                   {
-                                       // Bar label
-                                       var requiredSize = graphics.MeasureString(d.Key, labelFont);
-                                       graphics.DrawString(d.Key, labelFont, Brushes.Black, new PointF(indent + (indentIncrement - requiredSize.Width) / 2, labelsTopOffset));
-
-                                       // Bar
-                                       var pen = pens[d.Key];
-                                       var height = (int)(d.Value / maxCount * barMaxHeight);
-                                       var currentBarTopOffset = barTopOffset + barMaxHeight - height;
-                                       var leftOffset = indent + (indentIncrement - barWidth) / 2;
-                                       var rect = new Rectangle((int)Math.Round(leftOffset), currentBarTopOffset, barWidth, height);
-                                       graphics.FillRectangle(pen.Brush, rect);
-                                       graphics.DrawRectangle(pen, leftOffset, currentBarTopOffset, barWidth, height);
-
-                                       // Amount label
-                                       var amount = d.Value.ToString(CultureInfo.InvariantCulture);
-                                       requiredSize = graphics.MeasureString(amount, amountFont);
-                                       graphics.DrawString(amount,
-                                                        amountFont,
-                                                        Brushes.Black,
-                                                        new PointF(indent + (indentIncrement - requiredSize.Width) / 2, currentBarTopOffset - 10 - requiredSize.Height));
-
-                                       indent += indentIncrement;
-                                   }
-
-                                   // Draw foreground image
-                                   graphics.DrawImage(foregroundImage, new PointF(0, 0));
-                               });
+            return CreateBarChartImage(new BarChartDrawingData("AoCRolesBackground_Right.png",
+                                                               "AoCRaceForeground.png",
+                                                               barColors,
+                                                               110.33f,
+                                                               3f),
+                                       Constants.RoleMenuGameShortNames.AshesOfCreation,
+                                       rolesInChart);
         }
 
         Stream IImageProvider.CreateNewWorldClassDistributionImage()
         {
-            const int imageWidth = 1000;
-            const int imageHeight = 600;
-            const int contentTopOffset = 100;
-            const float indentIncrement = 139.0f;
-            const int barTopOffset = contentTopOffset + 50;
-            const int barWidth = 55;
-            const int barMaxHeight = 380;
-            const int labelsTopOffset = barTopOffset + barMaxHeight + 25;
-            const int horizontalInfoTextMargin = 15;
-            const int verticalInfoTextMargin = 5;
-
-            // Collect data
-            var game = _gameRoleProvider.Games.Single(m => m.ShortName == Constants.RoleMenuGameShortNames.NewWorld);
-            var (gameMembers, roleDistribution) = _gameRoleProvider.GetGameRoleDistribution(game);
+            var barColors = new Dictionary<string, SKColor>
+            {
+                { "Tank", new SKColor(182, 215, 168) },
+                { "Healer", new SKColor(234, 209, 220) },
+                { "Mage", new SKColor(201, 218, 248) },
+                { "Archer", new SKColor(255, 229, 153) },
+                { "Marksman", new SKColor(249, 203, 156) },
+                { "Bruiser", new SKColor(234, 153, 153) },
+                { "Fighter", new SKColor(162, 196, 201) }
+            };
             var rolesInChart = new[]
             {
                 nameof(Constants.NewWorldRoleEmojis.Tank),
@@ -402,96 +269,32 @@ namespace HoU.GuildBot.BLL
                 nameof(Constants.NewWorldRoleEmojis.Bruiser),
                 nameof(Constants.NewWorldRoleEmojis.Fighter)
             };
-            roleDistribution = roleDistribution.Where(m => rolesInChart.Any(r => r.EndsWith(m.Key)))
-                                               .ToDictionary(m => m.Key, m => m.Value);
-
-            // Load background and foreground image
-            var backgroundImage = GetImageFromResource("NewWorldClassesBackground.png");
-            var foregroundImage = GetImageFromResource("NewWorldClassesForeground.png");
-
-            // Create image
-            return CreateImage(imageWidth,
-                               imageHeight,
-                               graphics =>
-                               {
-                                   var ff = new FontFamily("Arial");
-
-                                   // Draw background image
-                                   graphics.DrawImage(backgroundImage, new PointF(0, 0));
-
-                                   // Draw meta info
-                                   var infoFont = new Font(ff, 14);
-                                   var gameMembersText = $"Game Members: {gameMembers}";
-                                   var createdOnText = $"Created: {DateTime.UtcNow:yyyy-MM-dd}";
-                                   var gameMembersRequiredSize = graphics.MeasureString(gameMembersText, infoFont);
-                                   var createdOnRequiredSize = graphics.MeasureString(createdOnText, infoFont);
-                                   var topOffset = (contentTopOffset - ((int)gameMembersRequiredSize.Height + (int)createdOnRequiredSize.Height + verticalInfoTextMargin)) / 2;
-                                   graphics.DrawString(gameMembersText, infoFont, Brushes.Black, imageWidth - horizontalInfoTextMargin - gameMembersRequiredSize.Width, topOffset);
-                                   topOffset = topOffset + (int)gameMembersRequiredSize.Height + verticalInfoTextMargin;
-                                   graphics.DrawString(createdOnText, infoFont, Brushes.Black, imageWidth - horizontalInfoTextMargin - createdOnRequiredSize.Width, topOffset);
-
-                                   // Data
-                                   var indent = 14f;
-                                   var labelFont = new Font(ff, 12, FontStyle.Bold);
-                                   var amountFont = new Font(ff, 16, FontStyle.Bold);
-                                   var pens = new Dictionary<string, Pen>
-                                   {
-                                       {"Tank", new Pen(Color.FromArgb(182, 215, 168))},
-                                       {"Healer", new Pen(Color.FromArgb(234, 209, 220))},
-                                       {"Mage", new Pen(Color.FromArgb(201, 218, 248))},
-                                       {"Archer", new Pen(Color.FromArgb(255, 229, 153))},
-                                       {"Marksman", new Pen(Color.FromArgb(249, 203, 156))},
-                                       {"Bruiser", new Pen(Color.FromArgb(234, 153, 153))},
-                                       {"Fighter", new Pen(Color.FromArgb(162, 196, 201))}
-                                   };
-                                   double maxCount = roleDistribution.Values.Max();
-                                   foreach (var d in roleDistribution.OrderByDescending(m => m.Value).ThenBy(m => m.Key))
-                                   {
-                                       // Bar label
-                                       var requiredSize = graphics.MeasureString(d.Key, labelFont);
-                                       graphics.DrawString(d.Key, labelFont, Brushes.Black, new PointF(indent + (indentIncrement - requiredSize.Width) / 2, labelsTopOffset));
-
-                                       // Bar
-                                       var pen = pens[d.Key];
-                                       var height = (int)(d.Value / maxCount * barMaxHeight);
-                                       var currentBarTopOffset = barTopOffset + barMaxHeight - height;
-                                       var leftOffset = indent + (indentIncrement - barWidth) / 2;
-                                       var rect = new Rectangle((int)Math.Round(leftOffset), currentBarTopOffset, barWidth, height);
-                                       graphics.FillRectangle(pen.Brush, rect);
-                                       graphics.DrawRectangle(pen, leftOffset, currentBarTopOffset, barWidth, height);
-
-                                       // Amount label
-                                       var amount = d.Value.ToString(CultureInfo.InvariantCulture);
-                                       requiredSize = graphics.MeasureString(amount, amountFont);
-                                       graphics.DrawString(amount,
-                                                        amountFont,
-                                                        Brushes.Black,
-                                                        new PointF(indent + (indentIncrement - requiredSize.Width) / 2, currentBarTopOffset - 10 - requiredSize.Height));
-
-                                       indent += indentIncrement;
-                                   }
-
-                                   // Draw foreground image
-                                   graphics.DrawImage(foregroundImage, new PointF(0, 0));
-                               });
+            return CreateBarChartImage(new BarChartDrawingData("NewWorldClassesBackground.png",
+                                                               "NewWorldClassesForeground.png",
+                                                               barColors,
+                                                               139.0f,
+                                                               14f),
+                                       Constants.RoleMenuGameShortNames.NewWorld,
+                                       rolesInChart);
         }
 
         Stream IImageProvider.CreateNewWorldProfessionDistributionImage()
         {
-            const int imageWidth = 1000;
-            const int imageHeight = 600;
-            const int contentTopOffset = 100;
-            const float indentIncrement = 82.4f;
-            const int barTopOffset = contentTopOffset + 50;
-            const int barWidth = 55;
-            const int barMaxHeight = 380;
-            const int labelsTopOffset = barTopOffset + barMaxHeight + 25;
-            const int horizontalInfoTextMargin = 15;
-            const int verticalInfoTextMargin = 5;
-
-            // Collect data
-            var game = _gameRoleProvider.Games.Single(m => m.ShortName == Constants.RoleMenuGameShortNames.NewWorld);
-            var (gameMembers, roleDistribution) = _gameRoleProvider.GetGameRoleDistribution(game);
+            var barColors = new Dictionary<string, SKColor>
+            {
+                { "Weaponsmithing", SKColors.OrangeRed },
+                { "Armoring", SKColors.IndianRed },
+                { "Engineering", SKColors.Red },
+                { "Jewelcrafting", SKColors.GreenYellow },
+                { "Arcana", SKColors.Green },
+                { "Cooking", SKColors.Indigo },
+                { "Furnishing", SKColors.MediumSeaGreen },
+                { "Smelting", SKColors.DarkRed },
+                { "Woodworking", SKColors.CornflowerBlue },
+                { "Leatherworking", SKColors.DodgerBlue },
+                { "Weaving", SKColors.Beige },
+                { "Stonecutting", SKColors.DarkGray }
+            };
             var rolesInChart = new[]
             {
                 nameof(Constants.NewWorldRoleEmojis.Weaponsmithing),
@@ -507,83 +310,16 @@ namespace HoU.GuildBot.BLL
                 nameof(Constants.NewWorldRoleEmojis.Weaving),
                 nameof(Constants.NewWorldRoleEmojis.Stonecutting)
             };
-            roleDistribution = roleDistribution.Where(m => rolesInChart.Any(r => r.EndsWith(m.Key)))
-                                               .ToDictionary(m => m.Key, m => m.Value);
-
-            // Load background and foreground image
-            var backgroundImage = GetImageFromResource("NewWorldProfessionsBackground.png");
-            var foregroundImage = GetImageFromResource("NewWorldProfessionsForeground.png");
-
-            // Create image
-            return CreateImage(imageWidth,
-                               imageHeight,
-                               graphics =>
-                               {
-                                   var ff = new FontFamily("Arial");
-
-                                   // Draw background image
-                                   graphics.DrawImage(backgroundImage, new PointF(0, 0));
-
-                                   // Draw meta info
-                                   var infoFont = new Font(ff, 14);
-                                   var gameMembersText = $"Game Members: {gameMembers}";
-                                   var createdOnText = $"Created: {DateTime.UtcNow:yyyy-MM-dd}";
-                                   var gameMembersRequiredSize = graphics.MeasureString(gameMembersText, infoFont);
-                                   var createdOnRequiredSize = graphics.MeasureString(createdOnText, infoFont);
-                                   var topOffset = (contentTopOffset - ((int)gameMembersRequiredSize.Height + (int)createdOnRequiredSize.Height + verticalInfoTextMargin)) / 2;
-                                   graphics.DrawString(gameMembersText, infoFont, Brushes.Black, imageWidth - horizontalInfoTextMargin - gameMembersRequiredSize.Width, topOffset);
-                                   topOffset = topOffset + (int)gameMembersRequiredSize.Height + verticalInfoTextMargin;
-                                   graphics.DrawString(createdOnText, infoFont, Brushes.Black, imageWidth - horizontalInfoTextMargin - createdOnRequiredSize.Width, topOffset);
-
-                                   // Data
-                                   var indent = 4f;
-                                   var labelFont = new Font(ff, 5, FontStyle.Bold);
-                                   var amountFont = new Font(ff, 16, FontStyle.Bold);
-                                   var pens = new Dictionary<string, Pen>
-                                   {
-                                       {"Weaponsmithing", new Pen(Color.OrangeRed)},
-                                       {"Armoring", new Pen(Color.IndianRed)},
-                                       {"Engineering", new Pen(Color.Red)},
-                                       {"Jewelcrafting", new Pen(Color.GreenYellow)},
-                                       {"Arcana", new Pen(Color.Green)},
-                                       {"Cooking", new Pen(Color.Indigo)},
-                                       {"Furnishing", new Pen(Color.MediumSeaGreen)},
-                                       {"Smelting", new Pen(Color.DarkRed)},
-                                       {"Woodworking", new Pen(Color.CornflowerBlue)},
-                                       {"Leatherworking", new Pen(Color.DodgerBlue)},
-                                       {"Weaving", new Pen(Color.Beige)},
-                                       {"Stonecutting", new Pen(Color.DarkGray)},
-                                   };
-                                   double maxCount = roleDistribution.Values.Max();
-                                   foreach (var d in roleDistribution.OrderByDescending(m => m.Value).ThenBy(m => m.Key))
-                                   {
-                                       // Bar label
-                                       var requiredSize = graphics.MeasureString(d.Key, labelFont);
-                                       graphics.DrawString(d.Key, labelFont, Brushes.Black, new PointF(indent + (indentIncrement - requiredSize.Width) / 2, labelsTopOffset));
-
-                                       // Bar
-                                       var pen = pens[d.Key];
-                                       var height = (int)(d.Value / maxCount * barMaxHeight);
-                                       var currentBarTopOffset = barTopOffset + barMaxHeight - height;
-                                       var leftOffset = indent + (indentIncrement - barWidth) / 2;
-                                       var rect = new Rectangle((int)Math.Round(leftOffset), currentBarTopOffset, barWidth, height);
-                                       graphics.FillRectangle(pen.Brush, rect);
-                                       graphics.DrawRectangle(pen, leftOffset, currentBarTopOffset, barWidth, height);
-
-                                       // Amount label
-                                       var amount = d.Value.ToString(CultureInfo.InvariantCulture);
-                                       requiredSize = graphics.MeasureString(amount, amountFont);
-                                       graphics.DrawString(amount,
-                                                        amountFont,
-                                                        Brushes.Black,
-                                                        new PointF(indent + (indentIncrement - requiredSize.Width) / 2, currentBarTopOffset - 10 - requiredSize.Height));
-
-                                       indent += indentIncrement;
-                                   }
-
-                                   // Draw foreground image
-                                   graphics.DrawImage(foregroundImage, new PointF(0, 0));
-                               });
+            return CreateBarChartImage(new BarChartDrawingData("NewWorldProfessionsBackground.png",
+                                                               "NewWorldProfessionsForeground.png",
+                                                               barColors,
+                                                               82.4f,
+                                                               4f)
+                                       {
+                                           LabelFontSize = 7f
+                                       },
+                                       Constants.RoleMenuGameShortNames.NewWorld,
+                                       rolesInChart);
         }
 
         public async Task<Stream> CreateProfileImage(DiscordUserID userID,
@@ -607,66 +343,73 @@ namespace HoU.GuildBot.BLL
             var nameplateImage = GetImageFromResource("UnitsProfileNameplate.png");
 
             // Load user image
-            Image userImage = null;
+            SKImage userImage = null;
             var userImageBytes = await _webAccess.GetDiscordAvatarByUrl(avatarUrl);
             if (userImageBytes != null)
             {
-                using (var userImageStream = new MemoryStream(userImageBytes))
-                {
-                    userImage = Image.FromStream(userImageStream);
-                    // Resize to 100 x 100 px
-                    userImage = new Bitmap(userImage, 100, 100);
-                }
+                await using var userImageStream = new MemoryStream(userImageBytes);
+                userImage = SKImage.FromEncodedData(userImageStream);
+                // Resize to 100 x 100 px
+                var bitmap = SKBitmap.FromImage(userImage);
+                bitmap = bitmap.Resize(new SKSizeI(100, 100), SKFilterQuality.High);
+                userImage = SKImage.FromBitmap(bitmap);
             }
 
-            Image userProfileBadgeFrameImage = null;
+            SKImage userProfileBadgeFrameImage = null;
             // Load profile badge frame
             if (userImage != null) userProfileBadgeFrameImage = GetImageFromResource($"UnitsProfileBadge_{userPointsRating}Points.png");
 
             // Create image
             return CreateImage(imageWidth,
                                imageHeight,
-                               graphics =>
+                               bitmap =>
                                {
-                                   var ff = new FontFamily("Arial");
-                                   var textColor = Color.FromArgb(231, 185, 89);
-                                   var textBrush = new SolidBrush(textColor);
-
-                                   // Background
-                                   graphics.DrawImage(backgroundImage, new PointF(0, 0));
-
-                                   // Draw user image and frame
-                                   var offsetNameByImage = false;
-                                   if (userImage != null && userProfileBadgeFrameImage != null)
+                                   using (var canvas = new SKCanvas(bitmap))
                                    {
-                                       graphics.DrawImage(userProfileBadgeFrameImage, new PointF(5, 5));
-                                       graphics.DrawImage(userImage, new PointF(52, 52));
-                                       offsetNameByImage = true;
-                                   }
+                                       var ff = SKTypeface.FromFamilyName("Arial");
+                                       var textColor = new SKColor(231, 185, 89);
 
-                                   // Draw nameplate depending on user image and frame
-                                   var nameplateLeftOffset = offsetNameByImage ? 201 : 105;
-                                   graphics.DrawImage(nameplateImage, new PointF(nameplateLeftOffset, 41));
+                                       // Background
+                                       canvas.DrawImage(backgroundImage, 0, 0);
 
-                                   // Calculate name and name position
-                                   var nameFont = new Font(ff, 12, FontStyle.Regular);
-                                   SizeF nameSize;
-                                   var nameToUse = displayName;
-                                   do
-                                   {
-                                       nameSize = graphics.MeasureString(nameToUse, nameFont);
-                                       if (nameSize.Width > maxNameLengthInPixel) nameToUse = nameToUse.Substring(0, nameToUse.Length - 1);
-                                   } while (nameSize.Width > maxNameLengthInPixel);
+                                       // Draw user image and frame
+                                       var offsetNameByImage = false;
+                                       if (userImage != null && userProfileBadgeFrameImage != null)
+                                       {
+                                           canvas.DrawImage(userProfileBadgeFrameImage, 5, 5);
+                                           canvas.DrawImage(userImage, 52, 52);
+                                           offsetNameByImage = true;
+                                       }
 
-                                   var nameLeftOffset = nameplateLeftOffset + 95 - nameSize.Width / 2;
-                                   var nameTopOffset = 101 - nameSize.Height / 2;
+                                       // Draw nameplate depending on user image and frame
+                                       var nameplateLeftOffset = offsetNameByImage ? 201 : 105;
+                                       canvas.DrawImage(nameplateImage, nameplateLeftOffset, 41);
 
-                                   
-                                   // Write name depending on user image and frame
-                                   graphics.DrawString(nameToUse,
+                                       // Calculate name and name position
+                                       var nameFont = new SKFont(ff);
+                                       var namePaint = new SKPaint(nameFont)
+                                       {
+                                           Color = textColor
+                                       };
+                                       SKRect nameSize = new SKRect();
+                                       var nameToUse = displayName;
+                                       do
+                                       {
+                                           namePaint.MeasureText(nameToUse, ref nameSize);
+                                           if (nameSize.Width > maxNameLengthInPixel) nameToUse = nameToUse.Substring(0, nameToUse.Length - 1);
+                                       } while (nameSize.Width > maxNameLengthInPixel);
+
+                                       var nameLeftOffset = nameplateLeftOffset + 95 - nameSize.Width / 2;
+                                       var nameTopOffset = 101 - nameSize.Height / 2;
+
+
+                                       // Write name depending on user image and frame
+                                       canvas.DrawText(nameToUse,
+                                                       nameLeftOffset,
+                                                       nameTopOffset,
                                                        nameFont,
-                                                       textBrush,
-                                                       new PointF(nameLeftOffset, nameTopOffset));
+                                                       namePaint);
+                                   }
                                });
         }
 
@@ -675,12 +418,47 @@ namespace HoU.GuildBot.BLL
             var content = GetImageFromResource("AoCClassList.jpg");
             return CreateImage(1629,
                                916,
-                               graphics =>
+                               bitmap =>
                                {
-                                   graphics.DrawImage(content, new PointF(0, 0));
+                                   using var canvas = new SKCanvas(bitmap);
+                                   canvas.DrawImage(content, 0, 0);
                                });
         }
 
-        #endregion
+        private class BarChartDrawingData
+        {
+            public const int ImageWidth = 1000;
+            public const int ImageHeight = 600;
+            public const int ContentTopOffset = 100;
+            public const int BarTopOffset = ContentTopOffset + 50;
+            public const int BarMaxHeight = 380;
+            public const int BarWidth = 55;
+            public const int LabelsTopOffset = BarTopOffset + BarMaxHeight + 35;
+            public const int HorizontalInfoTextMargin = 25;
+            public const int VerticalInfoTextMargin = 20;
+
+            public string BackgroundImageName { get; }
+            public string ForegroundImageName { get; }
+            public Dictionary<string, SKColor> BarColors { get; }
+            public float IndentIncrement { get; }
+            public float InitialIndent { get; }
+
+            public float LabelFontSize { get; set; }
+
+            public BarChartDrawingData(string backgroundImageName,
+                                       string foregroundImageName,
+                                       Dictionary<string, SKColor> barColors,
+                                       float indentIncrement,
+                                       float initialIndent)
+            {
+                BackgroundImageName = backgroundImageName;
+                ForegroundImageName = foregroundImageName;
+                BarColors = barColors;
+                IndentIncrement = indentIncrement;
+                InitialIndent = initialIndent;
+
+                LabelFontSize = 14f;
+            }
+        }
     }
 }
