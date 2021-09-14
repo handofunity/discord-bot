@@ -354,6 +354,26 @@ namespace HoU.GuildBot.DAL.Discord
                 }
             }
 
+            if (msg.Exception is GatewayReconnectException gatewayReconnectException
+                && gatewayReconnectException.Message.Contains("Server missed last heartbeat"))
+            {
+                // In case of a GatewayReconnectException, the bot might not reconnect correctly to the Discord backend.
+                // We kick of a small delay, and then check for the connection state. If it's not reconnected by then, we'll hard-kill the application
+                // and wait for the container to restart.
+                _ = Task.Run(async () =>
+                {
+                    await Task.Delay(TimeSpan.FromMinutes(2));
+                    if (_client.ConnectionState != ConnectionState.Connected)
+                    {
+                        _logger.LogCritical(gatewayReconnectException, "Unable to reconnect to Discord backend after last "
+                                                                     + $"{nameof(GatewayReconnectException)} and missing last heartbeat. "
+                                                                     + "Application will shut down in 10 seconds ...");
+                        await Task.Delay(TimeSpan.FromSeconds(10));
+                        Environment.Exit(1);
+                    }
+                }).ConfigureAwait(false);
+            }
+
             // If the log message has been handled, don't call the default log
             if (handled) return;
 
