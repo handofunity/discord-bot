@@ -77,13 +77,20 @@ namespace HoU.GuildBot.BLL
                 if (!joinedAt.HasValue
                   || (now - joinedAt.Value.UtcDateTime).TotalMinutes > 10)
                 {
-                    var leaderMention = _discordAccess.GetRoleMention(Constants.RoleNames.LeaderRoleName);
-                    var officerMention = _discordAccess.GetRoleMention(Constants.RoleNames.OfficerRoleName);
+                    var mentionPrefix = string.Empty;
+                    if (user.Roles != Role.NoRole
+                     && user.Roles != Role.Guest
+                     && user.Roles != Role.FriendOfMember)
+                    {
+                        var leaderMention = _discordAccess.GetRoleMention(Constants.RoleNames.LeaderRoleName);
+                        var officerMention = _discordAccess.GetRoleMention(Constants.RoleNames.OfficerRoleName);
+                        mentionPrefix = $"{leaderMention} {officerMention}: ";
+                    }
                     var formattedRolesMessage = roles.Length == 0
                                                    ? string.Empty
                                                    : $"; Roles: {string.Join(", ", roles.Select(m => "`" + m + "`"))}";
                     await _discordAccess.LogToDiscord(
-                                                      $"{leaderMention} {officerMention}: User `{username}#{discriminatorValue}` " +
+                                                      $"{mentionPrefix}User `{username}#{discriminatorValue}` " +
                                                       $"(Membership level: **{user.Roles}**{formattedRolesMessage}) " +
                                                       $"has left the server on {now:D} at {now:HH:mm:ss} UTC.")
                                         .ConfigureAwait(false);
