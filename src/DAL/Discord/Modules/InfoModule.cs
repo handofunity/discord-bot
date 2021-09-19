@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
-using global::Discord.Commands;
+using Discord.Commands;
 using JetBrains.Annotations;
 using HoU.GuildBot.DAL.Discord.Preconditions;
 using HoU.GuildBot.Shared.Attributes;
 using HoU.GuildBot.Shared.BLL;
 using HoU.GuildBot.Shared.Enums;
 using HoU.GuildBot.Shared.Extensions;
+using HoU.GuildBot.Shared.Objects;
 using Microsoft.Extensions.Logging;
 
 namespace HoU.GuildBot.DAL.Discord.Modules
@@ -103,6 +104,25 @@ namespace HoU.GuildBot.DAL.Discord.Modules
                 messages.Add(markdownBuilder.ToString());
             }
             await messages.PerformBulkOperation(async s => await ReplyAsync(s).ConfigureAwait(false)).ConfigureAwait(false);
+        }
+
+        [Command("restart")]
+        [CommandCategory(CommandCategory.Administration, 14)]
+        [Name("Restarts the bot")]
+        [Summary("Triggers a shutdown of the bot, resulting in a restart due to the container configuration.")]
+        [Alias("reboot", "shutdown")]
+        [RequireContext(ContextType.Guild)]
+        [ResponseContext(ResponseType.AlwaysSameChannel)]
+        [RolePrecondition(Role.Developer)]
+        public async Task Restart()
+        {
+            _logger.LogInformation("Shutdown triggered by 'restart' command. Application will shut down in 10 seconds ...");
+            await ReplyAsync("Shutting down in 10 seconds. Restart will be performed automatically.");
+            _ = Task.Run(async () =>
+            {
+                await Task.Delay(TimeSpan.FromSeconds(10));
+                ApplicationLifecycle.End();
+            }).ConfigureAwait(false);
         }
 
         #endregion

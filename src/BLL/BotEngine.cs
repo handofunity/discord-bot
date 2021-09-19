@@ -178,7 +178,7 @@ namespace HoU.GuildBot.BLL
             // Give the logger some time to log the message
             await Task.Delay(TimeSpan.FromSeconds(5)).ConfigureAwait(false);
             // Finally kill the process to start over
-            Environment.Exit(1);
+            ApplicationLifecycle.End();
         }
 
         #endregion

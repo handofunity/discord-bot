@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using HoU.GuildBot.Core;
+using HoU.GuildBot.Shared.Objects;
 using Microsoft.AspNetCore.Hosting;
 
 namespace HoU.GuildBot.WebHost
@@ -20,7 +21,8 @@ namespace HoU.GuildBot.WebHost
             {
                 Task.Run(() => Startup.EnvironmentConfigured += Startup_EnvironmentConfigured);
                 var host = BuildWebHost();
-                host.Run();
+                var hostTask = host.RunAsync(ApplicationLifecycle.CancellationToken);
+                hostTask.GetAwaiter().GetResult();
             }
             catch (Exception e)
             {

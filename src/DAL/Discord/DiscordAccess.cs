@@ -368,8 +368,10 @@ namespace HoU.GuildBot.DAL.Discord
                         _logger.LogCritical(gatewayReconnectException, "Unable to reconnect to Discord backend after last "
                                                                      + $"{nameof(GatewayReconnectException)} and missing last heartbeat. "
                                                                      + "Application will shut down in 10 seconds ...");
-                        await Task.Delay(TimeSpan.FromSeconds(10));
-                        Environment.Exit(1);
+                        // Give the logger some time to log the message
+                        await Task.Delay(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
+                        // Finally kill the process to start over
+                        ApplicationLifecycle.End();
                     }
                 }).ConfigureAwait(false);
             }
