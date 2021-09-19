@@ -633,18 +633,27 @@ namespace HoU.GuildBot.DAL.Discord
             {
                 return () =>
                 {
+                    _logger.LogDebug("Bot client connected. Running post-connected logic ...");
                     // Fire & Forget
-                    Task.Run(async () =>
+                    _ = Task.Run(async () =>
                     {
-                        if (!_commandRegistry.CommandsRegistered)
+                        try
                         {
-                            // Load modules and register commands only once
-                            await _commands.AddModulesAsync(typeof(DiscordAccess).Assembly, _serviceProvider).ConfigureAwait(false);
-                            RegisterCommands();
+                            if (!_commandRegistry.CommandsRegistered)
+                            {
+                                _logger.LogInformation("Registering commands ...");
+                                // Load modules and register commands only once
+                                await _commands.AddModulesAsync(typeof(DiscordAccess).Assembly, _serviceProvider).ConfigureAwait(false);
+                                RegisterCommands();
+                            }
+                            await connectedHandler().ConfigureAwait(false);
+                            _commands.CommandExecuted += Commands_CommandExecuted;
+                            _client.MessageReceived += Client_MessageReceived;
                         }
-                        await connectedHandler().ConfigureAwait(false);
-                        _commands.CommandExecuted += Commands_CommandExecuted;
-                        _client.MessageReceived += Client_MessageReceived;
+                        catch (Exception e)
+                        {
+                            _logger.LogError(e, "Failed to run post-connected logic.");
+                        }
                     });
                     // Return immediately
                     return Task.CompletedTask;

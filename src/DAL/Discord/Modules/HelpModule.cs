@@ -16,10 +16,10 @@ namespace HoU.GuildBot.DAL.Discord.Modules
     public class HelpModule : ModuleBaseHoU
     {
         private readonly IHelpProvider _helpProvider;
-        private readonly ILogger _logger;
+        private readonly ILogger<HelpModule> _logger;
 
         public HelpModule(IHelpProvider helpProvider,
-                          ILogger logger)
+                          ILogger<HelpModule> logger)
         {
             _helpProvider = helpProvider;
             _logger = logger;

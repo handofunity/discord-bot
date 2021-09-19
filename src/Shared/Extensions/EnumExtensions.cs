@@ -21,6 +21,8 @@ namespace HoU.GuildBot.Shared.Extensions
                     return "Member Management";
                 case CommandCategory.GameAshesOfCreation:
                     return "Ashes of Creation";
+                case CommandCategory.GameNewWorld:
+                    return "New World";
                 case CommandCategory.Voice:
                     return nameof(CommandCategory.Voice);
                 default:
