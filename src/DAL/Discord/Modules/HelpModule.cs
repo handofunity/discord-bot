@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using global::Discord.Commands;
 using JetBrains.Annotations;
 using HoU.GuildBot.DAL.Discord.Preconditions;
@@ -7,31 +8,22 @@ using HoU.GuildBot.Shared.BLL;
 using HoU.GuildBot.Shared.Enums;
 using HoU.GuildBot.Shared.Extensions;
 using HoU.GuildBot.Shared.StrongTypes;
+using Microsoft.Extensions.Logging;
 
 namespace HoU.GuildBot.DAL.Discord.Modules
 {
     [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
     public class HelpModule : ModuleBaseHoU
     {
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////
-        #region Fields
-
         private readonly IHelpProvider _helpProvider;
+        private readonly ILogger _logger;
 
-        #endregion
-
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////
-        #region Constructors
-
-        public HelpModule(IHelpProvider helpProvider)
+        public HelpModule(IHelpProvider helpProvider,
+                          ILogger logger)
         {
             _helpProvider = helpProvider;
+            _logger = logger;
         }
-
-        #endregion
-
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////
-        #region Commands
 
         [Command("help")]
         [CommandCategory(CommandCategory.Help, 1)]
@@ -44,17 +36,33 @@ namespace HoU.GuildBot.DAL.Discord.Modules
         [RolePrecondition(Role.AnyGuildMember)]
         public Task HelpAsync([Remainder] string helpRequest = null)
         {
-            var data = _helpProvider.GetHelp((DiscordUserID) Context.User.Id, helpRequest);
-#pragma warning disable 4014 // Fire & Forget
-            Task.Run(async () => await data.PerformBulkOperation(async t =>
+            _logger.LogDebug("Received \"help\" command request ...");
+
+            (string Message, Shared.Objects.EmbedData EmbedData)[] data;
+            try
             {
-                var embed = t.EmbedData?.ToEmbed();
-                await ReplyPrivateAsync(t.Message, embed).ConfigureAwait(false);
+                data = _helpProvider.GetHelp((DiscordUserID)Context.User.Id, helpRequest);
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, $"Failed to get help data from {nameof(IHelpProvider)}.");
+                return Task.CompletedTask;
+            }
+
+            _ = Task.Run(async () => await data.PerformBulkOperation(async t =>
+            {
+                try
+                {
+                    var embed = t.EmbedData?.ToEmbed();
+                    await ReplyPrivateAsync(t.Message, embed).ConfigureAwait(false);
+                }
+                catch (Exception exception)
+                {
+                    _logger.LogError(exception, "Failed to send help data via DM.");
+                }
             }).ConfigureAwait(false));
-#pragma warning restore 4014 // Fire & Forget
+
             return Task.CompletedTask;
         }
-
-        #endregion
     }
 }
