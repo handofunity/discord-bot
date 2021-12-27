@@ -121,7 +121,7 @@ namespace HoU.GuildBot.BLL
             // Links to converted time zone
             const string baseUrl = "https://www.timeanddate.com/worldclock/fixedtime.html";
             // msg = title URL encoded
-            var msgParam = $"msg={Uri.EscapeUriString(eventName)}";
+            var msgParam = $"msg={Uri.EscapeDataString(eventName)}";
             // iso = ISO UTC time
             var isoParam = $"iso={startTime:yyyyMMdd}T{startTime:HHmmss}";
             // p1=1440 --> UTC time zone as base time
