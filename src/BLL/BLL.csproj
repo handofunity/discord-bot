@@ -4,6 +4,7 @@
     <TargetFramework>net6.0</TargetFramework>
     <AssemblyName>HoU.GuildBot.BLL</AssemblyName>
     <RootNamespace>HoU.GuildBot.BLL</RootNamespace>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

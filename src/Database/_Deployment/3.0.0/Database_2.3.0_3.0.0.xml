@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<DeploymentReport xmlns="http://schemas.microsoft.com/sqlserver/dac/DeployReport/2012/02">
+    <Alerts>
+        <Alert Name="DataIssue">
+            <Issue Value="Der Typ von Spalte &quot;Name&quot; in Tabelle &quot;[config].[Message]&quot; lautet aktuell &quot; [sysname] NOT NULL&quot;, wird aber in &quot; VARCHAR (128) NOT NULL&quot; geändert. Es kann zu einem Datenverlust kommen, und möglicherweise ist die Bereitstellung nicht erfolgreich, wenn die Spalte Daten enthält, die nicht mit dem Typ &quot; VARCHAR (128) NOT NULL&quot; kompatibel sind." Id="1" />
+        </Alert>
+    </Alerts>
+    <Operations>
+        <Operation Name="Alter">
+            <Item Value="[config].[Message]" Type="SqlTable">
+                <Issue Id="1" />
+            </Item>
+        </Operation>
+        <Operation Name="Create">
+            <Item Value="[config].[DesiredTimeZone]" Type="SqlTable" />
+            <Item Value="[config].[DiscordMapping]" Type="SqlTable" />
+            <Item Value="[config].[PersonalReminder]" Type="SqlTable" />
+            <Item Value="[config].[SpamProtectedChannel]" Type="SqlTable" />
+            <Item Value="[config].[UnitsEndpoint]" Type="SqlTable" />
+            <Item Value="[config].[Message].[IDX_Message_Name_Inc_Content]" Type="SqlIndex" />
+        </Operation>
+        <Operation Name="Drop">
+            <Item Value="[config].[Message].[IDX_Message_Name_Inc_Content]" Type="SqlIndex" />
+        </Operation>
+    </Operations>
+</DeploymentReport>

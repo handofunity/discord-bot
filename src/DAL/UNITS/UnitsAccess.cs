@@ -87,7 +87,7 @@ namespace HoU.GuildBot.DAL.UNITS
             }
         }
 
-        async Task<string[]> IUnitsAccess.GetValidRoleNamesAsync(UnitsSyncData unitsSyncData)
+        async Task<string[]> IUnitsAccess.GetValidRoleNamesAsync(UnitsEndpoint unitsEndpoint)
         {
             const string requestPath = "/bot-api/discordsync/valid-role-names";
 
@@ -102,7 +102,7 @@ namespace HoU.GuildBot.DAL.UNITS
                 catch (HttpRequestException e)
                 {
                     var baseExceptionMessage = e.GetBaseException().Message;
-                    _logger.LogRequestError(unitsSyncData.BaseAddress, requestPath, baseExceptionMessage);
+                    _logger.LogRequestError(unitsEndpoint.BaseAddress, requestPath, baseExceptionMessage);
                     return null;
                 }
             }
@@ -113,7 +113,7 @@ namespace HoU.GuildBot.DAL.UNITS
                     return;
                 if (!responseMessage.IsSuccessStatusCode)
                 {
-                    await _logger.LogRequestErrorAsync(unitsSyncData.BaseAddress, requestPath, responseMessage);
+                    await _logger.LogRequestErrorAsync(unitsEndpoint.BaseAddress, requestPath, responseMessage);
                     return;
                 }
 
@@ -122,12 +122,12 @@ namespace HoU.GuildBot.DAL.UNITS
                 methodResult = result;
             }
 
-            await UseHttpClient(ExecuteHttpCall, HandleResponseMessage, unitsSyncData.BaseAddress, unitsSyncData.Secret);
+            await UseHttpClient(ExecuteHttpCall, HandleResponseMessage, unitsEndpoint.BaseAddress, unitsEndpoint.Secret);
 
             return methodResult;
         }
 
-        async Task<SyncAllUsersResponse> IUnitsAccess.SendAllUsersAsync(UnitsSyncData unitsSyncData,
+        async Task<SyncAllUsersResponse> IUnitsAccess.SendAllUsersAsync(UnitsEndpoint unitsEndpoint,
                                                                         UserModel[] users)
         {
             const string requestPath = "/bot-api/discordsync/all-users";
@@ -140,7 +140,7 @@ namespace HoU.GuildBot.DAL.UNITS
             var serialized = JsonConvert.SerializeObject(request);
             var requestContent = new StringContent(serialized, Encoding.UTF8, "application/json");
 
-            await UseHttpClient(ExecuteHttpCall, HandleResponseMessage, unitsSyncData.BaseAddress, unitsSyncData.Secret);
+            await UseHttpClient(ExecuteHttpCall, HandleResponseMessage, unitsEndpoint.BaseAddress, unitsEndpoint.Secret);
 
             return methodResult;
 
@@ -153,7 +153,7 @@ namespace HoU.GuildBot.DAL.UNITS
                 catch (HttpRequestException e)
                 {
                     var baseExceptionMessage = e.GetBaseException().Message;
-                    _logger.LogRequestError(unitsSyncData.BaseAddress, requestPath, baseExceptionMessage);
+                    _logger.LogRequestError(unitsEndpoint.BaseAddress, requestPath, baseExceptionMessage);
                     return null;
                 }
             }
@@ -169,19 +169,19 @@ namespace HoU.GuildBot.DAL.UNITS
                 }
                 else
                 {
-                    await _logger.LogRequestErrorAsync(unitsSyncData.BaseAddress, requestPath, responseMessage);
+                    await _logger.LogRequestErrorAsync(unitsEndpoint.BaseAddress, requestPath, responseMessage);
                 }
             }
         }
 
-        async Task IUnitsAccess.SendCreatedVoiceChannelsAsync(UnitsSyncData unitsSyncData,
+        async Task IUnitsAccess.SendCreatedVoiceChannelsAsync(UnitsEndpoint unitsEndpoint,
                                                               SyncCreatedVoiceChannelsRequest createdVoiceChannelsRequest)
         {
             const string requestPath = "/bot-api/discordsync/created-voice-channels";
             var serialized = JsonConvert.SerializeObject(createdVoiceChannelsRequest);
             var requestContent = new StringContent(serialized, Encoding.UTF8, "application/json");
 
-            await UseHttpClient(ExecuteHttpCall, HandleResponseMessage, unitsSyncData.BaseAddress, unitsSyncData.Secret);
+            await UseHttpClient(ExecuteHttpCall, HandleResponseMessage, unitsEndpoint.BaseAddress, unitsEndpoint.Secret);
 
             async Task<HttpResponseMessage> ExecuteHttpCall(HttpClient httpClient)
             {
@@ -192,7 +192,7 @@ namespace HoU.GuildBot.DAL.UNITS
                 catch (HttpRequestException e)
                 {
                     var baseExceptionMessage = e.GetBaseException().Message;
-                    _logger.LogRequestError(unitsSyncData.BaseAddress, requestPath, baseExceptionMessage);
+                    _logger.LogRequestError(unitsEndpoint.BaseAddress, requestPath, baseExceptionMessage);
                     return null;
                 }
             }
@@ -202,18 +202,18 @@ namespace HoU.GuildBot.DAL.UNITS
                 if (responseMessage == null)
                     return;
                 if (!responseMessage.IsSuccessStatusCode)
-                    await _logger.LogRequestErrorAsync(unitsSyncData.BaseAddress, requestPath, responseMessage);
+                    await _logger.LogRequestErrorAsync(unitsEndpoint.BaseAddress, requestPath, responseMessage);
             }
         }
 
-        async Task IUnitsAccess.SendCurrentAttendeesAsync(UnitsSyncData unitsSyncData,
+        async Task IUnitsAccess.SendCurrentAttendeesAsync(UnitsEndpoint unitsEndpoint,
                                                           SyncCurrentAttendeesRequest currentAttendeesRequest)
         {
             const string requestPath = "/bot-api/discordsync/current-attendees";
             var serialized = JsonConvert.SerializeObject(currentAttendeesRequest);
             var requestContent = new StringContent(serialized, Encoding.UTF8, "application/json");
 
-            await UseHttpClient(ExecuteHttpCall, HandleResponseMessage, unitsSyncData.BaseAddress, unitsSyncData.Secret);
+            await UseHttpClient(ExecuteHttpCall, HandleResponseMessage, unitsEndpoint.BaseAddress, unitsEndpoint.Secret);
 
             async Task<HttpResponseMessage> ExecuteHttpCall(HttpClient httpClient)
             {
@@ -224,7 +224,7 @@ namespace HoU.GuildBot.DAL.UNITS
                 catch (HttpRequestException e)
                 {
                     var baseExceptionMessage = e.GetBaseException().Message;
-                    _logger.LogRequestError(unitsSyncData.BaseAddress, requestPath, baseExceptionMessage);
+                    _logger.LogRequestError(unitsEndpoint.BaseAddress, requestPath, baseExceptionMessage);
                     return null;
                 }
             }
@@ -234,7 +234,7 @@ namespace HoU.GuildBot.DAL.UNITS
                 if (responseMessage == null)
                     return;
                 if (!responseMessage.IsSuccessStatusCode)
-                    await _logger.LogRequestErrorAsync(unitsSyncData.BaseAddress, requestPath, responseMessage);
+                    await _logger.LogRequestErrorAsync(unitsEndpoint.BaseAddress, requestPath, responseMessage);
             }
         }
     }

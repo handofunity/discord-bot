@@ -20,22 +20,22 @@ namespace HoU.GuildBot.BLL
         private readonly IMessageProvider _messageProvider;
         private readonly IGameRoleProvider _gameRoleProvider;
         private readonly ILogger<StaticMessageProvider> _logger;
-        private readonly AppSettings _appSettings;
+        private readonly IDynamicConfiguration _dynamicConfiguration;
         private readonly bool _provideStaticMessages;
 
-        private IDiscordAccess _discordAccess;
+        private IDiscordAccess? _discordAccess;
         
         public StaticMessageProvider(IMessageProvider messageProvider,
                                      IGameRoleProvider gameRoleProvider,
                                      IBotInformationProvider botInformationProvider,
                                      ILogger<StaticMessageProvider> logger,
-                                     AppSettings appSettings)
+                                     IDynamicConfiguration dynamicConfiguration)
         {
             _channelSemaphores = new Dictionary<DiscordChannelID, SemaphoreSlim>();
             _messageProvider = messageProvider;
             _gameRoleProvider = gameRoleProvider;
             _logger = logger;
-            _appSettings = appSettings;
+            _dynamicConfiguration = dynamicConfiguration;
 #if DEBUG
             _provideStaticMessages = botInformationProvider.GetEnvironmentName() == Constants.RuntimeEnvironment.Production;
 #else
@@ -61,7 +61,7 @@ namespace HoU.GuildBot.BLL
                 await _messageProvider.GetMessage(Constants.MessageNames.AocPlayStyleMenu).ConfigureAwait(false),
                 await _messageProvider.GetMessage(Constants.MessageNames.AocRaceMenu).ConfigureAwait(false)
             };
-            expectedChannelMessages[_appSettings.AshesOfCreationRoleChannelId] = (l, EnsureAocRoleMenuReactionsExist);
+            expectedChannelMessages[(DiscordChannelID)_dynamicConfiguration.DiscordMapping["AshesOfCreationRoleChannelId"]] = (l, EnsureAocRoleMenuReactionsExist);
         }
 
         private async Task LoadWowRoleMenuMessages(Dictionary<DiscordChannelID, (List<string> Messages, Func<ulong[], Task> PostCreationCallback)> expectedChannelMessages)
@@ -73,7 +73,7 @@ namespace HoU.GuildBot.BLL
             {
                 await _messageProvider.GetMessage(Constants.MessageNames.WowRoleMenu).ConfigureAwait(false)
             };
-            expectedChannelMessages[_appSettings.WorldOfWarcraftRoleChannelId] = (l, EnsureWowRoleMenuReactionsExist);
+            expectedChannelMessages[(DiscordChannelID)_dynamicConfiguration.DiscordMapping["WorldOfWarcraftRoleChannelId"]] = (l, EnsureWowRoleMenuReactionsExist);
         }
 
         private async Task LoadNewWorldRoleMenuMessages(Dictionary<DiscordChannelID, (List<string> Messages, Func<ulong[], Task> PostCreationCallback)> expectedChannelMessages)
@@ -86,7 +86,7 @@ namespace HoU.GuildBot.BLL
                 await _messageProvider.GetMessage(Constants.MessageNames.NewWorldClassMenu).ConfigureAwait(false),
                 await _messageProvider.GetMessage(Constants.MessageNames.NewWorldProfessionMenu).ConfigureAwait(false),
             };
-            expectedChannelMessages[_appSettings.NewWorldRoleChannelId] = (l, EnsureNewWorldRoleMenuReactionsExist);
+            expectedChannelMessages[(DiscordChannelID)_dynamicConfiguration.DiscordMapping["NewWorldRoleChannelId"]] = (l, EnsureNewWorldRoleMenuReactionsExist);
         }
 
         private async Task LoadGamesRolesMenuMessages(Dictionary<DiscordChannelID, (List<string> Messages, Func<ulong[], Task> PostCreationCallback)> expectedChannelMessages)
@@ -101,7 +101,7 @@ namespace HoU.GuildBot.BLL
                                      .OrderBy(m => m.LongName)
                                      .Select(m => string.Format(messageTemplate, m.LongName))
                                      .ToList();
-            expectedChannelMessages[_appSettings.GamesRolesChannelId] = (l, EnsureGamesRolesMenuReactionsExist);
+            expectedChannelMessages[(DiscordChannelID)_dynamicConfiguration.DiscordMapping["GamesRolesChannelId"]] = (l, EnsureGamesRolesMenuReactionsExist);
         }
 
         private async Task CreateMessagesInChannel(DiscordChannelID channelID,
@@ -154,47 +154,50 @@ namespace HoU.GuildBot.BLL
 
             // Class menu
             var classMenuMessageId = messageIds[0];
-            await _discordAccess.AddReactionsToMessage(_appSettings.AshesOfCreationRoleChannelId,
-                classMenuMessageId,
-                new[]
-                {
-                    Constants.AocRoleEmojis.Bard,
-                    Constants.AocRoleEmojis.Cleric,
-                    Constants.AocRoleEmojis.Fighter,
-                    Constants.AocRoleEmojis.Mage,
-                    Constants.AocRoleEmojis.Ranger,
-                    Constants.AocRoleEmojis.Rogue,
-                    Constants.AocRoleEmojis.Summoner,
-                    Constants.AocRoleEmojis.Tank
-                }).ConfigureAwait(false);
+            await _discordAccess
+                 .AddReactionsToMessage((DiscordChannelID)_dynamicConfiguration.DiscordMapping["AshesOfCreationRoleChannelId"],
+                                        classMenuMessageId,
+                                        new[]
+                                        {
+                                            Constants.AocRoleEmojis.Bard,
+                                            Constants.AocRoleEmojis.Cleric,
+                                            Constants.AocRoleEmojis.Fighter,
+                                            Constants.AocRoleEmojis.Mage,
+                                            Constants.AocRoleEmojis.Ranger,
+                                            Constants.AocRoleEmojis.Rogue,
+                                            Constants.AocRoleEmojis.Summoner,
+                                            Constants.AocRoleEmojis.Tank
+                                        }).ConfigureAwait(false);
 
             // Play style menu
             var playStyleMenuMessageId = messageIds[1];
-            await _discordAccess.AddReactionsToMessage(_appSettings.AshesOfCreationRoleChannelId,
-                                                       playStyleMenuMessageId,
-                                                       new[]
-                                                       {
-                                                           Constants.AocRoleEmojis.PvE,
-                                                           Constants.AocRoleEmojis.PvP,
-                                                           Constants.AocRoleEmojis.Crafting
-                                                       }).ConfigureAwait(false);
+            await _discordAccess
+                 .AddReactionsToMessage((DiscordChannelID)_dynamicConfiguration.DiscordMapping["AshesOfCreationRoleChannelId"],
+                                        playStyleMenuMessageId,
+                                        new[]
+                                        {
+                                            Constants.AocRoleEmojis.PvE,
+                                            Constants.AocRoleEmojis.PvP,
+                                            Constants.AocRoleEmojis.Crafting
+                                        }).ConfigureAwait(false);
 
             // Race menu
             var raceMenuMessageId = messageIds[2];
-            await _discordAccess.AddReactionsToMessage(_appSettings.AshesOfCreationRoleChannelId,
-                                                       raceMenuMessageId,
-                                                       new[]
-                                                       {
-                                                           Constants.AocRoleEmojis.Kaelar,
-                                                           Constants.AocRoleEmojis.Vaelune,
-                                                           Constants.AocRoleEmojis.Empyrean,
-                                                           Constants.AocRoleEmojis.Pyrai,
-                                                           Constants.AocRoleEmojis.Renkai,
-                                                           Constants.AocRoleEmojis.Vek,
-                                                           Constants.AocRoleEmojis.Dunir,
-                                                           Constants.AocRoleEmojis.Nikua,
-                                                           Constants.AocRoleEmojis.Tulnar
-                                                       }).ConfigureAwait(false);
+            await _discordAccess
+                 .AddReactionsToMessage((DiscordChannelID)_dynamicConfiguration.DiscordMapping["AshesOfCreationRoleChannelId"],
+                                        raceMenuMessageId,
+                                        new[]
+                                        {
+                                            Constants.AocRoleEmojis.Kaelar,
+                                            Constants.AocRoleEmojis.Vaelune,
+                                            Constants.AocRoleEmojis.Empyrean,
+                                            Constants.AocRoleEmojis.Pyrai,
+                                            Constants.AocRoleEmojis.Renkai,
+                                            Constants.AocRoleEmojis.Vek,
+                                            Constants.AocRoleEmojis.Dunir,
+                                            Constants.AocRoleEmojis.Nikua,
+                                            Constants.AocRoleEmojis.Tulnar
+                                        }).ConfigureAwait(false);
 
             _gameRoleProvider.AocGameRoleMenuMessageIDs = messageIds.ToArray();
         }
@@ -205,7 +208,7 @@ namespace HoU.GuildBot.BLL
                 throw new ArgumentException("Unexpected amount of message IDs received.", nameof(messageIds));
 
             var roleMenuMessageId = messageIds[0];
-            await _discordAccess.AddReactionsToMessage(_appSettings.WorldOfWarcraftRoleChannelId,
+            await _discordAccess.AddReactionsToMessage((DiscordChannelID)_dynamicConfiguration.DiscordMapping["WorldOfWarcraftRoleChannelId"],
                                                        roleMenuMessageId,
                                                        new[]
                                                        {
@@ -229,39 +232,39 @@ namespace HoU.GuildBot.BLL
 
             // Class menu
             var classMenuMessageId = messageIds[0];
-            await _discordAccess.AddReactionsToMessage(_appSettings.NewWorldRoleChannelId,
-                classMenuMessageId,
-                new[]
-                {
-                    Constants.NewWorldRoleEmojis.Tank,
-                    Constants.NewWorldRoleEmojis.Healer,
-                    Constants.NewWorldRoleEmojis.Mage,
-                    Constants.NewWorldRoleEmojis.Archer,
-                    Constants.NewWorldRoleEmojis.Marksman,
-                    Constants.NewWorldRoleEmojis.Bruiser,
-                    Constants.NewWorldRoleEmojis.Fighter
-                }).ConfigureAwait(false);
+            await _discordAccess.AddReactionsToMessage((DiscordChannelID)_dynamicConfiguration.DiscordMapping["NewWorldRoleChannelId"],
+                                                       classMenuMessageId,
+                                                       new[]
+                                                       {
+                                                           Constants.NewWorldRoleEmojis.Tank,
+                                                           Constants.NewWorldRoleEmojis.Healer,
+                                                           Constants.NewWorldRoleEmojis.Mage,
+                                                           Constants.NewWorldRoleEmojis.Archer,
+                                                           Constants.NewWorldRoleEmojis.Marksman,
+                                                           Constants.NewWorldRoleEmojis.Bruiser,
+                                                           Constants.NewWorldRoleEmojis.Fighter
+                                                       }).ConfigureAwait(false);
 
             // Profession menu
             var professionMenuMessageId = messageIds[1];
-            await _discordAccess.AddReactionsToMessage(_appSettings.NewWorldRoleChannelId,
-               professionMenuMessageId,
-               new[]
-               {
-                   Constants.NewWorldRoleEmojis.Weaponsmithing,
-                   Constants.NewWorldRoleEmojis.Armoring,
-                   Constants.NewWorldRoleEmojis.Engineering,
-                   Constants.NewWorldRoleEmojis.Jewelcrafting,
-                   Constants.NewWorldRoleEmojis.Arcana,
-                   Constants.NewWorldRoleEmojis.Cooking,
-                   Constants.NewWorldRoleEmojis.Furnishing,
-                   Constants.NewWorldRoleEmojis.Smelting,
-                   Constants.NewWorldRoleEmojis.Woodworking,
-                   Constants.NewWorldRoleEmojis.Leatherworking,
-                   Constants.NewWorldRoleEmojis.Weaving,
-                   Constants.NewWorldRoleEmojis.Stonecutting
-               }).ConfigureAwait(false);
-            
+            await _discordAccess.AddReactionsToMessage((DiscordChannelID)_dynamicConfiguration.DiscordMapping["NewWorldRoleChannelId"],
+                                                       professionMenuMessageId,
+                                                       new[]
+                                                       {
+                                                           Constants.NewWorldRoleEmojis.Weaponsmithing,
+                                                           Constants.NewWorldRoleEmojis.Armoring,
+                                                           Constants.NewWorldRoleEmojis.Engineering,
+                                                           Constants.NewWorldRoleEmojis.Jewelcrafting,
+                                                           Constants.NewWorldRoleEmojis.Arcana,
+                                                           Constants.NewWorldRoleEmojis.Cooking,
+                                                           Constants.NewWorldRoleEmojis.Furnishing,
+                                                           Constants.NewWorldRoleEmojis.Smelting,
+                                                           Constants.NewWorldRoleEmojis.Woodworking,
+                                                           Constants.NewWorldRoleEmojis.Leatherworking,
+                                                           Constants.NewWorldRoleEmojis.Weaving,
+                                                           Constants.NewWorldRoleEmojis.Stonecutting
+                                                       }).ConfigureAwait(false);
+
             _gameRoleProvider.NewWorldGameRoleMenuMessageIDs = messageIds.ToArray();
         }
 
@@ -270,9 +273,13 @@ namespace HoU.GuildBot.BLL
             if (messageIds.Length != _gameRoleProvider.Games.Count(m => m.PrimaryGameDiscordRoleID != null && m.IncludeInGamesMenu))
                 throw new ArgumentException("Unexpected amount of message IDs received.", nameof(messageIds));
 
+            var gamesRolesChannelId = (DiscordChannelID)_dynamicConfiguration.DiscordMapping["GamesRolesChannelId"];
             foreach (var messageId in messageIds)
             {
-                await _discordAccess.AddReactionsToMessage(_appSettings.GamesRolesChannelId, messageId, new[] {Constants.GamesRolesEmojis.Joystick}).ConfigureAwait(false);
+                await _discordAccess.AddReactionsToMessage(gamesRolesChannelId,
+                                                           messageId,
+                                                           new[] {Constants.GamesRolesEmojis.Joystick})
+                                    .ConfigureAwait(false);
                 await Task.Delay(500).ConfigureAwait(false);
             }
 
@@ -283,10 +290,11 @@ namespace HoU.GuildBot.BLL
         {
             Task.Run(async () =>
             {
+                var gamesRolesChannelId = (DiscordChannelID)_dynamicConfiguration.DiscordMapping["GamesRolesChannelId"];
                 var expectedChannelMessages = new Dictionary<DiscordChannelID, (List<string> Messages, Func<ulong[], Task> PostCreationCallback)>();
                 await LoadGamesRolesMenuMessages(expectedChannelMessages).ConfigureAwait(false);
-                var (messages, postCreationCallback) = expectedChannelMessages[_appSettings.GamesRolesChannelId];
-                await CreateMessagesInChannel(_appSettings.GamesRolesChannelId, messages, postCreationCallback).ConfigureAwait(false);
+                var (messages, postCreationCallback) = expectedChannelMessages[gamesRolesChannelId];
+                await CreateMessagesInChannel(gamesRolesChannelId, messages, postCreationCallback).ConfigureAwait(false);
             }).ConfigureAwait(false);
         }
         
@@ -304,6 +312,10 @@ namespace HoU.GuildBot.BLL
             await LoadNewWorldRoleMenuMessages(expectedChannelMessages).ConfigureAwait(false);
             await LoadGamesRolesMenuMessages(expectedChannelMessages).ConfigureAwait(false);
 
+            var ashesOfCreationRoleChannelId = (DiscordChannelID)_dynamicConfiguration.DiscordMapping["AshesOfCreationRoleChannelId"];
+            var worldOfWarcraftRoleChannelId = (DiscordChannelID)_dynamicConfiguration.DiscordMapping["WorldOfWarcraftRoleChannelId"];
+            var newWorldRoleChannelId = (DiscordChannelID)_dynamicConfiguration.DiscordMapping["NewWorldRoleChannelId"];
+            var gamesRolesChannelId = (DiscordChannelID)_dynamicConfiguration.DiscordMapping["GamesRolesChannelId"];
             foreach (var pair in expectedChannelMessages)
             {
                 var channelLocationAndName = _discordAccess.GetChannelLocationAndName(pair.Key);
@@ -326,19 +338,19 @@ namespace HoU.GuildBot.BLL
                 {
                     // If the count is the same, and all messages are the same, we have to provide some static data to other classes
                     _logger.LogInformation($"Messages in channel '{channelLocationAndName}' are correct.");
-                    if (pair.Key == _appSettings.AshesOfCreationRoleChannelId)
+                    if (pair.Key == ashesOfCreationRoleChannelId)
                     {
                         _gameRoleProvider.AocGameRoleMenuMessageIDs = existingMessages.Select(m => m.MessageID).ToArray();
                     }
-                    else if (pair.Key == _appSettings.WorldOfWarcraftRoleChannelId)
+                    else if (pair.Key == worldOfWarcraftRoleChannelId)
                     {
                         _gameRoleProvider.WowGameRoleMenuMessageID = existingMessages[0].MessageID;
                     }
-                    else if (pair.Key == _appSettings.NewWorldRoleChannelId)
+                    else if (pair.Key == newWorldRoleChannelId)
                     {
                         _gameRoleProvider.NewWorldGameRoleMenuMessageIDs = existingMessages.Select(m => m.MessageID).ToArray();
                     }
-                    else if (pair.Key == _appSettings.GamesRolesChannelId)
+                    else if (pair.Key == gamesRolesChannelId)
                     {
                         _gameRoleProvider.GamesRolesMenuMessageIDs = existingMessages.Select(m => m.MessageID).ToArray();
                     }
@@ -350,18 +362,19 @@ namespace HoU.GuildBot.BLL
         {
             // We can just create the messages here, because the message was changed.
             // There's no need to check if the messages in the channel are the same.
-
+            
             if (e.MessageName == Constants.MessageNames.AocClassMenu
                 || e.MessageName == Constants.MessageNames.AocPlayStyleMenu
                 || e.MessageName == Constants.MessageNames.AocRaceMenu)
             {
                 Task.Run(async () =>
                 {
+                    var ashesOfCreationRoleChannelId = (DiscordChannelID)_dynamicConfiguration.DiscordMapping["AshesOfCreationRoleChannelId"];
                     var expectedChannelMessages =
                         new Dictionary<DiscordChannelID, (List<string> Messages, Func<ulong[], Task> PostCreationCallback)>();
                     await LoadAocRoleMenuMessages(expectedChannelMessages).ConfigureAwait(false);
-                    var (messages, postCreationCallback) = expectedChannelMessages[_appSettings.AshesOfCreationRoleChannelId];
-                    await CreateMessagesInChannel(_appSettings.AshesOfCreationRoleChannelId, messages, postCreationCallback)
+                    var (messages, postCreationCallback) = expectedChannelMessages[ashesOfCreationRoleChannelId];
+                    await CreateMessagesInChannel(ashesOfCreationRoleChannelId, messages, postCreationCallback)
                        .ConfigureAwait(false);
                 }).ConfigureAwait(false);
             }
@@ -369,10 +382,11 @@ namespace HoU.GuildBot.BLL
             {
                 Task.Run(async () =>
                 {
+                    var worldOfWarcraftRoleChannelId = (DiscordChannelID)_dynamicConfiguration.DiscordMapping["WorldOfWarcraftRoleChannelId"];
                     var expectedChannelMessages = new Dictionary<DiscordChannelID, (List<string> Messages, Func<ulong[], Task> PostCreationCallback)>();
                     await LoadWowRoleMenuMessages(expectedChannelMessages).ConfigureAwait(false);
-                    var (messages, postCreationCallback) = expectedChannelMessages[_appSettings.WorldOfWarcraftRoleChannelId];
-                    await CreateMessagesInChannel(_appSettings.WorldOfWarcraftRoleChannelId, messages, postCreationCallback).ConfigureAwait(false);
+                    var (messages, postCreationCallback) = expectedChannelMessages[worldOfWarcraftRoleChannelId];
+                    await CreateMessagesInChannel(worldOfWarcraftRoleChannelId, messages, postCreationCallback).ConfigureAwait(false);
                 }).ConfigureAwait(false);
             }
             else if (e.MessageName == Constants.MessageNames.NewWorldClassMenu
@@ -380,11 +394,12 @@ namespace HoU.GuildBot.BLL
             {
                 Task.Run(async () =>
                 {
+                    var newWorldRoleChannelId = (DiscordChannelID)_dynamicConfiguration.DiscordMapping["NewWorldRoleChannelId"];
                     var expectedChannelMessages =
                         new Dictionary<DiscordChannelID, (List<string> Messages, Func<ulong[], Task> PostCreationCallback)>();
                     await LoadNewWorldRoleMenuMessages(expectedChannelMessages).ConfigureAwait(false);
-                    var (messages, postCreationCallback) = expectedChannelMessages[_appSettings.NewWorldRoleChannelId];
-                    await CreateMessagesInChannel(_appSettings.NewWorldRoleChannelId, messages, postCreationCallback)
+                    var (messages, postCreationCallback) = expectedChannelMessages[newWorldRoleChannelId];
+                    await CreateMessagesInChannel(newWorldRoleChannelId, messages, postCreationCallback)
                        .ConfigureAwait(false);
                 }).ConfigureAwait(false);
             }

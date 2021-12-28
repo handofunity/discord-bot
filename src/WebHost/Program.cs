@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using HoU.GuildBot.Core;
 using HoU.GuildBot.Shared.Objects;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 
 namespace HoU.GuildBot.WebHost
 {
@@ -35,13 +36,19 @@ namespace HoU.GuildBot.WebHost
 
         private static IWebHost BuildWebHost() =>
             Microsoft.AspNetCore.WebHost.CreateDefaultBuilder()
+                     .ConfigureAppConfiguration(configurationBuilder =>
+                      {
+                          configurationBuilder.AddJsonFile("appsettings.json", true, true)
+                                              .AddUserSecrets(typeof(Program).Assembly, true, true)
+                                              .AddEnvironmentVariables("SETTINGS_OVERRIDE_");
+                      })
                      .UseStartup<Startup>()
                      .Build();
 
         private static void Startup_EnvironmentConfigured(object sender,
                                                           EnvironmentEventArgs e)
         {
-            _runner.Run(e.Environment, e.AppSettings);
+            _runner.Run(e.Environment, e.RootSettings);
         }
     }
 }

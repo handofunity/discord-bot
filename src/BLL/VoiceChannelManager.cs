@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using HoU.GuildBot.Shared.StrongTypes;
 using HoU.GuildBot.Shared.BLL;
 using HoU.GuildBot.Shared.DAL;
-using HoU.GuildBot.Shared.Objects;
 
 namespace HoU.GuildBot.BLL
 {
@@ -12,22 +11,22 @@ namespace HoU.GuildBot.BLL
         private const string InsufficientPermissionsMessage = "The bot has insufficient permissions for your current voice channel.";
 
         private readonly IDiscordAccess _discordAccess;
-        private readonly AppSettings _appSettings;
+        private readonly IDynamicConfiguration _dynamicConfiguration;
 
         public VoiceChannelManager(IDiscordAccess discordAccess,
-                                   AppSettings appSettings)
+                                   IDynamicConfiguration dynamicConfiguration)
         {
             _discordAccess = discordAccess;
-            _appSettings = appSettings;
+            _dynamicConfiguration = dynamicConfiguration;
         }
 
-        async Task<string> IVoiceChannelManager.CreateVoiceChannel(string name,
-                                                                   int maxUsers)
+        async Task<string?> IVoiceChannelManager.CreateVoiceChannel(string name,
+                                                                    int maxUsers)
         {
             if (maxUsers < 2)
                 return "Max users must be at least 2.";
 
-            var (voiceChannelId, error) = await _discordAccess.CreateVoiceChannel(_appSettings.VoiceChannelCategoryId,
+            var (voiceChannelId, error) = await _discordAccess.CreateVoiceChannel(_dynamicConfiguration.DiscordMapping["VoiceChannelCategoryId"],
                                                                                   name,
                                                                                   maxUsers);
             if (error != null)
@@ -47,8 +46,8 @@ namespace HoU.GuildBot.BLL
             return null;
         }
 
-        async Task<string> IVoiceChannelManager.TryToMuteUsers(DiscordUserID userId,
-                                                               string mention)
+        async Task<string?> IVoiceChannelManager.TryToMuteUsers(DiscordUserID userId,
+                                                                string mention)
         {
             var userVoiceChannelId = _discordAccess.GetUsersVoiceChannelId(userId);
             if (userVoiceChannelId == null)
@@ -62,8 +61,8 @@ namespace HoU.GuildBot.BLL
                        : $"{mention}: " + InsufficientPermissionsMessage;
         }
 
-        async Task<string> IVoiceChannelManager.TryToUnMuteUsers(DiscordUserID userId,
-                                                                 string mention)
+        async Task<string?> IVoiceChannelManager.TryToUnMuteUsers(DiscordUserID userId,
+                                                                  string mention)
         {
             var userVoiceChannelId = _discordAccess.GetUsersVoiceChannelId(userId);
             if (userVoiceChannelId == null)

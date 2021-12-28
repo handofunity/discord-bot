@@ -240,9 +240,9 @@ namespace HoU.GuildBot.Shared.DAL
         /// <param name="name">The name of the voice channel.</param>
         /// <param name="maxUsers">The maximum number of users allowed into the voice channel.</param>
         /// <returns>The ID of the created channel, or an error while creating it.</returns>
-        Task<(ulong VoiceChannelId, string Error)> CreateVoiceChannel(ulong voiceChannelsCategoryId,
-                                                                      string name,
-                                                                      int maxUsers);
+        Task<(ulong VoiceChannelId, string? Error)> CreateVoiceChannel(ulong voiceChannelsCategoryId,
+                                                                       string name,
+                                                                       int maxUsers);
 
         /// <summary>
         /// Reorders the <paramref name="channelIds"/> to be in order above the <paramref name="positionAboveChannelId"/>.

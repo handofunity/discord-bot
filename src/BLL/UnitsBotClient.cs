@@ -3,12 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Web;
 using HoU.GuildBot.Shared.BLL;
 using HoU.GuildBot.Shared.DAL;
 using HoU.GuildBot.Shared.Objects;
 using HoU.GuildBot.Shared.StrongTypes;
-using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
 
 namespace HoU.GuildBot.BLL
@@ -17,17 +15,17 @@ namespace HoU.GuildBot.BLL
     {
         private readonly IDiscordAccess _discordAccess;
         private readonly IUnitsAccess _unitsAccess;
-        private readonly AppSettings _appSettings;
+        private readonly IDynamicConfiguration _dynamicConfiguration;
         private readonly ILogger<UnitsBotClient> _logger;
 
         public UnitsBotClient(IDiscordAccess discordAccess,
                               IUnitsAccess unitsAccess,
-                              AppSettings appSettings,
+                              IDynamicConfiguration dynamicConfiguration,
                               ILogger<UnitsBotClient> logger)
         {
             _discordAccess = discordAccess ?? throw new ArgumentNullException(nameof(discordAccess));
             _unitsAccess = unitsAccess ?? throw new ArgumentNullException(nameof(unitsAccess));
-            _appSettings = appSettings ?? throw new ArgumentNullException(nameof(appSettings));
+            _dynamicConfiguration = dynamicConfiguration ?? throw new ArgumentNullException(nameof(dynamicConfiguration));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -268,10 +266,10 @@ namespace HoU.GuildBot.BLL
                                                                                byte maxAmountOfGroups,
                                                                                byte? maxGroupSize)
         {
-            var unitsSyncData = _appSettings.UnitsAccess.SingleOrDefault(m => m.BaseAddress == baseAddress);
+            var unitsSyncData = _dynamicConfiguration.UnitsEndpoints.SingleOrDefault(m => m.BaseAddress == baseAddress);
             if (unitsSyncData == null)
             {
-                _logger.LogError($"Cannot find matching sync-endpoint in {nameof(AppSettings)}.{nameof(AppSettings.UnitsAccess)} " +
+                _logger.LogError($"Cannot find matching sync-endpoint in {nameof(IDynamicConfiguration)}.{nameof(IDynamicConfiguration.UnitsEndpoints)} " +
                                  "for base address {BaseAddress}.", baseAddress);
                 return;
             }
@@ -286,9 +284,10 @@ namespace HoU.GuildBot.BLL
             var failedVoiceChannels = new List<EventVoiceChannel>();
             foreach (var eventVoiceChannel in voiceChannels)
             {
-                var (voiceChannelId, error) = await _discordAccess.CreateVoiceChannel(_appSettings.VoiceChannelCategoryId,
-                                                                                      eventVoiceChannel.DisplayName,
-                                                                                      eventVoiceChannel.MaxUsersInChannel);
+                var (voiceChannelId, error) =
+                    await _discordAccess.CreateVoiceChannel(_dynamicConfiguration.DiscordMapping["VoiceChannelCategoryId"],
+                                                            eventVoiceChannel.DisplayName,
+                                                            eventVoiceChannel.MaxUsersInChannel);
                 if (error != null)
                 {
                     failedVoiceChannels.Add(eventVoiceChannel);
@@ -309,7 +308,8 @@ namespace HoU.GuildBot.BLL
             if (voiceChannels.Any())
             {
                 await _discordAccess.ReorderChannelsAsync(voiceChannels.Select(m => m.DiscordVoiceChannelIdValue).ToArray(),
-                                                     _appSettings.UnitsEventVoiceChannelsPositionAboveChannelId);
+                                                          _dynamicConfiguration.DiscordMapping
+                                                              ["UnitsEventVoiceChannelsPositionAboveChannelId"]);
 
                 await _unitsAccess.SendCreatedVoiceChannelsAsync(unitsSyncData,
                                                               new SyncCreatedVoiceChannelsRequest(appointmentId, voiceChannels));
@@ -348,10 +348,10 @@ namespace HoU.GuildBot.BLL
             if (voiceChannelIds == null || voiceChannelIds.Length == 0)
                 return;
 
-            var unitsSyncData = _appSettings.UnitsAccess.SingleOrDefault(m => m.BaseAddress == baseAddress);
+            var unitsSyncData = _dynamicConfiguration.UnitsEndpoints.SingleOrDefault(m => m.BaseAddress == baseAddress);
             if (unitsSyncData == null)
             {
-                _logger.LogError($"Cannot find matching sync-endpoint in {nameof(AppSettings)}.{nameof(AppSettings.UnitsAccess)} " +
+                _logger.LogError($"Cannot find matching sync-endpoint in {nameof(IDynamicConfiguration)}.{nameof(IDynamicConfiguration.UnitsEndpoints)} " +
                                  "for base address {BaseAddress}.", baseAddress);
                 return;
             }

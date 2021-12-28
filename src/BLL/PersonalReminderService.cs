@@ -2,27 +2,27 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Hangfire.Annotations;
+using HoU.GuildBot.Shared.BLL;
 using HoU.GuildBot.Shared.DAL;
-using HoU.GuildBot.Shared.Objects;
 
 namespace HoU.GuildBot.BLL
 {
     [UsedImplicitly]
     public class PersonalReminderService
     {
-        private readonly AppSettings _appSettings;
+        private readonly IDynamicConfiguration _dynamicConfiguration;
         private readonly IDiscordAccess _discordAccess;
 
-        public PersonalReminderService(AppSettings appSettings,
+        public PersonalReminderService(IDynamicConfiguration dynamicConfiguration,
                                        IDiscordAccess discordAccess)
         {
-            _appSettings = appSettings ?? throw new ArgumentNullException(nameof(appSettings));
+            _dynamicConfiguration = dynamicConfiguration ?? throw new ArgumentNullException(nameof(dynamicConfiguration));
             _discordAccess = discordAccess ?? throw new ArgumentNullException(nameof(discordAccess));
         }
 
         public async Task SendReminderAsync(int reminderId)
         {
-            var reminder = _appSettings.PersonalReminders?.SingleOrDefault(m => m.ReminderId == reminderId);
+            var reminder = _dynamicConfiguration.PersonalReminders.SingleOrDefault(m => m.ReminderId == reminderId);
             if (reminder == null)
                 return;
 

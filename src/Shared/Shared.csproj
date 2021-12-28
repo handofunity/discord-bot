@@ -4,6 +4,7 @@
     <TargetFramework>net6.0</TargetFramework>
     <AssemblyName>HoU.GuildBot.Shared</AssemblyName>
     <RootNamespace>HoU.GuildBot.Shared</RootNamespace>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

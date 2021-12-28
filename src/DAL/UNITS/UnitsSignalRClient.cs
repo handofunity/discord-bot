@@ -108,12 +108,12 @@ namespace HoU.GuildBot.DAL.UNITS
             }
         }
 
-        async Task IUnitsSignalRClient.ConnectAsync(UnitsSyncData unitsSyncData)
+        async Task IUnitsSignalRClient.ConnectAsync(UnitsEndpoint unitsEndpoint)
         {
-            if (_hubConnections.ContainsKey(unitsSyncData.BaseAddress))
+            if (_hubConnections.ContainsKey(unitsEndpoint.BaseAddress))
                 return;
 
-            var hubRoute = unitsSyncData.BaseAddress + BotHubRoute;
+            var hubRoute = unitsEndpoint.BaseAddress + BotHubRoute;
             var connection = new HubConnectionBuilder()
                             .WithUrl(hubRoute,
                                      options =>
@@ -142,12 +142,12 @@ namespace HoU.GuildBot.DAL.UNITS
                                          options.AccessTokenProvider = async () =>
                                          {
                                              var token =
-                                                 await _bearerTokenManager.GetBearerTokenAsync(GetHttpClient(unitsSyncData.BaseAddress),
-                                                                                               unitsSyncData.BaseAddress,
-                                                                                               unitsSyncData.Secret,
+                                                 await _bearerTokenManager.GetBearerTokenAsync(GetHttpClient(unitsEndpoint.BaseAddress),
+                                                                                               unitsEndpoint.BaseAddress,
+                                                                                               unitsEndpoint.Secret,
                                                                                                _requiresTokenRefresh
-                                                                                                   [unitsSyncData.BaseAddress]);
-                                             _requiresTokenRefresh[unitsSyncData.BaseAddress] = false;
+                                                                                                   [unitsEndpoint.BaseAddress]);
+                                             _requiresTokenRefresh[unitsEndpoint.BaseAddress] = false;
                                              return token;
                                          };
                                      })
@@ -159,7 +159,7 @@ namespace HoU.GuildBot.DAL.UNITS
                             .Build();
             connection.Closed += async (error) =>
             {
-                _logger.LogWarning("Connection to UNITS at {BaseUrl} closed. Trying to reconnect ...", unitsSyncData.BaseAddress);
+                _logger.LogWarning("Connection to UNITS at {BaseUrl} closed. Trying to reconnect ...", unitsEndpoint.BaseAddress);
                 do
                 {
                     try
@@ -170,22 +170,22 @@ namespace HoU.GuildBot.DAL.UNITS
                     }
                     catch (Exception e)
                     {
-                        _logger.LogError(e, "Failed to re-connect to UNITS at {BaseUrl}.", unitsSyncData.BaseAddress);
+                        _logger.LogError(e, "Failed to re-connect to UNITS at {BaseUrl}.", unitsEndpoint.BaseAddress);
                         if (e is HttpRequestException httpRequestException && httpRequestException.Message.Contains("401"))
                         {
-                            _requiresTokenRefresh[unitsSyncData.BaseAddress] = true;
+                            _requiresTokenRefresh[unitsEndpoint.BaseAddress] = true;
                         }
                     }
                 } while (connection.State != HubConnectionState.Connected);
             };
 
             RegisterHandlers(connection,
-                             unitsSyncData.BaseAddress);
+                             unitsEndpoint.BaseAddress);
 
-            _requiresTokenRefresh.Add(unitsSyncData.BaseAddress, false);
-            _hubConnections.Add(unitsSyncData.BaseAddress, connection);
+            _requiresTokenRefresh.Add(unitsEndpoint.BaseAddress, false);
+            _hubConnections.Add(unitsEndpoint.BaseAddress, connection);
 
-            _logger.LogInformation("Connecting to UNITS at {BaseUrl} ...", unitsSyncData.BaseAddress);
+            _logger.LogInformation("Connecting to UNITS at {BaseUrl} ...", unitsEndpoint.BaseAddress);
             do
             {
                 try
@@ -193,13 +193,13 @@ namespace HoU.GuildBot.DAL.UNITS
                     await connection.StartAsync();
                     
                     if (connection.State == HubConnectionState.Connected)
-                        _logger.LogInformation("Connected to UNITS at {BaseUrl}.", unitsSyncData.BaseAddress);
+                        _logger.LogInformation("Connected to UNITS at {BaseUrl}.", unitsEndpoint.BaseAddress);
                 }
                 catch (Exception e)
                 {
                     var delaySeconds = new Random().Next(5, 20);
                     _logger.LogError(e, "Failed to initially connect to UNITS at {BaseUrl}. Trying again in {Seconds} seconds ...",
-                                     unitsSyncData.BaseAddress,
+                                     unitsEndpoint.BaseAddress,
                                      delaySeconds);
                     await Task.Delay(delaySeconds * 1000);
                 }

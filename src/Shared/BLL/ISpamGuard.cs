@@ -1,9 +1,10 @@
 ﻿using HoU.GuildBot.Shared.Enums;
+using HoU.GuildBot.Shared.StrongTypes;
 
 namespace HoU.GuildBot.Shared.BLL
 {
     public interface ISpamGuard
     {
-        SpamCheckResult CheckForSpam(ulong userId, ulong channelId, string message, int attachmentsCount);
+        SpamCheckResult CheckForSpam(DiscordUserID userId, DiscordChannelID channelId, string message, int attachmentsCount);
     }
 }

@@ -3,45 +3,31 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.Logging;
 using HoU.GuildBot.Shared.BLL;
-using HoU.GuildBot.Shared.Objects;
 
 namespace HoU.GuildBot.BLL
 {
     public class TimeInformationProvider : ITimeInformationProvider
     {
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////
-        #region Fields
-
-        private readonly AppSettings _settings;
+        private readonly IDynamicConfiguration _dynamicConfiguration;
         private readonly ILogger<TimeInformationProvider> _logger;
-
-        #endregion
-
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////
-        #region Constructors
-
-        public TimeInformationProvider(AppSettings settings,
+        
+        public TimeInformationProvider(IDynamicConfiguration dynamicConfiguration,
                                        ILogger<TimeInformationProvider> logger)
         {
-            _settings = settings;
+            _dynamicConfiguration = dynamicConfiguration;
             _logger = logger;
         }
-
-        #endregion
-
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////
-        #region ITimeInformationProvider Members
-
+        
         string[] ITimeInformationProvider.GetCurrentTimeFormattedForConfiguredTimezones()
         {
             var n = DateTime.UtcNow;
             var supportedTimeZones = TimeZoneInfo.GetSystemTimeZones();
-            var result = new List<string>(_settings.DesiredTimeZones.Length);
+            var result = new List<string>(_dynamicConfiguration.DesiredTimeZones.Length);
 
-            _logger.LogDebug($"Desired time zones: {_settings.DesiredTimeZones.Length}");
+            _logger.LogDebug($"Desired time zones: {_dynamicConfiguration.DesiredTimeZones.Length}");
             _logger.LogDebug($"Supported time zones: {supportedTimeZones.Count}");
 
-            foreach (var desiredTimeZone in _settings.DesiredTimeZones)
+            foreach (var desiredTimeZone in _dynamicConfiguration.DesiredTimeZones)
             {
                 if (desiredTimeZone.TimeZoneId == "UTC")
                 {
@@ -63,7 +49,5 @@ namespace HoU.GuildBot.BLL
 
             return result.ToArray();
         }
-
-        #endregion
     }
 }

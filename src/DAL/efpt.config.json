@@ -1,4 +1,5 @@
 ﻿{
+   "CodeGenerationMode": 2,
    "ContextClassName": "HandOfUnityContext",
    "ContextNamespace": null,
    "DefaultDacpacSchema": null,
@@ -13,6 +14,14 @@
    "SelectedToBeGenerated": 0,
    "Tables": [
       {
+         "Name": "[config].[DesiredTimeZone]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[config].[DiscordMapping]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[config].[Game]",
          "ObjectType": 0
       },
@@ -22,6 +31,18 @@
       },
       {
          "Name": "[config].[Message]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[config].[PersonalReminder]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[config].[SpamProtectedChannel]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[config].[UnitsEndpoint]",
          "ObjectType": 0
       },
       {
@@ -37,12 +58,21 @@
          "ObjectType": 0
       }
    ],
+   "UiHint": "..\\Database\\Database.sqlproj",
+   "UseBoolPropertiesWithoutDefaultSql": false,
    "UseDatabaseNames": true,
    "UseDbContextSplitting": false,
    "UseFluentApiOnly": true,
    "UseHandleBars": false,
    "UseInflector": false,
    "UseLegacyPluralizer": false,
+   "UseManyToManyEntity": false,
+   "UseNoConstructor": false,
+   "UseNoDefaultConstructor": false,
+   "UseNoNavigations": false,
+   "UseNoObjectFilter": false,
    "UseNodaTime": false,
+   "UseNullableReferences": false,
+   "UseSchemaFolders": false,
    "UseSpatial": false
 }

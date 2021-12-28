@@ -26,7 +26,7 @@ namespace HoU.GuildBot.WebHost
         {
             Trace.WriteLine($"Executing '{nameof(ConfigureServices)}' ...");
 
-            services.AddAppSettings(Configuration);
+            services.AddRootSettings(Configuration);
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -46,7 +46,7 @@ namespace HoU.GuildBot.WebHost
                 throw new InvalidOperationException("Environment is not supported.");
             }
 
-            var settings = app.ApplicationServices.GetService<AppSettings>();
+            var settings = app.ApplicationServices.GetService<RootSettings>();
             EnvironmentConfigured?.Invoke(this, new EnvironmentEventArgs(environment, settings));
         }
     }

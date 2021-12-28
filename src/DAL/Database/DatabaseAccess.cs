@@ -16,47 +16,25 @@ namespace HoU.GuildBot.DAL.Database
     [UsedImplicitly]
     public class DatabaseAccess : IDatabaseAccess
     {
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-        #region Fields
-
         private readonly ILogger<DatabaseAccess> _logger;
         private readonly DbContextOptions<HandOfUnityContext> _handOfUnityContextOptions;
-
-        #endregion
-
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-        #region Constructors
-
+        
         public DatabaseAccess(ILogger<DatabaseAccess> logger,
-                              AppSettings appSettings)
+                              RootSettings rootSettings)
         {
             _logger = logger;
             var builder = new DbContextOptionsBuilder<HandOfUnityContext>();
-            builder.UseSqlServer(appSettings.HandOfUnityConnectionString);
+            builder.UseSqlServer(rootSettings.ConnectionStringForOwnDatabase);
             _handOfUnityContextOptions = builder.Options;
         }
-
-        #endregion
-
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-        #region Private Methods
-
-        private HandOfUnityContext GetDbContext() => new HandOfUnityContext(_handOfUnityContextOptions);
+        
+        private HandOfUnityContext GetDbContext() => new(_handOfUnityContextOptions);
 
         private static User ToPoCo(Model.User user)
         {
             return new User((InternalUserID) user.UserID, (DiscordUserID) user.DiscordUserID);
         }
-
-        #endregion
-
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-        #region IDatabaseAccess Members
-
+        
         async Task<User[]> IDatabaseAccess.GetAllUsers()
         {
             Model.User[] dbObjects;
@@ -504,7 +482,5 @@ namespace HoU.GuildBot.DAL.Database
 
             return (true, null);
         }
-
-        #endregion
     }
 }

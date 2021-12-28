@@ -4,35 +4,35 @@ using System.Linq;
 using System.Threading.Tasks;
 using HoU.GuildBot.Shared.BLL;
 using HoU.GuildBot.Shared.DAL;
-using HoU.GuildBot.Shared.Objects;
 using HoU.GuildBot.Shared.StrongTypes;
-using JetBrains.Annotations;
 
 namespace HoU.GuildBot.BLL
 {
     public class RoleRemover : IRoleRemover
     {
         private readonly IDiscordAccess _discordAccess;
-        private readonly AppSettings _appSettings;
+        private readonly IDynamicConfiguration _dynamicConfiguration;
         private readonly List<DiscordUserID> _usersToFreeFromBasement;
 
-        public RoleRemover([NotNull] IDiscordAccess discordAccess,
-                           [NotNull] AppSettings appSettings)
+        public RoleRemover(IDiscordAccess? discordAccess,
+                           IDynamicConfiguration? dynamicConfiguration)
         {
             _discordAccess = discordAccess ?? throw new ArgumentNullException(nameof(discordAccess));
-            _appSettings = appSettings ?? throw new ArgumentNullException(nameof(appSettings));
+            _dynamicConfiguration = dynamicConfiguration ?? throw new ArgumentNullException(nameof(dynamicConfiguration));
             _usersToFreeFromBasement = new List<DiscordUserID>();
         }
 
         async Task IRoleRemover.RemoveBasementRolesAsync()
         {
+            var basementRoleId = _dynamicConfiguration.DiscordMapping["BasementRoleId"];
+
             // If there are any users from the last check, free them this round.
             foreach (var discordUserID in _usersToFreeFromBasement)
             {
                 if (!_discordAccess.CanManageRolesForUser(discordUserID))
                     continue;
 
-                var (success, roleName) = await _discordAccess.TryRevokeNonMemberRole(discordUserID, _appSettings.BasementRoleId);
+                var (success, roleName) = await _discordAccess.TryRevokeNonMemberRole(discordUserID, basementRoleId);
                 if (success)
                 {
                     await _discordAccess.LogToDiscord($"Automatically removed role `{roleName}` from <@{discordUserID}>.");
@@ -45,7 +45,7 @@ namespace HoU.GuildBot.BLL
 
             // Gather users that should be freed next round.
             _usersToFreeFromBasement.Clear();
-            var usersInBasement = _discordAccess.GetUsersIdsInRole(_appSettings.BasementRoleId);
+            var usersInBasement = _discordAccess.GetUsersIdsInRole(basementRoleId);
             if (usersInBasement.Any())
                 _usersToFreeFromBasement.AddRange(usersInBasement);
         }

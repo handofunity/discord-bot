@@ -8,6 +8,8 @@
     <StartupObject>HoU.GuildBot.WebHost.Program</StartupObject>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <LangVersion>latest</LangVersion>
+    <UserSecretsId>0bd76b62-42f6-4fca-9636-030eeecc892e</UserSecretsId>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="logs\**" />
@@ -34,9 +36,6 @@
         <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     </ItemGroup>
   <ItemGroup>
-    <Content Update="appsettings.Development.json">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Content>
     <Content Update="appsettings.json">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Content>

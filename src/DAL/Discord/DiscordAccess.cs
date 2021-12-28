@@ -31,7 +31,8 @@ namespace HoU.GuildBot.DAL.Discord
 
         private static readonly Dictionary<string, Role> _roleMapping;
         private readonly ILogger<DiscordAccess> _logger;
-        private readonly AppSettings _appSettings;
+        private readonly RootSettings _rootSettings;
+        private readonly IDynamicConfiguration _dynamicConfiguration;
         private readonly IServiceProvider _serviceProvider;
         private readonly ISpamGuard _spamGuard;
         private readonly IIgnoreGuard _ignoreGuard;
@@ -68,7 +69,8 @@ namespace HoU.GuildBot.DAL.Discord
         }
 
         public DiscordAccess(ILogger<DiscordAccess> logger,
-                             AppSettings appSettings,
+                             RootSettings rootSettings,
+                             IDynamicConfiguration dynamicConfiguration,
                              IServiceProvider serviceProvider,
                              ISpamGuard spamGuard,
                              IIgnoreGuard ignoreGuard,
@@ -80,7 +82,8 @@ namespace HoU.GuildBot.DAL.Discord
                              IUserStore userStore)
         {
             _logger = logger;
-            _appSettings = appSettings;
+            _rootSettings = rootSettings;
+            _dynamicConfiguration = dynamicConfiguration;
             _serviceProvider = serviceProvider;
             _spamGuard = spamGuard;
             _ignoreGuard = ignoreGuard;
@@ -110,7 +113,7 @@ namespace HoU.GuildBot.DAL.Discord
         /// Gets the "Hand of Unity" <see cref="SocketGuild"/> object.
         /// </summary>
         /// <returns>A <see cref="SocketGuild"/> instance for "Hand of Unity".</returns>
-        private SocketGuild GetGuild() => _client.GetGuild(_appSettings.HandOfUnityGuildId);
+        private SocketGuild GetGuild() => _client.GetGuild(_dynamicConfiguration.DiscordMapping["ValidGuildId"]);
 
         private bool IsUserOnServer(DiscordUserID userID)
         {
@@ -132,7 +135,10 @@ namespace HoU.GuildBot.DAL.Discord
             if (userMessage.Channel is IPrivateChannel)
                 return false;
             
-            var checkResult = _spamGuard.CheckForSpam(userMessage.Author.Id, userMessage.Channel.Id, userMessage.Content, userMessage.Attachments?.Count ?? 0);
+            var checkResult = _spamGuard.CheckForSpam((DiscordUserID)userMessage.Author.Id,
+                                                      (DiscordChannelID)userMessage.Channel.Id,
+                                                      userMessage.Content,
+                                                      userMessage.Attachments?.Count ?? 0);
             if (checkResult == SpamCheckResult.NoSpam)
                 return false;
 
@@ -283,14 +289,14 @@ namespace HoU.GuildBot.DAL.Discord
         private async Task LogToDiscordInternal(string message)
         {
             var g = GetGuild();
-            var lc = g?.GetTextChannel((ulong)_appSettings.LoggingChannelId);
+            var lc = g?.GetTextChannel(_dynamicConfiguration.DiscordMapping["LoggingChannelId"]);
             if (lc == null)
             {
                 // Guild or channel can be null because the guild is currently unavailable.
                 // In this case, store the messages in a queue and send them later.
                 // Otherwise throw.
                 if (_guildAvailable)
-                    throw new ChannelNotFoundException(_appSettings.LoggingChannelId);
+                    throw new ChannelNotFoundException((DiscordChannelID)_dynamicConfiguration.DiscordMapping["LoggingChannelId"]);
                 _pendingMessages.Enqueue(message);
                 return;
             }
@@ -419,7 +425,7 @@ namespace HoU.GuildBot.DAL.Discord
 
                     // Get channels for notifications
                     var privateChannel = await gu.GetOrCreateDMChannelAsync();
-                    var comCoordinatorChannel = g.GetTextChannel((ulong) _appSettings.ComCoordinatorChannelId);
+                    var comCoordinatorChannel = g.GetTextChannel(_dynamicConfiguration.DiscordMapping["ComCoordinatorChannelId"]);
 
                     // Prepare messages
                     var infoMessage = $"User `{gu.Username}#{gu.DiscriminatorValue}` " +
@@ -456,7 +462,7 @@ namespace HoU.GuildBot.DAL.Discord
                     await LogToDiscordInternal(result.LogMessage).ConfigureAwait(false);
 
                     // Announce promotion
-                    var g = GetGuild().GetTextChannel((ulong) _appSettings.PromotionAnnouncementChannelId);
+                    var g = GetGuild().GetTextChannel(_dynamicConfiguration.DiscordMapping["PromotionAnnouncementChannelId"]);
                     var embed = result.AnnouncementData.ToEmbed();
                     await g.SendMessageAsync(string.Empty, false, embed).ConfigureAwait(false);
                 }
@@ -699,7 +705,7 @@ namespace HoU.GuildBot.DAL.Discord
                 _client.ReactionAdded += Client_ReactionAdded;
 
                 _logger.LogInformation("Performing login...");
-                await _client.LoginAsync(TokenType.Bot, _appSettings.BotToken).ConfigureAwait(false);
+                await _client.LoginAsync(TokenType.Bot, _rootSettings.DiscordBotToken).ConfigureAwait(false);
                 _logger.LogInformation("Starting client...");
                 await _client.StartAsync().ConfigureAwait(false);
             }
@@ -1210,7 +1216,7 @@ namespace HoU.GuildBot.DAL.Discord
             try
             {
                 var g = GetGuild();
-                var channel = g.GetTextChannel((ulong)_appSettings.UnitsNotificationsChannelId);
+                var channel = g.GetTextChannel(_dynamicConfiguration.DiscordMapping["UnitsNotificationsChannelId"]);
                 var embed = embedData.ToEmbed();
                 await channel.SendMessageAsync(null, false, embed).ConfigureAwait(false);
             }
@@ -1226,7 +1232,7 @@ namespace HoU.GuildBot.DAL.Discord
             try
             {
                 var g = GetGuild();
-                var channel = g.GetTextChannel((ulong)_appSettings.UnitsNotificationsChannelId);
+                var channel = g.GetTextChannel(_dynamicConfiguration.DiscordMapping["UnitsNotificationsChannelId"]);
                 var embed = embedData.ToEmbed();
                 var notifications = new List<string>();
                 var allMentions = new Queue<string>(usersToNotify.Select(m => m.ToMention() + " "));
@@ -1323,7 +1329,7 @@ namespace HoU.GuildBot.DAL.Discord
 
         private async Task Client_GuildAvailable(SocketGuild guild)
         {
-            if (guild.Id != _appSettings.HandOfUnityGuildId)
+            if (guild.Id != _dynamicConfiguration.DiscordMapping["ValidGuildId"])
                 return;
 
             _guildAvailable = true;
@@ -1359,7 +1365,7 @@ namespace HoU.GuildBot.DAL.Discord
 
         private Task Client_GuildUnavailable(SocketGuild guild)
         {
-            if (guild.Id != _appSettings.HandOfUnityGuildId)
+            if (guild.Id != _dynamicConfiguration.DiscordMapping["ValidGuildId"])
                 return Task.CompletedTask;
 
             _guildAvailable = false;
@@ -1385,9 +1391,10 @@ namespace HoU.GuildBot.DAL.Discord
 
         private Task Client_GuildMemberUpdated(SocketGuildUser oldGuildUser, SocketGuildUser newGuildUser)
         {
-            if (oldGuildUser.Guild.Id != _appSettings.HandOfUnityGuildId)
+            var validGuildId = _dynamicConfiguration.DiscordMapping["ValidGuildId"];
+            if (oldGuildUser.Guild.Id != validGuildId)
                 return Task.CompletedTask;
-            if (newGuildUser.Guild.Id != _appSettings.HandOfUnityGuildId)
+            if (newGuildUser.Guild.Id != validGuildId)
                 return Task.CompletedTask;
             if (oldGuildUser.Id != newGuildUser.Id)
                 return Task.CompletedTask;

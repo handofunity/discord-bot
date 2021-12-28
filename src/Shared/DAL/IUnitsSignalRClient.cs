@@ -8,8 +8,8 @@ namespace HoU.GuildBot.Shared.DAL
         /// <summary>
         /// Connects to the UNITS hub system to receive push notifications.
         /// </summary>
-        /// <param name="unitsSyncData">The data used to sync with the UNIT system.</param>
+        /// <param name="unitsEndpoint">The data used to sync with the UNIT system.</param>
         /// <returns>An awaitable <see cref="Task"/>.</returns>
-        Task ConnectAsync(UnitsSyncData unitsSyncData);
+        Task ConnectAsync(UnitsEndpoint unitsEndpoint);
     }
 }

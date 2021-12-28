@@ -27,11 +27,11 @@ namespace HoU.GuildBot.Core
     {
         private BackgroundJobServer _backgroundJobServer;
 
-        private static readonly Version _botVersion = new(6, 2, 4);
+        private static readonly Version _botVersion = new(7, 0, 0);
 
         private ILogger<Runner> _logger;
 
-        public void Run(string environment, AppSettings settings)
+        public void Run(string environment, RootSettings settings)
         {
             try
             {
@@ -66,11 +66,15 @@ namespace HoU.GuildBot.Core
 
         private static void RunBotEngine(IServiceProvider serviceProvider)
         {
+            // Load dynamic configuration
+            var dynamicConfiguration = serviceProvider.GetRequiredService<IDynamicConfiguration>();
+            dynamicConfiguration.LoadAllDataAsync().GetAwaiter().GetResult();
+
             // Resolve bot engine
-            var botEngine = serviceProvider.GetService<IBotEngine>();
+            var botEngine = serviceProvider.GetRequiredService<IBotEngine>();
 
             // Actually run
-            botEngine?.Run().GetAwaiter().GetResult();
+            botEngine.Run().GetAwaiter().GetResult();
         }
 
         public void NotifyShutdown(string message)
@@ -104,6 +108,7 @@ namespace HoU.GuildBot.Core
                .AddSingleton<IVoiceChannelManager, VoiceChannelManager>()
                .AddSingleton<IUnitsBotClient, UnitsBotClient>()
                .AddSingleton<IRoleRemover, RoleRemover>()
+               .AddSingleton<IDynamicConfiguration, DynamicConfiguration>()
                // Transients
                .AddTransient<IHelpProvider, HelpProvider>()
                .AddTransient<IVacationProvider, VacationProvider>()
@@ -119,6 +124,7 @@ namespace HoU.GuildBot.Core
 
         private static void RegisterDAL(IServiceCollection serviceCollection)
         {
+            serviceCollection.AddSingleton<IConfigurationDatabaseAccess, ConfigurationDatabaseAccess>();
             serviceCollection.AddSingleton<IDatabaseAccess, DatabaseAccess>();
             serviceCollection.AddSingleton<IDiscordAccess, DiscordAccess>();
             serviceCollection.AddSingleton<IWebAccess, WebAccess>();
@@ -130,16 +136,25 @@ namespace HoU.GuildBot.Core
 
         private static void RegisterLogging(IServiceCollection serviceCollection, IConfiguration completeConfiguration)
         {
-            Log.Logger = new LoggerConfiguration()
-                        .ReadFrom.Configuration(completeConfiguration)
-                        .Enrich.WithExceptionDetails(new DestructuringOptionsBuilder()
-                                                    .WithDefaultDestructurers()
-                                                    .WithDestructurers(new IExceptionDestructurer[]
-                                                     {
-                                                         new SqlExceptionDestructurer(),
-                                                         new DbUpdateExceptionDestructurer()
-                                                     }))
-                        .CreateLogger();
+            var seqSection = completeConfiguration.GetRequiredSection("Seq");
+            var seqServerUrl = seqSection.GetValue<string>("serverUrl");
+            var seqApiKey = seqSection.GetValue<string>("apiKey");
+            var loggerConfiguration = new LoggerConfiguration()
+                                     .ReadFrom.Configuration(completeConfiguration)
+                                     .WriteTo.Seq(seqServerUrl, apiKey: seqApiKey)
+                                     .Enrich.WithExceptionDetails(new DestructuringOptionsBuilder()
+                                                                 .WithDefaultDestructurers()
+                                                                 .WithDestructurers(new IExceptionDestructurer[]
+                                                                  {
+                                                                      new SqlExceptionDestructurer(),
+                                                                      new DbUpdateExceptionDestructurer()
+                                                                  }));
+
+#if DEBUG
+            loggerConfiguration.WriteTo.Debug();
+#endif
+
+            Log.Logger = loggerConfiguration.CreateLogger();
 
             Log.Information("Initialized logger.");
 
@@ -150,14 +165,14 @@ namespace HoU.GuildBot.Core
         }
 
         private void RegisterHangFire(ServiceCollection serviceCollection,
-                                      AppSettings settings)
+                                      RootSettings settings)
         {
             serviceCollection.AddHangfire(config =>
             {
                 config.SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
                       .UseSimpleAssemblyNameTypeSerializer()
                       .UseRecommendedSerializerSettings()
-                      .UseSqlServerStorage(settings.HangFireConnectionString,
+                      .UseSqlServerStorage(settings.ConnectionStringForHangFireDatabase,
                                            new SqlServerStorageOptions
                                            {
                                                CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),

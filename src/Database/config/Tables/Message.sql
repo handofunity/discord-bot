@@ -1,7 +1,7 @@
 ﻿CREATE TABLE [config].[Message]
 (
 	[MessageID]   INT            NOT NULL IDENTITY(1, 1),
-	[Name]        SYSNAME        NOT NULL,
+	[Name]		  VARCHAR(128)   NOT NULL,
 	[Description] NVARCHAR(512)  NOT NULL,
 	[Content]     NVARCHAR(2000) NOT NULL,
 	CONSTRAINT PK_Message_MessageID PRIMARY KEY (MessageID)

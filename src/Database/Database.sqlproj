@@ -23,8 +23,10 @@
     <SqlServerVerification>False</SqlServerVerification>
     <IncludeCompositeObjects>True</IncludeCompositeObjects>
     <TargetDatabaseSet>True</TargetDatabaseSet>
-    <DacVersion>2.3.0</DacVersion>
-    <DacDescription>Added columns to "Game" table to configure game interest properties.</DacDescription>
+    <DacVersion>3.0.0</DacVersion>
+    <DacDescription>- Moved to SQL Server 2019
+- Changed Message table
+- Added additional config tables</DacDescription>
     <DefaultCollation>Latin1_General_CI_AS</DefaultCollation>
     <Recovery>SIMPLE</Recovery>
     <TargetFrameworkProfile />
@@ -105,6 +107,11 @@
     <None Include="Scripts\RenameMessage_AocRoleMenu_AocClassMenu.sql" />
     <None Include="Scripts\AddMessage_NewWorldClassMenu.sql" />
     <None Include="Scripts\AddMessage_NewWorldProfessionMenu.sql" />
+    <Build Include="config\Tables\DiscordMapping.sql" />
+    <Build Include="config\Tables\SpamProtectedChannel.sql" />
+    <Build Include="config\Tables\DesiredTimeZone.sql" />
+    <Build Include="config\Tables\PersonalReminder.sql" />
+    <Build Include="config\Tables\UnitsEndpoint.sql" />
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="Script.PostDeployment.sql" />

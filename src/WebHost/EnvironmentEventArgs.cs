@@ -7,13 +7,13 @@ namespace HoU.GuildBot.WebHost
     {
         public string Environment { get; }
 
-        public AppSettings AppSettings { get; }
+        public RootSettings RootSettings { get; }
 
         public EnvironmentEventArgs(string environment,
-                                    AppSettings appSettings)
+                                    RootSettings rootSettings)
         {
             Environment = environment;
-            AppSettings = appSettings;
+            RootSettings = rootSettings;
         }
     }
 }

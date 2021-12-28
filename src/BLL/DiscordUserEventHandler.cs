@@ -11,42 +11,29 @@ namespace HoU.GuildBot.BLL
 {
     public class DiscordUserEventHandler : IDiscordUserEventHandler
     {
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////
-        #region Fields
-
         private readonly IUserStore _userStore;
         private readonly IPrivacyProvider _privacyProvider;
         private readonly INonMemberRoleProvider _nonMemberRoleProvider;
         private readonly IGameRoleProvider _gameRoleProvider;
         private readonly IDatabaseAccess _databaseAccess;
-        private readonly AppSettings _appSettings;
-        private IDiscordAccess _discordAccess;
-
-        #endregion
-
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////
-        #region Constructors
-
+        private readonly IDynamicConfiguration _dynamicConfiguration;
+        private IDiscordAccess? _discordAccess;
+        
         public DiscordUserEventHandler(IUserStore userStore,
                                        IPrivacyProvider privacyProvider,
                                        INonMemberRoleProvider nonMemberRoleProvider,
                                        IGameRoleProvider gameRoleProvider,
                                        IDatabaseAccess databaseAccess,
-                                       AppSettings appSettings)
+                                       IDynamicConfiguration dynamicConfiguration)
         {
             _userStore = userStore;
             _privacyProvider = privacyProvider;
             _nonMemberRoleProvider = nonMemberRoleProvider;
             _gameRoleProvider = gameRoleProvider;
             _databaseAccess = databaseAccess;
-            _appSettings = appSettings;
+            _dynamicConfiguration = dynamicConfiguration;
         }
-
-        #endregion
-
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////
-        #region IDiscordUserEventHandler Members
-            
+        
         IDiscordAccess IDiscordUserEventHandler.DiscordAccess
         {
             set => _discordAccess = value;
@@ -162,12 +149,20 @@ namespace HoU.GuildBot.BLL
             if (emoji == null && rawEmojiName == null)
                 return;
 
+            var ashesOfCreationRoleChannelId = (DiscordChannelID)_dynamicConfiguration.DiscordMapping["AshesOfCreationRoleChannelId"];
+            var worldOfWarcraftRoleChannelId = (DiscordChannelID)_dynamicConfiguration.DiscordMapping["WorldOfWarcraftRoleChannelId"];
+            var newWorldRoleChannelId = (DiscordChannelID)_dynamicConfiguration.DiscordMapping["NewWorldRoleChannelId"];
+            var gamesRolesChannelId = (DiscordChannelID)_dynamicConfiguration.DiscordMapping["GamesRolesChannelId"];
+            var infoAndRolesChannelId = (DiscordChannelID)_dynamicConfiguration.DiscordMapping["InfoAndRolesChannelId"];
+            var friendOrGuestMessageId = _dynamicConfiguration.DiscordMapping["FriendOrGuestMessageId"];
+            var nonMemberGameInterestMessageId = _dynamicConfiguration.DiscordMapping["NonMemberGameInterestMessageId"];
+
             // Channel must be a role channel
-            if (channelID != _appSettings.AshesOfCreationRoleChannelId
-                && channelID != _appSettings.WorldOfWarcraftRoleChannelId
-                && channelID != _appSettings.NewWorldRoleChannelId
-                && channelID != _appSettings.GamesRolesChannelId
-                && channelID != _appSettings.InfoAndRolesChannelId)
+            if (channelID != ashesOfCreationRoleChannelId
+                && channelID != worldOfWarcraftRoleChannelId
+                && channelID != newWorldRoleChannelId
+                && channelID != gamesRolesChannelId
+                && channelID != infoAndRolesChannelId)
                 return;
 
             if (emoji != null && _gameRoleProvider.AocGameRoleMenuMessageIDs.Contains(messageID))
@@ -194,7 +189,7 @@ namespace HoU.GuildBot.BLL
                 var game = _gameRoleProvider.Games.Where(m => m.PrimaryGameDiscordRoleID != null).SingleOrDefault(m => message.Content.Contains(m.LongName));
                 if (game != null) await _gameRoleProvider.SetPrimaryGameRole(channelID, userID, game).ConfigureAwait(false);
             }
-            else if (messageID == _appSettings.FriendOrGuestMessageId || messageID == _appSettings.NonMemberGameInterestMessageId)
+            else if (messageID == friendOrGuestMessageId || messageID == nonMemberGameInterestMessageId)
             {
                 // If the message is from the friend or guest menu, forward the data to the non-member role provider.
                 await _nonMemberRoleProvider.SetNonMemberRole(channelID, userID, emoji, rawEmojiName).ConfigureAwait(false);
@@ -210,12 +205,20 @@ namespace HoU.GuildBot.BLL
             if (emoji == null && rawEmojiName == null)
                 return;
 
+            var ashesOfCreationRoleChannelId = (DiscordChannelID)_dynamicConfiguration.DiscordMapping["AshesOfCreationRoleChannelId"];
+            var worldOfWarcraftRoleChannelId = (DiscordChannelID)_dynamicConfiguration.DiscordMapping["WorldOfWarcraftRoleChannelId"];
+            var newWorldRoleChannelId = (DiscordChannelID)_dynamicConfiguration.DiscordMapping["NewWorldRoleChannelId"];
+            var gamesRolesChannelId = (DiscordChannelID)_dynamicConfiguration.DiscordMapping["GamesRolesChannelId"];
+            var infoAndRolesChannelId = (DiscordChannelID)_dynamicConfiguration.DiscordMapping["InfoAndRolesChannelId"];
+            var friendOrGuestMessageId = _dynamicConfiguration.DiscordMapping["FriendOrGuestMessageId"];
+            var nonMemberGameInterestMessageId = _dynamicConfiguration.DiscordMapping["NonMemberGameInterestMessageId"];
+
             // Channel must be a role channel
-            if (channelID != _appSettings.AshesOfCreationRoleChannelId
-                && channelID != _appSettings.WorldOfWarcraftRoleChannelId
-                && channelID != _appSettings.NewWorldRoleChannelId
-                && channelID != _appSettings.GamesRolesChannelId
-                && channelID != _appSettings.InfoAndRolesChannelId)
+            if (channelID != ashesOfCreationRoleChannelId
+                && channelID != worldOfWarcraftRoleChannelId
+                && channelID != newWorldRoleChannelId
+                && channelID != gamesRolesChannelId
+                && channelID != infoAndRolesChannelId)
                 return;
 
             if (emoji != null && _gameRoleProvider.AocGameRoleMenuMessageIDs.Contains(messageID))
@@ -242,13 +245,11 @@ namespace HoU.GuildBot.BLL
                 var game = _gameRoleProvider.Games.Where(m => m.PrimaryGameDiscordRoleID != null).SingleOrDefault(m => message.Content.Contains(m.LongName));
                 if (game != null) await _gameRoleProvider.RevokePrimaryGameRole(channelID, userID, game).ConfigureAwait(false);
             }
-            else if (messageID == _appSettings.FriendOrGuestMessageId || messageID == _appSettings.NonMemberGameInterestMessageId)
+            else if (messageID == friendOrGuestMessageId || messageID == nonMemberGameInterestMessageId)
             {
                 // If the message is from the friend or guest menu, forward the data to the non-member role provider.
                 await _nonMemberRoleProvider.RevokeNonMemberRole(channelID, userID, emoji, rawEmojiName).ConfigureAwait(false);
             }
         }
-
-        #endregion
     }
 }
