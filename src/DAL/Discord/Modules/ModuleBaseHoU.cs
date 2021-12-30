@@ -17,7 +17,7 @@ namespace HoU.GuildBot.DAL.Discord.Modules
             }
             else
             {
-                var privateChannel = await Context.User.GetOrCreateDMChannelAsync();
+                var privateChannel = await Context.User.CreateDMChannelAsync();
                 await privateChannel.SendMessageAsync(message, false, embed);
             }
         }

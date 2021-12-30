@@ -97,7 +97,19 @@ namespace HoU.GuildBot.DAL.Discord
             _staticMessageProvider.DiscordAccess = this;
             _discordUserEventHandler.DiscordAccess = this;
             _commands = new CommandService();
-            _client = new DiscordSocketClient();
+            var clientConfig = new DiscordSocketConfig
+            {
+                GatewayIntents = GatewayIntents.Guilds
+                               | GatewayIntents.GuildMembers
+                               | GatewayIntents.GuildBans
+                               | GatewayIntents.GuildVoiceStates
+                               | GatewayIntents.GuildPresences
+                               | GatewayIntents.GuildMessages
+                               | GatewayIntents.GuildMessageReactions
+                               | GatewayIntents.GuildScheduledEvents
+                               | GatewayIntents.DirectMessages // TODO: Temporary, until all commands have been migrated to guild slash commands
+            };
+            _client = new DiscordSocketClient(clientConfig);
             _pendingMessages = new Queue<string>();
             
             _client.Log += LogClient;
@@ -424,7 +436,7 @@ namespace HoU.GuildBot.DAL.Discord
                         return true;
 
                     // Get channels for notifications
-                    var privateChannel = await gu.GetOrCreateDMChannelAsync();
+                    var privateChannel = await gu.CreateDMChannelAsync();
                     var comCoordinatorChannel = g.GetTextChannel(_dynamicConfiguration.DiscordMapping["ComCoordinatorChannelId"]);
 
                     // Prepare messages
@@ -697,6 +709,8 @@ namespace HoU.GuildBot.DAL.Discord
                 _client.UserJoined += Client_UserJoined;
                 _client.UserLeft -= Client_UserLeft;
                 _client.UserLeft += Client_UserLeft;
+                _client.PresenceUpdated -= Client_PresenceUpdated;
+                _client.PresenceUpdated += Client_PresenceUpdated;
                 _client.GuildMemberUpdated -= Client_GuildMemberUpdated;
                 _client.GuildMemberUpdated += Client_GuildMemberUpdated;
                 _client.ReactionRemoved -= Client_ReactionRemoved;
@@ -1379,8 +1393,9 @@ namespace HoU.GuildBot.DAL.Discord
             return Task.CompletedTask;
         }
 
-        private Task Client_UserLeft(SocketGuildUser guildUser)
+        private Task Client_UserLeft(SocketGuild guild, SocketUser user)
         {
+            var guildUser = guild.GetUser(user.Id);
             _discordUserEventHandler.HandleLeft((DiscordUserID) guildUser.Id,
                                                 guildUser.Username,
                                                 guildUser.DiscriminatorValue,
@@ -1389,10 +1404,28 @@ namespace HoU.GuildBot.DAL.Discord
             return Task.CompletedTask;
         }
 
-        private Task Client_GuildMemberUpdated(SocketGuildUser oldGuildUser, SocketGuildUser newGuildUser)
+        private Task Client_PresenceUpdated(SocketUser socketUser, SocketPresence oldPresence, SocketPresence newPresence)
+        {
+            var discordUserId = (DiscordUserID)socketUser.Id;
+
+            // Fire & Forget
+            Task.Run(async () =>
+            {
+                // Handle possible status change
+                if (oldPresence.Status != newPresence.Status)
+                {
+                    var wasOnline = IsOnline(oldPresence);
+                    var isOnline = IsOnline(newPresence);
+                    await _discordUserEventHandler.HandleStatusChanged(discordUserId, wasOnline, isOnline).ConfigureAwait(false);
+                }
+            });
+            return Task.CompletedTask;
+        }
+
+        private Task Client_GuildMemberUpdated(Cacheable<SocketGuildUser, ulong> oldGuildUser, SocketGuildUser newGuildUser)
         {
             var validGuildId = _dynamicConfiguration.DiscordMapping["ValidGuildId"];
-            if (oldGuildUser.Guild.Id != validGuildId)
+            if (oldGuildUser.Value.Guild.Id != validGuildId)
                 return Task.CompletedTask;
             if (newGuildUser.Guild.Id != validGuildId)
                 return Task.CompletedTask;
@@ -1402,9 +1435,10 @@ namespace HoU.GuildBot.DAL.Discord
             // Fire & Forget
             Task.Run(async () =>
             {
-                var discordUserId = (DiscordUserID) newGuildUser.Id;
+                var discordUserId = (DiscordUserID)newGuildUser.Id;
+
                 // Handle possible role change
-                var oldRoles = SocketRoleToRole(oldGuildUser.Roles);
+                var oldRoles = SocketRoleToRole(oldGuildUser.Value.Roles);
                 var newRoles = SocketRoleToRole(newGuildUser.Roles);
                 if (oldRoles != newRoles)
                 {
@@ -1416,29 +1450,21 @@ namespace HoU.GuildBot.DAL.Discord
                 {
                     await VerifyRoles(user.DiscordUserID,
                                       user.IsGuildMember,
-                                      oldGuildUser.Roles,
+                                      oldGuildUser.Value.Roles,
                                       newGuildUser.Roles)
                        .ConfigureAwait(false);
                 }
 
                 // Handle possible role change, that would end up in new or removed group roles
                 await ApplyGroupRoles(discordUserId,
-                                      oldGuildUser.Roles,
+                                      oldGuildUser.Value.Roles,
                                       newGuildUser.Roles)
                    .ConfigureAwait(false);
-
-                // Handle possible status change
-                if (oldGuildUser.Status != newGuildUser.Status)
-                {
-                    var wasOnline = IsOnline(oldGuildUser);
-                    var isOnline = IsOnline(newGuildUser);
-                    await _discordUserEventHandler.HandleStatusChanged(discordUserId, wasOnline, isOnline).ConfigureAwait(false);
-                }
             });
             return Task.CompletedTask;
         }
 
-        private Task Client_ReactionRemoved(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
+        private Task Client_ReactionRemoved(Cacheable<IUserMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
         {
             // Don't handle reactions where the user is not specified
             // Don't handle bot reactions
@@ -1456,7 +1482,7 @@ namespace HoU.GuildBot.DAL.Discord
             return Task.CompletedTask;
         }
 
-        private Task Client_ReactionAdded(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
+        private Task Client_ReactionAdded(Cacheable<IUserMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
         {
             // Don't handle reactions where the user is not specified
             // Don't handle bot reactions
@@ -1518,7 +1544,7 @@ namespace HoU.GuildBot.DAL.Discord
 
                 var embed = embedBuilder.Build();
                 _logger.LogWarning(result.ErrorReason);
-                var directChannel = await userMessage.Author.GetOrCreateDMChannelAsync().ConfigureAwait(false);
+                var directChannel = await userMessage.Author.CreateDMChannelAsync().ConfigureAwait(false);
                 await directChannel.SendMessageAsync(string.Empty, false, embed).ConfigureAwait(false);
             }
         }
