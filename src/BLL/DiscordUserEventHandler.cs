@@ -151,7 +151,6 @@ namespace HoU.GuildBot.BLL
 
             var ashesOfCreationRoleChannelId = (DiscordChannelID)_dynamicConfiguration.DiscordMapping["AshesOfCreationRoleChannelId"];
             var worldOfWarcraftRoleChannelId = (DiscordChannelID)_dynamicConfiguration.DiscordMapping["WorldOfWarcraftRoleChannelId"];
-            var newWorldRoleChannelId = (DiscordChannelID)_dynamicConfiguration.DiscordMapping["NewWorldRoleChannelId"];
             var gamesRolesChannelId = (DiscordChannelID)_dynamicConfiguration.DiscordMapping["GamesRolesChannelId"];
             var infoAndRolesChannelId = (DiscordChannelID)_dynamicConfiguration.DiscordMapping["InfoAndRolesChannelId"];
             var friendOrGuestMessageId = _dynamicConfiguration.DiscordMapping["FriendOrGuestMessageId"];
@@ -160,7 +159,6 @@ namespace HoU.GuildBot.BLL
             // Channel must be a role channel
             if (channelID != ashesOfCreationRoleChannelId
                 && channelID != worldOfWarcraftRoleChannelId
-                && channelID != newWorldRoleChannelId
                 && channelID != gamesRolesChannelId
                 && channelID != infoAndRolesChannelId)
                 return;
@@ -172,14 +170,6 @@ namespace HoU.GuildBot.BLL
             else if (emoji != null && messageID == _gameRoleProvider.WowGameRoleMenuMessageID)
                 // If the message is the WoW role menu message, forward the data to the game role provider
                 await _gameRoleProvider.SetGameRole(channelID, userID, _gameRoleProvider.Games.Single(m => m.ShortName == Constants.RoleMenuGameShortNames.WorldOfWarcraftClassic), emoji)
-                                       .ConfigureAwait(false);
-            else if (emoji != null && _gameRoleProvider.NewWorldGameRoleMenuMessageIDs.Contains(messageID))
-                // If the message is one of the New World role menu messages, forward the data to the game role provider
-                await _gameRoleProvider.SetGameRole(channelID,
-                                                    userID,
-                                                    _gameRoleProvider.Games.Single(m => m.ShortName ==
-                                                                                        Constants.RoleMenuGameShortNames.NewWorld),
-                                                    emoji)
                                        .ConfigureAwait(false);
             else if (emoji != null && emoji == Constants.GamesRolesEmojis.Joystick && _gameRoleProvider.GamesRolesMenuMessageIDs.Contains(messageID))
             {
@@ -207,7 +197,6 @@ namespace HoU.GuildBot.BLL
 
             var ashesOfCreationRoleChannelId = (DiscordChannelID)_dynamicConfiguration.DiscordMapping["AshesOfCreationRoleChannelId"];
             var worldOfWarcraftRoleChannelId = (DiscordChannelID)_dynamicConfiguration.DiscordMapping["WorldOfWarcraftRoleChannelId"];
-            var newWorldRoleChannelId = (DiscordChannelID)_dynamicConfiguration.DiscordMapping["NewWorldRoleChannelId"];
             var gamesRolesChannelId = (DiscordChannelID)_dynamicConfiguration.DiscordMapping["GamesRolesChannelId"];
             var infoAndRolesChannelId = (DiscordChannelID)_dynamicConfiguration.DiscordMapping["InfoAndRolesChannelId"];
             var friendOrGuestMessageId = _dynamicConfiguration.DiscordMapping["FriendOrGuestMessageId"];
@@ -216,7 +205,6 @@ namespace HoU.GuildBot.BLL
             // Channel must be a role channel
             if (channelID != ashesOfCreationRoleChannelId
                 && channelID != worldOfWarcraftRoleChannelId
-                && channelID != newWorldRoleChannelId
                 && channelID != gamesRolesChannelId
                 && channelID != infoAndRolesChannelId)
                 return;
@@ -228,14 +216,6 @@ namespace HoU.GuildBot.BLL
             else if (emoji != null && messageID == _gameRoleProvider.WowGameRoleMenuMessageID)
                 // If the message is the WoW role menu message, forward the data to the game role provider
                 await _gameRoleProvider.RevokeGameRole(channelID, userID, _gameRoleProvider.Games.Single(m => m.ShortName == Constants.RoleMenuGameShortNames.WorldOfWarcraftClassic), emoji)
-                                       .ConfigureAwait(false);
-            else if (emoji != null && _gameRoleProvider.NewWorldGameRoleMenuMessageIDs.Contains(messageID))
-                // If the message is one of the New World role menu messages, forward the data to the game role provider
-                await _gameRoleProvider.RevokeGameRole(channelID,
-                                                       userID,
-                                                       _gameRoleProvider.Games.Single(m => m.ShortName ==
-                                                                                           Constants.RoleMenuGameShortNames.NewWorld),
-                                                       emoji)
                                        .ConfigureAwait(false);
             else if (emoji != null && emoji == Constants.GamesRolesEmojis.Joystick && _gameRoleProvider.GamesRolesMenuMessageIDs.Contains(messageID))
             {

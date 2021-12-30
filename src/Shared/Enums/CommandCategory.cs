@@ -8,7 +8,6 @@
         MemberInformation = 3,
         MemberManagement = 4,
         GameAshesOfCreation = 5,
-        Voice = 6,
-        GameNewWorld = 7,
+        Voice = 6
     }
 }

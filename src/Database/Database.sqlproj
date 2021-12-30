@@ -105,8 +105,6 @@
     <None Include="Scripts\RemoveMessage_FirstServerJoinWelcome.sql" />
     <None Include="Scripts\AddMessage_AocRaceMenu.sql" />
     <None Include="Scripts\RenameMessage_AocRoleMenu_AocClassMenu.sql" />
-    <None Include="Scripts\AddMessage_NewWorldClassMenu.sql" />
-    <None Include="Scripts\AddMessage_NewWorldProfessionMenu.sql" />
     <Build Include="config\Tables\DiscordMapping.sql" />
     <Build Include="config\Tables\SpamProtectedChannel.sql" />
     <Build Include="config\Tables\DesiredTimeZone.sql" />

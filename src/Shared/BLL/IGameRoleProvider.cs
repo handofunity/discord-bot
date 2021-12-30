@@ -18,8 +18,6 @@ namespace HoU.GuildBot.Shared.BLL
 
         ulong WowGameRoleMenuMessageID { get; set; }
 
-        ulong[] NewWorldGameRoleMenuMessageIDs { get; set; }
-
         ulong[] GamesRolesMenuMessageIDs { get; set; }
 
         IReadOnlyList<AvailableGame> Games { get; }

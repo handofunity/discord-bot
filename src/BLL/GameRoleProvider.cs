@@ -15,20 +15,12 @@ namespace HoU.GuildBot.BLL
     [UsedImplicitly]
     public class GameRoleProvider : IGameRoleProvider
     {
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////
-        #region Fields
-
         private readonly IUserStore _userStore;
         private readonly IDatabaseAccess _databaseAccess;
         private readonly ILogger<GameRoleProvider> _logger;
         private readonly List<AvailableGame> _games;
 
         private IDiscordAccess _discordAccess;
-
-        #endregion
-
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////
-        #region Constructors
 
         public GameRoleProvider(IUserStore userStore,
                                 IDatabaseAccess databaseAccess,
@@ -39,11 +31,6 @@ namespace HoU.GuildBot.BLL
             _logger = logger;
             _games = new List<AvailableGame>();
         }
-
-        #endregion
-
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////
-        #region Private Methods
 
         private async Task<bool> CanChangeRoles(DiscordChannelID channelID, User user)
         {
@@ -146,55 +133,6 @@ namespace HoU.GuildBot.BLL
             throw new ArgumentOutOfRangeException(nameof(emoji), "Emoji is unknown.");
         }
 
-        public static string NewWorldEmojiToRoleName(EmojiDefinition emoji)
-        {
-            if (emoji.Equals(Constants.NewWorldRoleEmojis.Tank))
-                return nameof(Constants.NewWorldRoleEmojis.Tank);
-            if (emoji.Equals(Constants.NewWorldRoleEmojis.Healer))
-                return nameof(Constants.NewWorldRoleEmojis.Healer);
-            if (emoji.Equals(Constants.NewWorldRoleEmojis.Mage))
-                return nameof(Constants.NewWorldRoleEmojis.Mage);
-            if (emoji.Equals(Constants.NewWorldRoleEmojis.Archer))
-                return nameof(Constants.NewWorldRoleEmojis.Archer);
-            if (emoji.Equals(Constants.NewWorldRoleEmojis.Marksman))
-                return nameof(Constants.NewWorldRoleEmojis.Marksman);
-            if (emoji.Equals(Constants.NewWorldRoleEmojis.Bruiser))
-                return nameof(Constants.NewWorldRoleEmojis.Bruiser);
-            if (emoji.Equals(Constants.NewWorldRoleEmojis.Fighter))
-                return nameof(Constants.NewWorldRoleEmojis.Fighter);
-            if (emoji.Equals(Constants.NewWorldRoleEmojis.Weaponsmithing))
-                return nameof(Constants.NewWorldRoleEmojis.Weaponsmithing);
-            if (emoji.Equals(Constants.NewWorldRoleEmojis.Armoring))
-                return nameof(Constants.NewWorldRoleEmojis.Armoring);
-            if (emoji.Equals(Constants.NewWorldRoleEmojis.Engineering))
-                return nameof(Constants.NewWorldRoleEmojis.Engineering);
-            if (emoji.Equals(Constants.NewWorldRoleEmojis.Jewelcrafting))
-                return nameof(Constants.NewWorldRoleEmojis.Jewelcrafting);
-            if (emoji.Equals(Constants.NewWorldRoleEmojis.Arcana))
-                return nameof(Constants.NewWorldRoleEmojis.Arcana);
-            if (emoji.Equals(Constants.NewWorldRoleEmojis.Cooking))
-                return nameof(Constants.NewWorldRoleEmojis.Cooking);
-            if (emoji.Equals(Constants.NewWorldRoleEmojis.Furnishing))
-                return nameof(Constants.NewWorldRoleEmojis.Furnishing);
-            if (emoji.Equals(Constants.NewWorldRoleEmojis.Smelting))
-                return nameof(Constants.NewWorldRoleEmojis.Smelting);
-            if (emoji.Equals(Constants.NewWorldRoleEmojis.Woodworking))
-                return nameof(Constants.NewWorldRoleEmojis.Woodworking);
-            if (emoji.Equals(Constants.NewWorldRoleEmojis.Leatherworking))
-                return nameof(Constants.NewWorldRoleEmojis.Leatherworking);
-            if (emoji.Equals(Constants.NewWorldRoleEmojis.Weaving))
-                return nameof(Constants.NewWorldRoleEmojis.Weaving);
-            if (emoji.Equals(Constants.NewWorldRoleEmojis.Stonecutting))
-                return nameof(Constants.NewWorldRoleEmojis.Stonecutting);
-
-            throw new ArgumentOutOfRangeException(nameof(emoji), "Emoji is unknown.");
-        }
-
-        #endregion
-
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////
-        #region IGameRoleProvider Members
-
         public event EventHandler<GameChangedEventArgs> GameChanged;
 
         IDiscordAccess IGameRoleProvider.DiscordAccess
@@ -205,8 +143,6 @@ namespace HoU.GuildBot.BLL
         ulong[] IGameRoleProvider.AocGameRoleMenuMessageIDs { get; set; }
 
         ulong IGameRoleProvider.WowGameRoleMenuMessageID { get; set; }
-
-        ulong[] IGameRoleProvider.NewWorldGameRoleMenuMessageIDs { get; set; }
 
         ulong[] IGameRoleProvider.GamesRolesMenuMessageIDs { get; set; }
 
@@ -278,9 +214,6 @@ namespace HoU.GuildBot.BLL
                 case Constants.RoleMenuGameShortNames.WorldOfWarcraftClassic:
                     roleName = WowEmojiToRoleName(emoji);
                     break;
-                case Constants.RoleMenuGameShortNames.NewWorld:
-                    roleName = NewWorldEmojiToRoleName(emoji);
-                    break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(game), $"Game '{game.ShortName}' ist not valid for '{nameof(IGameRoleProvider.SetGameRole)}'.");
             }
@@ -312,9 +245,6 @@ namespace HoU.GuildBot.BLL
                     break;
                 case Constants.RoleMenuGameShortNames.WorldOfWarcraftClassic:
                     roleName = WowEmojiToRoleName(emoji);
-                    break;
-                case Constants.RoleMenuGameShortNames.NewWorld:
-                    roleName = NewWorldEmojiToRoleName(emoji);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(game), $"Game '{game.ShortName}' ist not valid for '{nameof(IGameRoleProvider.SetGameRole)}'.");
@@ -627,7 +557,5 @@ namespace HoU.GuildBot.BLL
 
             return (true, "The game role was removed successfully.", gameRole.Value.CurrentName);
         }
-
-        #endregion
     }
 }
