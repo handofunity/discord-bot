@@ -116,7 +116,6 @@ CREATE TABLE [config].[tmp_ms_xx_Game] (
     [IncludeInGamesMenu]             BIT           NOT NULL,
     [GameInterestRoleId]             DECIMAL (20)  NULL,
     CONSTRAINT [tmp_ms_xx_constraint_PK_Game1] PRIMARY KEY CLUSTERED ([GameID] ASC),
-    CONSTRAINT [tmp_ms_xx_constraint_UQ_Game_GameInterestRoleId1] UNIQUE NONCLUSTERED ([GameInterestRoleId] ASC),
     CONSTRAINT [tmp_ms_xx_constraint_UQ_Game_PrimaryGameDiscordRoleID1] UNIQUE NONCLUSTERED ([PrimaryGameDiscordRoleID] ASC)
 );
 
@@ -143,13 +142,20 @@ EXECUTE sp_rename N'[config].[tmp_ms_xx_Game]', N'Game';
 
 EXECUTE sp_rename N'[config].[tmp_ms_xx_constraint_PK_Game1]', N'PK_Game', N'OBJECT';
 
-EXECUTE sp_rename N'[config].[tmp_ms_xx_constraint_UQ_Game_GameInterestRoleId1]', N'UQ_Game_GameInterestRoleId', N'OBJECT';
-
 EXECUTE sp_rename N'[config].[tmp_ms_xx_constraint_UQ_Game_PrimaryGameDiscordRoleID1]', N'UQ_Game_PrimaryGameDiscordRoleID', N'OBJECT';
 
 COMMIT TRANSACTION;
 
 SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+
+
+GO
+PRINT N'Index "[config].[Game].[IDX_Game_NotNull_GameInterestRoleId]" wird erstellt...';
+
+
+GO
+CREATE UNIQUE NONCLUSTERED INDEX [IDX_Game_NotNull_GameInterestRoleId]
+    ON [config].[Game]([GameInterestRoleId] ASC) WHERE GameInterestRoleId IS NOT NULL;
 
 
 GO

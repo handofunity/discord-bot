@@ -67,8 +67,9 @@ namespace HoU.GuildBot.DAL.Database.Model
             {
                 entity.ToTable("Game", "config");
 
-                entity.HasIndex(e => e.GameInterestRoleId, "UQ_Game_GameInterestRoleId")
-                    .IsUnique();
+                entity.HasIndex(e => e.GameInterestRoleId, "IDX_Game_NotNull_GameInterestRoleId")
+                    .IsUnique()
+                    .HasFilter("GameInterestRoleId IS NOT NULL");
 
                 entity.HasIndex(e => e.PrimaryGameDiscordRoleID, "UQ_Game_PrimaryGameDiscordRoleID")
                     .IsUnique();
@@ -133,7 +134,7 @@ namespace HoU.GuildBot.DAL.Database.Model
                     .HasMaxLength(64)
                     .IsUnicode(false);
 
-                entity.Property(e => e.DiscordChannelId).HasColumnType("decimal(20, 0)");
+                entity.Property(e => e.DiscordChannelID).HasColumnType("decimal(20, 0)");
 
                 entity.Property(e => e.Text)
                     .IsRequired()
@@ -172,10 +173,10 @@ namespace HoU.GuildBot.DAL.Database.Model
             {
                 entity.ToTable("User", "hou");
 
-                entity.HasIndex(e => e.DiscordUserId, "IDX_User_DiscordUserId_Inc_UserID")
+                entity.HasIndex(e => e.DiscordUserID, "IDX_User_DiscordUserID_Inc_UserID")
                     .IsUnique();
 
-                entity.Property(e => e.DiscordUserId).HasColumnType("decimal(20, 0)");
+                entity.Property(e => e.DiscordUserID).HasColumnType("decimal(20, 0)");
             });
 
             modelBuilder.Entity<UserInfo>(entity =>

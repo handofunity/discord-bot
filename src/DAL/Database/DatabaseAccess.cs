@@ -36,7 +36,7 @@ public class DatabaseAccess : IDatabaseAccess
 
     private static User Map(Model.User user) =>
         new((InternalUserId)user.UserID,
-            (DiscordUserId)user.DiscordUserId);
+            (DiscordUserId)user.DiscordUserID);
 
     async Task<User[]> IDatabaseAccess.GetAllUsers()
     {
@@ -52,7 +52,7 @@ public class DatabaseAccess : IDatabaseAccess
     async Task IDatabaseAccess.EnsureUsersExistAsync(IEnumerable<DiscordUserId> userIDs)
     {
         await using var entities = GetDbContext(true);
-        var existingUserIDs = await entities.User.Select(m => m.DiscordUserId).ToArrayAsync();
+        var existingUserIDs = await entities.User.Select(m => m.DiscordUserID).ToArrayAsync();
         var missingUserIDs = userIDs.Except(existingUserIDs.Select(m => (DiscordUserId)(ulong)m)).ToArray();
 
         if (!missingUserIDs.Any())
@@ -64,7 +64,7 @@ public class DatabaseAccess : IDatabaseAccess
         {
             entities.User.Add(new Model.User
             {
-                DiscordUserId = (decimal)missingUserID
+                DiscordUserID = (decimal)missingUserID
             });
             added++;
         }
@@ -77,14 +77,14 @@ public class DatabaseAccess : IDatabaseAccess
     {
         await using var entities = GetDbContext(true);
         var decUserID = (decimal)userID;
-        var dbObject = await entities.User.SingleOrDefaultAsync(m => m.DiscordUserId == decUserID);
+        var dbObject = await entities.User.SingleOrDefaultAsync(m => m.DiscordUserID == decUserID);
         if (dbObject != null)
             return (Map(dbObject), false);
 
         // Add missing user
         var newUserObject = new Model.User
         {
-            DiscordUserId = decUserID
+            DiscordUserID = decUserID
         };
         entities.User.Add(newUserObject);
 
@@ -178,10 +178,10 @@ public class DatabaseAccess : IDatabaseAccess
                                              vacation => vacation.UserID,
                                              u => u.UserID,
                                              (vacation,
-                                              u) => new { u.DiscordUserId, vacation.Start, vacation.End, vacation.Note })
+                                              u) => new { u.DiscordUserID, vacation.Start, vacation.End, vacation.Note })
                                        .ToArrayAsync()
             ;
-        return localItems.Select(m => ((DiscordUserId)m.DiscordUserId, m.Start, m.End, m.Note)).ToArray();
+        return localItems.Select(m => ((DiscordUserId)m.DiscordUserID, m.Start, m.End, m.Note)).ToArray();
     }
 
     async Task<(DiscordUserId UserId, DateTime Start, DateTime End, string Note)[]> IDatabaseAccess.GetVacationsAsync(User user)
@@ -193,11 +193,11 @@ public class DatabaseAccess : IDatabaseAccess
                                              vacation => vacation.UserID,
                                              u => u.UserID,
                                              (vacation,
-                                              u) => new { u.UserID, u.DiscordUserId, vacation.Start, vacation.End, vacation.Note })
+                                              u) => new { u.UserID, u.DiscordUserID, vacation.Start, vacation.End, vacation.Note })
                                        .Where(m => m.UserID == (int)user.InternalUserId)
                                        .ToArrayAsync()
             ;
-        return localItems.Select(m => ((DiscordUserId)m.DiscordUserId, m.Start, m.End, m.Note)).ToArray();
+        return localItems.Select(m => ((DiscordUserId)m.DiscordUserID, m.Start, m.End, m.Note)).ToArray();
     }
 
     async Task<(DiscordUserId UserId, DateTime Start, DateTime End, string Note)[]> IDatabaseAccess.GetVacationsAsync(DateTime date)
@@ -210,10 +210,10 @@ public class DatabaseAccess : IDatabaseAccess
                                              vacation => vacation.UserID,
                                              user => user.UserID,
                                              (vacation,
-                                              user) => new { user.DiscordUserId, vacation.Start, vacation.End, vacation.Note })
+                                              user) => new { user.DiscordUserID, vacation.Start, vacation.End, vacation.Note })
                                        .ToArrayAsync()
             ;
-        return localItems.Select(m => ((DiscordUserId)m.DiscordUserId, m.Start, m.End, m.Note)).ToArray();
+        return localItems.Select(m => ((DiscordUserId)m.DiscordUserID, m.Start, m.End, m.Note)).ToArray();
     }
 
     async Task<AvailableGame[]> IDatabaseAccess.GetAvailableGamesAsync()

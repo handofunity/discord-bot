@@ -52,7 +52,7 @@ public class ConfigurationDatabaseAccess : IConfigurationDatabaseAccess
         var dbEntries = await entities.PersonalReminder.ToArrayAsync();
         return dbEntries.Select(m => new PersonalReminder(m.PersonalReminderID,
                                                           m.CronSchedule,
-                                                          (DiscordChannelId)(ulong)m.DiscordChannelId,
+                                                          (DiscordChannelId)(ulong)m.DiscordChannelID,
                                                           (DiscordUserId)(ulong)m.UserToRemind,
                                                           m.Text))
                         .ToArray();

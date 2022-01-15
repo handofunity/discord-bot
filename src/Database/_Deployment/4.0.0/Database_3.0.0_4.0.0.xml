@@ -26,14 +26,15 @@
                 <Issue Id="3" />
             </Item>
         </Operation>
+        <Operation Name="Create">
+            <Item Value="[config].[Game].[IDX_Game_NotNull_GameInterestRoleId]" Type="SqlIndex" />
+            <Item Value="[config].[FK_Game_User_ModifiedByUserID]" Type="SqlForeignKeyConstraint" />
+            <Item Value="[config].[FK_GameRole_Game_GameID]" Type="SqlForeignKeyConstraint" />
+        </Operation>
         <Operation Name="Alter">
             <Item Value="[config].[GameRole]" Type="SqlTable">
                 <Issue Id="4" />
             </Item>
-        </Operation>
-        <Operation Name="Create">
-            <Item Value="[config].[FK_Game_User_ModifiedByUserID]" Type="SqlForeignKeyConstraint" />
-            <Item Value="[config].[FK_GameRole_Game_GameID]" Type="SqlForeignKeyConstraint" />
         </Operation>
     </Operations>
 </DeploymentReport>
