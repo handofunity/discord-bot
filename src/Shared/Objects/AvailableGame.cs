@@ -1,58 +1,44 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
+using HoU.GuildBot.Shared.StrongTypes;
 
-namespace HoU.GuildBot.Shared.Objects
+namespace HoU.GuildBot.Shared.Objects;
+
+[DebuggerDisplay("{" + nameof(PrimaryGameDiscordRoleId) + "(),nq}")]
+public class AvailableGame
 {
-    [DebuggerDisplay("{" + nameof(ToString) + "(),nq}")]
-    public class AvailableGame
+    public DiscordRoleId PrimaryGameDiscordRoleId { get; init; }
+
+    public bool IncludeInGuildMembersStatistic { get; set; }
+
+    public bool IncludeInGamesMenu { get; set; }
+        
+    public DiscordRoleId? GameInterestRoleId { get; set; }
+
+    public List<AvailableGameRole> AvailableRoles { get; }
+
+    public string? DisplayName { get; set; }
+
+    public AvailableGame()
     {
-        public string LongName { get; set; }
+        AvailableRoles = new List<AvailableGameRole>();
+    }
 
-        public string ShortName { get; set; }
-
-        public ulong? PrimaryGameDiscordRoleID { get; set; }
-
-        public bool IncludeInGuildMembersStatistic { get; set; }
-
-        public bool IncludeInGamesMenu { get; set; }
-        
-        public string GameInterestEmojiName { get; set; }
-        
-        public ulong? GameInterestRoleId { get; set; }
-
-        public List<AvailableGameRole> AvailableRoles { get; }
-
-        public AvailableGame()
+    public AvailableGame Clone()
+    {
+        var c = new AvailableGame
         {
-            AvailableRoles = new List<AvailableGameRole>();
+            PrimaryGameDiscordRoleId = PrimaryGameDiscordRoleId,
+            IncludeInGuildMembersStatistic = IncludeInGuildMembersStatistic,
+            IncludeInGamesMenu = IncludeInGamesMenu,
+            GameInterestRoleId = GameInterestRoleId
+        };
+
+        foreach (var role in AvailableRoles)
+        {
+            c.AvailableRoles.Add(role.Clone());
         }
 
-        public AvailableGame Clone()
-        {
-            var c = new AvailableGame
-            {
-                LongName = LongName,
-                ShortName = ShortName,
-                PrimaryGameDiscordRoleID = PrimaryGameDiscordRoleID,
-                IncludeInGuildMembersStatistic = IncludeInGuildMembersStatistic,
-                IncludeInGamesMenu = IncludeInGamesMenu,
-                GameInterestEmojiName = GameInterestEmojiName,
-                GameInterestRoleId = GameInterestRoleId
-            };
-
-            foreach (var role in AvailableRoles)
-            {
-                c.AvailableRoles.Add(role.Clone());
-            }
-
-            return c;
-        }
-
-        public override string ToString()
-        {
-            return PrimaryGameDiscordRoleID == null
-                       ? $"{LongName} ({ShortName})"
-                       : $"{LongName} ({ShortName}) - {{{PrimaryGameDiscordRoleID.Value}}}";
-        }
+        return c;
     }
 }

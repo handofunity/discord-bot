@@ -30,13 +30,10 @@ public class ConfigurationDatabaseAccess : IConfigurationDatabaseAccess
     {
         await using var entities = GetDbContext();
         var dbEntries = await entities.UnitsEndpoint.ToArrayAsync();
-        return dbEntries.Select(m => new UnitsEndpoint
-                         {
-                             BaseAddress = m.BaseAddress,
-                             Secret = m.Secret,
-                             ConnectToRestApi = m.ConnectToRestApi,
-                             ConnectToNotificationHub = m.ConnectToNotificationsHub
-                         })
+        return dbEntries.Select(m => new UnitsEndpoint(m.BaseAddress,
+                                                       m.Secret,
+                                                       m.ConnectToRestApi,
+                                                       m.ConnectToNotificationsHub))
                         .ToArray();
     }
 
@@ -44,11 +41,8 @@ public class ConfigurationDatabaseAccess : IConfigurationDatabaseAccess
     {
         await using var entities = GetDbContext();
         var dbEntries = await entities.DesiredTimeZone.ToArrayAsync();
-        return dbEntries.Select(m => new DesiredTimeZone
-                         {
-                             TimeZoneId = m.DesiredTimeZoneKey,
-                             InvariantDisplayName = m.InvariantDisplayName
-                         })
+        return dbEntries.Select(m => new DesiredTimeZone(m.DesiredTimeZoneKey,
+                                                         m.InvariantDisplayName))
                         .ToArray();
     }
 
@@ -56,14 +50,11 @@ public class ConfigurationDatabaseAccess : IConfigurationDatabaseAccess
     {
         await using var entities = GetDbContext();
         var dbEntries = await entities.PersonalReminder.ToArrayAsync();
-        return dbEntries.Select(m => new PersonalReminder
-                         {
-                             ReminderId = m.PersonalReminderID,
-                             CronSchedule = m.CronSchedule,
-                             Channel = (ulong)m.DiscordChannelID,
-                             Remind = (ulong)m.UserToRemind,
-                             Text = m.Text
-                         })
+        return dbEntries.Select(m => new PersonalReminder(m.PersonalReminderID,
+                                                          m.CronSchedule,
+                                                          (DiscordChannelId)(ulong)m.DiscordChannelId,
+                                                          (DiscordUserId)(ulong)m.UserToRemind,
+                                                          m.Text))
                         .ToArray();
     }
 
@@ -81,7 +72,7 @@ public class ConfigurationDatabaseAccess : IConfigurationDatabaseAccess
         var dbEntries = await entities.SpamProtectedChannel.ToArrayAsync();
         return dbEntries.Select(m => new SpamLimit
                          {
-                             RestrictToChannelID = (DiscordChannelID)(ulong)m.SpamProtectedChannelID,
+                             RestrictToChannelId = (DiscordChannelId)(ulong)m.SpamProtectedChannelID,
                              SoftCap = m.SoftCap,
                              HardCap = m.HardCap
                          })

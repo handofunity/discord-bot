@@ -1,13 +1,6 @@
-﻿namespace HoU.GuildBot.Shared.Objects
-{
-    public class UnitsEndpoint
-    {
-        public string BaseAddress { get; set; }
+﻿namespace HoU.GuildBot.Shared.Objects;
 
-        public string Secret { get; set; }
-
-        public bool ConnectToRestApi { get; set; }
-
-        public bool ConnectToNotificationHub { get; set; }
-    }
-}
+public record UnitsEndpoint(string BaseAddress,
+                            string Secret,
+                            bool ConnectToRestApi,
+                            bool ConnectToNotificationHub);

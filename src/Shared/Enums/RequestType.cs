@@ -1,12 +1,11 @@
 ﻿using System;
 
-namespace HoU.GuildBot.Shared.Enums
+namespace HoU.GuildBot.Shared.Enums;
+
+[Flags]
+public enum RequestType
 {
-    [Flags]
-    public enum RequestType
-    {
-        Undefined = 0,
-        GuildChannel = 1,
-        DirectMessage = 2
-    }
+    Undefined = 0,
+    GuildChannel = 1,
+    DirectMessage = 2
 }

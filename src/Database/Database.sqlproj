@@ -23,10 +23,9 @@
     <SqlServerVerification>False</SqlServerVerification>
     <IncludeCompositeObjects>True</IncludeCompositeObjects>
     <TargetDatabaseSet>True</TargetDatabaseSet>
-    <DacVersion>3.0.0</DacVersion>
-    <DacDescription>- Moved to SQL Server 2019
-- Changed Message table
-- Added additional config tables</DacDescription>
+    <DacVersion>4.0.0</DacVersion>
+    <DacDescription>- Changed game table
+- Changed game role table</DacDescription>
     <DefaultCollation>Latin1_General_CI_AS</DefaultCollation>
     <Recovery>SIMPLE</Recovery>
     <TargetFrameworkProfile />

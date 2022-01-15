@@ -1,95 +1,123 @@
 ﻿using System;
+using System.Collections.Generic;
 
-namespace HoU.GuildBot.Shared.Objects
+namespace HoU.GuildBot.Shared.Objects;
+
+public static class Constants
 {
-    public static class Constants
+    /// <summary>
+    /// Gets the global action delay for bulk operations on the Discord API.
+    /// With this delay, a single bulk operation can use up to 30 of the 120 operations per minute.
+    /// This leaves 90 operations per minute for other bulk operations and single scope operations.
+    /// </summary>
+    public static readonly TimeSpan GlobalActionDelay = TimeSpan.FromSeconds(2);
+
+    public static class RuntimeEnvironment
     {
-        public const string InvalidCommandUsageTitle = ":octagonal_sign: Invalid command usage";
+        public const string Development = "Development";
+        public const string Production = "Production";
+    }
 
-        /// <summary>
-        /// Gets the global action delay for bulk operations on the Discord API.
-        /// With this delay, a single bulk operation can use up to 30 of the 120 operations per minute.
-        /// This leaves 90 operations per minute for other bulk operations and single scope operations.
-        /// </summary>
-        public static readonly TimeSpan GlobalActionDelay = TimeSpan.FromSeconds(2);
+    public static class MessageNames
+    {
+        public const string AocClassMenu = "AocClassMenu";
+        public const string AocPlayStyleMenu = "AocPlayStyleMenu";
+        public const string AocRaceMenu = "AocRaceMenu";
+        public const string WowRoleMenu = "WowRoleMenu";
+        public const string GamesRolesMenu = "GamesRolesMenu";
+        public const string FriendOrGuestMenu = "FriendOrGuestMenu";
+        public const string GameInterestMenu = "GameInterestMenu";
+    }
 
-        public static class RuntimeEnvironment
-        {
-            public const string Development = "Development";
-            public const string Production = "Production";
-        }
+    public static class RoleNames
+    {
+        public const string LeaderRoleName = "Leader";
+        public const string OfficerRoleName = "Officer";
+    }
 
-        public static class MessageNames
-        {
-            public const string AocClassMenu = "AocClassMenu";
-            public const string AocPlayStyleMenu = "AocPlayStyleMenu";
-            public const string AocRaceMenu = "AocRaceMenu";
-            public const string WowRoleMenu = "WowRoleMenu";
-            public const string GamesRolesMenu = "GamesRolesMenu";
-        }
+    public static class FriendOrGuestMenu
+    {
+        public const string FriendOfMemberCustomId = "f32eeb72-3c37-4ef7-bff2-8c95b04d790e";
+        public const string GuestCustomId = "63ce7730-02ab-47a2-833a-f77886e3289e";
 
-        public static class RoleNames
-        {
-            public const string LeaderRoleName = "Leader";
-            public const string OfficerRoleName = "Officer";
-        }
+        public static IDictionary<string, string> GetOptions() =>
+            new Dictionary<string, string>
+            {
+                { FriendOfMemberCustomId, "Friend of Member" },
+                { GuestCustomId, "Guest" }
+            };
+    }
 
-        public static class RoleMenuGameShortNames
-        {
-            public const string AshesOfCreation = "AoC";
-            public const string WorldOfWarcraftClassic = "WC";
-        }
+    public static class GameInterestMenu
+    {
+        public const string CustomId = "14f238d9-c9b6-4a2d-beea-fda89d6f1fab";
+    }
 
-        public static class AocRoleEmojis
-        {
-            // Classes
-            public static readonly EmojiDefinition Bard = new("\uD83C\uDFB5"); // :musical_note:
-            public static readonly EmojiDefinition Cleric = new("\uD83C\uDFE5"); // :hospital:
-            public static readonly EmojiDefinition Fighter = new("\u2694"); // :crossed_swords:
-            public static readonly EmojiDefinition Mage = new("\uD83C\uDF86"); // :fireworks:
-            public static readonly EmojiDefinition Ranger = new("\uD83C\uDFF9"); // :bow_and_arrow:
-            public static readonly EmojiDefinition Rogue = new("\uD83D\uDC65"); // :busts_in_silhouette:
-            public static readonly EmojiDefinition Summoner = new("\uD83D\uDC23"); // :hatching_chick:
-            public static readonly EmojiDefinition Tank = new("\uD83D\uDEE1"); // :shield:
+    public static class AocArchetypeMenu
+    {
+        public const string CustomId = "52766d05-c4a4-4bf7-9462-62c842932c9a";
 
-            // Play styles
-            public static readonly EmojiDefinition PvP = new("PvP", 817781653245919242);
-            public static readonly EmojiDefinition PvE = new("\uD83D\uDC32"); // :dragon_face:
-            public static readonly EmojiDefinition Crafting = new("\uD83D\uDC8D"); // :ring:
+        public static IDictionary<string, string> GetOptions() =>
+            new Dictionary<string, string>
+            {
+                {"bard", "Bard"},
+                {"cleric", "Cleric"},
+                {"fighter", "Fighter"},
+                {"mage", "Mage"},
+                {"ranger", "Ranger"},
+                {"rogue", "Rogue"},
+                {"summoner", "Summoner"},
+                {"tank", "Tank"}
+            };
+    }
 
-            // Races
-            public static readonly EmojiDefinition Kaelar = new("AoCKaelar", 818553906421301258);
-            public static readonly EmojiDefinition Vaelune = new("AoCVaelune", 818553906111709184);
-            public static readonly EmojiDefinition Empyrean = new("AoCEmpyrean", 818553906488541204);
-            public static readonly EmojiDefinition Pyrai = new("AoCPyrai", 818553906204377160);
-            public static readonly EmojiDefinition Renkai = new("AoCRenKai", 818554358961537035);
-            public static readonly EmojiDefinition Vek = new("AoCVek", 818553905927290880);
-            public static readonly EmojiDefinition Dunir = new("AoCDunir", 818553906304516116);
-            public static readonly EmojiDefinition Nikua = new("AoCNikua", 818553906454986764);
-            public static readonly EmojiDefinition Tulnar = new("AoCTulnar", 818556838828048475);
-        }
+    public static class AocPlayStyleMenu
+    {
+        public const string CustomId = "77bb8163-90df-44c6-b413-90f0547ab3fa";
 
-        public static class WowRoleEmojis
-        {
-            public static readonly EmojiDefinition Druid = new("WOWDruid", 607933001107636264);
-            public static readonly EmojiDefinition Hunter = new("WOWHunter", 607945148005089282);
-            public static readonly EmojiDefinition Mage = new("WOWMage", 607933001199779872);
-            public static readonly EmojiDefinition Paladin = new("WOWPaladin", 607933001095184384);
-            public static readonly EmojiDefinition Priest = new("WOWPriest", 607933001250242580);
-            public static readonly EmojiDefinition Rogue = new("WOWRogue", 607933000751251477);
-            public static readonly EmojiDefinition Warlock = new("WOWWarlock", 607933001174745089);
-            public static readonly EmojiDefinition Warrior = new("WOWWarrior", 607933001090727946);
-        }
-        
-        public static class GamesRolesEmojis
-        {
-            public static readonly EmojiDefinition Joystick = new("\uD83D\uDD79"); // :joystick: 
-        }
+        public static IDictionary<string, string> GetOptions() =>
+            new Dictionary<string, string>
+            {
+                {"pve", "PvE"},
+                {"pvp", "PvP"},
+                {"crafting", "Crafting"}
+            };
+    }
 
-        public static class NonMemberRolesEmojis
-        {
-            public static readonly EmojiDefinition Wave = new("\uD83D\uDC4B"); // :wave:
-            public static readonly EmojiDefinition Thinking = new("\uD83E\uDD14"); // :thinking:
-        }
+    public static class AocRaceMenu
+    {
+        public const string CustomId = "a70c81d3-c10a-41c3-a221-56d2219e1619";
+
+        public static IDictionary<string, string> GetOptions() =>
+            new Dictionary<string, string>
+            {
+                {"kaelar", "Kaelar"},
+                {"vaelune", "Vaelune"},
+                {"empyrean", "Empyrean"},
+                {"pyrai", "Pyrai"},
+                {"renkai", "Renkai"},
+                {"vek", "Vek"},
+                {"dunir", "Dunir"},
+                {"nikua", "Nikua"},
+                {"tulnar", "Tulnar"},
+            };
+    }
+
+    public static class WowClassMenu
+    {
+        public const string CustomId = "8edb79d3-86bf-4e6d-897e-ca94e97e0d4d";
+
+        public static IDictionary<string, string> GetOptions() =>
+            new Dictionary<string, string>
+            {
+                {"druid", "Druid"},
+                {"hunter", "Hunter"},
+                {"mage", "Mage"},
+                {"paladin", "Paladin"},
+                {"priest", "Priest"},
+                {"rogue", "Rogue"},
+                {"warlock", "Warlock"},
+                {"warrior", "Warrior"}
+            };
     }
 }

@@ -1,13 +1,11 @@
-﻿namespace HoU.GuildBot.Shared.Enums
+﻿namespace HoU.GuildBot.Shared.Enums;
+
+public enum CommandCategory
 {
-    public enum CommandCategory
-    {
-        Undefined = 0,
-        Administration = 1,
-        Help = 2,
-        MemberInformation = 3,
-        MemberManagement = 4,
-        GameAshesOfCreation = 5,
-        Voice = 6
-    }
+    Undefined = 0,
+    Administration = 1,
+    MemberInformation = 2,
+    MemberManagement = 3,
+    GameAshesOfCreation = 4,
+    Voice = 5
 }

@@ -5,74 +5,73 @@ using HoU.GuildBot.Shared.BLL;
 using HoU.GuildBot.Shared.Objects;
 using SkiaSharp;
 
-namespace HoU.GuildBot.BLL
+namespace HoU.GuildBot.BLL;
+
+public class BotInformationProvider : IBotInformationProvider
 {
-    public class BotInformationProvider : IBotInformationProvider
+    private readonly RuntimeInformation _runtimeInformation;
+
+    public BotInformationProvider(RuntimeInformation runtimeInformation)
     {
-        private readonly RuntimeInformation _runtimeInformation;
+        _runtimeInformation = runtimeInformation;
+    }
 
-        public BotInformationProvider(RuntimeInformation runtimeInformation)
+    string IBotInformationProvider.GetEnvironmentName() => _runtimeInformation.Environment;
+
+    string IBotInformationProvider.GetFormattedVersion() => _runtimeInformation.Version.ToString(3);
+
+    EmbedData IBotInformationProvider.GetData()
+    {
+        return new EmbedData
         {
-            _runtimeInformation = runtimeInformation;
-        }
-
-        string IBotInformationProvider.GetEnvironmentName() => _runtimeInformation.Environment;
-
-        string IBotInformationProvider.GetFormatedVersion() => _runtimeInformation.Version.ToString(3);
-
-        EmbedData IBotInformationProvider.GetData()
-        {
-            return new EmbedData
+            Title = "Bot information",
+            Color = Colors.Orange,
+            Fields = new []
             {
-                Title = "Bot information",
-                Color = Colors.Orange,
-                Fields = new []
-                {
-                    new EmbedField("Environment", _runtimeInformation.Environment, true), 
-                    new EmbedField("Version", _runtimeInformation.Version, true), 
-                    new EmbedField("UP-time", (DateTime.Now.ToUniversalTime() - _runtimeInformation.StartTime).ToString(@"dd\.hh\:mm\:ss"), true), 
-                    new EmbedField("Start-time", _runtimeInformation.StartTime.ToString("dd.MM.yyyy HH:mm:ss") + " UTC", false), 
-                    new EmbedField("Server time", DateTime.Now.ToString("dd.MM.yyyy HH:mm:ss \"UTC\"zzz"), false)
-                }
-            };
-        }
+                new EmbedField("Environment", _runtimeInformation.Environment, true), 
+                new EmbedField("Version", _runtimeInformation.Version, true), 
+                new EmbedField("UP-time", (DateTime.Now.ToUniversalTime() - _runtimeInformation.StartTime).ToString(@"dd\.hh\:mm\:ss"), true), 
+                new EmbedField("Start-time", _runtimeInformation.StartTime.ToString("dd.MM.yyyy HH:mm:ss") + " UTC", false), 
+                new EmbedField("Server time", DateTime.Now.ToString("dd.MM.yyyy HH:mm:ss \"UTC\"zzz"), false)
+            }
+        };
+    }
 
-        Dictionary<byte, string[]> IBotInformationProvider.GetAvailableFonts()
+    Dictionary<byte, string[]> IBotInformationProvider.GetAvailableFonts()
+    {
+        var allFonts = SKFontManager.Default.FontFamilies
+                                    .Where(m => !string.IsNullOrWhiteSpace(m))
+                                    .OrderBy(m => m)
+                                    .ToArray();
+        var fontGroups = new Dictionary<byte, List<string>>();
+        byte fontGroup = 0;
+        string? pendingFont = null;
+        foreach (var font in allFonts)
         {
-            var allFonts = SKFontManager.Default.FontFamilies
-                                        .Where(m => !string.IsNullOrWhiteSpace(m))
-                                        .OrderBy(m => m)
-                                        .ToArray();
-            var fontGroups = new Dictionary<byte, List<string>>();
-            byte fontGroup = 0;
-            string pendingFont = null;
-            foreach (var font in allFonts)
+            if (!fontGroups.TryGetValue(fontGroup, out var fontList))
             {
-                if (!fontGroups.TryGetValue(fontGroup, out var fontList))
+                fontList = new List<string>();
+                fontGroups[fontGroup] = fontList;
+                if (pendingFont != null)
                 {
-                    fontList = new List<string>();
-                    fontGroups[fontGroup] = fontList;
-                    if (pendingFont != null)
-                    {
-                        fontList.Add(pendingFont);
-                        pendingFont = null;
-                    }
-                }
-
-                var fontGroupLength = fontList.Any() ? fontList.Sum(m => m.Length) : 0;
-                var newLength = fontGroupLength + font.Length;
-                if (newLength <= 1000)
-                {
-                    fontList.Add(font);
-                }
-                else
-                {
-                    fontGroup++;
-                    pendingFont = font;
+                    fontList.Add(pendingFont);
+                    pendingFont = null;
                 }
             }
 
-            return fontGroups.ToDictionary(m => m.Key, m => m.Value.ToArray());
+            var fontGroupLength = fontList.Any() ? fontList.Sum(m => m.Length) : 0;
+            var newLength = fontGroupLength + font.Length;
+            if (newLength <= 1000)
+            {
+                fontList.Add(font);
+            }
+            else
+            {
+                fontGroup++;
+                pendingFont = font;
+            }
         }
+
+        return fontGroups.ToDictionary(m => m.Key, m => m.Value.ToArray());
     }
 }

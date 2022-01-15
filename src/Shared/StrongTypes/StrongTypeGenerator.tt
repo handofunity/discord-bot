@@ -1,5 +1,5 @@
 ﻿<#@ template debug="false" hostspecific="True" language="C#"
-#><#@assembly name="EnvDTE"
+#><#@assembly name="Microsoft.VisualStudio.Interop"
 #><#@assembly name="System.Core"
 #><#@assembly name="System.Xml"
 #><#@assembly name="System.Xml.Linq"
@@ -47,7 +47,6 @@ using System;
 using System.CodeDom.Compiler;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
-using System.Security.Permissions;
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
@@ -127,7 +126,7 @@ foreach (XElement strongType in strongTypes)
 		private <#= typeName #>(SerializationInfo info, StreamingContext context)
 		{
 <#
-			var callInputCtor = string.Format("({0})info.GetValue(\"v\", typeof({0}))", internalType);
+			var callInputCtor = string.Format("({0})(info.GetValue(\"v\", typeof({0})) ?? throw new InvalidOperationException(\"Couldn't get value.\"))", internalType);
 #>
             V = <#= AddValidation(validate, callInputCtor) #>;
 		}
@@ -173,7 +172,7 @@ foreach (XElement strongType in strongTypes)
         /// <param name="other">An object to compare to this instance.</param>
         /// <returns><b>true</b> if <paramref name="other"/> is equal to this instance; otherwise, <b>false</b>.</returns>
 		[ExcludeFromCodeCoverage]
-		public override bool Equals(object other)
+		public override bool Equals(object? other)
 		{
 			if (ReferenceEquals(null, other)) return false;
 			if (ReferenceEquals(this, other)) return true;
@@ -206,7 +205,7 @@ foreach (XElement strongType in strongTypes)
         /// sort order as obj. Greater than zero This instance follows obj in the sort order.
         /// </returns>
         [ExcludeFromCodeCoverage]
-        int IComparable.CompareTo(object obj)
+        int IComparable.CompareTo(object? obj)
         {
             if (obj is <#= typeName #> other)
                 return CompareTo(other);
@@ -416,7 +415,6 @@ foreach (XElement strongType in strongTypes)
 		<# } #>
 		
 		[ExcludeFromCodeCoverage]
-		[SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.SerializationFormatter)]
 		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context)
 		{
 			info.AddValue("v", V);
@@ -448,14 +446,14 @@ foreach (XElement strongType in strongTypes)
 		<# if (provideNewtonsoftJsonConverter) { #>public sealed class NewtonsoftJsonConverter : Newtonsoft.Json.JsonConverter
         {
 		    [ExcludeFromCodeCoverage]
-            public override void WriteJson(Newtonsoft.Json.JsonWriter writer, object value, Newtonsoft.Json.JsonSerializer serializer)
+            public override void WriteJson(Newtonsoft.Json.JsonWriter writer, object? value, Newtonsoft.Json.JsonSerializer serializer)
 			{
-				var instance = (<#= typeName #>)value;
+				var instance = (<#= typeName #>)(value ?? throw new ArgumentNullException(nameof(value)));
 				writer.WriteValue(instance.V);
 			}
 			
 		    [ExcludeFromCodeCoverage]
-            public override object ReadJson(Newtonsoft.Json.JsonReader reader, Type objectType, object existingValue, Newtonsoft.Json.JsonSerializer serializer)
+            public override object? ReadJson(Newtonsoft.Json.JsonReader reader, Type objectType, object? existingValue, Newtonsoft.Json.JsonSerializer serializer)
             {
 			    if (reader.Value == null && Nullable.GetUnderlyingType(objectType) != null)
 				    return null;
@@ -561,9 +559,9 @@ public static string CreateReadXmlCallInput(string internalType)
 	var t = Type.GetType(internalType);
 	if (t == typeof(System.Guid))
 	{
-		return "Guid.Parse((System.String)reader.ReadElementContentAs(typeof(System.String), null))";
+		return "Guid.Parse((System.String)reader.ReadElementContentAs(typeof(System.String), null!))";
 	}
-	return string.Format("({0})reader.ReadElementContentAs(typeof({0}), null)", internalType);
+	return string.Format("({0})reader.ReadElementContentAs(typeof({0}), null!)", internalType);
 }
 
 public static string ConvertValueToXml(string internalType)
@@ -635,7 +633,7 @@ public static string GetNewtonsoftJsonReadFunc(Type t)
 	    return "reader.Value == null ? default : Guid.Parse((string) reader.Value)";
 	}
 
-	return string.Format("({0}) Convert.ChangeType(reader.Value, typeof({0}))", t.FullName);
+	return string.Format("({0}) (Convert.ChangeType(reader.Value, typeof({0})) ?? throw new InvalidOperationException(\"Couldn't change type.\"))", t.FullName);
 }
 
 // Exceptions for HasOperator method

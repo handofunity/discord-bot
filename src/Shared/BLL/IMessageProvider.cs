@@ -1,17 +1,8 @@
-﻿using System;
-using System.Threading.Tasks;
-using HoU.GuildBot.Shared.Objects;
+﻿using System.Threading.Tasks;
 
-namespace HoU.GuildBot.Shared.BLL
+namespace HoU.GuildBot.Shared.BLL;
+
+public interface IMessageProvider
 {
-    public interface IMessageProvider
-    {
-        event EventHandler<MessageChangedEventArgs> MessageChanged;
-
-        Task<(string Name, string Description, string Content)[]> ListAllMessages();
-
-        Task<string> GetMessage(string name);
-
-        Task<(bool Success, string Message)> SetMessage(string name, string content);
-    }
+    Task<string> GetMessage(string name);
 }

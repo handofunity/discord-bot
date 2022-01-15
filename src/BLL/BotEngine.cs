@@ -41,7 +41,7 @@ public class BotEngine : IBotEngine
 
     private async Task Connect()
     {
-        await _discordAccess.Connect(ConnectedHandler, DisconnectedHandler).ConfigureAwait(false);
+        await _discordAccess.Connect(ConnectedHandler, DisconnectedHandler);
     }
 
     private void SchedulePersonalReminders()
@@ -79,18 +79,17 @@ public class BotEngine : IBotEngine
                     _logger.LogCritical(e, "Failed to initialize SignalR connections.");
                 }
             }
-        });
+        }).ConfigureAwait(false);
     }
     
-    async Task IBotEngine.Run()
+    async Task IBotEngine.Run(CancellationToken cancellationToken)
     {
         var cts = new CancellationTokenSource();
 
         _logger.LogInformation("Starting bot...");
-        EmojiDefinition.InitializeAll();
         
         // Create connection to Discord
-        await Connect().ConfigureAwait(false);
+        await Connect();
 
         // Check if the initial connection to the Discord servers is successful,
         // because this won't be handled by the DisconnectedHandler.
@@ -99,7 +98,7 @@ public class BotEngine : IBotEngine
             // In case that the Discord servers are unreachable, we won't be able to make a connection
             // for a few minutes or even hours. Because we don't want to restart and retry too often,
             // waiting 10 minutes to check for the initial connection is okay.
-            await Task.Delay(new TimeSpan(0, 10, 0), CancellationToken.None).ConfigureAwait(false);
+            await Task.Delay(new TimeSpan(0, 10, 0), CancellationToken.None);
             if (!_discordAccess.IsConnected)
             {
                 _logger.LogWarning("Shutting down process, because the connection to Discord couldn't be established within 10 minutes.");
@@ -107,10 +106,11 @@ public class BotEngine : IBotEngine
             }
         }, CancellationToken.None).ConfigureAwait(false);
 
+        var combinedCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancellationToken);
         // Listen to calls and block the current thread
         try
         {
-            await Task.Delay(-1, cts.Token).ConfigureAwait(false);
+            await Task.Delay(-1, combinedCts.Token);
         }
         catch (TaskCanceledException)
         {
@@ -119,12 +119,12 @@ public class BotEngine : IBotEngine
     
     private async Task ConnectedHandler()
     {
-        await _discordAccess.SetCurrentGame("Hand of Unity | hou!help").ConfigureAwait(false);
+        await _discordAccess.SetCurrentGame("Hand of Unity");
 
         if (_isFirstConnect)
         {
             _isFirstConnect = false;
-            await _discordAccess.LogToDiscord($"Bot started on **{_botInformationProvider.GetEnvironmentName()}** in version {_botInformationProvider.GetFormatedVersion()}.").ConfigureAwait(false);
+            await _discordAccess.LogToDiscord($"Bot started on **{_botInformationProvider.GetEnvironmentName()}** in version {_botInformationProvider.GetFormattedVersion()}.");
             // Start privacy provider clean up
             _privacyProvider.Start();
 
@@ -146,12 +146,12 @@ public class BotEngine : IBotEngine
     private async Task DisconnectedHandler()
     {
         const int delayInSeconds = 30;
-        _logger.LogWarning($"Bot disconnected. Checking for connection status in {delayInSeconds} seconds.");
+        _logger.LogWarning("Bot disconnected. Checking for connection status in {DelayInSeconds} seconds.", delayInSeconds);
 
         // The Discord connection might get lost, but should reconnect automatically.
         // In rare cases, the reconnect doesn't work and the bot will just idle.
         // Therefore, after a disconnect, we grant the connection 30 seconds to recover.
-        await Task.Delay(TimeSpan.FromSeconds(delayInSeconds)).ConfigureAwait(false);
+        await Task.Delay(TimeSpan.FromSeconds(delayInSeconds));
         if (_discordAccess.IsConnected)
         {
             _logger.LogInformation("Bot re-connected successfully.");
@@ -160,7 +160,7 @@ public class BotEngine : IBotEngine
         // If it doesn't recover during this period of time, we'll kill the process.
         _logger.LogWarning("Failed to recover connection to Discord. Killing the process.");
         // Give the logger some time to log the message
-        await Task.Delay(TimeSpan.FromSeconds(5)).ConfigureAwait(false);
+        await Task.Delay(TimeSpan.FromSeconds(5));
         // Finally kill the process to start over
         ApplicationLifecycle.End();
     }

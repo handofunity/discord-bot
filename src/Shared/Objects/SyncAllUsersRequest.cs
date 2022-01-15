@@ -1,7 +1,3 @@
-﻿namespace HoU.GuildBot.Shared.Objects
-{
-    public class SyncAllUsersRequest
-    {
-        public UserModel[] Users { get; set; }
-    }
-}
+﻿namespace HoU.GuildBot.Shared.Objects;
+
+public record SyncAllUsersRequest(UserModel[] Users);

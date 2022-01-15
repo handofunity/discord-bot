@@ -11,336 +11,322 @@ using HoU.GuildBot.Shared.Enums;
 using HoU.GuildBot.Shared.Objects;
 using HoU.GuildBot.Shared.StrongTypes;
 
-namespace HoU.GuildBot.BLL
-{
-    [UsedImplicitly]
-    public class StaticMessageProvider : IStaticMessageProvider
-    {
-        private readonly Dictionary<DiscordChannelID, SemaphoreSlim> _channelSemaphores;
-        private readonly IMessageProvider _messageProvider;
-        private readonly IGameRoleProvider _gameRoleProvider;
-        private readonly ILogger<StaticMessageProvider> _logger;
-        private readonly IDynamicConfiguration _dynamicConfiguration;
-        private readonly bool _provideStaticMessages;
+namespace HoU.GuildBot.BLL;
 
-        private IDiscordAccess? _discordAccess;
+[UsedImplicitly]
+public class StaticMessageProvider : IStaticMessageProvider
+{
+    private readonly Dictionary<DiscordChannelId, SemaphoreSlim> _channelSemaphores;
+    private readonly IMessageProvider _messageProvider;
+    private readonly IGameRoleProvider _gameRoleProvider;
+    private readonly ILogger<StaticMessageProvider> _logger;
+    private readonly IDynamicConfiguration _dynamicConfiguration;
+    private readonly bool _provideStaticMessages;
+
+    private IDiscordAccess? _discordAccess;
         
-        public StaticMessageProvider(IMessageProvider messageProvider,
-                                     IGameRoleProvider gameRoleProvider,
-                                     IBotInformationProvider botInformationProvider,
-                                     ILogger<StaticMessageProvider> logger,
-                                     IDynamicConfiguration dynamicConfiguration)
-        {
-            _channelSemaphores = new Dictionary<DiscordChannelID, SemaphoreSlim>();
-            _messageProvider = messageProvider;
-            _gameRoleProvider = gameRoleProvider;
-            _logger = logger;
-            _dynamicConfiguration = dynamicConfiguration;
+    public StaticMessageProvider(IMessageProvider messageProvider,
+                                 IGameRoleProvider gameRoleProvider,
+                                 IBotInformationProvider botInformationProvider,
+                                 ILogger<StaticMessageProvider> logger,
+                                 IDynamicConfiguration dynamicConfiguration)
+    {
+        _channelSemaphores = new Dictionary<DiscordChannelId, SemaphoreSlim>();
+        _messageProvider = messageProvider;
+        _gameRoleProvider = gameRoleProvider;
+        _logger = logger;
+        _dynamicConfiguration = dynamicConfiguration;
 #if DEBUG
-            _provideStaticMessages = botInformationProvider.GetEnvironmentName() == Constants.RuntimeEnvironment.Production;
+        _provideStaticMessages = botInformationProvider.GetEnvironmentName() == Constants.RuntimeEnvironment.Development;
 #else
             // Don't change this statement, or the bot might not behave the way it should in the production environment.
             _provideStaticMessages = botInformationProvider.GetEnvironmentName() == Constants.RuntimeEnvironment.Production;
 #endif
 
-            if (_provideStaticMessages)
-            {
-                _messageProvider.MessageChanged += MessageProvider_MessageChanged;
-                _gameRoleProvider.GameChanged += GameRoleProvider_GameChanged;
-            }
+        if (_provideStaticMessages)
+        {
+            _gameRoleProvider.GameChanged += GameRoleProvider_GameChanged;
         }
+    }
+
+    private async Task LoadInfosAndRolesMenuMessages(IDictionary<DiscordChannelId, ExpectedChannelMessages> expectedChannelMessages)
+    {
+        if (!_provideStaticMessages)
+            return;
+
+        var l = new List<ExpectedChannelMessage>
+        {
+            new(await _messageProvider.GetMessage(Constants.MessageNames.FriendOrGuestMenu)),
+            new(await _messageProvider.GetMessage(Constants.MessageNames.GameInterestMenu))
+        };
+        AddFriendOrGuestMenuComponents(l);
+        expectedChannelMessages[(DiscordChannelId)_dynamicConfiguration.DiscordMapping["InfoAndRolesChannelId"]] = new ExpectedChannelMessages(l);
+    }
+
+    private async Task LoadGamesRolesMenuMessages(IDictionary<DiscordChannelId, ExpectedChannelMessages> expectedChannelMessages)
+    {
+        if (!_provideStaticMessages)
+            return;
         
-        private async Task LoadAocRoleMenuMessages(Dictionary<DiscordChannelID, (List<string> Messages, Func<ulong[], Task> PostCreationCallback)> expectedChannelMessages)
+        var l = new List<ExpectedChannelMessage>
         {
-            if (!_provideStaticMessages)
-                return;
+            new(await _messageProvider.GetMessage(Constants.MessageNames.GamesRolesMenu))
+        };
+        AddGamesRolesMenuComponents(l);
+        expectedChannelMessages[(DiscordChannelId)_dynamicConfiguration.DiscordMapping["GamesRolesChannelId"]] = new ExpectedChannelMessages(l);
+    }
 
-            var l = new List<string>
-            {
-                await _messageProvider.GetMessage(Constants.MessageNames.AocClassMenu).ConfigureAwait(false),
-                await _messageProvider.GetMessage(Constants.MessageNames.AocPlayStyleMenu).ConfigureAwait(false),
-                await _messageProvider.GetMessage(Constants.MessageNames.AocRaceMenu).ConfigureAwait(false)
-            };
-            expectedChannelMessages[(DiscordChannelID)_dynamicConfiguration.DiscordMapping["AshesOfCreationRoleChannelId"]] = (l, EnsureAocRoleMenuReactionsExist);
+    private async Task LoadAocRoleMenuMessages(IDictionary<DiscordChannelId, ExpectedChannelMessages> expectedChannelMessages)
+    {
+        if (!_provideStaticMessages)
+            return;
+
+        var l = new List<ExpectedChannelMessage>
+        {
+            new(await _messageProvider.GetMessage(Constants.MessageNames.AocClassMenu)),
+            new(await _messageProvider.GetMessage(Constants.MessageNames.AocPlayStyleMenu)),
+            new(await _messageProvider.GetMessage(Constants.MessageNames.AocRaceMenu))
+        };
+        AddAocRoleMenuComponents(l);
+        expectedChannelMessages[(DiscordChannelId)_dynamicConfiguration.DiscordMapping["AshesOfCreationRoleChannelId"]] = new ExpectedChannelMessages(l);
+    }
+
+    private async Task LoadWowRoleMenuMessages(IDictionary<DiscordChannelId, ExpectedChannelMessages> expectedChannelMessages)
+    {
+        if (!_provideStaticMessages)
+            return;
+
+        var l = new List<ExpectedChannelMessage>
+        {
+            new(await _messageProvider.GetMessage(Constants.MessageNames.WowRoleMenu))
+        };
+        AddWowRoleMenuComponents(l);
+        expectedChannelMessages[(DiscordChannelId)_dynamicConfiguration.DiscordMapping["WorldOfWarcraftRoleChannelId"]] = new ExpectedChannelMessages(l);
+    }
+
+    private async Task CreateMessagesInChannel(DiscordChannelId channelID,
+                                               ExpectedChannelMessages messages)
+    {
+        if (!_channelSemaphores.TryGetValue(channelID, out var semaphore))
+        {
+            semaphore = new SemaphoreSlim(1, 1);
+            _channelSemaphores.Add(channelID, semaphore);
         }
 
-        private async Task LoadWowRoleMenuMessages(Dictionary<DiscordChannelID, (List<string> Messages, Func<ulong[], Task> PostCreationCallback)> expectedChannelMessages)
+        var channelLocationAndName = DiscordAccess.GetChannelLocationAndName(channelID);
+
+        try
         {
-            if (!_provideStaticMessages)
-                return;
-
-            var l = new List<string>
-            {
-                await _messageProvider.GetMessage(Constants.MessageNames.WowRoleMenu).ConfigureAwait(false)
-            };
-            expectedChannelMessages[(DiscordChannelID)_dynamicConfiguration.DiscordMapping["WorldOfWarcraftRoleChannelId"]] = (l, EnsureWowRoleMenuReactionsExist);
+            _logger.LogInformation("{Channel} - Waiting for channel-edit-semaphore ...", channelLocationAndName);
+            await semaphore.WaitAsync();
+            _logger.LogInformation("{Channel} - Got channel-edit-semaphore.", channelLocationAndName);
+            _logger.LogInformation("{Channel} - Deleting existing bot messages in the channel ...", channelLocationAndName);
+            await DiscordAccess.DeleteBotMessagesInChannel(channelID);
+            _logger.LogInformation("{Channel} - Creating new messages in the channel ...", channelLocationAndName);
+            await DiscordAccess.CreateBotMessagesInChannelAsync(channelID, messages.ToArray());
         }
-
-        private async Task LoadGamesRolesMenuMessages(Dictionary<DiscordChannelID, (List<string> Messages, Func<ulong[], Task> PostCreationCallback)> expectedChannelMessages)
+        catch (Exception e)
         {
-            if (!_provideStaticMessages)
-                return;
-
-            var messageTemplate = await _messageProvider.GetMessage(Constants.MessageNames.GamesRolesMenu).ConfigureAwait(false);
-            var l = _gameRoleProvider.Games
-                                      // Only those games with a PrimaryGameDiscordRoleID and the flag IncludeInGamesMenu enabled can be used here
-                                     .Where(m => m.PrimaryGameDiscordRoleID != null && m.IncludeInGamesMenu)
-                                     .OrderBy(m => m.LongName)
-                                     .Select(m => string.Format(messageTemplate, m.LongName))
-                                     .ToList();
-            expectedChannelMessages[(DiscordChannelID)_dynamicConfiguration.DiscordMapping["GamesRolesChannelId"]] = (l, EnsureGamesRolesMenuReactionsExist);
+            _logger.LogError(e, "{Channel} - Failed to create all messages for channel.", channelLocationAndName);
         }
-
-        private async Task CreateMessagesInChannel(DiscordChannelID channelID,
-                                                   List<string> messages,
-                                                   Func<ulong[], Task> postCreationCallback)
+        finally
         {
-            if (!_channelSemaphores.TryGetValue(channelID, out var semaphore))
-            {
-                semaphore = new SemaphoreSlim(1, 1);
-                _channelSemaphores.Add(channelID, semaphore);
-            }
-
-            var channelLocationAndName = _discordAccess.GetChannelLocationAndName(channelID);
-
-            try
-            {
-                _logger.LogInformation($"{channelLocationAndName} - Waiting for channel-edit-semaphore ...");
-                await semaphore.WaitAsync();
-                _logger.LogInformation($"{channelLocationAndName} - Got channel-edit-semaphore.");
-                _logger.LogInformation($"{channelLocationAndName} - Deleting existing bot messages in the channel ...");
-                await _discordAccess.DeleteBotMessagesInChannel(channelID).ConfigureAwait(false);
-                _logger.LogInformation($"{channelLocationAndName} - Creating new messages in the channel ...");
-                var messageIds = await _discordAccess.CreateBotMessagesInChannel(channelID, messages.ToArray()).ConfigureAwait(false);
-                if (postCreationCallback == null)
-                {
-                    _logger.LogInformation($"{channelLocationAndName} - No post-creation callback found.");
-                }
-                else
-                {
-                    _logger.LogInformation($"{channelLocationAndName} - Applying post-creation callback for new messages in the channel ...");
-                    await postCreationCallback.Invoke(messageIds).ConfigureAwait(false);
-                }
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, $"{channelLocationAndName} - Failed to create all messages for channel.");
-            }
-            finally
-            {
-                _logger.LogInformation($"{channelLocationAndName} - Releasing channel-edit-semaphore ...");
-                semaphore.Release();
-                _logger.LogInformation($"{channelLocationAndName} - Channel-edit-semaphore released.");
-            }
+            _logger.LogInformation("{Channel} - Releasing channel-edit-semaphore ...", channelLocationAndName);
+            semaphore.Release();
+            _logger.LogInformation("{Channel} - Channel-edit-semaphore released.", channelLocationAndName);
         }
+    }
 
-        private async Task EnsureAocRoleMenuReactionsExist(ulong[] messageIds)
-        {
-            if (messageIds.Length != 3)
-                throw new ArgumentException("Unexpected amount of message IDs received.", nameof(messageIds));
-
-            // Class menu
-            var classMenuMessageId = messageIds[0];
-            await _discordAccess
-                 .AddReactionsToMessage((DiscordChannelID)_dynamicConfiguration.DiscordMapping["AshesOfCreationRoleChannelId"],
-                                        classMenuMessageId,
-                                        new[]
-                                        {
-                                            Constants.AocRoleEmojis.Bard,
-                                            Constants.AocRoleEmojis.Cleric,
-                                            Constants.AocRoleEmojis.Fighter,
-                                            Constants.AocRoleEmojis.Mage,
-                                            Constants.AocRoleEmojis.Ranger,
-                                            Constants.AocRoleEmojis.Rogue,
-                                            Constants.AocRoleEmojis.Summoner,
-                                            Constants.AocRoleEmojis.Tank
-                                        }).ConfigureAwait(false);
-
-            // Play style menu
-            var playStyleMenuMessageId = messageIds[1];
-            await _discordAccess
-                 .AddReactionsToMessage((DiscordChannelID)_dynamicConfiguration.DiscordMapping["AshesOfCreationRoleChannelId"],
-                                        playStyleMenuMessageId,
-                                        new[]
-                                        {
-                                            Constants.AocRoleEmojis.PvE,
-                                            Constants.AocRoleEmojis.PvP,
-                                            Constants.AocRoleEmojis.Crafting
-                                        }).ConfigureAwait(false);
-
-            // Race menu
-            var raceMenuMessageId = messageIds[2];
-            await _discordAccess
-                 .AddReactionsToMessage((DiscordChannelID)_dynamicConfiguration.DiscordMapping["AshesOfCreationRoleChannelId"],
-                                        raceMenuMessageId,
-                                        new[]
-                                        {
-                                            Constants.AocRoleEmojis.Kaelar,
-                                            Constants.AocRoleEmojis.Vaelune,
-                                            Constants.AocRoleEmojis.Empyrean,
-                                            Constants.AocRoleEmojis.Pyrai,
-                                            Constants.AocRoleEmojis.Renkai,
-                                            Constants.AocRoleEmojis.Vek,
-                                            Constants.AocRoleEmojis.Dunir,
-                                            Constants.AocRoleEmojis.Nikua,
-                                            Constants.AocRoleEmojis.Tulnar
-                                        }).ConfigureAwait(false);
-
-            _gameRoleProvider.AocGameRoleMenuMessageIDs = messageIds.ToArray();
-        }
-
-        private async Task EnsureWowRoleMenuReactionsExist(ulong[] messageIds)
-        {
-            if (messageIds.Length != 1)
-                throw new ArgumentException("Unexpected amount of message IDs received.", nameof(messageIds));
-
-            var roleMenuMessageId = messageIds[0];
-            await _discordAccess.AddReactionsToMessage((DiscordChannelID)_dynamicConfiguration.DiscordMapping["WorldOfWarcraftRoleChannelId"],
-                                                       roleMenuMessageId,
-                                                       new[]
-                                                       {
-                                                           Constants.WowRoleEmojis.Druid,
-                                                           Constants.WowRoleEmojis.Hunter,
-                                                           Constants.WowRoleEmojis.Mage,
-                                                           Constants.WowRoleEmojis.Paladin,
-                                                           Constants.WowRoleEmojis.Priest,
-                                                           Constants.WowRoleEmojis.Rogue,
-                                                           Constants.WowRoleEmojis.Warlock,
-                                                           Constants.WowRoleEmojis.Warrior
-                                                       }).ConfigureAwait(false);
-
-            _gameRoleProvider.WowGameRoleMenuMessageID = roleMenuMessageId;
-        }
+    private void AddFriendOrGuestMenuComponents(List<ExpectedChannelMessage> messages)
+    {
+        if (messages.Count != 2)
+            throw new ArgumentException("Unexpected amount of messages received.", nameof(messages));
         
-        private async Task EnsureGamesRolesMenuReactionsExist(ulong[] messageIds)
+        // Friend or Guest menu
+        foreach (var (customId, label) in Constants.FriendOrGuestMenu.GetOptions())
         {
-            if (messageIds.Length != _gameRoleProvider.Games.Count(m => m.PrimaryGameDiscordRoleID != null && m.IncludeInGamesMenu))
-                throw new ArgumentException("Unexpected amount of message IDs received.", nameof(messageIds));
-
-            var gamesRolesChannelId = (DiscordChannelID)_dynamicConfiguration.DiscordMapping["GamesRolesChannelId"];
-            foreach (var messageId in messageIds)
-            {
-                await _discordAccess.AddReactionsToMessage(gamesRolesChannelId,
-                                                           messageId,
-                                                           new[] {Constants.GamesRolesEmojis.Joystick})
-                                    .ConfigureAwait(false);
-                await Task.Delay(500).ConfigureAwait(false);
-            }
-
-            _gameRoleProvider.GamesRolesMenuMessageIDs = messageIds.ToArray();
+            messages[0].Components.Add(new ButtonComponent(customId,
+                                                           0,
+                                                           label,
+                                                           InteractionButtonStyle.Primary));
         }
 
-        private void ReCreateGameRoleMenuMessages()
+        // Game interest menu
+        DiscordAccess.EnsureDisplayNamesAreSet(_gameRoleProvider.Games);
+        var games = _gameRoleProvider.Games
+                                     // Only those games with the GameInterestRoleId set can be used here
+                                     .Where(m => m.GameInterestRoleId != null)
+                                     .OrderBy(m => m.DisplayName)
+                                     .Take(25)
+                                     .ToDictionary(m => m.GameInterestRoleId.ToString()!, m => m.DisplayName ?? "<UNKNOWN>");
+        messages[1].Components.Add(new SelectMenuComponent(Constants.GameInterestMenu.CustomId,
+                                                           0,
+                                                           "Select game interests ...",
+                                                           games,
+                                                           true));
+    }
+
+    private void AddGamesRolesMenuComponents(List<ExpectedChannelMessage> messages)
+    {
+        if (messages.Count != 1)
+            throw new ArgumentException("Unexpected amount of messages received.", nameof(messages));
+
+        DiscordAccess.EnsureDisplayNamesAreSet(_gameRoleProvider.Games);
+        var games = _gameRoleProvider.Games
+                                      // Only those games with the flag IncludeInGamesMenu enabled can be used here
+                                     .Where(m => m.IncludeInGamesMenu)
+                                     .OrderBy(m => m.DisplayName)
+                                     .Take(125)
+                                     .ToDictionary(m => m.PrimaryGameDiscordRoleId.ToString(), m => m.DisplayName ?? "<UNKNOWN>");
+
+        var customIds = Enumerable.Range(0, (int)Math.Ceiling(games.Count / 25m))
+                                  .Select(_ => Guid.NewGuid().ToString("D"))
+                                  .ToArray();
+        _gameRoleProvider.GamesRolesCustomIds = customIds;
+        byte actionRowNumber = 0;
+        foreach (var customId in customIds)
         {
-            Task.Run(async () =>
-            {
-                var gamesRolesChannelId = (DiscordChannelID)_dynamicConfiguration.DiscordMapping["GamesRolesChannelId"];
-                var expectedChannelMessages = new Dictionary<DiscordChannelID, (List<string> Messages, Func<ulong[], Task> PostCreationCallback)>();
-                await LoadGamesRolesMenuMessages(expectedChannelMessages).ConfigureAwait(false);
-                var (messages, postCreationCallback) = expectedChannelMessages[gamesRolesChannelId];
-                await CreateMessagesInChannel(gamesRolesChannelId, messages, postCreationCallback).ConfigureAwait(false);
-            }).ConfigureAwait(false);
+            messages[0].Components.Add(new SelectMenuComponent(customId,
+                                                               actionRowNumber,
+                                                               "Select games ...",
+                                                               games.Skip(actionRowNumber * 25)
+                                                                    .Take(25)
+                                                                    .ToDictionary(m => m.Key, m => m.Value),
+                                                               true));
+            actionRowNumber++;
         }
+    }
+
+    private static void AddAocRoleMenuComponents(List<ExpectedChannelMessage> messages)
+    {
+        if (messages.Count != 3)
+            throw new ArgumentException("Unexpected amount of messages received.", nameof(messages));
+
+        // Class menu
+        messages[0].Components.Add(new SelectMenuComponent(Constants.AocArchetypeMenu.CustomId,
+                                                           0,
+                                                           "Select archetypes ...",
+                                                           Constants.AocArchetypeMenu.GetOptions(),
+                                                           true));
+        // Play style menu
+        messages[1].Components.Add(new SelectMenuComponent(Constants.AocPlayStyleMenu.CustomId,
+                                                           0,
+                                                           "Select play styles ...",
+                                                           Constants.AocPlayStyleMenu.GetOptions(),
+                                                           true));
+        // Race menu
+        messages[2].Components.Add(new SelectMenuComponent(Constants.AocRaceMenu.CustomId,
+                                                           0,
+                                                           "Select races ...",
+                                                           Constants.AocRaceMenu.GetOptions(),
+                                                           true));
+    }
+
+    private static void AddWowRoleMenuComponents(List<ExpectedChannelMessage> messages)
+    {
+        if (messages.Count != 1)
+            throw new ArgumentException("Unexpected amount of messages received.", nameof(messages));
+
+        // Class menu
+        messages[0].Components.Add(new SelectMenuComponent(Constants.WowClassMenu.CustomId,
+                                                           0,
+                                                           "Select classes ...",
+                                                           Constants.WowClassMenu.GetOptions(),
+                                                           true));
+    }
+
+    private void ReCreateGameRoleMenuMessages()
+    {
+        Task.Run(async () =>
+        {
+            var gamesRolesChannelId = (DiscordChannelId)_dynamicConfiguration.DiscordMapping["GamesRolesChannelId"];
+            var expectedChannelMessages = new Dictionary<DiscordChannelId, ExpectedChannelMessages>();
+            await LoadGamesRolesMenuMessages(expectedChannelMessages);
+            var messages = expectedChannelMessages[gamesRolesChannelId];
+            await CreateMessagesInChannel(gamesRolesChannelId, messages);
+        }).ConfigureAwait(false);
+    }
+
+    public IDiscordAccess DiscordAccess
+    {
+        set => _discordAccess = value;
+        private get => _discordAccess ?? throw new InvalidOperationException();
+    }
+
+    async Task IStaticMessageProvider.EnsureStaticMessagesExist()
+    {
+        _logger.LogInformation("Ensuring that all static messages exist.");
+        var expectedChannelMessages = new Dictionary<DiscordChannelId, ExpectedChannelMessages>();
+        await LoadInfosAndRolesMenuMessages(expectedChannelMessages);
+        await LoadGamesRolesMenuMessages(expectedChannelMessages);
+        await LoadAocRoleMenuMessages(expectedChannelMessages);
+        await LoadWowRoleMenuMessages(expectedChannelMessages);
         
-        IDiscordAccess IStaticMessageProvider.DiscordAccess
+        var gamesRolesChannelId = (DiscordChannelId)_dynamicConfiguration.DiscordMapping["GamesRolesChannelId"];
+        foreach (var pair in expectedChannelMessages)
         {
-            set => _discordAccess = value;
-        }
-
-        async Task IStaticMessageProvider.EnsureStaticMessagesExist()
-        {
-            _logger.LogInformation($"Ensuring that all static messages exist.");
-            var expectedChannelMessages = new Dictionary<DiscordChannelID, (List<string> Messages, Func<ulong[], Task> PostCreationCallback)>();
-            await LoadAocRoleMenuMessages(expectedChannelMessages).ConfigureAwait(false);
-            await LoadWowRoleMenuMessages(expectedChannelMessages).ConfigureAwait(false);
-            await LoadGamesRolesMenuMessages(expectedChannelMessages).ConfigureAwait(false);
-
-            var ashesOfCreationRoleChannelId = (DiscordChannelID)_dynamicConfiguration.DiscordMapping["AshesOfCreationRoleChannelId"];
-            var worldOfWarcraftRoleChannelId = (DiscordChannelID)_dynamicConfiguration.DiscordMapping["WorldOfWarcraftRoleChannelId"];
-            var gamesRolesChannelId = (DiscordChannelID)_dynamicConfiguration.DiscordMapping["GamesRolesChannelId"];
-            foreach (var pair in expectedChannelMessages)
+            var channelLocationAndName = DiscordAccess.GetChannelLocationAndName(pair.Key);
+            _logger.LogInformation("Loading existing messages for channel '{Channel}' ...", channelLocationAndName);
+            var existingMessages = await DiscordAccess.GetBotMessagesInChannel(pair.Key);
+            if (existingMessages.Length != pair.Value.Messages.Length)
             {
-                var channelLocationAndName = _discordAccess.GetChannelLocationAndName(pair.Key);
-                _logger.LogInformation($"Loading existing messages for channel '{channelLocationAndName}' ...");
-                var existingMessages = await _discordAccess.GetBotMessagesInChannel(pair.Key).ConfigureAwait(false);
-                if (existingMessages.Length != pair.Value.Messages.Count)
+                // If the count is different, we don't have to check every message
+                _logger.LogInformation("Messages in channel '{Channel}' are incomplete or too many ({ExistingMessages}/{ExpectedMessages}).",
+                                       channelLocationAndName, existingMessages.Length, pair.Value.Messages.Length);
+                await CreateMessagesInChannel(pair.Key, pair.Value);
+            }
+            // If the count is the same, check if all messages are the same, in the correct order
+            else if (pair.Value.Messages.Where((t, i) => t.Content != existingMessages[i].Content).Any())
+            {
+                // If there is any message that is not at the same position and equal, we re-create all of them
+                _logger.LogInformation("Messages in channel '{Channel}' are in the wrong order or have the wrong content.", channelLocationAndName);
+                await CreateMessagesInChannel(pair.Key, pair.Value);
+            }
+            else
+            {
+                // If the count is the same, and all messages are the same, provide existing custom ids to dependent classes.
+                if (pair.Key == gamesRolesChannelId)
                 {
-                    // If the count is different, we don't have to check every message
-                    _logger.LogInformation($"Messages in channel '{channelLocationAndName}' are incomplete or too many ({existingMessages.Length}/{pair.Value.Messages.Count}).");
-                    await CreateMessagesInChannel(pair.Key, pair.Value.Messages, pair.Value.PostCreationCallback).ConfigureAwait(false);
+                    _gameRoleProvider.GamesRolesCustomIds = existingMessages.SelectMany(m => m.CustomIds).ToArray();
                 }
-                // If the count is the same, check if all messages are the same, in the correct order
-                else if (pair.Value.Messages.Where((t, i) => t != existingMessages[i].Content).Any())
-                {
-                    // If there is any message that is not at the same position and equal, we re-create all of them
-                    _logger.LogInformation($"Messages in channel '{channelLocationAndName}' are in the wrong order or have the wrong content.");
-                    await CreateMessagesInChannel(pair.Key, pair.Value.Messages, pair.Value.PostCreationCallback).ConfigureAwait(false);
-                }
-                else
-                {
-                    // If the count is the same, and all messages are the same, we have to provide some static data to other classes
-                    _logger.LogInformation($"Messages in channel '{channelLocationAndName}' are correct.");
-                    if (pair.Key == ashesOfCreationRoleChannelId)
-                    {
-                        _gameRoleProvider.AocGameRoleMenuMessageIDs = existingMessages.Select(m => m.MessageID).ToArray();
-                    }
-                    else if (pair.Key == worldOfWarcraftRoleChannelId)
-                    {
-                        _gameRoleProvider.WowGameRoleMenuMessageID = existingMessages[0].MessageID;
-                    }
-                    else if (pair.Key == gamesRolesChannelId)
-                    {
-                        _gameRoleProvider.GamesRolesMenuMessageIDs = existingMessages.Select(m => m.MessageID).ToArray();
-                    }
-                }
+                _logger.LogInformation("Messages in channel '{Channel}' are correct.", channelLocationAndName);
             }
         }
-        
-        private void MessageProvider_MessageChanged(object sender, MessageChangedEventArgs e)
+    }
+
+    private void GameRoleProvider_GameChanged(object? sender, GameChangedEventArgs e)
+    {
+        // Add has never a primary game role ID
+        if (e.GameModification == GameModification.Edited
+         || e.GameModification == GameModification.Removed)
         {
-            // We can just create the messages here, because the message was changed.
-            // There's no need to check if the messages in the channel are the same.
-            
-            if (e.MessageName == Constants.MessageNames.AocClassMenu
-                || e.MessageName == Constants.MessageNames.AocPlayStyleMenu
-                || e.MessageName == Constants.MessageNames.AocRaceMenu)
-            {
-                Task.Run(async () =>
-                {
-                    var ashesOfCreationRoleChannelId = (DiscordChannelID)_dynamicConfiguration.DiscordMapping["AshesOfCreationRoleChannelId"];
-                    var expectedChannelMessages =
-                        new Dictionary<DiscordChannelID, (List<string> Messages, Func<ulong[], Task> PostCreationCallback)>();
-                    await LoadAocRoleMenuMessages(expectedChannelMessages).ConfigureAwait(false);
-                    var (messages, postCreationCallback) = expectedChannelMessages[ashesOfCreationRoleChannelId];
-                    await CreateMessagesInChannel(ashesOfCreationRoleChannelId, messages, postCreationCallback)
-                       .ConfigureAwait(false);
-                }).ConfigureAwait(false);
-            }
-            else if (e.MessageName == Constants.MessageNames.WowRoleMenu)
-            {
-                Task.Run(async () =>
-                {
-                    var worldOfWarcraftRoleChannelId = (DiscordChannelID)_dynamicConfiguration.DiscordMapping["WorldOfWarcraftRoleChannelId"];
-                    var expectedChannelMessages = new Dictionary<DiscordChannelID, (List<string> Messages, Func<ulong[], Task> PostCreationCallback)>();
-                    await LoadWowRoleMenuMessages(expectedChannelMessages).ConfigureAwait(false);
-                    var (messages, postCreationCallback) = expectedChannelMessages[worldOfWarcraftRoleChannelId];
-                    await CreateMessagesInChannel(worldOfWarcraftRoleChannelId, messages, postCreationCallback).ConfigureAwait(false);
-                }).ConfigureAwait(false);
-            }
-            else if (e.MessageName == Constants.MessageNames.GamesRolesMenu)
-            {
-                ReCreateGameRoleMenuMessages();
-            }
+            ReCreateGameRoleMenuMessages();
+        }
+    }
+
+    private class ExpectedChannelMessages
+    {
+        public ExpectedChannelMessage[] Messages { get; }
+
+        public ExpectedChannelMessages(IEnumerable<ExpectedChannelMessage> messages)
+        {
+            Messages = messages.ToArray();
         }
 
-        private void GameRoleProvider_GameChanged(object sender, GameChangedEventArgs e)
+        public (string Content, ActionComponent[] Components)[] ToArray() =>
+            Messages.Select(m => (m.Content, m.Components.ToArray())).ToArray();
+    }
+
+    private class ExpectedChannelMessage
+    {
+        public string Content { get; }
+
+        public List<ActionComponent> Components { get; }
+
+        public ExpectedChannelMessage(string content)
         {
-            // Add has never a primary game role ID
-            if (e.GameModification == GameModification.Edited
-             || e.GameModification == GameModification.Removed)
-            {
-                ReCreateGameRoleMenuMessages();
-            }
+            Content = content;
+            Components = new List<ActionComponent>();
         }
     }
 }

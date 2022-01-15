@@ -1,9 +1,3 @@
-﻿namespace HoU.GuildBot.Shared.Objects
-{
-    public class BotAuthenticationRequest
-    {
-        public string ClientId { get; set; }
+﻿namespace HoU.GuildBot.Shared.Objects;
 
-        public string ClientSecret { get; set; }
-    }
-}
+public record BotAuthenticationRequest(string ClientId, string ClientSecret);

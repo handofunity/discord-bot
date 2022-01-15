@@ -9,7 +9,6 @@ namespace HoU.GuildBot.DAL.Database.Model
     {
         public short GameRoleID { get; set; }
         public decimal DiscordRoleID { get; set; }
-        public string RoleName { get; set; }
         public short GameID { get; set; }
         public int ModifiedByUserID { get; set; }
         public DateTime ModifiedAtTimestamp { get; set; }

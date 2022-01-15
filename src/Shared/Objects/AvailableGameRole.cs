@@ -1,18 +1,18 @@
-﻿namespace HoU.GuildBot.Shared.Objects
+﻿using HoU.GuildBot.Shared.StrongTypes;
+
+namespace HoU.GuildBot.Shared.Objects;
+
+public class AvailableGameRole
 {
-    public class AvailableGameRole
+    public DiscordRoleId DiscordRoleId { get; init; }
+
+    public string? DisplayName { get; set; }
+
+    public AvailableGameRole Clone()
     {
-        public ulong DiscordRoleID { get; set; }
-
-        public string RoleName { get; set; }
-
-        public AvailableGameRole Clone()
+        return new AvailableGameRole
         {
-            return new AvailableGameRole
-            {
-                DiscordRoleID = DiscordRoleID,
-                RoleName = RoleName
-            };
-        }
+            DiscordRoleId = DiscordRoleId
+        };
     }
 }

@@ -1,19 +1,18 @@
 ﻿using System.Collections.Generic;
 using HoU.GuildBot.Shared.StrongTypes;
 
-namespace HoU.GuildBot.Shared.Objects
+namespace HoU.GuildBot.Shared.Objects;
+
+public class VoiceChannelAttendees
 {
-    public class VoiceChannelAttendees
+    public string DiscordVoiceChannelId { get; }
+
+    public List<DiscordUserId> DiscordUserIds { get; }
+
+    public VoiceChannelAttendees(string discordVoiceChannelId,
+                                 List<DiscordUserId> discordUserIds)
     {
-        public string DiscordVoiceChannelId { get; }
-
-        public List<DiscordUserID> DiscordUserIds { get; }
-
-        public VoiceChannelAttendees(string discordVoiceChannelId,
-                                     List<DiscordUserID> discordUserIds)
-        {
-            DiscordVoiceChannelId = discordVoiceChannelId;
-            DiscordUserIds = discordUserIds;
-        }
+        DiscordVoiceChannelId = discordVoiceChannelId;
+        DiscordUserIds = discordUserIds;
     }
 }

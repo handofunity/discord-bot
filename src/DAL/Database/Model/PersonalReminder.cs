@@ -9,7 +9,7 @@ namespace HoU.GuildBot.DAL.Database.Model
     {
         public int PersonalReminderID { get; set; }
         public string CronSchedule { get; set; }
-        public decimal DiscordChannelID { get; set; }
+        public decimal DiscordChannelId { get; set; }
         public decimal UserToRemind { get; set; }
         public string Text { get; set; }
     }

@@ -5,29 +5,28 @@ using Hangfire.Annotations;
 using HoU.GuildBot.Shared.BLL;
 using HoU.GuildBot.Shared.DAL;
 
-namespace HoU.GuildBot.BLL
+namespace HoU.GuildBot.BLL;
+
+[UsedImplicitly]
+public class PersonalReminderService
 {
-    [UsedImplicitly]
-    public class PersonalReminderService
+    private readonly IDynamicConfiguration _dynamicConfiguration;
+    private readonly IDiscordAccess _discordAccess;
+
+    public PersonalReminderService(IDynamicConfiguration dynamicConfiguration,
+                                   IDiscordAccess discordAccess)
     {
-        private readonly IDynamicConfiguration _dynamicConfiguration;
-        private readonly IDiscordAccess _discordAccess;
+        _dynamicConfiguration = dynamicConfiguration ?? throw new ArgumentNullException(nameof(dynamicConfiguration));
+        _discordAccess = discordAccess ?? throw new ArgumentNullException(nameof(discordAccess));
+    }
 
-        public PersonalReminderService(IDynamicConfiguration dynamicConfiguration,
-                                       IDiscordAccess discordAccess)
-        {
-            _dynamicConfiguration = dynamicConfiguration ?? throw new ArgumentNullException(nameof(dynamicConfiguration));
-            _discordAccess = discordAccess ?? throw new ArgumentNullException(nameof(discordAccess));
-        }
+    public async Task SendReminderAsync(int reminderId)
+    {
+        var reminder = _dynamicConfiguration.PersonalReminders.SingleOrDefault(m => m.ReminderId == reminderId);
+        if (reminder == null)
+            return;
 
-        public async Task SendReminderAsync(int reminderId)
-        {
-            var reminder = _dynamicConfiguration.PersonalReminders.SingleOrDefault(m => m.ReminderId == reminderId);
-            if (reminder == null)
-                return;
-
-            var (channelID, message) = reminder.GetReminderInfo();
-            await _discordAccess.CreateBotMessagesInChannel(channelID, new[] {message});
-        }
+        var (channelID, message) = reminder.GetReminderInfo();
+        await _discordAccess.CreateBotMessagesInChannelAsync(channelID, new[] {message});
     }
 }

@@ -2,14 +2,13 @@
 using HoU.GuildBot.Shared.Objects;
 using HoU.GuildBot.Shared.StrongTypes;
 
-namespace HoU.GuildBot.Shared.BLL
+namespace HoU.GuildBot.Shared.BLL;
+
+public interface IUserInfoProvider
 {
-    public interface IUserInfoProvider
-    {
-        Task<string[]> GetLastSeenInfo();
+    Task<string[]> GetLastSeenInfo();
 
-        EmbedData WhoIs(DiscordUserID userID);
+    EmbedData WhoIs(DiscordUserId userID);
 
-        EmbedData WhoIs(string username, string remainderContent);
-    }
+    EmbedData WhoIs(InternalUserId userID);
 }

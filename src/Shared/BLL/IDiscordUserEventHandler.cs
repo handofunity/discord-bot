@@ -1,30 +1,30 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using HoU.GuildBot.Shared.DAL;
 using HoU.GuildBot.Shared.Enums;
 using HoU.GuildBot.Shared.Objects;
 using HoU.GuildBot.Shared.StrongTypes;
 
-namespace HoU.GuildBot.Shared.BLL
+namespace HoU.GuildBot.Shared.BLL;
+
+public interface IDiscordUserEventHandler
 {
-    public interface IDiscordUserEventHandler
-    {
-        IDiscordAccess DiscordAccess { set; }
+    IDiscordAccess DiscordAccess { set; }
 
-        void HandleJoined(DiscordUserID userID, Role roles);
+    void HandleJoined(DiscordUserId userID, Role roles);
 
-        void HandleLeft(DiscordUserID userID,
-                        string username,
-                        ushort discriminatorValue,
-                        DateTimeOffset? joinedAt,
-                        string[] roles);
+    void HandleLeft(DiscordUserId userID,
+                    string username,
+                    ushort discriminatorValue,
+                    DateTimeOffset? joinedAt,
+                    string[] roles);
 
-        UserRolesChangedResult HandleRolesChanged(DiscordUserID userID, Role oldRoles, Role newRoles);
+    UserRolesChangedResult HandleRolesChanged(DiscordUserId userID, Role oldRoles, Role newRoles);
 
-        Task HandleStatusChanged(DiscordUserID userID, bool wasOnline, bool isOnline);
+    Task HandleStatusChanged(DiscordUserId userID, bool wasOnline, bool isOnline);
 
-        Task HandleReactionAdded(DiscordChannelID channelID, DiscordUserID userID, ulong messageID, EmojiDefinition emote, string rawEmojiName);
-
-        Task HandleReactionRemoved(DiscordChannelID channelID, DiscordUserID userID, ulong messageID, EmojiDefinition emote, string rawEmojiName);
-    }
+    Task<string?> HandleMessageComponentExecutedAsync(DiscordUserId userId,
+                                                string customId,
+                                                IReadOnlyCollection<string> values);
 }

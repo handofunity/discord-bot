@@ -5,7 +5,7 @@ SEQ_API_KEY="$(sed -nr "/^\[Seq\]/ { :l /^ApiKey[ ]*=/ { s/.*=[ ]*//; p; q;}; n;
 DISCORD_BOT_TOKEN="$(sed -nr "/^\[Discord\]/ { :l /^BotToken[ ]*=/ { s/.*=[ ]*//; p; q;}; n; b l;}" ./settings.production.ini)"
 
 docker run -d \
-  --name houguildbot \
+  --name guild-bot \
   --restart unless-stopped \
   --read-only \
   --cap-drop=ALL \

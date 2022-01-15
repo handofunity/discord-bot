@@ -3,45 +3,29 @@ using HoU.GuildBot.Shared.Enums;
 using HoU.GuildBot.Shared.Extensions;
 using HoU.GuildBot.Shared.StrongTypes;
 
-namespace HoU.GuildBot.Shared.Objects
+namespace HoU.GuildBot.Shared.Objects;
+
+public class User
 {
-    public class User
+    private int _roles;
+    
+    public InternalUserId InternalUserId { get; }
+
+    public DiscordUserId DiscordUserId { get; }
+
+    public string Mention => DiscordUserId.ToMention();
+
+    public Role Roles
     {
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////
-        #region Fields
+        get => (Role)_roles;
+        set => Interlocked.Exchange(ref _roles, (int)value);
+    }
 
-        private int _roles;
-
-        #endregion
-
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////
-        #region Properties
-
-        public InternalUserID InternalUserID { get; }
-
-        public DiscordUserID DiscordUserID { get; }
-
-        public string Mention => DiscordUserID.ToMention();
-
-        public Role Roles
-        {
-            get => (Role)_roles;
-            set => Interlocked.Exchange(ref _roles, (int)value);
-        }
-
-        public bool IsGuildMember => (Role.AnyGuildMember & Roles) != Role.NoRole;
-
-        #endregion
-
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////
-        #region Constructors
-
-        public User(InternalUserID internalUserID, DiscordUserID discordUserID)
-        {
-            InternalUserID = internalUserID;
-            DiscordUserID = discordUserID;
-        }
-
-        #endregion
+    public bool IsGuildMember => (Role.AnyGuildMember & Roles) != Role.NoRole;
+    
+    public User(InternalUserId internalUserID, DiscordUserId discordUserID)
+    {
+        InternalUserId = internalUserID;
+        DiscordUserId = discordUserID;
     }
 }

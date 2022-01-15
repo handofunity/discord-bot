@@ -4,92 +4,79 @@ using HoU.GuildBot.Shared.BLL;
 using HoU.GuildBot.Shared.DAL;
 using System.Linq;
 
-namespace HoU.GuildBot.BLL
+namespace HoU.GuildBot.BLL;
+
+public class GuildInfoProvider : IGuildInfoProvider
 {
-    public class GuildInfoProvider : IGuildInfoProvider
+    private readonly IUserStore _userStore;
+    private readonly IDiscordAccess _discordAccess;
+    private readonly IGameRoleProvider _gameRoleProvider;
+    
+    public GuildInfoProvider(IUserStore userStore,
+                             IDiscordAccess discordAccess,
+                             IGameRoleProvider gameRoleProvider)
     {
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////
-        #region Fields
+        _userStore = userStore;
+        _discordAccess = discordAccess;
+        _gameRoleProvider = gameRoleProvider;
+    }
+    
+    EmbedData IGuildInfoProvider.GetGuildMemberStatus()
+    {
+        _discordAccess.EnsureDisplayNamesAreSet(_gameRoleProvider.Games);
+        var guildMembers = _userStore.GetUsers(m => m.IsGuildMember);
+        var total = guildMembers.Length;
+        var online = guildMembers.Count(guildMember => _discordAccess.IsUserOnline(guildMember.DiscordUserId));
+        var gamesToIncludeInGuildMemberStatus = _gameRoleProvider.Games
+                                                                 .Where(m => m.IncludeInGuildMembersStatistic)
+                                                                 .OrderBy(m => m.DisplayName)
+                                                                 .ToList();
 
-        private readonly IUserStore _userStore;
-        private readonly IDiscordAccess _discordAccess;
-        private readonly IGameRoleProvider _gameRoleProvider;
-
-        #endregion
-
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////
-        #region Constructors
-
-        public GuildInfoProvider(IUserStore userStore,
-                                 IDiscordAccess discordAccess,
-                                 IGameRoleProvider gameRoleProvider)
+        var embedFields = new List<EmbedField>
         {
-            _userStore = userStore;
-            _discordAccess = discordAccess;
-            _gameRoleProvider = gameRoleProvider;
-        }
+            new("Total", total.ToString(), true),
+            new("Online", online.ToString(), true)
+        };
 
-        #endregion
-
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////
-        #region IGuildInfoProvider Members
-
-        EmbedData IGuildInfoProvider.GetGuildMemberStatus()
+        foreach (var game in gamesToIncludeInGuildMemberStatus)
         {
-            var guildMembers = _userStore.GetUsers(m => m.IsGuildMember);
-            var total = guildMembers.Length;
-            var online = guildMembers.Count(guildMember => _discordAccess.IsUserOnline(guildMember.DiscordUserID));
-            var gamesToIncludeInGuildMemberStatus = _gameRoleProvider.Games
-                                                                     .Where(m => m.IncludeInGuildMembersStatistic && m.PrimaryGameDiscordRoleID != null)
-                                                                     .OrderBy(m => m.LongName)
-                                                                     .ToList();
+            // Total
+            // ReSharper disable once PossibleInvalidOperationException
+            var totalGameMembers = _discordAccess.CountGuildMembersWithRoles(new[] {game.PrimaryGameDiscordRoleId});
+            embedFields.Add(new EmbedField(game.DisplayName + " (Total)", totalGameMembers.ToString(), false));
 
-            var embedFields = new List<EmbedField>
+            // Intersected
+            foreach (var otherGame in gamesToIncludeInGuildMemberStatus.Where(m => m.DisplayName != game.DisplayName
+                                                                                && gamesToIncludeInGuildMemberStatus.IndexOf(m) > gamesToIncludeInGuildMemberStatus.IndexOf(game))
+                                                                       .OrderBy(m => m.DisplayName))
             {
-                new EmbedField("Total", total.ToString(), true),
-                new EmbedField("Online", online.ToString(), true)
-            };
-
-            foreach (var game in gamesToIncludeInGuildMemberStatus)
-            {
-                // Total
                 // ReSharper disable once PossibleInvalidOperationException
-                var totalGameMembers = _discordAccess.CountGuildMembersWithRoles(new[] {game.PrimaryGameDiscordRoleID.Value});
-                embedFields.Add(new EmbedField(game.LongName + " (Total)", totalGameMembers.ToString(), false));
-
-                // Intersected
-                foreach (var otherGame in gamesToIncludeInGuildMemberStatus.Where(m => m.LongName != game.LongName
-                                                                                       && gamesToIncludeInGuildMemberStatus.IndexOf(m) > gamesToIncludeInGuildMemberStatus.IndexOf(game))
-                                                                           .OrderBy(m => m.LongName))
-                {
-                    // ReSharper disable once PossibleInvalidOperationException
-                    var intersectedMembers = _discordAccess.CountGuildMembersWithRoles(new[] {game.PrimaryGameDiscordRoleID.Value, otherGame.PrimaryGameDiscordRoleID.Value});
-                    embedFields.Add(new EmbedField(game.LongName + $" (also playing {otherGame.LongName})", intersectedMembers.ToString(), false));
-                }
-
-                // Disjunctive
-                var disjunctiveMembers = _discordAccess.CountGuildMembersWithRoles(new[] {game.PrimaryGameDiscordRoleID.Value},
-                                                                                   gamesToIncludeInGuildMemberStatus
-                                                                                      .Where(m => m.LongName != game.LongName)
-                                                                                       // ReSharper disable once PossibleInvalidOperationException
-                                                                                      .Select(m => m.PrimaryGameDiscordRoleID.Value)
-                                                                                      .ToArray());
-                embedFields.Add(new EmbedField(game.LongName + " (playing no other game)", disjunctiveMembers.ToString(), false));
+                var intersectedMembers = _discordAccess.CountGuildMembersWithRoles(new[] {game.PrimaryGameDiscordRoleId, otherGame.PrimaryGameDiscordRoleId});
+                embedFields.Add(new EmbedField(game.DisplayName + $" (also playing {otherGame.DisplayName})", intersectedMembers.ToString(), false));
             }
 
-            // Not playing any game
-            // ReSharper disable once PossibleInvalidOperationException
-            var notPlaying = _discordAccess.CountGuildMembersWithRoles(null, gamesToIncludeInGuildMemberStatus.Select(m => m.PrimaryGameDiscordRoleID.Value).ToArray());
-            embedFields.Add(new EmbedField("Not playing any of the games above", notPlaying.ToString(), false));
-
-            return new EmbedData
-            {
-                Title = "Guild members",
-                Color = Colors.LightGreen,
-                Fields = embedFields.ToArray()
-            };
+            // Disjunctive
+            var disjunctiveMembers = _discordAccess.CountGuildMembersWithRoles(new[] {game.PrimaryGameDiscordRoleId},
+                                                                               gamesToIncludeInGuildMemberStatus
+                                                                                  .Where(m => m.DisplayName != game.DisplayName)
+                                                                                   // ReSharper disable once PossibleInvalidOperationException
+                                                                                  .Select(m => m.PrimaryGameDiscordRoleId)
+                                                                                  .ToArray());
+            embedFields.Add(new EmbedField(game.DisplayName + " (playing no other game)", disjunctiveMembers.ToString(), false));
         }
 
-        #endregion
+        // Not playing any game
+        // ReSharper disable once PossibleInvalidOperationException
+        var notPlaying = _discordAccess.CountGuildMembersWithRoles(null,
+                                                                   gamesToIncludeInGuildMemberStatus.Select(m => m.PrimaryGameDiscordRoleId)
+                                                                      .ToArray());
+        embedFields.Add(new EmbedField("Not playing any of the games above", notPlaying.ToString(), false));
+
+        return new EmbedData
+        {
+            Title = "Guild members",
+            Color = Colors.LightGreen,
+            Fields = embedFields.ToArray()
+        };
     }
 }

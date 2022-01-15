@@ -2,65 +2,47 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using HoU.GuildBot.Shared.DAL;
-using JetBrains.Annotations;
 using HoU.GuildBot.Shared.Objects;
 using HoU.GuildBot.Shared.StrongTypes;
 
-namespace HoU.GuildBot.Shared.BLL
+namespace HoU.GuildBot.Shared.BLL;
+
+public interface IGameRoleProvider
 {
-    public interface IGameRoleProvider
-    {
-        event EventHandler<GameChangedEventArgs> GameChanged;
+    event EventHandler<GameChangedEventArgs> GameChanged;
 
-        IDiscordAccess DiscordAccess { set; }
+    IDiscordAccess DiscordAccess { set; }
 
-        ulong[] AocGameRoleMenuMessageIDs { get; set; }
+    IReadOnlyList<AvailableGame> Games { get; }
 
-        ulong WowGameRoleMenuMessageID { get; set; }
+    string[] GamesRolesCustomIds { get; set; }
 
-        ulong[] GamesRolesMenuMessageIDs { get; set; }
+    IReadOnlyList<EmbedData> GetGameInfoAsEmbedData(string? filter);
 
-        IReadOnlyList<AvailableGame> Games { get; }
+    Task LoadAvailableGames();
 
-        IReadOnlyList<EmbedData> GetGameInfoAsEmbedData([CanBeNull] string filter);
+    (int GameMembers, Dictionary<string, int> RoleDistribution) GetGameRoleDistribution(AvailableGame game);
 
-        Task SetGameRole(DiscordChannelID channelID, DiscordUserID userID, AvailableGame game, EmojiDefinition emoji);
+    Task<(bool Success, string Message, AvailableGame? AddedGame)> AddGameAsync(InternalUserId userID,
+                                                                                DiscordRoleId primaryGameDiscordRoleId);
 
-        Task RevokeGameRole(DiscordChannelID channelID, DiscordUserID userID, AvailableGame game, EmojiDefinition emoji);
+    Task<(bool Success, string Message, AvailableGame? UpdatedGame)> UpdateGameAsync(InternalUserId userID,
+                                                                                     DiscordRoleId primaryGameDiscordRoleId,
+                                                                                     Action<AvailableGame> update);
 
-        Task SetPrimaryGameRole(DiscordChannelID channelID,
-                                DiscordUserID userID,
-                                AvailableGame game);
+    Task<(bool Success, string Message, AvailableGame? RemovedGame)> RemoveGameAsync(DiscordRoleId primaryGameDiscordRoleId);
 
-        Task RevokePrimaryGameRole(DiscordChannelID channelID,
-                                   DiscordUserID userID,
-                                   AvailableGame game);
+    Task<(bool Success, string Message, AvailableGameRole? AddedGameRole)> AddGameRoleAsync(InternalUserId userID,
+                                                                                            DiscordRoleId primaryGameDiscordRoleId,
+                                                                                            DiscordRoleId discordRoleID);
 
-        Task LoadAvailableGames();
+    Task<(bool Success, string Message, AvailableGameRole? RemovedGameRole)> RemoveGameRoleAsync(DiscordRoleId discordRoleID);
 
-        (int GameMembers, Dictionary<string, int> RoleDistribution) GetGameRoleDistribution(AvailableGame game);
+    Task<string?> ToggleGameSpecificRolesAsync(DiscordUserId userId,
+                                          string customId,
+                                          AvailableGame game,
+                                          IReadOnlyCollection<string> values);
 
-        Task<(bool Success, string Message)> AddGame(InternalUserID userID,
-                                                     string gameLongName,
-                                                     string gameShortName,
-                                                     ulong? primaryGameDiscordRoleID);
-
-        Task<(bool Success, string Message, string OldValue, AvailableGame UpdatedGame)> EditGame(InternalUserID userID,
-            string gameShortName,
-            string property,
-            string newValue);
-
-        Task<(bool Success, string Message)> RemoveGame(string gameShortName);
-
-        Task<(bool Success, string Message)> AddGameRole(InternalUserID userID,
-                                                         string gameShortName,
-                                                         string roleName,
-                                                         ulong discordRoleID);
-
-        Task<(bool Success, string Message, string OldRoleName)> EditGameRole(InternalUserID userID,
-                                                                              ulong discordRoleID,
-                                                                              string newRoleName);
-
-        Task<(bool Success, string Message, string OldRoleName)> RemoveGameRole(ulong discordRoleID);
-    }
+    Task<string?> TogglePrimaryGameRolesAsync(DiscordUserId userId,
+                                  AvailableGame[] games);
 }

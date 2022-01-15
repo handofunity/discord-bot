@@ -1,14 +1,17 @@
 ﻿using HoU.GuildBot.Shared.Objects;
 using HoU.GuildBot.Shared.StrongTypes;
 
-namespace HoU.GuildBot.Shared.BLL
+namespace HoU.GuildBot.Shared.BLL;
+
+public interface IIgnoreGuard
 {
-    public interface IIgnoreGuard
-    {
-        EmbedData TryAddToIgnoreList(DiscordUserID userID, string username, string messageContent);
+    EmbedData EnsureOnIgnoreList(DiscordUserId userID,
+                                 string username,
+                                 int minutes);
 
-        EmbedData TryRemoveFromIgnoreList(DiscordUserID userID, string username);
+    bool TryRemoveFromIgnoreList(DiscordUserId userID,
+                                 string username,
+                                 out EmbedData? embedData);
 
-        bool ShouldIgnoreMessage(DiscordUserID userID);
-    }
+    bool ShouldIgnore(DiscordUserId userID);
 }

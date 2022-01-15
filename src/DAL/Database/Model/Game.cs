@@ -13,14 +13,11 @@ namespace HoU.GuildBot.DAL.Database.Model
         }
 
         public short GameID { get; set; }
-        public string LongName { get; set; }
-        public string ShortName { get; set; }
+        public decimal PrimaryGameDiscordRoleID { get; set; }
         public int ModifiedByUserID { get; set; }
         public DateTime ModifiedAtTimestamp { get; set; }
-        public decimal? PrimaryGameDiscordRoleID { get; set; }
         public bool IncludeInGuildMembersStatistic { get; set; }
         public bool IncludeInGamesMenu { get; set; }
-        public string GameInterestEmojiName { get; set; }
         public decimal? GameInterestRoleId { get; set; }
 
         public virtual User ModifiedByUser { get; set; }

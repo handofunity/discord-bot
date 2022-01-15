@@ -2,7 +2,7 @@
 <strongTypes xmlns="https://www.github.com/Herdo/strongtypes"
              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
              xsi:schemaLocation="https://www.github.com/Herdo/strongtypes StrongTypesConfiguration.xsd">
-  <strongType name="InternalUserID"
+  <strongType name="InternalUserId"
               internalType="System.Int32"
               provideSystemTextJsonConverter="false">
     <excludeOperator>Add</excludeOperator>
@@ -14,7 +14,31 @@
     <excludeOperator>LessThanOrEqual</excludeOperator>
     <excludeOperator>GreaterThanOrEqual</excludeOperator>
   </strongType>
-  <strongType name="DiscordUserID"
+  <strongType name="InternalGameId"
+              internalType="System.Int16"
+              provideSystemTextJsonConverter="false">
+    <excludeOperator>Add</excludeOperator>
+    <excludeOperator>Subtract</excludeOperator>
+    <excludeOperator>Increment</excludeOperator>
+    <excludeOperator>Decrement</excludeOperator>
+    <excludeOperator>LessThan</excludeOperator>
+    <excludeOperator>GreaterThan</excludeOperator>
+    <excludeOperator>LessThanOrEqual</excludeOperator>
+    <excludeOperator>GreaterThanOrEqual</excludeOperator>
+  </strongType>
+  <strongType name="InternalGameRoleId"
+              internalType="System.Int16"
+              provideSystemTextJsonConverter="false">
+    <excludeOperator>Add</excludeOperator>
+    <excludeOperator>Subtract</excludeOperator>
+    <excludeOperator>Increment</excludeOperator>
+    <excludeOperator>Decrement</excludeOperator>
+    <excludeOperator>LessThan</excludeOperator>
+    <excludeOperator>GreaterThan</excludeOperator>
+    <excludeOperator>LessThanOrEqual</excludeOperator>
+    <excludeOperator>GreaterThanOrEqual</excludeOperator>
+  </strongType>
+  <strongType name="DiscordUserId"
               internalType="System.UInt64"
               provideSystemTextJsonConverter="false">
     <excludeOperator>Add</excludeOperator>
@@ -26,7 +50,7 @@
     <excludeOperator>LessThanOrEqual</excludeOperator>
     <excludeOperator>GreaterThanOrEqual</excludeOperator>
   </strongType>
-  <strongType name="DiscordChannelID"
+  <strongType name="DiscordChannelId"
               internalType="System.UInt64"
               provideSystemTextJsonConverter="false">
     <excludeOperator>Add</excludeOperator>
@@ -37,5 +61,29 @@
     <excludeOperator>GreaterThan</excludeOperator>
     <excludeOperator>LessThanOrEqual</excludeOperator>
     <excludeOperator>GreaterThanOrEqual</excludeOperator>
+  </strongType>
+  <strongType name="DiscordRoleId"
+              internalType="System.UInt64"
+              provideSystemTextJsonConverter="false">
+  	<excludeOperator>Add</excludeOperator>
+  	<excludeOperator>Subtract</excludeOperator>
+  	<excludeOperator>Increment</excludeOperator>
+  	<excludeOperator>Decrement</excludeOperator>
+  	<excludeOperator>LessThan</excludeOperator>
+  	<excludeOperator>GreaterThan</excludeOperator>
+  	<excludeOperator>LessThanOrEqual</excludeOperator>
+  	<excludeOperator>GreaterThanOrEqual</excludeOperator>
+  </strongType>
+  <strongType name="DiscordMessageId"
+              internalType="System.UInt64"
+              provideSystemTextJsonConverter="false">
+  	<excludeOperator>Add</excludeOperator>
+  	<excludeOperator>Subtract</excludeOperator>
+  	<excludeOperator>Increment</excludeOperator>
+  	<excludeOperator>Decrement</excludeOperator>
+  	<excludeOperator>LessThan</excludeOperator>
+  	<excludeOperator>GreaterThan</excludeOperator>
+  	<excludeOperator>LessThanOrEqual</excludeOperator>
+  	<excludeOperator>GreaterThanOrEqual</excludeOperator>
   </strongType>
 </strongTypes>

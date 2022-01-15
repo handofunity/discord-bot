@@ -1,10 +1,9 @@
-﻿namespace HoU.GuildBot.Shared.Enums
+﻿namespace HoU.GuildBot.Shared.Enums;
+
+public enum SpamCheckResult
 {
-    public enum SpamCheckResult
-    {
-        NoSpam = 0,
-        SoftLimitHit = 1,
-        BetweenSoftAndHardLimit = 2,
-        HardLimitHit = 3
-    }
+    NoSpam = 0,
+    SoftLimitHit = 1,
+    BetweenSoftAndHardLimit = 2,
+    HardLimitHit = 3
 }

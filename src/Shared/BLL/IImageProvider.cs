@@ -2,19 +2,18 @@
 using System.Threading.Tasks;
 using HoU.GuildBot.Shared.StrongTypes;
 
-namespace HoU.GuildBot.Shared.BLL
+namespace HoU.GuildBot.Shared.BLL;
+
+public interface IImageProvider
 {
-    public interface IImageProvider
-    {
-        Stream CreateAocClassDistributionImage();
+    Stream CreateAocClassDistributionImage();
 
-        Stream CreateAocPlayStyleDistributionImage();
+    Stream CreateAocPlayStyleDistributionImage();
 
-        Stream CreateAocRaceDistributionImage();
+    Stream CreateAocRaceDistributionImage();
 
-        Task<Stream> CreateProfileImage(DiscordUserID userID,
-                                        string avatarUrl);
+    Task<Stream> CreateProfileImage(DiscordUserId userID,
+                                    string avatarUrl);
 
-        Stream LoadClassListImage();
-    }
+    Stream LoadClassListImage();
 }

@@ -1,9 +1,3 @@
-﻿namespace HoU.GuildBot.Shared.Objects
-{
-    public class DesiredTimeZone
-    {
-        public string TimeZoneId { get; set; }
+﻿namespace HoU.GuildBot.Shared.Objects;
 
-        public string InvariantDisplayName { get; set; }
-    }
-}
+public record DesiredTimeZone(string TimeZoneId, string InvariantDisplayName);

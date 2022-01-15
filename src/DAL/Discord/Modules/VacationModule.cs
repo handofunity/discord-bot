@@ -1,217 +1,94 @@
 ﻿using System;
-using System.Globalization;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using global::Discord.Commands;
-using global::Discord.WebSocket;
+using Discord;
+using Discord.Interactions;
 using JetBrains.Annotations;
 using HoU.GuildBot.DAL.Discord.Preconditions;
-using HoU.GuildBot.Shared.Attributes;
 using HoU.GuildBot.Shared.BLL;
 using HoU.GuildBot.Shared.Enums;
 using HoU.GuildBot.Shared.StrongTypes;
 
-namespace HoU.GuildBot.DAL.Discord.Modules
+namespace HoU.GuildBot.DAL.Discord.Modules;
+
+[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
+[Group("vacation", "Commands related to vacations.")]
+public class VacationModule : InteractionModuleBase<SocketInteractionContext>
 {
-    [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
-    public class VacationModule : ModuleBaseHoU
+    private readonly IVacationProvider _vacationProvider;
+
+    public VacationModule(IVacationProvider vacationProvider)
     {
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////
-        #region Fields
+        _vacationProvider = vacationProvider;
+    }
 
-        private readonly IVacationProvider _vacationProvider;
+    [SlashCommand("add", "Adds a vacation entry.")]
+    [AllowedRoles(Role.AnyGuildMember)]
+    public async Task AddVacationAsync([Summary(description: "Format: yyyy-MM-dd")] DateTime startDate,
+                                       [Summary(description: "Format: yyyy-MM-dd")] DateTime? endDate = null,
+                                       [Summary(description: "Optional note that you want to leave for the leadership.")] string? note = null)
+    {
+        endDate ??= startDate;
 
-        #endregion
+        var response = await _vacationProvider.AddVacation((DiscordUserId)Context.User.Id, startDate, endDate.Value, note);
+        await RespondAsync(response, ephemeral: true);
+    }
 
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////
-        #region Constructors
-
-        public VacationModule(IVacationProvider vacationProvider)
+    [SlashCommand("list", "Lists all current and upcoming vacations, or for a specific date.")]
+    [AllowedRoles(Role.Leader | Role.Officer)]
+    public async Task ListAllVacationsAsync([Summary(description: "Format: yyyy-MM-dd")] DateTime? dateFilter = null)
+    {
+        if (dateFilter == null)
         {
-            _vacationProvider = vacationProvider;
+            var response = await _vacationProvider.GetVacations();
+            await RespondAsync(response);
         }
-
-        #endregion
-
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////
-        #region Commands
-
-        [Command("add vacation")]
-        [CommandCategory(CommandCategory.MemberManagement, 2)]
-        [Name("Add vacation entry")]
-        [Summary("Adds a vacation entry.")]
-        [Remarks("Syntax: _add vacation yyyy-mm-dd to yyyy-mm-dd optional note_ e.g.: _add vacation 2018-05-19 to 2018-05-20 weekend trip_.\r\n" +
-                 "The note and end date are optional, therefore _add vacation yyyy-mm-dd_, _add vacation yyyy-mm-dd to yyyy-mm-dd_ and _add vacation yyyy-mm-dd optional note_ are also valid.\r\n" +
-                 "Vacations can be added up to 12 months into the future.")]
-        [Alias("addvacation")]
-        [RequireContext(ContextType.DM)]
-        [ResponseContext(ResponseType.AlwaysSameChannel)]
-        [RolePrecondition(Role.AnyGuildMember)]
-        public async Task AddVacationAsync([Remainder] string messageContent)
+        else
         {
-            // Parse message content
-            var regex = new Regex(@"^(?<start>\d{4}-\d{2}-\d{2})( (to|until|up to|till|-) (?<end>\d{4}-\d{2}-\d{2}))? (?<note>.*)?$");
-            var match = regex.Match(messageContent);
-            if (!match.Success)
-            {
-                await ReplyAsync("Couldn't parse command parameter from message content. Please use the help function to see the correct command syntax.").ConfigureAwait(false);
-                return;
-            }
-
-            var startParsed = DateTime.TryParseExact(match.Groups["start"].Value, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var start);
-            if (!startParsed)
-            {
-                await ReplyAsync("Couldn't parse command parameter from message content. Please use the help function to see the correct command syntax.").ConfigureAwait(false);
-                return;
-            }
-            DateTime end;
-            if (match.Groups["end"].Success)
-            {
-                var endParsed = DateTime.TryParseExact(match.Groups["end"].Value, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out end);
-                if (!endParsed)
-                {
-                    await ReplyAsync("Couldn't parse command parameter from message content. Please use the help function to see the correct command syntax.").ConfigureAwait(false);
-                    return;
-                }
-            }
-            else
-            {
-                end = start;
-            }
-            var note = match.Groups["note"].Success
-                           ? match.Groups["note"].Value
-                           : null;
-
-            var response = await _vacationProvider.AddVacation((DiscordUserID)Context.User.Id, start, end, note).ConfigureAwait(false);
-            await ReplyAsync(response).ConfigureAwait(false);
+            var response = await _vacationProvider.GetVacations(dateFilter.Value);
+            await RespondAsync(response);
         }
+    }
 
-        [Command("list vacations")]
-        [CommandCategory(CommandCategory.MemberInformation, 3)]
-        [Name("List all vacations")]
-        [Summary("Lists all current and upcoming vacations, or for a specfic date.")]
-        [Remarks("Can be called with an optional data parameter to get the vacations for a specific date, e.g.: _list vacations 2018-05-20_ to get a list of everybody who's on vacation on the 20th May 2018.\r\n" +
-                 "Can also be called with parameters \"today\" and \"tomorrow\", e.g.: _list vacations today_ or _list vacations tomorrow_")]
-        [Alias("listvacations", "vacations")]
-        [RequireContext(ContextType.Guild)]
-        [ResponseContext(ResponseType.AlwaysSameChannel)]
-        [RolePrecondition(Role.Leader | Role.Officer)]
-        public async Task ListVacationsAsync([Remainder] string messageContent = null)
-        {
-            if (messageContent == null)
-            {
-                var response = await _vacationProvider.GetVacations().ConfigureAwait(false);
-                await ReplyAsync(response).ConfigureAwait(false);
-            }
-            else
-            {
-                switch (messageContent.ToLower())
-                {
-                    case "today":
-                    {
-                        var response = await _vacationProvider.GetVacations(DateTime.Today).ConfigureAwait(false);
-                        await ReplyAsync(response).ConfigureAwait(false);
-                        break;
-                    }
-                    case "tomorrow":
-                    {
-                        var response = await _vacationProvider.GetVacations(DateTime.Today.AddDays(1)).ConfigureAwait(false);
-                        await ReplyAsync(response).ConfigureAwait(false);
-                        break;
-                    }
-                    default:
-                    {
-                        var regex = new Regex(@"^(?<date>\d{4}-\d{2}-\d{2})$");
-                        var match = regex.Match(messageContent);
-                        if (!match.Success
-                            || !DateTime.TryParseExact(match.Groups["date"].Value, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var date))
-                        {
-                            await ReplyAsync("Couldn't parse command parameter from message content. Please use the help function to see the correct command syntax.").ConfigureAwait(false);
-                            return;
-                        }
-                        var response = await _vacationProvider.GetVacations(date).ConfigureAwait(false);
-                        await ReplyAsync(response).ConfigureAwait(false);
-                        break;
-                    }
-                }
-            }
-        }
+    [SlashCommand("list-today", "Lists all vacations for today.")]
+    [AllowedRoles(Role.Leader | Role.Officer)]
+    public async Task ListVacationsForTodayAsync()
+    {
+        var response = await _vacationProvider.GetVacations(DateTime.Today);
+        await RespondAsync(response);
+    }
 
-        [Command("list vacations")]
-        [CommandCategory(CommandCategory.MemberInformation, 4)]
-        [Name("List user related vacations")]
-        [Summary("Lists all current and upcoming vacations for a specific user.")]
-        [Remarks("Syntax: _list vacations @User_")]
-        [Alias("listvacations", "vacations")]
-        [RequireContext(ContextType.Guild)]
-        [ResponseContext(ResponseType.AlwaysSameChannel)]
-        [RolePrecondition(Role.Leader | Role.Officer)]
-        public async Task ListVacationsForUserAsync(SocketGuildUser guildUser)
-        {
-            var response = await _vacationProvider.GetVacations((DiscordUserID)guildUser.Id).ConfigureAwait(false);
-            await ReplyAsync(response).ConfigureAwait(false);
-        }
+    [SlashCommand("list-tomorrow", "Lists all vacations for tomorrow.")]
+    [AllowedRoles(Role.Leader | Role.Officer)]
+    public async Task ListVacationsForTomorrowAsync()
+    {
+        var response = await _vacationProvider.GetVacations(DateTime.Today.AddDays(1));
+        await RespondAsync(response);
+    }
 
-        [Command("delete vacation")]
-        [CommandCategory(CommandCategory.MemberManagement, 3)]
-        [Name("Delete vacation entry")]
-        [Summary("Deletes a vacation entry.")]
-        [Remarks("Syntax: _delete vacation yyyy-mm-dd to yyyy-mm-dd_ e.g.: _delete vacation 2018-05-19 to 2018-05-20_.\r\n" +
-                 "The end date is optional, therefore _delete vacation yyyy-mm-dd_ is also valid.")]
-        [Alias("deletevacation")]
-        [RequireContext(ContextType.DM)]
-        [ResponseContext(ResponseType.AlwaysSameChannel)]
-        [RolePrecondition(Role.AnyGuildMember)]
-        public async Task DeleteVacationAsync([Remainder] string messageContent)
-        {
-            // Parse message content
-            var regex = new Regex(@"^(?<start>\d{4}-\d{2}-\d{2})( (to|until|up to|till|-) (?<end>\d{4}-\d{2}-\d{2}))?$");
-            var match = regex.Match(messageContent);
-            if (!match.Success)
-            {
-                await ReplyAsync("Couldn't parse command parameter from message content. Please use the help function to see the correct command syntax.").ConfigureAwait(false);
-                return;
-            }
+    [SlashCommand("list-user", "Lists all current and upcoming vacations for a specific user.")]
+    [AllowedRoles(Role.Leader | Role.Officer)]
+    public async Task ListVacationsForUserAsync(IUser user)
+    {
+        var response = await _vacationProvider.GetVacations((DiscordUserId)user.Id);
+        await RespondAsync(response);
+    }
 
-            var startParsed = DateTime.TryParseExact(match.Groups["start"].Value, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var start);
-            if (!startParsed)
-            {
-                await ReplyAsync("Couldn't parse command parameter from message content. Please use the help function to see the correct command syntax.").ConfigureAwait(false);
-                return;
-            }
-            DateTime end;
-            if (match.Groups["end"].Success)
-            {
-                var endParsed = DateTime.TryParseExact(match.Groups["end"].Value, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out end);
-                if (!endParsed)
-                {
-                    await ReplyAsync("Couldn't parse command parameter from message content. Please use the help function to see the correct command syntax.").ConfigureAwait(false);
-                    return;
-                }
-            }
-            else
-            {
-                end = start;
-            }
+    [SlashCommand("list-mine", "Lists all current and upcoming vacations for you.")]
+    [AllowedRoles(Role.AnyGuildMember)]
+    public async Task ListUserVacationsAsync()
+    {
+        var response = await _vacationProvider.GetVacations((DiscordUserId)Context.User.Id);
+        await RespondAsync(response, ephemeral: true);
+    }
 
-            var response = await _vacationProvider.DeleteVacation((DiscordUserID)Context.User.Id, start, end).ConfigureAwait(false);
-            await ReplyAsync(response).ConfigureAwait(false);
-        }
+    [SlashCommand("delete", "Deletes a vacation entry.")]
+    [AllowedRoles(Role.AnyGuildMember)]
+    public async Task DeleteVacationAsync([Summary(description: "Format: yyyy-MM-dd")] DateTime startDate,
+                                          [Summary(description: "Format: yyyy-MM-dd")] DateTime? endDate = null)
+    {
+        endDate ??= startDate;
 
-        [Command("list my vacations")]
-        [CommandCategory(CommandCategory.MemberManagement, 1)]
-        [Name("Lists your vacations")]
-        [Summary("Lists all current and upcoming vacations for you.")]
-        [Alias("listmyvacations", "myvacations", "my vacations")]
-        [RequireContext(ContextType.DM)]
-        [ResponseContext(ResponseType.AlwaysSameChannel)]
-        [RolePrecondition(Role.AnyGuildMember)]
-        public async Task ListUserVacationsAsync()
-        {
-            var response = await _vacationProvider.GetVacations((DiscordUserID)Context.User.Id).ConfigureAwait(false);
-            await ReplyAsync(response).ConfigureAwait(false);
-        }
-
-        #endregion
+        var response = await _vacationProvider.DeleteVacation((DiscordUserId)Context.User.Id, startDate, endDate.Value);
+        await RespondAsync(response, ephemeral: true);
     }
 }

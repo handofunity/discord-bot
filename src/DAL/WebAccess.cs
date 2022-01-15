@@ -4,54 +4,35 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using HoU.GuildBot.Shared.DAL;
 
-namespace HoU.GuildBot.DAL
+namespace HoU.GuildBot.DAL;
+
+public class WebAccess : IWebAccess
 {
-    public class WebAccess : IWebAccess
+    private readonly ILogger<WebAccess> _logger;
+
+    public WebAccess(ILogger<WebAccess> logger)
     {
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////
-        #region Fields
+        _logger = logger;
+    }
 
-        private readonly ILogger<WebAccess> _logger;
+    async Task<byte[]?> IWebAccess.GetContentFromUrlAsync(string? url)
+    {
+        if (url == null)
+            return null;
 
-        #endregion
-
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////
-        #region Constructors
-
-        public WebAccess(ILogger<WebAccess> logger)
+        try
         {
-            _logger = logger;
+            using var client = new HttpClient();
+            using var result = await client.GetAsync(url);
+
+            return result.IsSuccessStatusCode
+                       ? await result.Content.ReadAsByteArrayAsync()
+                       : null;
         }
-
-        #endregion
-
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////
-        #region IWebAccess Members
-
-        async Task<byte[]> IWebAccess.GetDiscordAvatarByUrl(string url)
+        catch (Exception e)
         {
-            if (url == null)
-                return null;
-
-            try
-            {
-                using (var client = new HttpClient())
-                {
-                    using (var result = await client.GetAsync(url))
-                    {
-                        return result.IsSuccessStatusCode
-                                   ? await result.Content.ReadAsByteArrayAsync()
-                                   : null;
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, $"Failed to load Discord avatar for URL: {url}");
-                return null;
-            }
+            _logger.LogError(e, "Failed to load content from {Url}", url);
+            return null;
         }
-
-        #endregion
     }
 }
