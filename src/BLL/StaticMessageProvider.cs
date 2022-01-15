@@ -37,7 +37,7 @@ public class StaticMessageProvider : IStaticMessageProvider
         _logger = logger;
         _dynamicConfiguration = dynamicConfiguration;
 #if DEBUG
-        _provideStaticMessages = botInformationProvider.GetEnvironmentName() == Constants.RuntimeEnvironment.Development;
+        _provideStaticMessages = botInformationProvider.GetEnvironmentName() == Constants.RuntimeEnvironment.Production;
 #else
             // Don't change this statement, or the bot might not behave the way it should in the production environment.
             _provideStaticMessages = botInformationProvider.GetEnvironmentName() == Constants.RuntimeEnvironment.Production;

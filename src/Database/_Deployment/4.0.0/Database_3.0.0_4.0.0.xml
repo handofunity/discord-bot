@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<DeploymentReport xmlns="http://schemas.microsoft.com/sqlserver/dac/DeployReport/2012/02">
+    <Alerts>
+        <Alert Name="DataMotion">
+            <Issue Value="[config].[Game]" />
+        </Alert>
+        <Alert Name="DataIssue">
+            <Issue Value="Die Spalte &quot;[config].[Game].[GameInterestEmojiName]&quot; wird gelöscht, es könnte zu einem Datenverlust kommen." Id="1" />
+            <Issue Value="Die Spalte &quot;[config].[Game].[LongName]&quot; wird gelöscht, es könnte zu einem Datenverlust kommen." Id="2" />
+            <Issue Value="Die Spalte &quot;[config].[Game].[ShortName]&quot; wird gelöscht, es könnte zu einem Datenverlust kommen." Id="3" />
+            <Issue Value="Die Spalte &quot;[config].[GameRole].[RoleName]&quot; wird gelöscht, es könnte zu einem Datenverlust kommen." Id="4" />
+        </Alert>
+    </Alerts>
+    <Operations>
+        <Operation Name="Drop">
+            <Item Value="[config].[UQ_Game_LongName]" Type="SqlUniqueConstraint" />
+            <Item Value="[config].[UQ_Game_ShortName]" Type="SqlUniqueConstraint" />
+            <Item Value="[config].[UQ_GameRole_GameID_RoleName]" Type="SqlUniqueConstraint" />
+            <Item Value="[config].[FK_Game_User_ModifiedByUserID]" Type="SqlForeignKeyConstraint" />
+            <Item Value="[config].[FK_GameRole_Game_GameID]" Type="SqlForeignKeyConstraint" />
+        </Operation>
+        <Operation Name="TableRebuild">
+            <Item Value="[config].[Game]" Type="SqlTable">
+                <Issue Id="1" />
+                <Issue Id="2" />
+                <Issue Id="3" />
+            </Item>
+        </Operation>
+        <Operation Name="Alter">
+            <Item Value="[config].[GameRole]" Type="SqlTable">
+                <Issue Id="4" />
+            </Item>
+        </Operation>
+        <Operation Name="Create">
+            <Item Value="[config].[FK_Game_User_ModifiedByUserID]" Type="SqlForeignKeyConstraint" />
+            <Item Value="[config].[FK_GameRole_Game_GameID]" Type="SqlForeignKeyConstraint" />
+        </Operation>
+    </Operations>
+</DeploymentReport>
