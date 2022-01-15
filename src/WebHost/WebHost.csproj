@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <PublishWithAspNetCoreTargetManifest>false</PublishWithAspNetCoreTargetManifest>
-    <AssemblyName>HoU.GuildBot.WebHost</AssemblyName>
+    <AssemblyName>guildbot</AssemblyName>
     <RootNamespace>HoU.GuildBot.WebHost</RootNamespace>
     <DockerTargetOS>Linux</DockerTargetOS>
     <StartupObject>HoU.GuildBot.WebHost.Program</StartupObject>
