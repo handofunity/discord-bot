@@ -28,4 +28,4 @@ COPY --from=publish /app .
 RUN useradd -d /home/houguildbotuser -m -s /bin/bash houguildbotuser
 USER houguildbotuser
 
-ENTRYPOINT ["dotnet", "HoU.GuildBot.WebHost.dll"]
+ENTRYPOINT ["dotnet", "guildbot.dll"]

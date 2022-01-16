@@ -5,7 +5,7 @@ SEQ_API_KEY="$(sed -nr "/^\[Seq\]/ { :l /^ApiKey[ ]*=/ { s/.*=[ ]*//; p; q;}; n;
 DISCORD_BOT_TOKEN="$(sed -nr "/^\[Discord\]/ { :l /^BotToken[ ]*=/ { s/.*=[ ]*//; p; q;}; n; b l;}" ./settings.production.ini)"
 
 docker run -d \
-  --name guild-bot \
+  --name guildbot \
   --restart unless-stopped \
   --read-only \
   --cap-drop=ALL \
@@ -23,4 +23,4 @@ docker run -d \
   -e Seq__serverUrl="$SEQ_SERVER_URL" \
   -e Seq__apiKey="$SEQ_API_KEY" \
   -e Discord__botToken="$DISCORD_BOT_TOKEN" \
-  handofunity/guild-bot:latest
+  handofunity/guildbot:latest

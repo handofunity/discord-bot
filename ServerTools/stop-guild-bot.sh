@@ -1,2 +1,2 @@
-docker container stop guild-bot
-docker container rm guild-bot
+docker container stop guildbot
+docker container rm guildbot

@@ -1,1 +1,1 @@
-docker pull handofunity/guild-bot:latest
+docker pull handofunity/guildbot:latest

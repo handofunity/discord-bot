@@ -1,4 +1,7 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using System;
+using System.Buffers.Text;
+using System.Text;
+using Microsoft.Extensions.Configuration;
 
 namespace HoU.GuildBot.Shared.Objects;
 
