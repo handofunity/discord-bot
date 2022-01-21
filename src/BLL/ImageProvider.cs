@@ -136,7 +136,7 @@ public class ImageProvider : IImageProvider
                                    var rightOffset = leftOffset + BarChartDrawingData.BarWidth;
                                    var bottomOffset = topOffset + barHeight;
                                    var rect = new SKRect(leftOffset, topOffset, rightOffset, bottomOffset);
-                                   var color = barChartDrawingData.BarColors[roleName];
+                                   var color = barChartDrawingData.BarColors.Single(m => roleName.Contains(m.Key)).Value;
                                    var barPaint = new SKPaint { Color = color };
                                    canvas.DrawRect(rect, barPaint);
 
