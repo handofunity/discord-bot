@@ -66,8 +66,11 @@ public class ImageProvider : IImageProvider
         // Collect data
         var game = _gameRoleProvider.Games.Single(m => m.PrimaryGameDiscordRoleId == primaryGameDiscordRoleId);
         var (gameMembers, roleDistribution) = _gameRoleProvider.GetGameRoleDistribution(game);
-        roleDistribution = roleDistribution.Where(m => rolesInChart.Any(r => m.Key.EndsWith(r)))
-                                           .ToDictionary(m => m.Key, m => m.Value);
+        roleDistribution = (from rd in roleDistribution
+                            from ric in rolesInChart
+                            where rd.Key.EndsWith(ric)
+                            select new { RoleName = ric, Count = rd.Value })
+           .ToDictionary(m => m.RoleName, m => m.Count);
             
         // Load background and foreground image
         var backgroundImage = GetImageFromResource(barChartDrawingData.BackgroundImageName);
@@ -136,8 +139,8 @@ public class ImageProvider : IImageProvider
                                    var rightOffset = leftOffset + BarChartDrawingData.BarWidth;
                                    var bottomOffset = topOffset + barHeight;
                                    var rect = new SKRect(leftOffset, topOffset, rightOffset, bottomOffset);
-                                   var color = barChartDrawingData.BarColors.Single(m => roleName.Contains(m.Key)).Value;
-                                   var barPaint = new SKPaint { Color = color };
+                                   var barColor = barChartDrawingData.BarColors[roleName];
+                                   var barPaint = new SKPaint { Color = barColor };
                                    canvas.DrawRect(rect, barPaint);
 
                                    // Amount label
