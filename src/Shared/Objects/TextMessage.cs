@@ -1,8 +1,6 @@
-﻿using HoU.GuildBot.Shared.StrongTypes;
+﻿using System.Collections.Generic;
 
 namespace HoU.GuildBot.Shared.Objects;
 
-public record TextMessage(DiscordChannelId ChannelId,
-                          DiscordMessageId MessageId,
-                          string Content,
-                          string[] CustomIds);
+public record TextMessage(string Content,
+                          Dictionary<string,Dictionary<string, string>?> CustomIdsAndOptions);

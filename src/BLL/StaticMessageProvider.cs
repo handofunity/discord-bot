@@ -247,6 +247,18 @@ public class StaticMessageProvider : IStaticMessageProvider
         }).ConfigureAwait(false);
     }
 
+    private void ReCreateGameInterestMessages()
+    {
+        Task.Run(async () =>
+        {
+            var infosAndRolesChannelId = (DiscordChannelId)_dynamicConfiguration.DiscordMapping["InfoAndRolesChannelId"];
+            var expectedChannelMessages = new Dictionary<DiscordChannelId, ExpectedChannelMessages>();
+            await LoadInfosAndRolesMenuMessages(expectedChannelMessages);
+            var messages = expectedChannelMessages[infosAndRolesChannelId];
+            await CreateMessagesInChannel(infosAndRolesChannelId, messages);
+        }).ConfigureAwait(false);
+    }
+
     public IDiscordAccess DiscordAccess
     {
         set => _discordAccess = value;
@@ -270,9 +282,11 @@ public class StaticMessageProvider : IStaticMessageProvider
             var existingMessages = await DiscordAccess.GetBotMessagesInChannel(pair.Key);
             if (existingMessages.Length != pair.Value.Messages.Length)
             {
-                // If the count is different, we don't have to check every message
+                // If the count of messages or action components is different, we don't have to check every message/action component.
                 _logger.LogInformation("Messages in channel '{Channel}' are incomplete or too many ({ExistingMessages}/{ExpectedMessages}).",
-                                       channelLocationAndName, existingMessages.Length, pair.Value.Messages.Length);
+                                       channelLocationAndName,
+                                       existingMessages.Length,
+                                       pair.Value.Messages.Length);
                 await CreateMessagesInChannel(pair.Key, pair.Value);
             }
             // If the count is the same, check if all messages are the same, in the correct order
@@ -282,16 +296,62 @@ public class StaticMessageProvider : IStaticMessageProvider
                 _logger.LogInformation("Messages in channel '{Channel}' are in the wrong order or have the wrong content.", channelLocationAndName);
                 await CreateMessagesInChannel(pair.Key, pair.Value);
             }
-            else
+            // If the messages are OK, we need to check the action components and options for correctness.
+            else if (AreActionComponentsCorrect(existingMessages, pair.Value.Messages))
             {
-                // If the count is the same, and all messages are the same, provide existing custom ids to dependent classes.
+                // If the count is the same, and all messages are the same, and the action components are correct, provide existing custom ids to dependent classes.
                 if (pair.Key == gamesRolesChannelId)
                 {
-                    _gameRoleProvider.GamesRolesCustomIds = existingMessages.SelectMany(m => m.CustomIds).ToArray();
+                    _gameRoleProvider.GamesRolesCustomIds = existingMessages.SelectMany(m => m.CustomIdsAndOptions.Keys).ToArray();
                 }
                 _logger.LogInformation("Messages in channel '{Channel}' are correct.", channelLocationAndName);
             }
+            else
+            {
+                // If the actions components or options are not correct, we need to re-create all of them.
+                _logger.LogInformation("Action components or options in channel '{Channel}' have the wrong count, are in the wrong order or have the wrong content.",
+                                       channelLocationAndName);
+                await CreateMessagesInChannel(pair.Key, pair.Value);
+            }
         }
+    }
+
+    private static bool AreActionComponentsCorrect(TextMessage[] existingMessages,
+                                                   ExpectedChannelMessage[] expectedChannelMessages)
+    {
+        var match = existingMessages.Join(expectedChannelMessages,
+                                          existingMessage => existingMessage.Content,
+                                          expectedMessage => expectedMessage.Content,
+                                          (existingMessage,
+                                           expectedMessage) => new { existingMessage, expectedMessage })
+                                    .ToArray();
+        foreach (var pair in match)
+        {
+            if (pair.existingMessage.CustomIdsAndOptions.Count != pair.expectedMessage.Components.Count)
+                // If the count of custom ids and expected action components differ, the action components are not correct.
+                return false;
+
+            foreach (var selectMenuComponent in pair.expectedMessage.Components.OfType<SelectMenuComponent>())
+            {
+                // Get existing options for the expected custom id.
+                if (!pair.existingMessage.CustomIdsAndOptions.TryGetValue(selectMenuComponent.CustomId, out var existingOptions)
+                    || existingOptions == null)
+                    return false;
+
+                // Select menu components should have the same length and order of options.
+                if (existingOptions.Count != selectMenuComponent.Options.Count)
+                    return false;
+                for (var i = 0; i < selectMenuComponent.Options.Count; i++)
+                {
+                    var (actualKey, actualValue) = existingOptions.ElementAt(i);
+                    var (expectedKey, expectedValue) = selectMenuComponent.Options.ElementAt(i);
+                    if (actualKey != expectedKey || actualValue != expectedValue)
+                        return false;
+                }
+            }
+        }
+
+        return true;
     }
 
     private void GameRoleProvider_GameChanged(object? sender, GameChangedEventArgs e)
@@ -301,6 +361,7 @@ public class StaticMessageProvider : IStaticMessageProvider
          || e.GameModification == GameModification.Removed)
         {
             ReCreateGameRoleMenuMessages();
+            ReCreateGameInterestMessages();
         }
     }
 

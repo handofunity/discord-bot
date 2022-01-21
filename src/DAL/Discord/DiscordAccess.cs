@@ -811,36 +811,39 @@ public class DiscordAccess : IDiscordAccess
                 continue;
 
             result.AddRange(enumerator.Current.Where(m => m.Author.Id == _client.CurrentUser.Id)
-                                      .Select(message => new TextMessage((DiscordChannelId)message.Channel.Id,
-                                                                         (DiscordMessageId)message.Id,
-                                                                         message.Content,
-                                                                         GetCustomIds(message.Components))));
+                                      .Select(message => new TextMessage(message.Content,
+                                                                         GetCustomIdsAndOptions(message.Components))));
         }
 
         result.Reverse();
         return result.ToArray();
 
-        static string[] GetCustomIds(IEnumerable<IMessageComponent> components)
+        static Dictionary<string, Dictionary<string, string>?> GetCustomIdsAndOptions(IEnumerable<IMessageComponent> components)
         {
-            var customIds = new List<string>();
+            var customIds = new Dictionary<string, Dictionary<string, string>?>();
 
             foreach (var messageComponent in components)
             {
                 switch (messageComponent.Type)
                 {
                     case ComponentType.ActionRow:
-                        customIds.AddRange(GetCustomIds(((ActionRowComponent)messageComponent).Components));
+                        var nested = GetCustomIdsAndOptions(((ActionRowComponent)messageComponent).Components);
+                        foreach (var n in nested)
+                            customIds[n.Key] = n.Value;
                         break;
                     case ComponentType.Button:
+                        customIds.Add(messageComponent.CustomId, null);
+                        break;
                     case ComponentType.SelectMenu:
-                        customIds.Add(messageComponent.CustomId);
+                        if (messageComponent is global::Discord.SelectMenuComponent selectMenuComponent)
+                            customIds.Add(messageComponent.CustomId, selectMenuComponent.Options.ToDictionary(m => m.Value, m => m.Label));
                         break;
                     default:
                         throw new ArgumentOutOfRangeException(nameof(messageComponent), "Unknown component type.");
                 }
             }
 
-            return customIds.ToArray();
+            return customIds;
         }
     }
 
