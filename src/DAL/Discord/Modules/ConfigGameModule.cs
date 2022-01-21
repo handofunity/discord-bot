@@ -151,7 +151,7 @@ public partial class ConfigModule
 
         [SlashCommand("set-interest-role", "Sets the role that should be used if non-members have interest to play the game.")]
         [AllowedRoles(Role.Developer | Role.Leader | Role.Officer)]
-        public async Task SetGameInterestRoleAsync(IRole game, IRole? interestRole)
+        public async Task SetGameInterestRoleAsync(IRole game, IRole? interestRole = null)
         {
             if (!_userStore.TryGetUser((DiscordUserId)Context.User.Id, out var user))
             {
