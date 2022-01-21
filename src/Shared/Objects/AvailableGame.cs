@@ -4,7 +4,7 @@ using HoU.GuildBot.Shared.StrongTypes;
 
 namespace HoU.GuildBot.Shared.Objects;
 
-[DebuggerDisplay("{" + nameof(PrimaryGameDiscordRoleId) + "(),nq}")]
+[DebuggerDisplay("{" + nameof(GetDebuggerDisplay) + "(),nq}")]
 public class AvailableGame
 {
     public DiscordRoleId PrimaryGameDiscordRoleId { get; init; }
@@ -23,6 +23,11 @@ public class AvailableGame
     {
         AvailableRoles = new List<AvailableGameRole>();
     }
+
+    private string GetDebuggerDisplay() =>
+        string.IsNullOrWhiteSpace(DisplayName)
+            ? PrimaryGameDiscordRoleId.ToString()
+            : DisplayName;
 
     public AvailableGame Clone()
     {

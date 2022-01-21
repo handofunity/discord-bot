@@ -66,7 +66,7 @@ public class ImageProvider : IImageProvider
         // Collect data
         var game = _gameRoleProvider.Games.Single(m => m.PrimaryGameDiscordRoleId == primaryGameDiscordRoleId);
         var (gameMembers, roleDistribution) = _gameRoleProvider.GetGameRoleDistribution(game);
-        roleDistribution = roleDistribution.Where(m => rolesInChart.Any(r => r.EndsWith(m.Key)))
+        roleDistribution = roleDistribution.Where(m => rolesInChart.Any(r => m.Key.EndsWith(r)))
                                            .ToDictionary(m => m.Key, m => m.Value);
             
         // Load background and foreground image
