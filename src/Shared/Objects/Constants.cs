@@ -24,6 +24,7 @@ public static class Constants
         public const string AocPlayStyleMenu = "AocPlayStyleMenu";
         public const string AocRaceMenu = "AocRaceMenu";
         public const string WowRoleMenu = "WowRoleMenu";
+        public const string LostArkRoleMenu = "LostArkRoleMenu";
         public const string GamesRolesMenu = "GamesRolesMenu";
         public const string FriendOrGuestMenu = "FriendOrGuestMenu";
         public const string GameInterestMenu = "GameInterestMenu";
@@ -113,6 +114,21 @@ public static class Constants
                 {"tank", "Tank"},
                 {"healer", "Healer"},
                 {"dps", "DPS"}
+            };
+    }
+
+    public static class LostArkClassMenu
+    {
+        public const string CustomId = "272b3c09-a9e8-444d-b5e9-febd46a24718";
+
+        public static IDictionary<string, string> GetOptions() =>
+            new Dictionary<string, string>
+            {
+                {"warrior", "Warrior"},
+                {"martialartist", "Martial Artist"},
+                {"mage", "Mage"},
+                {"assassin", "Assassin"},
+                {"gunner", "Gunner"}
             };
     }
 }

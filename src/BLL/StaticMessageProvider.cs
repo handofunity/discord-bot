@@ -104,6 +104,19 @@ public class StaticMessageProvider : IStaticMessageProvider
         expectedChannelMessages[(DiscordChannelId)_dynamicConfiguration.DiscordMapping["WorldOfWarcraftRoleChannelId"]] = new ExpectedChannelMessages(l);
     }
 
+    private async Task LoadLostArkRoleMenuMessages(IDictionary<DiscordChannelId, ExpectedChannelMessages> expectedChannelMessages)
+    {
+        if (!_provideStaticMessages)
+            return;
+
+        var l = new List<ExpectedChannelMessage>
+        {
+            new(await _messageProvider.GetMessage(Constants.MessageNames.LostArkRoleMenu))
+        };
+        AddLostArkRoleMenuComponents(l);
+        expectedChannelMessages[(DiscordChannelId)_dynamicConfiguration.DiscordMapping["LostArkRoleChannelId"]] = new ExpectedChannelMessages(l);
+    }
+
     private async Task CreateMessagesInChannel(DiscordChannelId channelID,
                                                ExpectedChannelMessages messages)
     {
@@ -235,6 +248,19 @@ public class StaticMessageProvider : IStaticMessageProvider
                                                            true));
     }
 
+    private static void AddLostArkRoleMenuComponents(List<ExpectedChannelMessage> messages)
+    {
+        if (messages.Count != 1)
+            throw new ArgumentException("Unexpected amount of messages received.", nameof(messages));
+
+        // Class menu
+        messages[0].Components.Add(new SelectMenuComponent(Constants.LostArkClassMenu.CustomId,
+                                                           0,
+                                                           "Select classes ...",
+                                                           Constants.LostArkClassMenu.GetOptions(),
+                                                           true));
+    }
+
     private void ReCreateGameRoleMenuMessages()
     {
         Task.Run(async () =>
@@ -273,6 +299,7 @@ public class StaticMessageProvider : IStaticMessageProvider
         await LoadGamesRolesMenuMessages(expectedChannelMessages);
         await LoadAocRoleMenuMessages(expectedChannelMessages);
         await LoadWowRoleMenuMessages(expectedChannelMessages);
+        await LoadLostArkRoleMenuMessages(expectedChannelMessages);
         
         var gamesRolesChannelId = (DiscordChannelId)_dynamicConfiguration.DiscordMapping["GamesRolesChannelId"];
         foreach (var pair in expectedChannelMessages)

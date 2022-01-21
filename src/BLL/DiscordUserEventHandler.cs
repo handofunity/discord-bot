@@ -171,7 +171,18 @@ public class DiscordUserEventHandler : IDiscordUserEventHandler
                                                                     == worldOfWarcraftPrimaryGameRoleId),
                                                                    values);
         }
-        
+
+        if (customId is Constants.LostArkClassMenu.CustomId)
+        {
+            // If the action is the Lost Ark role menu action, forward the data to the game role provider.
+            var lostArkPrimaryGameRoleId = (DiscordRoleId)_dynamicConfiguration.DiscordMapping["LostArkPrimaryGameRoleId"];
+            return await _gameRoleProvider.ToggleGameSpecificRolesAsync(userId,
+                                                                        customId,
+                                                                        _gameRoleProvider.Games.Single(m => m.PrimaryGameDiscordRoleId
+                                                                         == lostArkPrimaryGameRoleId),
+                                                                        values);
+        }
+
         if (_gameRoleProvider.GamesRolesCustomIds.Contains(customId))
         {
             // If the message is one of the games roles menu messages, forward the data to the game role provider.
