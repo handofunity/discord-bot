@@ -110,14 +110,9 @@ public static class Constants
         public static IDictionary<string, string> GetOptions() =>
             new Dictionary<string, string>
             {
-                {"druid", "Druid"},
-                {"hunter", "Hunter"},
-                {"mage", "Mage"},
-                {"paladin", "Paladin"},
-                {"priest", "Priest"},
-                {"rogue", "Rogue"},
-                {"warlock", "Warlock"},
-                {"warrior", "Warrior"}
+                {"tank", "Tank"},
+                {"healer", "Healer"},
+                {"dps", "DPS"}
             };
     }
 }
