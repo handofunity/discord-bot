@@ -540,6 +540,7 @@ public class DiscordAccess : IDiscordAccess
                 var menuBuilder = new SelectMenuBuilder()
                                  .WithCustomId(selectMenu.CustomId)
                                  .WithPlaceholder(selectMenu.Placeholder)
+                                 .WithMinValues(0)
                                  .WithMaxValues(selectMenu.AllowMultiple ? selectMenu.Options.Count : 1);
                 foreach (var (optionKey, label) in selectMenu.Options)
                     menuBuilder.AddOption(label, optionKey);
@@ -1386,6 +1387,7 @@ public class DiscordAccess : IDiscordAccess
         var response = await _discordUserEventHandler
                           .HandleMessageComponentExecutedAsync((DiscordUserId)component.User.Id,
                                                                component.Data.CustomId,
+                                                               null,
                                                                component.Data.Values)
                     ?? "Internal error.";
         await component.RespondAsync(response, ephemeral: true);
@@ -1393,9 +1395,17 @@ public class DiscordAccess : IDiscordAccess
 
     private async Task Client_SelectMenuExecuted(SocketMessageComponent component)
     {
+        var availableOptions =
+            component.Message
+                     .Components
+                     .SelectMany(c => c.Components.OfType<global::Discord.SelectMenuComponent>()
+                                       .Where(smc => smc.CustomId == component.Data.CustomId)
+                                       .SelectMany(smc => smc.Options.Select(smo => smo.Value)))
+                     .ToArray();
         var response = await _discordUserEventHandler
                           .HandleMessageComponentExecutedAsync((DiscordUserId)component.User.Id,
                                                                component.Data.CustomId,
+                                                               availableOptions,
                                                                component.Data.Values)
                     ?? "Internal error.";
         await component.RespondAsync(response, ephemeral: true);

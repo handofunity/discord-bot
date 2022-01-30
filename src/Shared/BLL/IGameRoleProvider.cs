@@ -39,10 +39,12 @@ public interface IGameRoleProvider
     Task<(bool Success, string Message, AvailableGameRole? RemovedGameRole)> RemoveGameRoleAsync(DiscordRoleId discordRoleID);
 
     Task<string?> ToggleGameSpecificRolesAsync(DiscordUserId userId,
-                                          string customId,
-                                          AvailableGame game,
-                                          IReadOnlyCollection<string> values);
+                                               string customId,
+                                               AvailableGame game,
+                                               IReadOnlyCollection<string> availableOptions,
+                                               IReadOnlyCollection<string> selectedValues);
 
     Task<string?> TogglePrimaryGameRolesAsync(DiscordUserId userId,
-                                  AvailableGame[] games);
+                                              AvailableGame[] availableGames,
+                                              AvailableGame[] selectedGames);
 }

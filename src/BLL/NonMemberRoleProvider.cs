@@ -45,7 +45,8 @@ public class NonMemberRoleProvider : INonMemberRoleProvider
 
     async Task<string> INonMemberRoleProvider.ToggleNonMemberRoleAsync(DiscordUserId userId,
                                                                        string customId,
-                                                                       IReadOnlyCollection<string> values)
+                                                                       IReadOnlyCollection<string>? availableOptions,
+                                                                       IReadOnlyCollection<string> selectedValues)
     {
         if (!_userStore.TryGetUser(userId, out var user))
             return "Couldn't find user to edit.";
@@ -53,38 +54,84 @@ public class NonMemberRoleProvider : INonMemberRoleProvider
             return "The bot is not allowed to change your roles.";
 
         var staticRole = MapCustomIdToStaticRole(customId);
-        if (staticRole == Role.NoRole)
+        return staticRole == Role.NoRole
+                   ? await ToggleGameInterestRolesAsync(userId, availableOptions, selectedValues, user!)
+                   : await ToggleStaticRolesAsync(userId, staticRole, user!);
+    }
+
+    private async Task<string> ToggleGameInterestRolesAsync(DiscordUserId userId,
+                                                            IReadOnlyCollection<string>? availableOptions,
+                                                            IReadOnlyCollection<string> values,
+                                                            User user)
+    {
+        if (availableOptions == null)
+            throw new ArgumentNullException(nameof(availableOptions),
+                                            $"The {nameof(availableOptions)} are required for game interest roles.");
+
+        var desiredRoleIds = availableOptions.Intersect(values)
+                                             .Select(m => (DiscordRoleId)ulong.Parse(m))
+                                             .Where(IsGameInterestRole)
+                                             .ToArray();
+        var undesiredRoleIds = availableOptions.Except(values)
+                                               .Select(m => (DiscordRoleId)ulong.Parse(m))
+                                               .Where(IsGameInterestRole)
+                                               .ToArray();
+        var userRoleIds = DiscordAccess.GetUserRoles(userId);
+        var rolesToAdd = desiredRoleIds.Except(userRoleIds).ToArray();
+        var rolesToRemove = undesiredRoleIds.Intersect(userRoleIds).ToArray();
+
+        var sb = new StringBuilder();
+        var logSb = new StringBuilder();
+
+        foreach (var discordRoleId in rolesToAdd)
         {
-            var sb = new StringBuilder();
+            var (success, roleName) = await DiscordAccess.TryAddNonMemberRole(userId, discordRoleId);
+            sb.AppendLine(success
+                              ? $"Successfully assigned the role **{roleName}**."
+                              : $"Failed to assign the role **{roleName}**.");
+            if (success)
+                logSb.AppendLine($"User {user!.Mention} **added** the role **_{roleName}_**.");
+        }
 
-            foreach (var selectedValue in values)
-            {
-                if (!ulong.TryParse(selectedValue, out var selectedRoleId))
-                    continue;
+        foreach (var discordRoleId in rolesToRemove)
+        {
+            var (success, roleName) = await DiscordAccess.TryRevokeNonMemberRole(userId, discordRoleId);
+            sb.AppendLine(success
+                              ? $"Successfully revoked the role **{roleName}**."
+                              : $"Failed to revoke the role **{roleName}**.");
+            if (success)
+                logSb.AppendLine($"User {user!.Mention} **revoked** the role **_{roleName}_**.");
+        }
 
-                var roleId = (DiscordRoleId)selectedRoleId;
-                if (IsGameInterestRole(roleId) == false)
-                    continue;
+        await DiscordAccess.LogToDiscord(logSb.ToString());
 
-                var (success, roleName) = await DiscordAccess.TryAddNonMemberRole(userId, roleId);
-                if (success)
-                {
-                    await DiscordAccess.LogToDiscord($"User {user!.Mention} **added** the role **_{roleName}_**.");
-                    sb.AppendLine($"The role **_{roleName}_** was **added**.");
-                }
-            }
+        return sb.Length > 0
+                   ? sb.ToString()
+                   : "No roles were added or removed.";
+    }
 
-            return sb.Length > 0
-                       ? sb.ToString()
-                       : "No roles were added.";
+    private async Task<string> ToggleStaticRolesAsync(DiscordUserId userId,
+                                                      Role staticRole,
+                                                      User user)
+    {
+        var remove = user.Roles.HasFlag(Role.Guest) && staticRole == Role.Guest
+                  || user.Roles.HasFlag(Role.FriendOfMember) && staticRole == Role.FriendOfMember;
+
+        if (remove)
+        {
+            var removed = await DiscordAccess.TryRevokeNonMemberRole(userId, staticRole);
+            if (!removed)
+                return "Failed to identify matching role.";
+
+            await DiscordAccess.LogToDiscord($"User {user.Mention} **removed** the role **_{staticRole}_**.");
+            return $"The role **_{staticRole}_** was **removed**.";
         }
 
         var added = await DiscordAccess.TryAddNonMemberRole(userId, staticRole);
         if (!added)
             return "Failed to identify matching role.";
 
-        await DiscordAccess.LogToDiscord($"User {user!.Mention} **added** the role **_{staticRole}_**.");
+        await DiscordAccess.LogToDiscord($"User {user.Mention} **added** the role **_{staticRole}_**.");
         return $"The role **_{staticRole}_** was **added**.";
-
     }
 }

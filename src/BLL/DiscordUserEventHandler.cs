@@ -142,23 +142,30 @@ public class DiscordUserEventHandler : IDiscordUserEventHandler
 
     async Task<string?> IDiscordUserEventHandler.HandleMessageComponentExecutedAsync(DiscordUserId userId,
                                                                                      string customId,
-                                                                                     IReadOnlyCollection<string> values)
+                                                                                     IReadOnlyCollection<string>? availableOptions,
+                                                                                     IReadOnlyCollection<string> selectedValues)
     {
         if (customId == Constants.GameInterestMenu.CustomId || Constants.FriendOrGuestMenu.GetOptions().ContainsKey(customId))
         {
             // If the message is from the friend or guest menu, forward the data to the non-member role provider.
-            return await _nonMemberRoleProvider.ToggleNonMemberRoleAsync(userId, customId, values);
+            return await _nonMemberRoleProvider.ToggleNonMemberRoleAsync(userId, customId, availableOptions, selectedValues);
         }
+
+        // All other options require the availableOptions to be set.
+        if (availableOptions == null)
+            throw new ArgumentNullException(nameof(availableOptions),
+                                            $"For the given {nameof(customId)} the {nameof(availableOptions)} must be set.");
 
         if (customId is Constants.AocArchetypeMenu.CustomId or Constants.AocRaceMenu.CustomId or Constants.AocPlayStyleMenu.CustomId)
         {
             // If the action is one of the AoC role menu actions, forward the data to the game role provider.
             var ashesOfCreationPrimaryGameDiscordRoleId = (DiscordRoleId)_dynamicConfiguration.DiscordMapping["AshesOfCreationPrimaryGameDiscordRoleId"];
             return await _gameRoleProvider.ToggleGameSpecificRolesAsync(userId,
-                                                                   customId,
-                                                                   _gameRoleProvider.Games.Single(m => m.PrimaryGameDiscordRoleId
-                                                                    == ashesOfCreationPrimaryGameDiscordRoleId),
-                                                                   values);
+                                                                        customId,
+                                                                        _gameRoleProvider.Games.Single(m => m.PrimaryGameDiscordRoleId
+                                                                         == ashesOfCreationPrimaryGameDiscordRoleId),
+                                                                        availableOptions,
+                                                                        selectedValues);
         }
 
         if (customId is Constants.WowClassMenu.CustomId)
@@ -166,10 +173,11 @@ public class DiscordUserEventHandler : IDiscordUserEventHandler
             // If the action is the WoW role menu action, forward the data to the game role provider.
             var worldOfWarcraftPrimaryGameRoleId = (DiscordRoleId)_dynamicConfiguration.DiscordMapping["WorldOfWarcraftPrimaryGameRoleId"];
             return await _gameRoleProvider.ToggleGameSpecificRolesAsync(userId,
-                                                                   customId,
-                                                                   _gameRoleProvider.Games.Single(m => m.PrimaryGameDiscordRoleId
-                                                                    == worldOfWarcraftPrimaryGameRoleId),
-                                                                   values);
+                                                                        customId,
+                                                                        _gameRoleProvider.Games.Single(m => m.PrimaryGameDiscordRoleId
+                                                                         == worldOfWarcraftPrimaryGameRoleId),
+                                                                        availableOptions,
+                                                                        selectedValues);
         }
 
         if (customId is Constants.LostArkClassMenu.CustomId)
@@ -180,14 +188,20 @@ public class DiscordUserEventHandler : IDiscordUserEventHandler
                                                                         customId,
                                                                         _gameRoleProvider.Games.Single(m => m.PrimaryGameDiscordRoleId
                                                                          == lostArkPrimaryGameRoleId),
-                                                                        values);
+                                                                        availableOptions,
+                                                                        selectedValues);
         }
 
         if (_gameRoleProvider.GamesRolesCustomIds.Contains(customId))
         {
             // If the message is one of the games roles menu messages, forward the data to the game role provider.
-            var games = _gameRoleProvider.Games.Where(m => values.Contains(m.PrimaryGameDiscordRoleId.ToString())).ToArray();
-            return await _gameRoleProvider.TogglePrimaryGameRolesAsync(userId, games);
+            var selectedGames = _gameRoleProvider.Games
+                                                 .Where(m => selectedValues.Contains(m.PrimaryGameDiscordRoleId.ToString()))
+                                                 .ToArray();
+            var availableGames = _gameRoleProvider.Games
+                                                  .Where(m => availableOptions.Contains(m.PrimaryGameDiscordRoleId.ToString()))
+                                                  .ToArray();
+            return await _gameRoleProvider.TogglePrimaryGameRolesAsync(userId, availableGames, selectedGames);
         }
 
         // CustomId is unknown.

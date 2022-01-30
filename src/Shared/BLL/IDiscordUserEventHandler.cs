@@ -24,7 +24,17 @@ public interface IDiscordUserEventHandler
 
     Task HandleStatusChanged(DiscordUserId userID, bool wasOnline, bool isOnline);
 
+    /// <summary>
+    /// Handles the action a user created on a message component.
+    /// </summary>
+    /// <param name="userId">The Id of the user who triggered the action.</param>
+    /// <param name="customId">The custom Id of the component the user interacted with.</param>
+    /// <param name="availableOptions">All available options for the <paramref name="customId"/>.
+    /// Should be <b>null</b> for a button.</param>
+    /// <param name="selectedValues">The selected values in the given action component.</param>
+    /// <returns>Any success or error message that can be forwarded as response.</returns>
     Task<string?> HandleMessageComponentExecutedAsync(DiscordUserId userId,
-                                                string customId,
-                                                IReadOnlyCollection<string> values);
+                                                      string customId,
+                                                      IReadOnlyCollection<string>? availableOptions,
+                                                      IReadOnlyCollection<string> selectedValues);
 }
