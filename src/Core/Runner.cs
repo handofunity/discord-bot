@@ -26,7 +26,7 @@ namespace HoU.GuildBot.Core;
 
 public class Runner
 {
-    private static readonly Version _botVersion = new(7, 1, 3);
+    private static readonly Version _botVersion = new(7, 2, 0);
 
     private BackgroundJobServer? _backgroundJobServer;
     private ILogger<Runner>? _logger;

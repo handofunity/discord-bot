@@ -16,4 +16,6 @@ public interface IImageProvider
                                     string avatarUrl);
 
     Stream LoadClassListImage();
+
+    Stream CreateLostArkClassDistributionImage();
 }

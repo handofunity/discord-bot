@@ -195,7 +195,8 @@ public class DiscordAccess : IDiscordAccess
         if (isStopIgnoreInteraction || !_ignoreGuard.ShouldIgnore((DiscordUserId)interaction.User.Id))
             return false;
 
-        await interaction.RespondAsync("_Interaction has been ignored._", ephemeral: true);
+        // If ignore is enabled, we don't reply with any message,
+        // as the debug instance of the bot is expected to handle the response.
         return true;
     }
 
