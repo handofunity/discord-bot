@@ -335,7 +335,7 @@ public class ImageProvider : IImageProvider
             { "Warrior", SKColors.DarkRed },
             { "Martial Artist", SKColors.ForestGreen },
             { "Mage", SKColors.Navy },
-            { "Assassin", SKColors.RosyBrown },
+            { "Assassin", SKColors.DimGray },
             { "Gunner", SKColors.Goldenrod }
         };
         var rolesInChart = barColors.Keys.ToArray();
