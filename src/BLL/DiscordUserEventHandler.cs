@@ -156,38 +156,14 @@ public class DiscordUserEventHandler : IDiscordUserEventHandler
             throw new ArgumentNullException(nameof(availableOptions),
                                             $"For the given {nameof(customId)} the {nameof(availableOptions)} must be set.");
 
-        if (customId is Constants.AocArchetypeMenu.CustomId or Constants.AocRaceMenu.CustomId or Constants.AocPlayStyleMenu.CustomId)
+        if (Constants.Menus.IsMappedToPrimaryGameRoleIdConfigurationKey(customId, out var primaryGameRoleIdConfigurationKey)
+            && primaryGameRoleIdConfigurationKey != null)
         {
-            // If the action is one of the AoC role menu actions, forward the data to the game role provider.
-            var ashesOfCreationPrimaryGameDiscordRoleId = (DiscordRoleId)_dynamicConfiguration.DiscordMapping["AshesOfCreationPrimaryGameDiscordRoleId"];
+            // If the action is one of the primary game role actions, forward the data to the game role provider.
+            var primaryGameDiscordRoleId = (DiscordRoleId)_dynamicConfiguration.DiscordMapping[primaryGameRoleIdConfigurationKey];
             return await _gameRoleProvider.ToggleGameSpecificRolesAsync(userId,
                                                                         customId,
-                                                                        _gameRoleProvider.Games.Single(m => m.PrimaryGameDiscordRoleId
-                                                                         == ashesOfCreationPrimaryGameDiscordRoleId),
-                                                                        availableOptions,
-                                                                        selectedValues);
-        }
-
-        if (customId is Constants.WowClassMenu.CustomId)
-        {
-            // If the action is the WoW role menu action, forward the data to the game role provider.
-            var worldOfWarcraftPrimaryGameRoleId = (DiscordRoleId)_dynamicConfiguration.DiscordMapping["WorldOfWarcraftPrimaryGameRoleId"];
-            return await _gameRoleProvider.ToggleGameSpecificRolesAsync(userId,
-                                                                        customId,
-                                                                        _gameRoleProvider.Games.Single(m => m.PrimaryGameDiscordRoleId
-                                                                         == worldOfWarcraftPrimaryGameRoleId),
-                                                                        availableOptions,
-                                                                        selectedValues);
-        }
-
-        if (customId is Constants.LostArkClassMenu.CustomId)
-        {
-            // If the action is the Lost Ark role menu action, forward the data to the game role provider.
-            var lostArkPrimaryGameRoleId = (DiscordRoleId)_dynamicConfiguration.DiscordMapping["LostArkPrimaryGameRoleId"];
-            return await _gameRoleProvider.ToggleGameSpecificRolesAsync(userId,
-                                                                        customId,
-                                                                        _gameRoleProvider.Games.Single(m => m.PrimaryGameDiscordRoleId
-                                                                         == lostArkPrimaryGameRoleId),
+                                                                        _gameRoleProvider.Games.Single(m => m.PrimaryGameDiscordRoleId == primaryGameDiscordRoleId),
                                                                         availableOptions,
                                                                         selectedValues);
         }

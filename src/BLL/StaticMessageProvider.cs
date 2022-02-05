@@ -56,8 +56,8 @@ public class StaticMessageProvider : IStaticMessageProvider
 
         var l = new List<ExpectedChannelMessage>
         {
-            new(await _messageProvider.GetMessage(Constants.MessageNames.FriendOrGuestMenu)),
-            new(await _messageProvider.GetMessage(Constants.MessageNames.GameInterestMenu))
+            new(await _messageProvider.GetMessage(Constants.MessageNames.FriendOrGuestMenuMessage)),
+            new(await _messageProvider.GetMessage(Constants.MessageNames.GameInterestMenuMessage))
         };
         AddFriendOrGuestMenuComponents(l);
         expectedChannelMessages[(DiscordChannelId)_dynamicConfiguration.DiscordMapping["InfoAndRolesChannelId"]] = new ExpectedChannelMessages(l);
@@ -70,7 +70,7 @@ public class StaticMessageProvider : IStaticMessageProvider
         
         var l = new List<ExpectedChannelMessage>
         {
-            new(await _messageProvider.GetMessage(Constants.MessageNames.GamesRolesMenu))
+            new(await _messageProvider.GetMessage(Constants.MessageNames.GamesRolesMenuMessage))
         };
         AddGamesRolesMenuComponents(l);
         expectedChannelMessages[(DiscordChannelId)_dynamicConfiguration.DiscordMapping["GamesRolesChannelId"]] = new ExpectedChannelMessages(l);
@@ -83,9 +83,9 @@ public class StaticMessageProvider : IStaticMessageProvider
 
         var l = new List<ExpectedChannelMessage>
         {
-            new(await _messageProvider.GetMessage(Constants.MessageNames.AocClassMenu)),
-            new(await _messageProvider.GetMessage(Constants.MessageNames.AocPlayStyleMenu)),
-            new(await _messageProvider.GetMessage(Constants.MessageNames.AocRaceMenu))
+            new(await _messageProvider.GetMessage(Constants.MessageNames.AocClassMenuMessage)),
+            new(await _messageProvider.GetMessage(Constants.MessageNames.AocPlayStyleMenuMessage)),
+            new(await _messageProvider.GetMessage(Constants.MessageNames.AocRaceMenuMessage))
         };
         AddAocRoleMenuComponents(l);
         expectedChannelMessages[(DiscordChannelId)_dynamicConfiguration.DiscordMapping["AshesOfCreationRoleChannelId"]] = new ExpectedChannelMessages(l);
@@ -98,7 +98,7 @@ public class StaticMessageProvider : IStaticMessageProvider
 
         var l = new List<ExpectedChannelMessage>
         {
-            new(await _messageProvider.GetMessage(Constants.MessageNames.WowRoleMenu))
+            new(await _messageProvider.GetMessage(Constants.MessageNames.WowRoleMenuMessage))
         };
         AddWowRoleMenuComponents(l);
         expectedChannelMessages[(DiscordChannelId)_dynamicConfiguration.DiscordMapping["WorldOfWarcraftRoleChannelId"]] = new ExpectedChannelMessages(l);
@@ -111,7 +111,8 @@ public class StaticMessageProvider : IStaticMessageProvider
 
         var l = new List<ExpectedChannelMessage>
         {
-            new(await _messageProvider.GetMessage(Constants.MessageNames.LostArkRoleMenu))
+            new(await _messageProvider.GetMessage(Constants.MessageNames.LostArkRoleMenuMessage)),
+            new(await _messageProvider.GetMessage(Constants.MessageNames.LostArkPlayStyleMenuMessage))
         };
         AddLostArkRoleMenuComponents(l);
         expectedChannelMessages[(DiscordChannelId)_dynamicConfiguration.DiscordMapping["LostArkRoleChannelId"]] = new ExpectedChannelMessages(l);
@@ -250,7 +251,7 @@ public class StaticMessageProvider : IStaticMessageProvider
 
     private static void AddLostArkRoleMenuComponents(List<ExpectedChannelMessage> messages)
     {
-        if (messages.Count != 1)
+        if (messages.Count != 2)
             throw new ArgumentException("Unexpected amount of messages received.", nameof(messages));
 
         // Class menu
@@ -259,6 +260,13 @@ public class StaticMessageProvider : IStaticMessageProvider
                                                            "Select classes ...",
                                                            Constants.LostArkClassMenu.GetOptions(),
                                                            true));
+
+        // Play style menu
+        messages[1].Components.Add(new SelectMenuComponent(Constants.LostArkPlayStyleMenu.CustomId,
+                                                           0,
+                                                           "Select (single) play style ...",
+                                                           Constants.LostArkPlayStyleMenu.GetOptions(),
+                                                           false));
     }
 
     private void ReCreateGameRoleMenuMessages()

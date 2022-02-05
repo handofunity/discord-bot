@@ -19,6 +19,8 @@
     <None Remove="Resources\GuildLogo.png" />
     <None Remove="Resources\LostArkClassBackground.png" />
     <None Remove="Resources\LostArkClassForeground.png" />
+    <None Remove="Resources\LostArkPlaystyleBackground.png" />
+    <None Remove="Resources\LostArkPlaystyleForeground.png" />
     <None Remove="Resources\UnitsProfileBadge_HighPoints.png" />
     <None Remove="Resources\UnitsProfileBadge_LowPoints.png" />
     <None Remove="Resources\UnitsProfileBadge_MediumPoints.png" />
@@ -36,6 +38,8 @@
     <EmbeddedResource Include="Resources\GuildLogo.png" />
     <EmbeddedResource Include="Resources\LostArkClassBackground.png" />
     <EmbeddedResource Include="Resources\LostArkClassForeground.png" />
+    <EmbeddedResource Include="Resources\LostArkPlaystyleBackground.png" />
+    <EmbeddedResource Include="Resources\LostArkPlaystyleForeground.png" />
     <EmbeddedResource Include="Resources\UnitsProfileBackground.png" />
     <EmbeddedResource Include="Resources\UnitsProfileBadge_HighPoints.png" />
     <EmbeddedResource Include="Resources\UnitsProfileBadge_LowPoints.png" />

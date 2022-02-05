@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using HoU.GuildBot.Shared.BLL;
 
 namespace HoU.GuildBot.Shared.Objects;
 
@@ -20,14 +21,15 @@ public static class Constants
 
     public static class MessageNames
     {
-        public const string AocClassMenu = "AocClassMenu";
-        public const string AocPlayStyleMenu = "AocPlayStyleMenu";
-        public const string AocRaceMenu = "AocRaceMenu";
-        public const string WowRoleMenu = "WowRoleMenu";
-        public const string LostArkRoleMenu = "LostArkRoleMenu";
-        public const string GamesRolesMenu = "GamesRolesMenu";
-        public const string FriendOrGuestMenu = "FriendOrGuestMenu";
-        public const string GameInterestMenu = "GameInterestMenu";
+        public const string AocClassMenuMessage = "AocClassMenu";
+        public const string AocPlayStyleMenuMessage = "AocPlayStyleMenu";
+        public const string AocRaceMenuMessage = "AocRaceMenu";
+        public const string WowRoleMenuMessage = "WowRoleMenu";
+        public const string LostArkRoleMenuMessage = "LostArkRoleMenu";
+        public const string LostArkPlayStyleMenuMessage = "LostArkPlayStyleMenu";
+        public const string GamesRolesMenuMessage = "GamesRolesMenu";
+        public const string FriendOrGuestMenuMessage = "FriendOrGuestMenu";
+        public const string GameInterestMenuMessage = "GameInterestMenu";
     }
 
     public static class RoleNames
@@ -52,6 +54,35 @@ public static class Constants
     public static class GameInterestMenu
     {
         public const string CustomId = "14f238d9-c9b6-4a2d-beea-fda89d6f1fab";
+    }
+
+    public static class Menus
+    {
+        private static readonly IReadOnlyDictionary<string, string> _mapping;
+
+        static Menus()
+        {
+            _mapping = new Dictionary<string, string>
+            {
+                {AocArchetypeMenu.CustomId, "AshesOfCreationPrimaryGameDiscordRoleId"},
+                {AocPlayStyleMenu.CustomId, "AshesOfCreationPrimaryGameDiscordRoleId"},
+                {AocRaceMenu.CustomId, "AshesOfCreationPrimaryGameDiscordRoleId"},
+                {WowClassMenu.CustomId, "WorldOfWarcraftPrimaryGameRoleId"},
+                {LostArkClassMenu.CustomId, "LostArkPrimaryGameRoleId"},
+                {LostArkPlayStyleMenu.CustomId, "LostArkPrimaryGameRoleId"},
+            };
+        }
+
+        /// <summary>
+        /// Tries to map the <paramref name="customId"/> to the <paramref name="primaryGameRoleIdConfigurationKey"/> of an official guild chapter.
+        /// </summary>
+        /// <param name="customId">The Id of the action component to check.</param>
+        /// <param name="primaryGameRoleIdConfigurationKey">The configuration key associated with the <paramref name="customId"/>.
+        /// Use this to look up values in <see cref="IDynamicConfiguration.DiscordMapping"/>.</param>
+        /// <returns><b>True</b>, if the <paramref name="customId"/> is mapped, otherwise <b>false</b>.</returns>
+        public static bool IsMappedToPrimaryGameRoleIdConfigurationKey(string customId,
+                                                                       out string? primaryGameRoleIdConfigurationKey) =>
+            _mapping.TryGetValue(customId, out primaryGameRoleIdConfigurationKey);
     }
 
     public static class AocArchetypeMenu
@@ -129,6 +160,18 @@ public static class Constants
                 {"mage", "Mage"},
                 {"assassin", "Assassin"},
                 {"gunner", "Gunner"}
+            };
+    }
+
+    public static class LostArkPlayStyleMenu
+    {
+        public const string CustomId = "BEA37582-5B00-4784-AC0E-2BBAE4500260";
+
+        public static IDictionary<string, string> GetOptions() =>
+            new Dictionary<string, string>
+            {
+                {"dps", "DPS"},
+                {"support", "Support"}
             };
     }
 }

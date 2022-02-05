@@ -348,6 +348,23 @@ public class ImageProvider : IImageProvider
                                    rolesInChart);
     }
 
+    Stream IImageProvider.CreateLostArkPlayStyleDistributionImage()
+    {
+        var barColors = new Dictionary<string, SKColor>
+        {
+            { "DPS", SKColors.DarkRed },
+            { "Support", SKColors.ForestGreen }
+        };
+        var rolesInChart = barColors.Keys.ToArray();
+        return CreateBarChartImage(new BarChartDrawingData("LostArkPlaystyleBackground.png",
+                                                           "LostArkPlaystyleForeground.png",
+                                                           barColors,
+                                                           369f,
+                                                           132f),
+                                   (DiscordRoleId)_dynamicConfiguration.DiscordMapping["LostArkPrimaryGameRoleId"],
+                                   rolesInChart);
+    }
+
     private class BarChartDrawingData
     {
         public const int ImageWidth = 1000;
