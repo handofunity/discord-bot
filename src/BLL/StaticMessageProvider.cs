@@ -112,6 +112,7 @@ public class StaticMessageProvider : IStaticMessageProvider
         var l = new List<ExpectedChannelMessage>
         {
             new(await _messageProvider.GetMessage(Constants.MessageNames.LostArkRoleMenuMessage)),
+            new(await _messageProvider.GetMessage(Constants.MessageNames.LostArkAdvancedClassMenuMessage)),
             new(await _messageProvider.GetMessage(Constants.MessageNames.LostArkPlayStyleMenuMessage))
         };
         AddLostArkRoleMenuComponents(l);
@@ -251,18 +252,25 @@ public class StaticMessageProvider : IStaticMessageProvider
 
     private static void AddLostArkRoleMenuComponents(List<ExpectedChannelMessage> messages)
     {
-        if (messages.Count != 2)
+        if (messages.Count != 3)
             throw new ArgumentException("Unexpected amount of messages received.", nameof(messages));
 
         // Class menu
         messages[0].Components.Add(new SelectMenuComponent(Constants.LostArkClassMenu.CustomId,
                                                            0,
-                                                           "Select classes ...",
+                                                           "Select base classes ...",
                                                            Constants.LostArkClassMenu.GetOptions(),
                                                            true));
 
+        // Advanced Class menu
+        messages[1].Components.Add(new SelectMenuComponent(Constants.LostArkAdvancedClassMenu.CustomId,
+                                                           0,
+                                                           "Select advanced classes ...",
+                                                           Constants.LostArkAdvancedClassMenu.GetOptions(),
+                                                           true));
+
         // Play style menu
-        messages[1].Components.Add(new SelectMenuComponent(Constants.LostArkPlayStyleMenu.CustomId,
+        messages[2].Components.Add(new SelectMenuComponent(Constants.LostArkPlayStyleMenu.CustomId,
                                                            0,
                                                            "Select (single) play style ...",
                                                            Constants.LostArkPlayStyleMenu.GetOptions(),

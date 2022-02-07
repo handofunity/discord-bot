@@ -26,6 +26,7 @@ public static class Constants
         public const string AocRaceMenuMessage = "AocRaceMenu";
         public const string WowRoleMenuMessage = "WowRoleMenu";
         public const string LostArkRoleMenuMessage = "LostArkRoleMenu";
+        public const string LostArkAdvancedClassMenuMessage = "LostArkAdvancedClassMenu";
         public const string LostArkPlayStyleMenuMessage = "LostArkPlayStyleMenu";
         public const string GamesRolesMenuMessage = "GamesRolesMenu";
         public const string FriendOrGuestMenuMessage = "FriendOrGuestMenu";
@@ -69,6 +70,7 @@ public static class Constants
                 {AocRaceMenu.CustomId, "AshesOfCreationPrimaryGameDiscordRoleId"},
                 {WowClassMenu.CustomId, "WorldOfWarcraftPrimaryGameRoleId"},
                 {LostArkClassMenu.CustomId, "LostArkPrimaryGameRoleId"},
+                {LostArkAdvancedClassMenu.CustomId, "LostArkPrimaryGameRoleId"},
                 {LostArkPlayStyleMenu.CustomId, "LostArkPrimaryGameRoleId"},
             };
         }
@@ -160,6 +162,31 @@ public static class Constants
                 {"mage", "Mage"},
                 {"assassin", "Assassin"},
                 {"gunner", "Gunner"}
+            };
+    }
+
+    public static class LostArkAdvancedClassMenu
+    {
+        public const string CustomId = "6C7D6191-8719-45E7-B94D-F109102B84DC";
+
+        public static IDictionary<string, string> GetOptions() =>
+            new Dictionary<string, string>
+            {
+                {"berserker", "Berserker"},
+                {"paladin", "Paladin"},
+                {"gunlancer", "Gunlancer"},
+                {"striker", "Striker"},
+                {"wardancer", "Wardancer"},
+                {"scrapper", "Scrapper"},
+                {"soulfist", "Soulfist"},
+                {"gunslinger", "Gunslinger"},
+                {"artillerist", "Artillerist"},
+                {"deadeye", "Deadeye"},
+                {"sharpshooter", "Sharpshooter"},
+                {"bard", "Bard"},
+                {"sorceress", "Sorceress"},
+                {"shadowhunter", "Shadowhunter"},
+                {"deathblade", "Deathblade"}
             };
     }
 
