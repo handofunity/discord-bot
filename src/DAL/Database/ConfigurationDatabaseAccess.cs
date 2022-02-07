@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using HoU.GuildBot.DAL.Database.Model;
@@ -8,7 +7,6 @@ using HoU.GuildBot.Shared.Objects;
 using HoU.GuildBot.Shared.StrongTypes;
 using Microsoft.EntityFrameworkCore;
 using DesiredTimeZone = HoU.GuildBot.Shared.Objects.DesiredTimeZone;
-using PersonalReminder = HoU.GuildBot.Shared.Objects.PersonalReminder;
 using UnitsEndpoint = HoU.GuildBot.Shared.Objects.UnitsEndpoint;
 
 namespace HoU.GuildBot.DAL.Database;
@@ -26,6 +24,18 @@ public class ConfigurationDatabaseAccess : IConfigurationDatabaseAccess
     }
 
     private HandOfUnityContext GetDbContext() => new(_handOfUnityContextOptions);
+
+    private static ScheduledReminderInfo Map(ScheduledReminder sr) =>
+        new(sr.ScheduledReminderID,
+            sr.CronSchedule,
+            (DiscordChannelId)(ulong)sr.DiscordChannelID,
+            sr.ScheduledReminderMention.Where(mention => mention.DiscordUserID != null)
+              .Select(mention => (DiscordUserId)mention.DiscordUserID.GetValueOrDefault())
+              .ToArray(),
+            sr.ScheduledReminderMention.Where(mention => mention.DiscordRoleID != null)
+              .Select(mention => (DiscordRoleId)mention.DiscordRoleID.GetValueOrDefault())
+              .ToArray(),
+            sr.Text);
 
     async Task<UnitsEndpoint[]> IConfigurationDatabaseAccess.GetAllUnitsEndpointsAsync()
     {
@@ -47,16 +57,13 @@ public class ConfigurationDatabaseAccess : IConfigurationDatabaseAccess
                         .ToArray();
     }
 
-    async Task<PersonalReminder[]> IConfigurationDatabaseAccess.GetAllPersonalRemindersAsync()
+    async Task<ScheduledReminderInfo[]> IConfigurationDatabaseAccess.GetAllScheduledReminderInfosAsync()
     {
         await using var entities = GetDbContext();
-        var dbEntries = await entities.PersonalReminder.ToArrayAsync();
-        return dbEntries.Select(m => new PersonalReminder(m.PersonalReminderID,
-                                                          m.CronSchedule,
-                                                          (DiscordChannelId)(ulong)m.DiscordChannelID,
-                                                          (DiscordUserId)(ulong)m.UserToRemind,
-                                                          m.Text))
-                        .ToArray();
+        var dbEntries = await entities.ScheduledReminder
+                                      .Include(m => m.ScheduledReminderMention)
+                                      .ToArrayAsync();
+        return dbEntries.Select(Map).ToArray();
     }
 
     async Task<Dictionary<string, ulong>> IConfigurationDatabaseAccess.GetFullDiscordMappingAsync()
@@ -78,5 +85,60 @@ public class ConfigurationDatabaseAccess : IConfigurationDatabaseAccess
                              HardCap = m.HardCap
                          })
                         .ToArray();
+    }
+
+    async Task<int> IConfigurationDatabaseAccess.CreateScheduledReminderAsync(ScheduledReminderInfo scheduledReminderInfo)
+    {
+        await using var entities = GetDbContext();
+        var sr = new ScheduledReminder
+        {
+            CronSchedule = scheduledReminderInfo.CronSchedule,
+            DiscordChannelID = (ulong)scheduledReminderInfo.Channel,
+            Text = scheduledReminderInfo.Text
+        };
+        entities.ScheduledReminder.Add(sr);
+        await entities.SaveChangesAsync();
+        return sr.ScheduledReminderID;
+    }
+
+    async Task<ScheduledReminderInfo?> IConfigurationDatabaseAccess.GetScheduledReminderInfosAsync(int scheduledReminderId)
+    {
+        await using var entities = GetDbContext();
+        var result = await entities.ScheduledReminder
+                                   .Include(m => m.ScheduledReminderMention)
+                                   .FirstOrDefaultAsync(m => m.ScheduledReminderID == scheduledReminderId);
+        return result == null
+                   ? null
+                   : Map(result);
+    }
+
+    async Task IConfigurationDatabaseAccess.AddScheduledReminderMentionAsync(int scheduledReminderId,
+                                                                             DiscordUserId discordUserId)
+    {
+        await using var entities = GetDbContext();
+        var sr = await entities.ScheduledReminder
+                               .FirstAsync(m => m.ScheduledReminderID == scheduledReminderId);
+
+        sr.ScheduledReminderMention.Add(new ScheduledReminderMention
+        {
+            DiscordUserID = (ulong)discordUserId
+        });
+
+        await entities.SaveChangesAsync();
+    }
+
+    async Task IConfigurationDatabaseAccess.AddScheduledReminderMentionAsync(int scheduledReminderId,
+                                                                             DiscordRoleId discordRoleId)
+    {
+        await using var entities = GetDbContext();
+        var sr = await entities.ScheduledReminder
+                               .FirstAsync(m => m.ScheduledReminderID == scheduledReminderId);
+
+        sr.ScheduledReminderMention.Add(new ScheduledReminderMention
+        {
+            DiscordRoleID = (ulong)discordRoleId
+        });
+
+        await entities.SaveChangesAsync();
     }
 }

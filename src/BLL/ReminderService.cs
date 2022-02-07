@@ -8,13 +8,13 @@ using HoU.GuildBot.Shared.DAL;
 namespace HoU.GuildBot.BLL;
 
 [UsedImplicitly]
-public class PersonalReminderService
+public class ReminderService
 {
     private readonly IDynamicConfiguration _dynamicConfiguration;
     private readonly IDiscordAccess _discordAccess;
 
-    public PersonalReminderService(IDynamicConfiguration dynamicConfiguration,
-                                   IDiscordAccess discordAccess)
+    public ReminderService(IDynamicConfiguration dynamicConfiguration,
+                           IDiscordAccess discordAccess)
     {
         _dynamicConfiguration = dynamicConfiguration ?? throw new ArgumentNullException(nameof(dynamicConfiguration));
         _discordAccess = discordAccess ?? throw new ArgumentNullException(nameof(discordAccess));
@@ -22,11 +22,11 @@ public class PersonalReminderService
 
     public async Task SendReminderAsync(int reminderId)
     {
-        var reminder = _dynamicConfiguration.PersonalReminders.SingleOrDefault(m => m.ReminderId == reminderId);
-        if (reminder == null)
+        var reminderInfo = _dynamicConfiguration.ScheduledReminderInfos.SingleOrDefault(m => m.ReminderId == reminderId);
+        if (reminderInfo == null)
             return;
 
-        var (channelID, message) = reminder.GetReminderInfo();
-        await _discordAccess.CreateBotMessagesInChannelAsync(channelID, new[] {message});
+        var (channelID, message) = reminderInfo.GetReminderDetails();
+        await _discordAccess.CreateBotMessagesInChannelAsync(channelID, new[] { message });
     }
 }

@@ -23,9 +23,8 @@
     <SqlServerVerification>False</SqlServerVerification>
     <IncludeCompositeObjects>True</IncludeCompositeObjects>
     <TargetDatabaseSet>True</TargetDatabaseSet>
-    <DacVersion>4.0.0</DacVersion>
-    <DacDescription>- Changed game table
-- Changed game role table</DacDescription>
+    <DacVersion>5.0.0</DacVersion>
+    <DacDescription>- Replaced PersonalReminder with ScheduledReminder and ScheduledReminderMention</DacDescription>
     <DefaultCollation>Latin1_General_CI_AS</DefaultCollation>
     <Recovery>SIMPLE</Recovery>
     <TargetFrameworkProfile />
@@ -107,8 +106,9 @@
     <Build Include="config\Tables\DiscordMapping.sql" />
     <Build Include="config\Tables\SpamProtectedChannel.sql" />
     <Build Include="config\Tables\DesiredTimeZone.sql" />
-    <Build Include="config\Tables\PersonalReminder.sql" />
     <Build Include="config\Tables\UnitsEndpoint.sql" />
+    <Build Include="config\Tables\ScheduledReminder.sql" />
+    <Build Include="config\Tables\ScheduledReminderMention.sql" />
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="Script.PostDeployment.sql" />

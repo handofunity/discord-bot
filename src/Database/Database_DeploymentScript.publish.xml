@@ -8,5 +8,6 @@
     <ProfileVersionNumber>1</ProfileVersionNumber>
     <ScriptDatabaseOptions>False</ScriptDatabaseOptions>
     <DisableAndReenableDdlTriggers>False</DisableAndReenableDdlTriggers>
+    <DropObjectsNotInSource>True</DropObjectsNotInSource>
   </PropertyGroup>
 </Project>

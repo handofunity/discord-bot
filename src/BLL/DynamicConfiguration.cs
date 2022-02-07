@@ -15,7 +15,7 @@ public class DynamicConfiguration : IDynamicConfiguration
     private EventHandler<EventArgs>? _dataLoaded;
     private UnitsEndpoint[]? _unitsEndpoints;
     private DesiredTimeZone[]? _desiredTimeZones;
-    private PersonalReminder[]? _personalReminders;
+    private ScheduledReminderInfo[]? _scheduledReminderInfos;
     private Dictionary<string, ulong>? _discordMapping;
     private SpamLimit[]? _spamLimits;
 
@@ -39,7 +39,7 @@ public class DynamicConfiguration : IDynamicConfiguration
 
     DesiredTimeZone[] IDynamicConfiguration.DesiredTimeZones => _desiredTimeZones ?? throw InvalidAccess();
 
-    PersonalReminder[] IDynamicConfiguration.PersonalReminders => _personalReminders ?? throw InvalidAccess();
+    ScheduledReminderInfo[] IDynamicConfiguration.ScheduledReminderInfos => _scheduledReminderInfos ?? throw InvalidAccess();
 
     Dictionary<string, ulong> IDynamicConfiguration.DiscordMapping => _discordMapping ?? throw InvalidAccess();
 
@@ -49,9 +49,15 @@ public class DynamicConfiguration : IDynamicConfiguration
     {
         _unitsEndpoints = await _configurationDatabaseAccess.GetAllUnitsEndpointsAsync();
         _desiredTimeZones = await _configurationDatabaseAccess.GetAllDesiredTimeZonesAsync();
-        _personalReminders = await _configurationDatabaseAccess.GetAllPersonalRemindersAsync();
+        _scheduledReminderInfos = await _configurationDatabaseAccess.GetAllScheduledReminderInfosAsync();
         _discordMapping = await _configurationDatabaseAccess.GetFullDiscordMappingAsync();
         _spamLimits = await _configurationDatabaseAccess.GetAllSpamProtectedChannelsAsync();
+        _dataLoaded?.Invoke(this, EventArgs.Empty);
+    }
+
+    async Task IDynamicConfiguration.LoadScheduledReminderInfosAsync()
+    {
+        _scheduledReminderInfos = await _configurationDatabaseAccess.GetAllScheduledReminderInfosAsync();
         _dataLoaded?.Invoke(this, EventArgs.Empty);
     }
 }

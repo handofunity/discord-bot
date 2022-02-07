@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<DeploymentReport xmlns="http://schemas.microsoft.com/sqlserver/dac/DeployReport/2012/02">
+    <Alerts>
+        <Alert Name="DataIssue">
+            <Issue Value="Die Tabelle '[config].[PersonalReminder]' wird gelöscht, es könnte zu einem Datenverlust kommen." Id="1" />
+        </Alert>
+    </Alerts>
+    <Operations>
+        <Operation Name="Drop">
+            <Item Value="[config].[PersonalReminder]" Type="SqlTable">
+                <Issue Id="1" />
+            </Item>
+        </Operation>
+        <Operation Name="Create">
+            <Item Value="[config].[ScheduledReminder]" Type="SqlTable" />
+            <Item Value="[config].[ScheduledReminderMention]" Type="SqlTable" />
+            <Item Value="[config].[ScheduledReminderMention].[FK_ScheduledReminderMention_ScheduledReminder]" Type="SqlIndex" />
+            <Item Value="[config].[FK_ScheduledReminderMention_ScheduledReminder]" Type="SqlForeignKeyConstraint" />
+        </Operation>
+    </Operations>
+</DeploymentReport>

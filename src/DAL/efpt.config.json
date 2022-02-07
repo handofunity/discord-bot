@@ -34,7 +34,11 @@
          "ObjectType": 0
       },
       {
-         "Name": "[config].[PersonalReminder]",
+         "Name": "[config].[ScheduledReminder]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[config].[ScheduledReminderMention]",
          "ObjectType": 0
       },
       {

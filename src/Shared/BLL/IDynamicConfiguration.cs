@@ -17,7 +17,7 @@ public interface IDynamicConfiguration
 
     DesiredTimeZone[] DesiredTimeZones { get; }
 
-    PersonalReminder[] PersonalReminders { get; }
+    ScheduledReminderInfo[] ScheduledReminderInfos { get; }
 
     SpamLimit[] SpamLimits { get; }
 
@@ -28,4 +28,10 @@ public interface IDynamicConfiguration
     /// </summary>
     /// <returns>An awaitable <see cref="Task"/>.</returns>
     Task LoadAllDataAsync();
+
+    /// <summary>
+    /// Wipes the <see cref="ScheduledReminderInfos"/> property and fills it with the data from the database.
+    /// </summary>
+    /// <returns>An awaitable <see cref="Task"/>.</returns>
+    Task LoadScheduledReminderInfosAsync();
 }

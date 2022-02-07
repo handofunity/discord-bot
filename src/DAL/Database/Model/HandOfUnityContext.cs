@@ -23,7 +23,8 @@ namespace HoU.GuildBot.DAL.Database.Model
         public virtual DbSet<Game> Game { get; set; }
         public virtual DbSet<GameRole> GameRole { get; set; }
         public virtual DbSet<Message> Message { get; set; }
-        public virtual DbSet<PersonalReminder> PersonalReminder { get; set; }
+        public virtual DbSet<ScheduledReminder> ScheduledReminder { get; set; }
+        public virtual DbSet<ScheduledReminderMention> ScheduledReminderMention { get; set; }
         public virtual DbSet<SpamProtectedChannel> SpamProtectedChannel { get; set; }
         public virtual DbSet<UnitsEndpoint> UnitsEndpoint { get; set; }
         public virtual DbSet<User> User { get; set; }
@@ -125,9 +126,9 @@ namespace HoU.GuildBot.DAL.Database.Model
                     .IsUnicode(false);
             });
 
-            modelBuilder.Entity<PersonalReminder>(entity =>
+            modelBuilder.Entity<ScheduledReminder>(entity =>
             {
-                entity.ToTable("PersonalReminder", "config");
+                entity.ToTable("ScheduledReminder", "config");
 
                 entity.Property(e => e.CronSchedule)
                     .IsRequired()
@@ -138,10 +139,25 @@ namespace HoU.GuildBot.DAL.Database.Model
 
                 entity.Property(e => e.Text)
                     .IsRequired()
-                    .HasMaxLength(1024)
+                    .HasMaxLength(2048)
                     .IsUnicode(false);
+            });
 
-                entity.Property(e => e.UserToRemind).HasColumnType("decimal(20, 0)");
+            modelBuilder.Entity<ScheduledReminderMention>(entity =>
+            {
+                entity.ToTable("ScheduledReminderMention", "config");
+
+                entity.HasIndex(e => e.ScheduledReminderID, "FK_ScheduledReminderMention_ScheduledReminder");
+
+                entity.Property(e => e.DiscordRoleID).HasColumnType("decimal(20, 0)");
+
+                entity.Property(e => e.DiscordUserID).HasColumnType("decimal(20, 0)");
+
+                entity.HasOne(d => d.ScheduledReminder)
+                    .WithMany(p => p.ScheduledReminderMention)
+                    .HasForeignKey(d => d.ScheduledReminderID)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_ScheduledReminderMention_ScheduledReminder");
             });
 
             modelBuilder.Entity<SpamProtectedChannel>(entity =>

@@ -46,11 +46,11 @@ public class BotEngine : IBotEngine
 
     private void SchedulePersonalReminders()
     {
-        foreach (var personalReminder in _dynamicConfiguration.PersonalReminders)
+        foreach (var scheduledReminderInfo in _dynamicConfiguration.ScheduledReminderInfos)
         {
-            RecurringJob.AddOrUpdate<PersonalReminderService>($"personal-reminder-{personalReminder.ReminderId}",
-                                                              service => service.SendReminderAsync(personalReminder.ReminderId),
-                                                              personalReminder.CronSchedule);
+            RecurringJob.AddOrUpdate<ReminderService>($"scheduled-reminder-{scheduledReminderInfo.ReminderId}",
+                                                      service => service.SendReminderAsync(scheduledReminderInfo.ReminderId),
+                                                      scheduledReminderInfo.CronSchedule);
         }
     }
 

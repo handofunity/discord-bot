@@ -5,12 +5,18 @@ using System.Collections.Generic;
 
 namespace HoU.GuildBot.DAL.Database.Model
 {
-    public partial class PersonalReminder
+    public partial class ScheduledReminder
     {
-        public int PersonalReminderID { get; set; }
+        public ScheduledReminder()
+        {
+            ScheduledReminderMention = new HashSet<ScheduledReminderMention>();
+        }
+
+        public int ScheduledReminderID { get; set; }
         public string CronSchedule { get; set; }
         public decimal DiscordChannelID { get; set; }
-        public decimal UserToRemind { get; set; }
         public string Text { get; set; }
+
+        public virtual ICollection<ScheduledReminderMention> ScheduledReminderMention { get; set; }
     }
 }
