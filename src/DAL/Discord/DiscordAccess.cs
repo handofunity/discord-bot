@@ -393,7 +393,7 @@ public class DiscordAccess : IDiscordAccess
         }
     }
 
-    private async Task VerifyRoles(DiscordUserId discordUserID,
+    private async Task VerifyRoles(DiscordUserId discordUserId,
                                    bool isGuildMember,
                                    IEnumerable<SocketRole> previousRoles,
                                    IEnumerable<SocketRole> currentRoles)
@@ -414,7 +414,7 @@ public class DiscordAccess : IDiscordAccess
         if (invalidRoles.Length == 0)
             return;
         
-        var gu = GetGuildUserById(discordUserID);
+        var gu = GetGuildUserById(discordUserId);
         var leaderRole = GetRoleByName(Constants.RoleNames.LeaderRoleName);
         var officerRole = GetRoleByName(Constants.RoleNames.OfficerRoleName);
         foreach (var invalidRole in invalidRoles)
@@ -500,25 +500,25 @@ public class DiscordAccess : IDiscordAccess
 
     private static bool IsOnline(IPresence gu) => gu.Status != UserStatus.Offline && gu.Status != UserStatus.Invisible;
     
-    private SocketGuildUser[] GetGuildMembersWithRoles(DiscordRoleId[]? roleIDs,
-                                                       DiscordRoleId[]? roleIDsToExclude)
+    private SocketGuildUser[] GetGuildMembersWithRoles(DiscordRoleId[]? roleIds,
+                                                       DiscordRoleId[]? roleIdsToExclude)
     {
         var g = GetGuild();
         return g.Users
                 .Where(m => _userStore.TryGetUser((DiscordUserId) m.Id, out var user)
                          && user!.IsGuildMember
-                         && (roleIDs == null || roleIDs.Intersect(m.Roles.Select(r => (DiscordRoleId)r.Id)).Count() == roleIDs.Length)
-                         && (roleIDsToExclude == null || !roleIDsToExclude.Intersect(m.Roles.Select(r => (DiscordRoleId)r.Id)).Any()))
+                         && (roleIds == null || roleIds.Intersect(m.Roles.Select(r => (DiscordRoleId)r.Id)).Count() == roleIds.Length)
+                         && (roleIdsToExclude == null || !roleIdsToExclude.Intersect(m.Roles.Select(r => (DiscordRoleId)r.Id)).Any()))
                 .ToArray();
     }
 
     private SocketGuildUser[] GetGuildMembersWithAnyGivenRole(SocketGuild guild,
-                                                              ulong[]? roleIDs)
+                                                              ulong[]? roleIds)
     {
         return guild.Users
                     .Where(m => _userStore.TryGetUser((DiscordUserId) m.Id, out var user)
                              && user!.IsGuildMember
-                             && (roleIDs == null || roleIDs.Intersect(m.Roles.Select(r => r.Id)).Any()))
+                             && (roleIds == null || roleIds.Intersect(m.Roles.Select(r => r.Id)).Any()))
                     .ToArray();
     }
 
@@ -801,10 +801,10 @@ public class DiscordAccess : IDiscordAccess
         return GetRoleByName(roleName).Mention;
     }
 
-    async Task<TextMessage[]> IDiscordAccess.GetBotMessagesInChannel(DiscordChannelId channelID)
+    async Task<TextMessage[]> IDiscordAccess.GetBotMessagesInChannel(DiscordChannelId channelId)
     {
         var result = new List<TextMessage>();
-        var channel = (ITextChannel)GetGuild().GetChannel((ulong)channelID);
+        var channel = (ITextChannel)GetGuild().GetChannel((ulong)channelId);
         var messageCollection = channel.GetMessagesAsync();
         var enumerator = messageCollection.GetAsyncEnumerator();
         while (await enumerator.MoveNextAsync())
@@ -881,10 +881,10 @@ public class DiscordAccess : IDiscordAccess
         });
     }
 
-    async Task IDiscordAccess.DeleteBotMessageInChannelAsync(DiscordChannelId channelId, ulong messageID)
+    async Task IDiscordAccess.DeleteBotMessageInChannelAsync(DiscordChannelId channelId, ulong messageId)
     {
         var channel = (ITextChannel)GetGuild().GetChannel((ulong)channelId);
-        var message = await channel.GetMessageAsync(messageID);
+        var message = await channel.GetMessageAsync(messageId);
         await message.DeleteAsync();
     }
 
@@ -941,27 +941,27 @@ public class DiscordAccess : IDiscordAccess
         await g.SystemChannel.SendMessageAsync(message);
     }
 
-    int IDiscordAccess.CountGuildMembersWithRoles(DiscordRoleId[] roleIDs)
+    int IDiscordAccess.CountGuildMembersWithRoles(DiscordRoleId[] roleIds)
     {
-        var guildMembers = GetGuildMembersWithRoles(roleIDs, null);
+        var guildMembers = GetGuildMembersWithRoles(roleIds, null);
         return guildMembers.Length;
     }
 
-    int IDiscordAccess.CountGuildMembersWithRoles(DiscordRoleId[]? roleIDs,
-                                                  DiscordRoleId[] roleIDsToExclude)
+    int IDiscordAccess.CountGuildMembersWithRoles(DiscordRoleId[]? roleIds,
+                                                  DiscordRoleId[] roleIdsToExclude)
     {
-        var guildMembers = GetGuildMembersWithRoles(roleIDs, roleIDsToExclude);
+        var guildMembers = GetGuildMembersWithRoles(roleIds, roleIdsToExclude);
         return guildMembers.Length;
     }
 
     int IDiscordAccess.CountGuildMembersWithRoles(string[] roleNames)
     {
-        var roleIDs = new List<DiscordRoleId>();
+        var roleIds = new List<DiscordRoleId>();
         foreach (var roleName in roleNames)
         {
-            roleIDs.Add((DiscordRoleId)GetRoleByName(roleName).Id);
+            roleIds.Add((DiscordRoleId)GetRoleByName(roleName).Id);
         }
-        var guildMembers = GetGuildMembersWithRoles(roleIDs.ToArray(), null);
+        var guildMembers = GetGuildMembersWithRoles(roleIds.ToArray(), null);
         return guildMembers.Length;
     }
 
@@ -971,10 +971,10 @@ public class DiscordAccess : IDiscordAccess
         return string.IsNullOrWhiteSpace(gu.Nickname) ? gu.Username : gu.Nickname;
     }
 
-    string IDiscordAccess.GetChannelLocationAndName(DiscordChannelId discordChannelID)
+    string IDiscordAccess.GetChannelLocationAndName(DiscordChannelId discordChannelId)
     {
         var g = GetGuild();
-        var channel = g.TextChannels.Single(m => m.Id == (ulong) discordChannelID);
+        var channel = g.TextChannels.Single(m => m.Id == (ulong) discordChannelId);
         return $"/{channel.Category.Name}/{channel.Name}";
     }
 

@@ -7,10 +7,10 @@ namespace HoU.GuildBot.DAL.Database.Model
 {
     public partial class Vacation
     {
-        public int VacationID { get; set; }
-        public int UserID { get; set; }
-        public DateTime Start { get; set; }
-        public DateTime End { get; set; }
+        public int VacationId { get; set; }
+        public int UserId { get; set; }
+        public DateOnly StartDate { get; set; }
+        public DateOnly EndDate { get; set; }
         public string Note { get; set; }
 
         public virtual User User { get; set; }

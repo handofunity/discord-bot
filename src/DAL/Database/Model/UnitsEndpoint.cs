@@ -7,7 +7,7 @@ namespace HoU.GuildBot.DAL.Database.Model
 {
     public partial class UnitsEndpoint
     {
-        public int UnitsEndpointID { get; set; }
+        public int UnitsEndpointId { get; set; }
         public string BaseAddress { get; set; }
         public string Secret { get; set; }
         public bool ConnectToRestApi { get; set; }

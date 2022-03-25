@@ -14,8 +14,8 @@ namespace HoU.GuildBot.DAL.Database.Model
             Vacation = new HashSet<Vacation>();
         }
 
-        public int UserID { get; set; }
-        public decimal DiscordUserID { get; set; }
+        public int UserId { get; set; }
+        public decimal DiscordUserId { get; set; }
 
         public virtual UserInfo UserInfo { get; set; }
         public virtual ICollection<Game> Game { get; set; }

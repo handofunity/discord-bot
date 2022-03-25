@@ -12,9 +12,9 @@ namespace HoU.GuildBot.DAL.Database.Model
             GameRole = new HashSet<GameRole>();
         }
 
-        public short GameID { get; set; }
-        public decimal PrimaryGameDiscordRoleID { get; set; }
-        public int ModifiedByUserID { get; set; }
+        public short GameId { get; set; }
+        public decimal PrimaryGameDiscordRoleId { get; set; }
+        public int ModifiedByUserId { get; set; }
         public DateTime ModifiedAtTimestamp { get; set; }
         public bool IncludeInGuildMembersStatistic { get; set; }
         public bool IncludeInGamesMenu { get; set; }

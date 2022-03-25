@@ -25,7 +25,7 @@ public class DatabaseAccess : IDatabaseAccess
     {
         _logger = logger;
         var builder = new DbContextOptionsBuilder<HandOfUnityContext>();
-        builder.UseSqlServer(rootSettings.ConnectionStringForOwnDatabase);
+        builder.UseNpgsql(rootSettings.ConnectionStringForOwnDatabase);
         _trackingContextOptions = builder.Options;
         builder.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
         _noTrackingContextOptions = builder.Options;
@@ -35,8 +35,8 @@ public class DatabaseAccess : IDatabaseAccess
         new(withChangeTracking ? _trackingContextOptions : _noTrackingContextOptions);
 
     private static User Map(Model.User user) =>
-        new((InternalUserId)user.UserID,
-            (DiscordUserId)user.DiscordUserID);
+        new((InternalUserId)user.UserId,
+            (DiscordUserId)user.DiscordUserId);
 
     async Task<User[]> IDatabaseAccess.GetAllUsers()
     {
@@ -49,22 +49,22 @@ public class DatabaseAccess : IDatabaseAccess
         return dbObjects.Select(Map).ToArray();
     }
 
-    async Task IDatabaseAccess.EnsureUsersExistAsync(IEnumerable<DiscordUserId> userIDs)
+    async Task IDatabaseAccess.EnsureUsersExistAsync(IEnumerable<DiscordUserId> userIds)
     {
         await using var entities = GetDbContext(true);
-        var existingUserIDs = await entities.User.Select(m => m.DiscordUserID).ToArrayAsync();
-        var missingUserIDs = userIDs.Except(existingUserIDs.Select(m => (DiscordUserId)(ulong)m)).ToArray();
+        var existingUserIds = await entities.User.Select(m => m.DiscordUserId).ToArrayAsync();
+        var missingUserIds = userIds.Except(existingUserIds.Select(m => (DiscordUserId)(ulong)m)).ToArray();
 
-        if (!missingUserIDs.Any())
+        if (!missingUserIds.Any())
             return;
 
-        _logger.LogInformation("Adding {AmountOfMissingUsers} missing users to the database...", missingUserIDs.Length);
+        _logger.LogInformation("Adding {AmountOfMissingUsers} missing users to the database...", missingUserIds.Length);
         var added = 0;
-        foreach (var missingUserID in missingUserIDs)
+        foreach (var missingUserId in missingUserIds)
         {
             entities.User.Add(new Model.User
             {
-                DiscordUserID = (decimal)missingUserID
+                DiscordUserId = (decimal)missingUserId
             });
             added++;
         }
@@ -73,18 +73,18 @@ public class DatabaseAccess : IDatabaseAccess
         _logger.LogInformation("Added {UsersAdded} missing users to the database.", added);
     }
 
-    async Task<(User User, bool IsNew)> IDatabaseAccess.GetOrAddUserAsync(DiscordUserId userID)
+    async Task<(User User, bool IsNew)> IDatabaseAccess.GetOrAddUserAsync(DiscordUserId userId)
     {
         await using var entities = GetDbContext(true);
-        var decUserID = (decimal)userID;
-        var dbObject = await entities.User.SingleOrDefaultAsync(m => m.DiscordUserID == decUserID);
+        var decUserId = (decimal)userId;
+        var dbObject = await entities.User.SingleOrDefaultAsync(m => m.DiscordUserId == decUserId);
         if (dbObject != null)
             return (Map(dbObject), false);
 
         // Add missing user
         var newUserObject = new Model.User
         {
-            DiscordUserID = decUserID
+            DiscordUserId = decUserId
         };
         entities.User.Add(newUserObject);
 
@@ -108,9 +108,9 @@ public class DatabaseAccess : IDatabaseAccess
         await using var entities = GetDbContext(true);
         // Check if colliding entry exists
         var collisions = await entities.Vacation
-                                       .AnyAsync(m => m.UserID == internalUserId
-                                                   && end >= m.Start
-                                                   && start <= m.End)
+                                       .AnyAsync(m => m.UserId == internalUserId
+                                                   && DateOnly.FromDateTime(end) >= m.StartDate
+                                                   && DateOnly.FromDateTime(start) <= m.EndDate)
             ;
         if (collisions)
             return false;
@@ -118,9 +118,9 @@ public class DatabaseAccess : IDatabaseAccess
         // If no colliding entry exists, we can add the entry
         entities.Vacation.Add(new Vacation
         {
-            UserID = internalUserId,
-            Start = start,
-            End = end,
+            UserId = internalUserId,
+            StartDate = DateOnly.FromDateTime(start),
+            EndDate = DateOnly.FromDateTime(end),
             Note = string.IsNullOrWhiteSpace(note) ? null : note[..Math.Min(note.Length, 1024)]
         });
         await entities.SaveChangesAsync();
@@ -134,10 +134,9 @@ public class DatabaseAccess : IDatabaseAccess
         await using var entities = GetDbContext(true);
         // Find the matching vacation
         var match = await entities.Vacation
-                                  .SingleOrDefaultAsync(m => m.UserID == (int)user.InternalUserId
-                                                          && m.Start == start
-                                                          && m.End == end)
-            ;
+                                  .SingleOrDefaultAsync(m => m.UserId == (int)user.InternalUserId
+                                                          && m.StartDate == DateOnly.FromDateTime(start)
+                                                          && m.EndDate == DateOnly.FromDateTime(end));
         if (match == null)
             return false;
 
@@ -150,7 +149,7 @@ public class DatabaseAccess : IDatabaseAccess
     {
         await using var entities = GetDbContext(true);
         // Get past vacations - we don't need to keep those in the database
-        var pastVacations = await entities.Vacation.Where(m => m.End < DateTime.Today).ToArrayAsync();
+        var pastVacations = await entities.Vacation.Where(m => m.EndDate < DateOnly.FromDateTime(DateTime.Today)).ToArrayAsync();
         if (!pastVacations.Any())
             return;
         // If any vacations in the past are still in the database, delete them
@@ -161,7 +160,7 @@ public class DatabaseAccess : IDatabaseAccess
     async Task IDatabaseAccess.DeleteVacationsAsync(User user)
     {
         await using var entities = GetDbContext(true);
-        var vacations = await entities.Vacation.Where(m => m.UserID == (int)user.InternalUserId).ToArrayAsync();
+        var vacations = await entities.Vacation.Where(m => m.UserId == (int)user.InternalUserId).ToArrayAsync();
         if (!vacations.Any())
             return;
         // If the user has any vacations in the database, delete them
@@ -173,47 +172,59 @@ public class DatabaseAccess : IDatabaseAccess
     {
         await using var entities = GetDbContext();
         var localItems = await entities.Vacation
-                                       .Where(m => m.End >= DateTime.Today)
-                                       .Join(entities.User,
-                                             vacation => vacation.UserID,
-                                             u => u.UserID,
-                                             (vacation,
-                                              u) => new { u.DiscordUserID, vacation.Start, vacation.End, vacation.Note })
-                                       .ToArrayAsync()
+                                       .Where(m => m.EndDate >= DateOnly.FromDateTime(DateTime.Today))
+                                                                        .Join(entities.User,
+                                                                              vacation => vacation.UserId,
+                                                                              u => u.UserId,
+                                                                              (vacation,
+                                                                               u) => new { u.DiscordUserId, vacation.StartDate, vacation.EndDate, vacation.Note })
+                                                                        .ToArrayAsync()
             ;
-        return localItems.Select(m => ((DiscordUserId)m.DiscordUserID, m.Start, m.End, m.Note)).ToArray();
+        return localItems.Select(m => ((DiscordUserId)m.DiscordUserId,
+                                       m.StartDate.ToDateTime(TimeOnly.MinValue),
+                                       m.EndDate.ToDateTime(TimeOnly.MinValue),
+                                       m.Note))
+                         .ToArray();
     }
 
     async Task<(DiscordUserId UserId, DateTime Start, DateTime End, string Note)[]> IDatabaseAccess.GetVacationsAsync(User user)
     {
         await using var entities = GetDbContext();
         var localItems = await entities.Vacation
-                                       .Where(m => m.End >= DateTime.Today)
+                                       .Where(m => m.EndDate >= DateOnly.FromDateTime(DateTime.Today))
                                        .Join(entities.User,
-                                             vacation => vacation.UserID,
-                                             u => u.UserID,
+                                             vacation => vacation.UserId,
+                                             u => u.UserId,
                                              (vacation,
-                                              u) => new { u.UserID, u.DiscordUserID, vacation.Start, vacation.End, vacation.Note })
-                                       .Where(m => m.UserID == (int)user.InternalUserId)
+                                              u) => new { u.UserId, u.DiscordUserId, vacation.StartDate, vacation.EndDate, vacation.Note })
+                                       .Where(m => m.UserId == (int)user.InternalUserId)
                                        .ToArrayAsync()
             ;
-        return localItems.Select(m => ((DiscordUserId)m.DiscordUserID, m.Start, m.End, m.Note)).ToArray();
+        return localItems.Select(m => ((DiscordUserId)m.DiscordUserId,
+                                       m.StartDate.ToDateTime(TimeOnly.MinValue),
+                                       m.EndDate.ToDateTime(TimeOnly.MinValue),
+                                       m.Note))
+                         .ToArray();
     }
 
     async Task<(DiscordUserId UserId, DateTime Start, DateTime End, string Note)[]> IDatabaseAccess.GetVacationsAsync(DateTime date)
     {
         await using var entities = GetDbContext();
         var localItems = await entities.Vacation
-                                       .Where(m => date >= m.Start
-                                                && date <= m.End)
+                                       .Where(m => DateOnly.FromDateTime(date) >= m.StartDate
+                                                && DateOnly.FromDateTime(date) <= m.EndDate)
                                        .Join(entities.User,
-                                             vacation => vacation.UserID,
-                                             user => user.UserID,
+                                             vacation => vacation.UserId,
+                                             user => user.UserId,
                                              (vacation,
-                                              user) => new { user.DiscordUserID, vacation.Start, vacation.End, vacation.Note })
-                                       .ToArrayAsync()
-            ;
-        return localItems.Select(m => ((DiscordUserId)m.DiscordUserID, m.Start, m.End, m.Note)).ToArray();
+                                              user) => new { user.DiscordUserId, vacation.StartDate, vacation.EndDate, vacation.Note })
+                                       .ToArrayAsync();
+
+        return localItems.Select(m => ((DiscordUserId)m.DiscordUserId,
+                                       m.StartDate.ToDateTime(TimeOnly.MinValue),
+                                       m.EndDate.ToDateTime(TimeOnly.MinValue),
+                                       m.Note))
+                         .ToArray();
     }
 
     async Task<AvailableGame[]> IDatabaseAccess.GetAvailableGamesAsync()
@@ -224,7 +235,7 @@ public class DatabaseAccess : IDatabaseAccess
         {
             var g = new AvailableGame
             {
-                PrimaryGameDiscordRoleId = (DiscordRoleId)(ulong)m.PrimaryGameDiscordRoleID,
+                PrimaryGameDiscordRoleId = (DiscordRoleId)(ulong)m.PrimaryGameDiscordRoleId,
                 IncludeInGuildMembersStatistic = m.IncludeInGuildMembersStatistic,
                 IncludeInGamesMenu = m.IncludeInGamesMenu,
                 GameInterestRoleId = m.GameInterestRoleId == null
@@ -232,7 +243,7 @@ public class DatabaseAccess : IDatabaseAccess
                                          : (DiscordRoleId)(ulong)m.GameInterestRoleId
             };
             g.AvailableRoles.AddRange(m.GameRole.Select(n => new AvailableGameRole
-                                                            { DiscordRoleId = (DiscordRoleId)Convert.ToUInt64(n.DiscordRoleID) }));
+                                                            { DiscordRoleId = (DiscordRoleId)Convert.ToUInt64(n.DiscordRoleId) }));
             return g;
         }).ToArray();
     }
@@ -241,7 +252,7 @@ public class DatabaseAccess : IDatabaseAccess
                                                            DateTime lastSeen)
     {
         await using var entities = GetDbContext(true);
-        var existingInfo = await entities.UserInfo.SingleOrDefaultAsync(m => m.UserID == (decimal)user.InternalUserId);
+        var existingInfo = await entities.UserInfo.SingleOrDefaultAsync(m => m.UserId == (decimal)user.InternalUserId);
         if (existingInfo != null)
         {
             existingInfo.LastSeen = lastSeen;
@@ -250,7 +261,7 @@ public class DatabaseAccess : IDatabaseAccess
         }
 
         // Create new user info
-        entities.UserInfo.Add(new UserInfo { UserID = (int)user.InternalUserId, LastSeen = lastSeen });
+        entities.UserInfo.Add(new UserInfo { UserId = (int)user.InternalUserId, LastSeen = lastSeen });
         await entities.SaveChangesAsync();
     }
 
@@ -261,12 +272,12 @@ public class DatabaseAccess : IDatabaseAccess
         if (users.Length == 0)
             throw new ArgumentException("Parameter cannot be empty.", nameof(users));
 
-        var result = new List<(InternalUserId UserID, DateTime? LastSeen)>();
+        var result = new List<(InternalUserId UserId, DateTime? LastSeen)>();
         await using (var entities = GetDbContext())
         {
             foreach (var user in users)
             {
-                var ui = await entities.UserInfo.SingleOrDefaultAsync(m => m.UserID == (int)user.InternalUserId);
+                var ui = await entities.UserInfo.SingleOrDefaultAsync(m => m.UserId == (int)user.InternalUserId);
                 result.Add((user.InternalUserId, ui?.LastSeen));
             }
         }
@@ -277,7 +288,7 @@ public class DatabaseAccess : IDatabaseAccess
     async Task IDatabaseAccess.DeleteUserInfoAsync(User user)
     {
         await using var entities = GetDbContext(true);
-        var ui = await entities.UserInfo.SingleOrDefaultAsync(m => m.UserID == (int)user.InternalUserId);
+        var ui = await entities.UserInfo.SingleOrDefaultAsync(m => m.UserId == (int)user.InternalUserId);
         if (ui != null)
         {
             entities.UserInfo.Remove(ui);
@@ -285,49 +296,49 @@ public class DatabaseAccess : IDatabaseAccess
         }
     }
 
-    async Task<InternalGameId?> IDatabaseAccess.TryGetInternalGameIdAsync(DiscordRoleId primaryGameDiscordRoleID)
+    async Task<InternalGameId?> IDatabaseAccess.TryGetInternalGameIdAsync(DiscordRoleId primaryGameDiscordRoleId)
     {
-        var decDiscordRoleID = (decimal)primaryGameDiscordRoleID;
+        var decDiscordRoleId = (decimal)primaryGameDiscordRoleId;
 
         await using var context = GetDbContext();
-        var game = await context.Game.SingleOrDefaultAsync(m => m.PrimaryGameDiscordRoleID == decDiscordRoleID);
+        var game = await context.Game.SingleOrDefaultAsync(m => m.PrimaryGameDiscordRoleId == decDiscordRoleId);
 
         return game == null
                    ? null
-                   : (InternalGameId)game.GameID;
+                   : (InternalGameId)game.GameId;
     }
 
-    async Task<InternalGameRoleId?> IDatabaseAccess.TryGetInternalGameRoleIdAsync(DiscordRoleId discordRoleID)
+    async Task<InternalGameRoleId?> IDatabaseAccess.TryGetInternalGameRoleIdAsync(DiscordRoleId discordRoleId)
     {
-        var decDiscordRoleID = (decimal)discordRoleID;
+        var decDiscordRoleId = (decimal)discordRoleId;
 
         await using var context = GetDbContext();
-        var gameRole = await context.GameRole.SingleOrDefaultAsync(m => m.DiscordRoleID == decDiscordRoleID);
+        var gameRole = await context.GameRole.SingleOrDefaultAsync(m => m.DiscordRoleId == decDiscordRoleId);
 
         return gameRole == null
                    ? null
-                   : (InternalGameRoleId)gameRole.GameRoleID;
+                   : (InternalGameRoleId)gameRole.GameRoleId;
     }
 
-    async Task<(bool Success, string? Error)> IDatabaseAccess.TryAddGameAsync(InternalUserId userID,
-                                                                              DiscordRoleId primaryGameDiscordRoleID)
+    async Task<(bool Success, string? Error)> IDatabaseAccess.TryAddGameAsync(InternalUserId userId,
+                                                                              DiscordRoleId primaryGameDiscordRoleId)
     {
-        var decDiscordRoleID = (decimal)primaryGameDiscordRoleID;
+        var decDiscordRoleId = (decimal)primaryGameDiscordRoleId;
 
         await using var context = GetDbContext(true);
         await using var transaction = await context.Database.BeginTransactionAsync();
 
         var matchingGame = await context.Game
-                                        .SingleOrDefaultAsync(m => m.PrimaryGameDiscordRoleID == decDiscordRoleID);
+                                        .SingleOrDefaultAsync(m => m.PrimaryGameDiscordRoleId == decDiscordRoleId);
         if (matchingGame != null)
             return (false, "A game with the same Discord role Id already exists.");
 
         context.Game.Add(new Game
         {
-            PrimaryGameDiscordRoleID = decDiscordRoleID,
+            PrimaryGameDiscordRoleId = decDiscordRoleId,
             IncludeInGamesMenu = true,
             IncludeInGuildMembersStatistic = false,
-            ModifiedByUserID = (int)userID,
+            ModifiedByUserId = (int)userId,
             ModifiedAtTimestamp = DateTime.UtcNow
         });
 
@@ -337,7 +348,7 @@ public class DatabaseAccess : IDatabaseAccess
         return (true, null);
     }
 
-    async Task<(bool Success, string? Error)> IDatabaseAccess.TryUpdateGameAsync(InternalUserId userID,
+    async Task<(bool Success, string? Error)> IDatabaseAccess.TryUpdateGameAsync(InternalUserId userId,
                                                                                  InternalGameId internalGameId,
                                                                                  AvailableGame updated)
     {
@@ -346,16 +357,16 @@ public class DatabaseAccess : IDatabaseAccess
         await using var context = GetDbContext(true);
         await using var transaction = await context.Database.BeginTransactionAsync();
 
-        var matchingGame = await context.Game.SingleOrDefaultAsync(m => m.GameID == shortGameId);
+        var matchingGame = await context.Game.SingleOrDefaultAsync(m => m.GameId == shortGameId);
         if (matchingGame == null)
-            return (false, $"Game with the GameID {internalGameId} couldn't be found.");
+            return (false, $"Game with the GameId {internalGameId} couldn't be found.");
 
         matchingGame.IncludeInGuildMembersStatistic = updated.IncludeInGuildMembersStatistic;
         matchingGame.IncludeInGamesMenu = updated.IncludeInGamesMenu;
         matchingGame.GameInterestRoleId = updated.GameInterestRoleId == null
                                               ? null
                                               : (ulong)updated.GameInterestRoleId;
-        matchingGame.ModifiedByUserID = (int)userID;
+        matchingGame.ModifiedByUserId = (int)userId;
         matchingGame.ModifiedAtTimestamp = DateTime.UtcNow;
 
         await context.SaveChangesAsync();
@@ -372,7 +383,7 @@ public class DatabaseAccess : IDatabaseAccess
         var shortGameId = (short)internalGameId;
         var matchingGame = await context.Game
                                         .Include(m => m.GameRole)
-                                        .SingleOrDefaultAsync(m => m.GameID == shortGameId);
+                                        .SingleOrDefaultAsync(m => m.GameId == shortGameId);
         if (matchingGame == null)
             return (false, $"Game with the GameId {shortGameId} couldn't be found.");
 
@@ -390,32 +401,32 @@ public class DatabaseAccess : IDatabaseAccess
         return (true, null);
     }
 
-    async Task<(bool Success, string? Error)> IDatabaseAccess.TryAddGameRoleAsync(InternalUserId userID,
+    async Task<(bool Success, string? Error)> IDatabaseAccess.TryAddGameRoleAsync(InternalUserId userId,
                                                                                   InternalGameId internalGameId,
-                                                                                  DiscordRoleId discordRoleID)
+                                                                                  DiscordRoleId discordRoleId)
     {
         await using var context = GetDbContext(true);
         await using var transaction = await context.Database.BeginTransactionAsync();
 
-        var decDiscordRoleID = (decimal)discordRoleID;
+        var decDiscordRoleId = (decimal)discordRoleId;
         var shortGameId = (short)internalGameId;
         var matchingGameInDb =
-            await context.GameRole.SingleOrDefaultAsync(m => m.DiscordRoleID == decDiscordRoleID);
+            await context.GameRole.SingleOrDefaultAsync(m => m.DiscordRoleId == decDiscordRoleId);
         if (matchingGameInDb != null)
-            return (false, matchingGameInDb.GameID == shortGameId
-                               ? "The DiscordRoleID is already is use for this game."
-                               : "The DiscordRoleID is already in use for another game.");
+            return (false, matchingGameInDb.GameId == shortGameId
+                               ? "The DiscordRoleId is already is use for this game."
+                               : "The DiscordRoleId is already in use for another game.");
 
         var matchingGameRoleName =
-            await context.GameRole.AnyAsync(m => m.GameID == shortGameId && m.DiscordRoleID == decDiscordRoleID);
+            await context.GameRole.AnyAsync(m => m.GameId == shortGameId && m.DiscordRoleId == decDiscordRoleId);
         if (matchingGameRoleName)
             return (false, "A role with the same name is already assigned to the game.");
 
         context.GameRole.Add(new GameRole
         {
-            GameID = shortGameId,
-            DiscordRoleID = decDiscordRoleID,
-            ModifiedByUserID = (int)userID,
+            GameId = shortGameId,
+            DiscordRoleId = decDiscordRoleId,
+            ModifiedByUserId = (int)userId,
             ModifiedAtTimestamp = DateTime.UtcNow
         });
 
@@ -430,9 +441,9 @@ public class DatabaseAccess : IDatabaseAccess
         await using var context = GetDbContext(true);
         await using var transaction = await context.Database.BeginTransactionAsync();
 
-        var gameRole = await context.GameRole.SingleOrDefaultAsync(m => m.GameRoleID == (short)gameRoleId);
+        var gameRole = await context.GameRole.SingleOrDefaultAsync(m => m.GameRoleId == (short)gameRoleId);
         if (gameRole == null)
-            return (false, "Couldn't find game role by ID.");
+            return (false, "Couldn't find game role by Id.");
 
         context.GameRole.Remove(gameRole);
 

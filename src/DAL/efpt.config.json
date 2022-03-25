@@ -14,60 +14,65 @@
    "SelectedToBeGenerated": 0,
    "Tables": [
       {
-         "Name": "[config].[DesiredTimeZone]",
+         "Name": "config.desired_time_zone",
          "ObjectType": 0
       },
       {
-         "Name": "[config].[DiscordMapping]",
+         "Name": "config.scheduled_reminder",
          "ObjectType": 0
       },
       {
-         "Name": "[config].[Game]",
+         "Name": "config.game",
          "ObjectType": 0
       },
       {
-         "Name": "[config].[GameRole]",
+         "Name": "config.spam_protected_channel",
          "ObjectType": 0
       },
       {
-         "Name": "[config].[Message]",
+         "Name": "config.game_role",
          "ObjectType": 0
       },
       {
-         "Name": "[config].[ScheduledReminder]",
+         "Name": "config.scheduled_reminder_mention",
          "ObjectType": 0
       },
       {
-         "Name": "[config].[ScheduledReminderMention]",
+         "Name": "config.flyway_schema_history",
          "ObjectType": 0
       },
       {
-         "Name": "[config].[SpamProtectedChannel]",
+         "Name": "config.units_endpoint",
          "ObjectType": 0
       },
       {
-         "Name": "[config].[UnitsEndpoint]",
+         "Name": "config.discord_mapping",
          "ObjectType": 0
       },
       {
-         "Name": "[hou].[User]",
+         "Name": "config.message",
          "ObjectType": 0
       },
       {
-         "Name": "[hou].[UserInfo]",
+         "Name": "hou.user",
          "ObjectType": 0
       },
       {
-         "Name": "[hou].[Vacation]",
+         "Name": "hou.vacation",
+         "ObjectType": 0
+      },
+      {
+         "Name": "hou.user_info",
          "ObjectType": 0
       }
    ],
-   "UiHint": "..\\Database\\Database.sqlproj",
+   "UiHint": "bot-development",
    "UseBoolPropertiesWithoutDefaultSql": false,
-   "UseDatabaseNames": true,
+   "UseDatabaseNames": false,
    "UseDbContextSplitting": false,
    "UseFluentApiOnly": true,
    "UseHandleBars": false,
+   "UseHierarchyId": false,
    "UseInflector": false,
    "UseLegacyPluralizer": false,
    "UseManyToManyEntity": false,

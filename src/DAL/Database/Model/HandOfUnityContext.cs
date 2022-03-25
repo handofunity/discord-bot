@@ -20,6 +20,7 @@ namespace HoU.GuildBot.DAL.Database.Model
 
         public virtual DbSet<DesiredTimeZone> DesiredTimeZone { get; set; }
         public virtual DbSet<DiscordMapping> DiscordMapping { get; set; }
+        public virtual DbSet<FlywaySchemaHistory> FlywaySchemaHistory { get; set; }
         public virtual DbSet<Game> Game { get; set; }
         public virtual DbSet<GameRole> GameRole { get; set; }
         public virtual DbSet<Message> Message { get; set; }
@@ -33,200 +34,334 @@ namespace HoU.GuildBot.DAL.Database.Model
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.HasAnnotation("Scaffolding:ConnectionString", "Data Source=(local);Initial Catalog=Database;Integrated Security=true");
-
             modelBuilder.Entity<DesiredTimeZone>(entity =>
             {
-                entity.HasKey(e => e.DesiredTimeZoneKey);
+                entity.HasKey(e => e.DesiredTimeZoneKey)
+                    .HasName("desired_time_zone_pkey");
 
-                entity.ToTable("DesiredTimeZone", "config");
+                entity.ToTable("desired_time_zone", "config");
 
                 entity.Property(e => e.DesiredTimeZoneKey)
                     .HasMaxLength(128)
-                    .IsUnicode(false);
+                    .HasColumnName("desired_time_zone_key");
 
                 entity.Property(e => e.InvariantDisplayName)
                     .IsRequired()
                     .HasMaxLength(1024)
-                    .IsUnicode(false);
+                    .HasColumnName("invariant_display_name");
             });
 
             modelBuilder.Entity<DiscordMapping>(entity =>
             {
-                entity.HasKey(e => e.DiscordMappingKey);
+                entity.HasKey(e => e.DiscordMappingKey)
+                    .HasName("discord_mapping_pkey");
 
-                entity.ToTable("DiscordMapping", "config");
+                entity.ToTable("discord_mapping", "config");
 
                 entity.Property(e => e.DiscordMappingKey)
                     .HasMaxLength(64)
-                    .IsUnicode(false);
+                    .HasColumnName("discord_mapping_key");
 
-                entity.Property(e => e.DiscordID).HasColumnType("decimal(20, 0)");
+                entity.Property(e => e.DiscordId)
+                    .HasPrecision(20)
+                    .HasColumnName("discord_id");
+            });
+
+            modelBuilder.Entity<FlywaySchemaHistory>(entity =>
+            {
+                entity.HasKey(e => e.InstalledRank)
+                    .HasName("flyway_schema_history_pk");
+
+                entity.ToTable("flyway_schema_history", "config");
+
+                entity.HasIndex(e => e.Success, "flyway_schema_history_s_idx");
+
+                entity.Property(e => e.InstalledRank)
+                    .ValueGeneratedNever()
+                    .HasColumnName("installed_rank");
+
+                entity.Property(e => e.Checksum).HasColumnName("checksum");
+
+                entity.Property(e => e.Description)
+                    .IsRequired()
+                    .HasMaxLength(200)
+                    .HasColumnName("description");
+
+                entity.Property(e => e.ExecutionTime).HasColumnName("execution_time");
+
+                entity.Property(e => e.InstalledBy)
+                    .IsRequired()
+                    .HasMaxLength(100)
+                    .HasColumnName("installed_by");
+
+                entity.Property(e => e.InstalledOn)
+                    .HasColumnType("timestamp without time zone")
+                    .HasColumnName("installed_on")
+                    .HasDefaultValueSql("now()");
+
+                entity.Property(e => e.Script)
+                    .IsRequired()
+                    .HasMaxLength(1000)
+                    .HasColumnName("script");
+
+                entity.Property(e => e.Success).HasColumnName("success");
+
+                entity.Property(e => e.Type)
+                    .IsRequired()
+                    .HasMaxLength(20)
+                    .HasColumnName("type");
+
+                entity.Property(e => e.Version)
+                    .HasMaxLength(50)
+                    .HasColumnName("version");
             });
 
             modelBuilder.Entity<Game>(entity =>
             {
-                entity.ToTable("Game", "config");
+                entity.ToTable("game", "config");
 
-                entity.HasIndex(e => e.GameInterestRoleId, "IDX_Game_NotNull_GameInterestRoleId")
+                entity.HasIndex(e => e.GameInterestRoleId, "idx_game_not_null_game_interest_role_id")
                     .IsUnique()
-                    .HasFilter("GameInterestRoleId IS NOT NULL");
+                    .HasFilter("(game_interest_role_id IS NOT NULL)");
 
-                entity.HasIndex(e => e.PrimaryGameDiscordRoleID, "UQ_Game_PrimaryGameDiscordRoleID")
+                entity.HasIndex(e => e.PrimaryGameDiscordRoleId, "uq_game_primary_game_discord_role_id")
                     .IsUnique();
 
-                entity.Property(e => e.GameInterestRoleId).HasColumnType("decimal(20, 0)");
+                entity.Property(e => e.GameId)
+                    .HasColumnName("game_id")
+                    .UseIdentityAlwaysColumn();
 
-                entity.Property(e => e.PrimaryGameDiscordRoleID).HasColumnType("decimal(20, 0)");
+                entity.Property(e => e.GameInterestRoleId)
+                    .HasPrecision(20)
+                    .HasColumnName("game_interest_role_id");
+
+                entity.Property(e => e.IncludeInGamesMenu).HasColumnName("include_in_games_menu");
+
+                entity.Property(e => e.IncludeInGuildMembersStatistic).HasColumnName("include_in_guild_members_statistic");
+
+                entity.Property(e => e.ModifiedAtTimestamp).HasColumnName("modified_at_timestamp");
+
+                entity.Property(e => e.ModifiedByUserId).HasColumnName("modified_by_user_id");
+
+                entity.Property(e => e.PrimaryGameDiscordRoleId)
+                    .HasPrecision(20)
+                    .HasColumnName("primary_game_discord_role_id");
 
                 entity.HasOne(d => d.ModifiedByUser)
                     .WithMany(p => p.Game)
-                    .HasForeignKey(d => d.ModifiedByUserID)
-                    .OnDelete(DeleteBehavior.ClientSetNull);
+                    .HasForeignKey(d => d.ModifiedByUserId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("fk_game_user");
             });
 
             modelBuilder.Entity<GameRole>(entity =>
             {
-                entity.ToTable("GameRole", "config");
+                entity.ToTable("game_role", "config");
 
-                entity.HasIndex(e => e.DiscordRoleID, "UQ_GameRole_DiscordRoleID")
+                entity.HasIndex(e => e.DiscordRoleId, "uq_game_role_discord_role_id")
                     .IsUnique();
 
-                entity.Property(e => e.DiscordRoleID).HasColumnType("decimal(20, 0)");
+                entity.Property(e => e.GameRoleId)
+                    .HasColumnName("game_role_id")
+                    .UseIdentityAlwaysColumn();
+
+                entity.Property(e => e.DiscordRoleId)
+                    .HasPrecision(20)
+                    .HasColumnName("discord_role_id");
+
+                entity.Property(e => e.GameId).HasColumnName("game_id");
+
+                entity.Property(e => e.ModifiedAtTimestamp).HasColumnName("modified_at_timestamp");
+
+                entity.Property(e => e.ModifiedByUserId).HasColumnName("modified_by_user_id");
 
                 entity.HasOne(d => d.Game)
                     .WithMany(p => p.GameRole)
-                    .HasForeignKey(d => d.GameID)
-                    .OnDelete(DeleteBehavior.ClientSetNull);
+                    .HasForeignKey(d => d.GameId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("fk_game_role_game_game_id");
 
                 entity.HasOne(d => d.ModifiedByUser)
                     .WithMany(p => p.GameRole)
-                    .HasForeignKey(d => d.ModifiedByUserID)
-                    .OnDelete(DeleteBehavior.ClientSetNull);
+                    .HasForeignKey(d => d.ModifiedByUserId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("fk_game_role_user_modified_by_user_id");
             });
 
             modelBuilder.Entity<Message>(entity =>
             {
-                entity.ToTable("Message", "config");
+                entity.ToTable("message", "config");
 
-                entity.HasIndex(e => e.Name, "IDX_Message_Name_Inc_Content")
+                entity.HasIndex(e => e.Name, "idx_message_name_inc_content")
                     .IsUnique();
+
+                entity.Property(e => e.MessageId)
+                    .HasColumnName("message_id")
+                    .UseIdentityAlwaysColumn();
 
                 entity.Property(e => e.Content)
                     .IsRequired()
-                    .HasMaxLength(2000);
+                    .HasMaxLength(2000)
+                    .HasColumnName("content");
 
                 entity.Property(e => e.Description)
                     .IsRequired()
-                    .HasMaxLength(512);
+                    .HasMaxLength(512)
+                    .HasColumnName("description");
 
                 entity.Property(e => e.Name)
                     .IsRequired()
                     .HasMaxLength(128)
-                    .IsUnicode(false);
+                    .HasColumnName("name");
             });
 
             modelBuilder.Entity<ScheduledReminder>(entity =>
             {
-                entity.ToTable("ScheduledReminder", "config");
+                entity.ToTable("scheduled_reminder", "config");
+
+                entity.Property(e => e.ScheduledReminderId)
+                    .HasColumnName("scheduled_reminder_id")
+                    .UseIdentityAlwaysColumn();
 
                 entity.Property(e => e.CronSchedule)
                     .IsRequired()
                     .HasMaxLength(64)
-                    .IsUnicode(false);
+                    .HasColumnName("cron_schedule");
 
-                entity.Property(e => e.DiscordChannelID).HasColumnType("decimal(20, 0)");
+                entity.Property(e => e.DiscordChannelId)
+                    .HasPrecision(20)
+                    .HasColumnName("discord_channel_id");
 
                 entity.Property(e => e.Text)
                     .IsRequired()
                     .HasMaxLength(2048)
-                    .IsUnicode(false);
+                    .HasColumnName("text");
             });
 
             modelBuilder.Entity<ScheduledReminderMention>(entity =>
             {
-                entity.ToTable("ScheduledReminderMention", "config");
+                entity.ToTable("scheduled_reminder_mention", "config");
 
-                entity.HasIndex(e => e.ScheduledReminderID, "FK_ScheduledReminderMention_ScheduledReminder");
+                entity.Property(e => e.ScheduledReminderMentionId)
+                    .HasColumnName("scheduled_reminder_mention_id")
+                    .UseIdentityAlwaysColumn();
 
-                entity.Property(e => e.DiscordRoleID).HasColumnType("decimal(20, 0)");
+                entity.Property(e => e.DiscordRoleId)
+                    .HasPrecision(20)
+                    .HasColumnName("discord_role_id");
 
-                entity.Property(e => e.DiscordUserID).HasColumnType("decimal(20, 0)");
+                entity.Property(e => e.DiscordUserId)
+                    .HasPrecision(20)
+                    .HasColumnName("discord_user_id");
+
+                entity.Property(e => e.ScheduledReminderId).HasColumnName("scheduled_reminder_id");
 
                 entity.HasOne(d => d.ScheduledReminder)
                     .WithMany(p => p.ScheduledReminderMention)
-                    .HasForeignKey(d => d.ScheduledReminderID)
+                    .HasForeignKey(d => d.ScheduledReminderId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_ScheduledReminderMention_ScheduledReminder");
+                    .HasConstraintName("fk_scheduled_reminder_mention_scheduled_reminder");
             });
 
             modelBuilder.Entity<SpamProtectedChannel>(entity =>
             {
-                entity.ToTable("SpamProtectedChannel", "config");
+                entity.ToTable("spam_protected_channel", "config");
 
-                entity.Property(e => e.SpamProtectedChannelID).HasColumnType("decimal(20, 0)");
+                entity.Property(e => e.SpamProtectedChannelId)
+                    .HasPrecision(20)
+                    .HasColumnName("spam_protected_channel_id");
+
+                entity.Property(e => e.HardCap).HasColumnName("hard_cap");
+
+                entity.Property(e => e.SoftCap).HasColumnName("soft_cap");
             });
 
             modelBuilder.Entity<UnitsEndpoint>(entity =>
             {
-                entity.ToTable("UnitsEndpoint", "config");
+                entity.ToTable("units_endpoint", "config");
 
-                entity.HasIndex(e => e.BaseAddress, "UQ_BaseAddress")
+                entity.HasIndex(e => e.BaseAddress, "uq_base_address")
                     .IsUnique();
+
+                entity.Property(e => e.UnitsEndpointId)
+                    .HasColumnName("units_endpoint_id")
+                    .UseIdentityAlwaysColumn();
 
                 entity.Property(e => e.BaseAddress)
                     .IsRequired()
                     .HasMaxLength(256)
-                    .IsUnicode(false);
+                    .HasColumnName("base_address");
+
+                entity.Property(e => e.ConnectToNotificationsHub).HasColumnName("connect_to_notifications_hub");
+
+                entity.Property(e => e.ConnectToRestApi).HasColumnName("connect_to_rest_api");
 
                 entity.Property(e => e.Secret)
                     .IsRequired()
                     .HasMaxLength(128)
-                    .IsUnicode(false);
+                    .HasColumnName("secret");
             });
 
             modelBuilder.Entity<User>(entity =>
             {
-                entity.ToTable("User", "hou");
+                entity.ToTable("user", "hou");
 
-                entity.HasIndex(e => e.DiscordUserID, "IDX_User_DiscordUserID_Inc_UserID")
+                entity.HasIndex(e => e.DiscordUserId, "idx_user_discord_user_id")
                     .IsUnique();
 
-                entity.Property(e => e.DiscordUserID).HasColumnType("decimal(20, 0)");
+                entity.Property(e => e.UserId)
+                    .HasColumnName("user_id")
+                    .UseIdentityAlwaysColumn();
+
+                entity.Property(e => e.DiscordUserId)
+                    .HasPrecision(20)
+                    .HasColumnName("discord_user_id");
             });
 
             modelBuilder.Entity<UserInfo>(entity =>
             {
-                entity.HasKey(e => e.UserID)
-                    .HasName("PK_UserInfo_UserID");
+                entity.HasKey(e => e.UserId)
+                    .HasName("user_info_pkey");
 
-                entity.ToTable("UserInfo", "hou");
+                entity.ToTable("user_info", "hou");
 
-                entity.Property(e => e.UserID).ValueGeneratedNever();
+                entity.Property(e => e.UserId)
+                    .ValueGeneratedOnAdd()
+                    .HasColumnName("user_id")
+                    .UseIdentityAlwaysColumn();
+
+                entity.Property(e => e.LastSeen).HasColumnName("last_seen");
 
                 entity.HasOne(d => d.User)
                     .WithOne(p => p.UserInfo)
-                    .HasForeignKey<UserInfo>(d => d.UserID)
+                    .HasForeignKey<UserInfo>(d => d.UserId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_UserInfo_User");
+                    .HasConstraintName("fk_user_info_user");
             });
 
             modelBuilder.Entity<Vacation>(entity =>
             {
-                entity.ToTable("Vacation", "hou");
+                entity.ToTable("vacation", "hou");
 
-                entity.Property(e => e.End).HasColumnType("date");
+                entity.Property(e => e.VacationId)
+                    .HasColumnName("vacation_id")
+                    .UseIdentityAlwaysColumn();
+
+                entity.Property(e => e.EndDate).HasColumnName("end_date");
 
                 entity.Property(e => e.Note)
                     .HasMaxLength(1024)
-                    .IsUnicode(false);
+                    .HasColumnName("note");
 
-                entity.Property(e => e.Start).HasColumnType("date");
+                entity.Property(e => e.StartDate).HasColumnName("start_date");
+
+                entity.Property(e => e.UserId).HasColumnName("user_id");
 
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.Vacation)
-                    .HasForeignKey(d => d.UserID)
-                    .OnDelete(DeleteBehavior.ClientSetNull);
+                    .HasForeignKey(d => d.UserId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("fk_vacation_user");
             });
 
             OnModelCreatingPartial(modelBuilder);

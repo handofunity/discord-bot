@@ -12,9 +12,9 @@ namespace HoU.GuildBot.DAL.Database.Model
             ScheduledReminderMention = new HashSet<ScheduledReminderMention>();
         }
 
-        public int ScheduledReminderID { get; set; }
+        public int ScheduledReminderId { get; set; }
         public string CronSchedule { get; set; }
-        public decimal DiscordChannelID { get; set; }
+        public decimal DiscordChannelId { get; set; }
         public string Text { get; set; }
 
         public virtual ICollection<ScheduledReminderMention> ScheduledReminderMention { get; set; }

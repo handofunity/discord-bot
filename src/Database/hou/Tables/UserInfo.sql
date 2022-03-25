@@ -1,7 +1,0 @@
-﻿CREATE TABLE [hou].[UserInfo]
-(
-	[UserID] INT NOT NULL,
-	[LastSeen] DATETIME2 NOT NULL,
-	CONSTRAINT PK_UserInfo_UserID PRIMARY KEY (UserID),
-	CONSTRAINT FK_UserInfo_User FOREIGN KEY (UserID) REFERENCES [hou].[User] (UserID)
-)

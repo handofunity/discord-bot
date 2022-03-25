@@ -295,3 +295,6 @@ __pycache__/
 logs/
 /ClientTools/settings.houguildbot.ini
 /ServerTools/settings.registry.production.ini
+
+# Flyway user config
+flyway.user.conf

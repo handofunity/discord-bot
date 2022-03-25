@@ -8,6 +8,6 @@ namespace HoU.GuildBot.DAL.Database.Model
     public partial class DiscordMapping
     {
         public string DiscordMappingKey { get; set; }
-        public decimal DiscordID { get; set; }
+        public decimal DiscordId { get; set; }
     }
 }

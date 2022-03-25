@@ -7,7 +7,7 @@ using HoU.GuildBot.DAL;
 using HoU.GuildBot.DAL.Database;
 using HoU.GuildBot.DAL.Discord;
 using Hangfire;
-using Hangfire.SqlServer;
+using Hangfire.PostgreSql;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -19,14 +19,13 @@ using Serilog.Exceptions;
 using Serilog.Exceptions.Core;
 using Serilog.Exceptions.Destructurers;
 using Serilog.Exceptions.EntityFrameworkCore.Destructurers;
-using Serilog.Exceptions.MsSqlServer.Destructurers;
 using DiscordUserEventHandler = HoU.GuildBot.BLL.DiscordUserEventHandler;
 
 namespace HoU.GuildBot.Core;
 
 public class Runner
 {
-    private static readonly Version _botVersion = new(8, 0, 0);
+    private static readonly Version _botVersion = new(9, 0, 0);
 
     private BackgroundJobServer? _backgroundJobServer;
     private ILogger<Runner>? _logger;
@@ -149,7 +148,6 @@ public class Runner
                                                              .WithDefaultDestructurers()
                                                              .WithDestructurers(new IExceptionDestructurer[]
                                                               {
-                                                                  new SqlExceptionDestructurer(),
                                                                   new DbUpdateExceptionDestructurer()
                                                               }));
 
@@ -175,16 +173,16 @@ public class Runner
             config.SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
                   .UseSimpleAssemblyNameTypeSerializer()
                   .UseRecommendedSerializerSettings()
-                  .UseSqlServerStorage(settings.ConnectionStringForHangFireDatabase,
-                                       new SqlServerStorageOptions
-                                       {
-                                           CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
-                                           SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
-                                           QueuePollInterval = TimeSpan.Zero,
-                                           UseRecommendedIsolationLevel = true,
-                                           UsePageLocksOnDequeue = true,
-                                           DisableGlobalLocks = true
-                                       });
+                  .UsePostgreSqlStorage(settings.ConnectionStringForHangFireDatabase,
+                                        new PostgreSqlStorageOptions
+                                        {
+                                            SchemaName = "hang_fire",
+                                            PrepareSchemaIfNecessary = true,
+                                            QueuePollInterval = TimeSpan.FromSeconds(15),
+                                            InvisibilityTimeout = TimeSpan.FromMinutes(5),
+                                            DistributedLockTimeout = TimeSpan.FromMinutes(2),
+                                            UseNativeDatabaseTransactions = true
+                                        });
         });
         serviceCollection.AddHangfireServer();
     }
