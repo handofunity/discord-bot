@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 using HoU.GuildBot.Shared.Extensions;
 using HoU.GuildBot.Shared.StrongTypes;
 
@@ -11,36 +12,6 @@ public record ScheduledReminderInfo(int ReminderId,
                                     DiscordRoleId[] RemindRoles,
                                     string Text)
 {
-    /// <summary>
-    /// Gets or sets the reminder ID.
-    /// </summary>
-    public int ReminderId { get; } = ReminderId;
-
-    /// <summary>
-    /// Gets or sets the CRON schedule for this reminder.
-    /// </summary>
-    public string CronSchedule { get; } = CronSchedule;
-
-    /// <summary>
-    /// Gets or sets the <see cref="DiscordChannelId"/> of the channel to post the reminder in.
-    /// </summary>
-    public DiscordChannelId Channel { get; } = Channel;
-
-    /// <summary>
-    /// Gets or sets the <see cref="DiscordUserId"/>s of the users to remind.
-    /// </summary>
-    public DiscordUserId[] RemindUsers { get; } = RemindUsers;
-
-    /// <summary>
-    /// Gets or sets the <see cref="DiscordRoleId"/>s of the roles to remind.
-    /// </summary>
-    public DiscordRoleId[] RemindRoles { get; } = RemindRoles;
-
-    /// <summary>
-    /// Gets or sets the text of the reminder.
-    /// </summary>
-    public string Text { get; } = Text;
-
     public (DiscordChannelId ChannelID, string Message) GetReminderDetails()
     {
         var channelId = Channel;
@@ -50,8 +21,11 @@ public record ScheduledReminderInfo(int ReminderId,
 
         string GetMentions()
         {
+            if (RemindUsers.Length == 0 && RemindRoles.Length == 0)
+                throw new InvalidOperationException($"Reminder {ReminderId} has no mentions. At least one mention is required.");
+            
             var sb = new StringBuilder();
-
+            
             foreach (var discordUserId in RemindUsers)
                 sb.Append($"{discordUserId.ToMention()} ");
 
