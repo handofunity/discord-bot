@@ -1,2 +1,2 @@
-flyway -configFiles="flyway.user.conf" clean
-flyway -configFiles="flyway.user.conf" migrate
+flyway -configFiles="local.flyway.user.conf" clean
+flyway -configFiles="local.flyway.user.conf" migrate

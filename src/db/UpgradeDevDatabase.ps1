@@ -1,1 +1,1 @@
-flyway -configFiles="flyway.user.conf" migrate
+flyway -configFiles="local.flyway.user.conf" migrate
