@@ -190,7 +190,7 @@ public class ImageProvider : IImageProvider
         {
             { "PvE", SKColors.Green },
             { "PvP", SKColors.DarkRed },
-            { "Crafting", SKColors.DarkOrange }
+            { "Artisan", SKColors.DarkOrange }
         };
         var rolesInChart = barColors.Keys.ToArray();
         return CreateBarChartImage(new BarChartDrawingData("AoCRolesBackground_Centered.png",

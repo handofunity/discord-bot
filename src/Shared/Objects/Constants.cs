@@ -114,7 +114,7 @@ public static class Constants
             {
                 {"pve", "PvE"},
                 {"pvp", "PvP"},
-                {"crafting", "Crafting"}
+                {"artisan", "Artisan"}
             };
     }
 
