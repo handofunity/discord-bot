@@ -1299,12 +1299,25 @@ public class DiscordAccess : IDiscordAccess
 
     private Task Client_UserLeft(SocketGuild guild, SocketUser user)
     {
-        var guildUser = guild.GetUser(user.Id);
-        _discordUserEventHandler.HandleLeft((DiscordUserId) guildUser.Id,
-                                            guildUser.Username,
-                                            guildUser.DiscriminatorValue,
-                                            guildUser.JoinedAt,
-                                            guildUser.Roles.Where(m => !m.IsEveryone).Select(m => m.Name).ToArray());
+        if (guild == null)
+            throw new ArgumentNullException(nameof(guild));
+        if (user == null)
+            throw new ArgumentNullException(nameof(user));
+
+        try
+        {
+            var guildUser = guild.GetUser(user.Id);
+            _discordUserEventHandler.HandleLeft((DiscordUserId)guildUser.Id,
+                                                guildUser.Username,
+                                                guildUser.DiscriminatorValue,
+                                                guildUser.JoinedAt,
+                                                guildUser.Roles.Where(m => !m.IsEveryone).Select(m => m.Name).ToArray());
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "An unhandled exception has been thrown while handling UserLeft event.");
+        }
+
         return Task.CompletedTask;
     }
 
