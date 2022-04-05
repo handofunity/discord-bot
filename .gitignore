@@ -298,3 +298,6 @@ logs/
 
 # Flyway user configurations
 *.flyway.user.conf
+
+# PostgreSQL backups
+/src/db/backups/
