@@ -116,11 +116,9 @@ public class ConfigurationDatabaseAccess : IConfigurationDatabaseAccess
                                                                              DiscordUserId discordUserId)
     {
         await using var entities = GetDbContext();
-        var sr = await entities.ScheduledReminder
-                               .FirstAsync(m => m.ScheduledReminderId == scheduledReminderId);
-
-        sr.ScheduledReminderMention.Add(new ScheduledReminderMention
+        entities.ScheduledReminderMention.Add(new ScheduledReminderMention
         {
+            ScheduledReminderId = scheduledReminderId,
             DiscordUserId = (ulong)discordUserId
         });
 
@@ -131,11 +129,9 @@ public class ConfigurationDatabaseAccess : IConfigurationDatabaseAccess
                                                                              DiscordRoleId discordRoleId)
     {
         await using var entities = GetDbContext();
-        var sr = await entities.ScheduledReminder
-                               .FirstAsync(m => m.ScheduledReminderId == scheduledReminderId);
-
-        sr.ScheduledReminderMention.Add(new ScheduledReminderMention
+        entities.ScheduledReminderMention.Add(new ScheduledReminderMention
         {
+            ScheduledReminderId = scheduledReminderId,
             DiscordRoleId = (ulong)discordRoleId
         });
 

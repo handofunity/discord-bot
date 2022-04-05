@@ -187,7 +187,7 @@ public class DiscordAccess : IDiscordAccess
         }
     }
 
-    private async Task<bool> CheckIfInteractionShouldBeIgnored(SocketInteraction interaction)
+    private bool CheckIfInteractionShouldBeIgnored(SocketInteraction interaction)
     {
         var isStopIgnoreInteraction = interaction is SocketSlashCommand { CommandName: "ignore" } socketSlashCommand
                                    && socketSlashCommand.Data.Options.FirstOrDefault()?.Name == "stop";
@@ -1321,7 +1321,7 @@ public class DiscordAccess : IDiscordAccess
         return Task.CompletedTask;
     }
 
-    private Task Client_PresenceUpdated(SocketUser socketUser, SocketPresence oldPresence, SocketPresence newPresence)
+    private Task Client_PresenceUpdated(SocketUser socketUser, SocketPresence? oldPresence, SocketPresence? newPresence)
     {
         var discordUserId = (DiscordUserId)socketUser.Id;
 
@@ -1329,7 +1329,9 @@ public class DiscordAccess : IDiscordAccess
         Task.Run(async () =>
         {
             // Handle possible status change
-            if (oldPresence.Status != newPresence.Status)
+            if (oldPresence is not null
+             && newPresence is not null
+             && oldPresence.Status != newPresence.Status)
             {
                 var wasOnline = IsOnline(oldPresence);
                 var isOnline = IsOnline(newPresence);
@@ -1380,9 +1382,12 @@ public class DiscordAccess : IDiscordAccess
         return Task.CompletedTask;
     }
 
-    private async Task Client_InteractionCreated(SocketInteraction interaction)
+    private async Task Client_InteractionCreated(SocketInteraction? interaction)
     {
-        if (await CheckIfInteractionShouldBeIgnored(interaction))
+        if (interaction is null)
+            return;
+
+        if (CheckIfInteractionShouldBeIgnored(interaction))
             return;
 
         try
