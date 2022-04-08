@@ -115,6 +115,22 @@ public interface IDatabaseAccess
     Task DeleteUserInfoAsync(User user);
 
     /// <summary>
+    /// Sets the user birthday related to the <paramref name="user"/>.
+    /// </summary>
+    /// <param name="user">The user.</param>
+    /// <param name="birthday">The date of the birthday.</param>
+    /// <returns><b>True</b>, if the birthday was set, otherwise <b>false</b>.</returns>
+    Task<bool> SetBirthdayAsync(User user,
+                                DateOnly birthday);
+
+    /// <summary>
+    /// Deletes the user birthday related to the <paramref name="user"/>.
+    /// </summary>
+    /// <param name="user">The user.</param>
+    /// <returns><b>True</b>, if the birthday was deleted, otherwise <b>false</b>.</returns>
+    Task<bool> DeleteUserBirthdayAsync(User user);
+
+    /// <summary>
     /// Tries to get the internal Id of the game associated with the <paramref name="primaryGameDiscordRoleId"/>.
     /// </summary>
     /// <param name="primaryGameDiscordRoleId">The Discord Id of the primary game role.</param>
@@ -172,4 +188,13 @@ public interface IDatabaseAccess
     /// <param name="gameRoleId">The internal Id of the game role to remove.</param>
     /// <returns>A value tuple containing the success state, and, if the add fails, the error that occurred.</returns>
     Task<(bool Success, string? Error)> TryRemoveGameRoleAsync(InternalGameRoleId gameRoleId);
+
+    /// <summary>
+    /// Gets the <see cref="InternalUserId"/> with a birthday on the given <paramref name="month"/> and <paramref name="day"/>.
+    /// </summary>
+    /// <param name="month">The month to query for.</param>
+    /// <param name="day">The day to query for.</param>
+    /// <returns>An array with the <see cref="InternalUserId"/> of all matching users.</returns>
+    Task<InternalUserId[]> GetUsersWithBirthdayAsync(short month,
+                                                     short day);
 }

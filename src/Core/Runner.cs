@@ -25,7 +25,7 @@ namespace HoU.GuildBot.Core;
 
 public class Runner
 {
-    private static readonly Version _botVersion = new(9, 0, 1);
+    private static readonly Version _botVersion = new(9, 1, 0);
 
     private BackgroundJobServer? _backgroundJobServer;
     private ILogger<Runner>? _logger;
@@ -114,6 +114,7 @@ public class Runner
            .AddSingleton<IDynamicConfiguration, DynamicConfiguration>()
             // Transients
            .AddTransient<IVacationProvider, VacationProvider>()
+           .AddTransient<IBirthdayProvider, BirthdayProvider>()
            .AddTransient<IGuildInfoProvider, GuildInfoProvider>()
            .AddTransient<IUserInfoProvider, UserInfoProvider>()
            .AddTransient<IImageProvider, ImageProvider>()

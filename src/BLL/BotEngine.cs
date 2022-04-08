@@ -135,6 +135,10 @@ public class BotEngine : IBotEngine
             RecurringJob.AddOrUpdate<UnityHubSyncService>("sync-users-to-UnityHub", service => service.SyncAllUsers(), "0,15,30,45 0-23 * * *");
             // Send personal reminders as scheduled.
             SchedulePersonalReminders();
+            // Apply birthday role at 09:00 community time (UTC).
+            RecurringJob.AddOrUpdate<BirthdayService>("birthday-apply-role", service => service.ApplyRoleAsync(), "0 9 * * *");
+            // Remove birthday role at 23:59 community time (UTC).
+            RecurringJob.AddOrUpdate<BirthdayService>("birthday-revoke-role", service => service.RevokeRoleAsync(), "59 23 * * *");
             RecurringJob.AddOrUpdate<IRoleRemover>("remove-basement-role", remover => remover.RemoveBasementRolesAsync(), "0 0-23 * * *");
 
             EstablishUnitsSignalRConnections();

@@ -29,6 +29,7 @@ namespace HoU.GuildBot.DAL.Database.Model
         public virtual DbSet<SpamProtectedChannel> SpamProtectedChannel { get; set; }
         public virtual DbSet<UnitsEndpoint> UnitsEndpoint { get; set; }
         public virtual DbSet<User> User { get; set; }
+        public virtual DbSet<UserBirthday> UserBirthday { get; set; }
         public virtual DbSet<UserInfo> UserInfo { get; set; }
         public virtual DbSet<Vacation> Vacation { get; set; }
 
@@ -318,6 +319,28 @@ namespace HoU.GuildBot.DAL.Database.Model
                     .HasColumnName("discord_user_id");
             });
 
+            modelBuilder.Entity<UserBirthday>(entity =>
+            {
+                entity.HasKey(e => e.UserId)
+                    .HasName("user_birthday_pkey");
+
+                entity.ToTable("user_birthday", "hou");
+
+                entity.Property(e => e.UserId)
+                    .ValueGeneratedNever()
+                    .HasColumnName("user_id");
+
+                entity.Property(e => e.Day).HasColumnName("day");
+
+                entity.Property(e => e.Month).HasColumnName("month");
+
+                entity.HasOne(d => d.User)
+                    .WithOne(p => p.UserBirthday)
+                    .HasForeignKey<UserBirthday>(d => d.UserId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("fk_user_birthday_user");
+            });
+
             modelBuilder.Entity<UserInfo>(entity =>
             {
                 entity.HasKey(e => e.UserId)
@@ -326,9 +349,8 @@ namespace HoU.GuildBot.DAL.Database.Model
                 entity.ToTable("user_info", "hou");
 
                 entity.Property(e => e.UserId)
-                    .ValueGeneratedOnAdd()
-                    .HasColumnName("user_id")
-                    .UseIdentityAlwaysColumn();
+                    .ValueGeneratedNever()
+                    .HasColumnName("user_id");
 
                 entity.Property(e => e.LastSeen).HasColumnName("last_seen");
 

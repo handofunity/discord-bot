@@ -14,43 +14,7 @@
    "SelectedToBeGenerated": 0,
    "Tables": [
       {
-         "Name": "config.desired_time_zone",
-         "ObjectType": 0
-      },
-      {
-         "Name": "config.scheduled_reminder",
-         "ObjectType": 0
-      },
-      {
-         "Name": "config.game",
-         "ObjectType": 0
-      },
-      {
-         "Name": "config.spam_protected_channel",
-         "ObjectType": 0
-      },
-      {
-         "Name": "config.game_role",
-         "ObjectType": 0
-      },
-      {
-         "Name": "config.scheduled_reminder_mention",
-         "ObjectType": 0
-      },
-      {
-         "Name": "config.flyway_schema_history",
-         "ObjectType": 0
-      },
-      {
-         "Name": "config.units_endpoint",
-         "ObjectType": 0
-      },
-      {
-         "Name": "config.discord_mapping",
-         "ObjectType": 0
-      },
-      {
-         "Name": "config.message",
+         "Name": "hou.user_birthday",
          "ObjectType": 0
       },
       {
@@ -63,6 +27,46 @@
       },
       {
          "Name": "hou.user_info",
+         "ObjectType": 0
+      },
+      {
+         "Name": "config.spam_protected_channel",
+         "ObjectType": 0
+      },
+      {
+         "Name": "config.units_endpoint",
+         "ObjectType": 0
+      },
+      {
+         "Name": "config.scheduled_reminder",
+         "ObjectType": 0
+      },
+      {
+         "Name": "config.message",
+         "ObjectType": 0
+      },
+      {
+         "Name": "config.game",
+         "ObjectType": 0
+      },
+      {
+         "Name": "config.game_role",
+         "ObjectType": 0
+      },
+      {
+         "Name": "config.discord_mapping",
+         "ObjectType": 0
+      },
+      {
+         "Name": "config.scheduled_reminder_mention",
+         "ObjectType": 0
+      },
+      {
+         "Name": "config.flyway_schema_history",
+         "ObjectType": 0
+      },
+      {
+         "Name": "config.desired_time_zone",
          "ObjectType": 0
       }
    ],

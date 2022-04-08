@@ -32,6 +32,7 @@ public class PrivacyProvider : IPrivacyProvider
     async Task IPrivacyProvider.DeleteUserRelatedData(User user)
     {
         await _databaseAccess.DeleteUserInfoAsync(user);
+        await _databaseAccess.DeleteUserBirthdayAsync(user);
         await _databaseAccess.DeleteVacationsAsync(user);
     }
     

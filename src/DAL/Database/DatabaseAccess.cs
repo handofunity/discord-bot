@@ -296,6 +296,67 @@ public class DatabaseAccess : IDatabaseAccess
         }
     }
 
+    async Task<bool> IDatabaseAccess.SetBirthdayAsync(User user,
+                                                      DateOnly birthday)
+    {
+        await using var entities = GetDbContext(true);
+        var ub = await entities.UserBirthday.SingleOrDefaultAsync(m => m.UserId == (int)user.InternalUserId);
+        try
+        {
+            if (ub != null)
+            {
+                // Update
+                ub.Month = (short)birthday.Month;
+                ub.Day = (short)birthday.Day;
+            }
+            else
+            {
+                // Insert
+                entities.UserBirthday
+                        .Add(new UserBirthday
+                         {
+                            UserId = (int)user.InternalUserId,
+                            Month = (short)birthday.Month,
+                            Day = (short)birthday.Day
+                         });
+            }
+
+            await entities.SaveChangesAsync();
+            return true;
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e,
+                             "Failed to set birthday for user {InternalUserId} to {Day}(st/nd/th) {Month}.",
+                             user.InternalUserId,
+                             birthday.Day,
+                             birthday.Month);
+            return false;
+        }
+    }
+
+    async Task<bool> IDatabaseAccess.DeleteUserBirthdayAsync(User user)
+    {
+        await using var entities = GetDbContext(true);
+        var ub = await entities.UserBirthday.SingleOrDefaultAsync(m => m.UserId == (int)user.InternalUserId);
+        if (ub == null)
+            return false;
+
+        try
+        {
+            entities.UserBirthday.Remove(ub);
+            await entities.SaveChangesAsync();
+            return true;
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, 
+                             "Failed to delete birthday for user {InternalUserId}",
+                             user.InternalUserId);
+            return false;
+        }
+    }
+
     async Task<InternalGameId?> IDatabaseAccess.TryGetInternalGameIdAsync(DiscordRoleId primaryGameDiscordRoleId)
     {
         var decDiscordRoleId = (decimal)primaryGameDiscordRoleId;
@@ -451,5 +512,18 @@ public class DatabaseAccess : IDatabaseAccess
         await transaction.CommitAsync();
 
         return (true, null);
+    }
+
+    async Task<InternalUserId[]> IDatabaseAccess.GetUsersWithBirthdayAsync(short month,
+                                                                           short day)
+    {
+        await using var context = GetDbContext(true);
+        return (await context.UserBirthday
+                             .Where(m => m.Month == month
+                                      && m.Day == day)
+                             .Select(m => m.UserId)
+                             .ToArrayAsync())
+              .Select(m => (InternalUserId)m)
+              .ToArray();
     }
 }
