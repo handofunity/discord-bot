@@ -24,28 +24,28 @@ public class BirthdayProvider : IBirthdayProvider
                                                           short day)
     {
         if (month is < 1 or > 12)
-            return "Value of 'month' must be between 1 and 12.";
+            return ":warning: Value of `month` must be between 1 and 12.";
 
         if (!DateOnly.TryParseExact($"2000.{month:D2}.{day:D2}", "yyyy.MM.dd", out var parsedDate))
-            return "Value of 'day' is not valid for the given 'month'.";
+            return ":warning: Value of `day` is not valid for the given `month`.";
 
         if (!_userStore.TryGetUser(userId, out var user))
-            return "Failed to set birthday. User couldn't be identified.";
+            return ":warning: Failed to set birthday. User couldn't be identified.";
 
         var birthdaySet = await _databaseAccess.SetBirthdayAsync(user!, parsedDate);
         return birthdaySet
-                   ? "Birthday set successfully."
-                   : "Failed to set birthday.";
+                   ? ":white_check_mark: Birthday set successfully."
+                   : ":warning: Failed to set birthday.";
     }
 
     async Task<string> IBirthdayProvider.DeleteBirthdayAsync(DiscordUserId userId)
     {
         if (!_userStore.TryGetUser(userId, out var user))
-            return "Failed to delete birthday. User couldn't be identified.";
+            return ":warning: Failed to delete birthday. User couldn't be identified.";
         var birthdayDeleted = await _databaseAccess.DeleteUserBirthdayAsync(user!);
         return birthdayDeleted
-                   ? "Birthday deleted successfully."
-                   : "Failed to delete birthday.";
+                   ? ":white_check_mark: Birthday deleted successfully."
+                   : ":warning: Failed to delete birthday.";
     }
 
     async Task<DiscordUserId[]> IBirthdayProvider.GetBirthdaysAsync(DateOnly forDate)

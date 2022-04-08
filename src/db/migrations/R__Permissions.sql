@@ -13,6 +13,7 @@ BEGIN
         GRANT USAGE ON SCHEMA hou TO hou_guildbot;
         GRANT SELECT, INSERT ON hou.user TO hou_guildbot;
         GRANT SELECT, INSERT, UPDATE, DELETE ON hou.user_info TO hou_guildbot;
+        GRANT SELECT, INSERT, UPDATE, DELETE ON hou.user_birthday TO hou_guildbot;
         GRANT SELECT, INSERT, DELETE ON hou.vacation TO hou_guildbot;
         GRANT SELECT, INSERT, UPDATE, DELETE ON config.game TO hou_guildbot;
         GRANT SELECT, INSERT, UPDATE, DELETE ON config.game_role TO hou_guildbot;
