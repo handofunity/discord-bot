@@ -85,7 +85,8 @@ public class StaticMessageProvider : IStaticMessageProvider
         {
             new(await _messageProvider.GetMessage(Constants.MessageNames.AocClassMenuMessage)),
             new(await _messageProvider.GetMessage(Constants.MessageNames.AocPlayStyleMenuMessage)),
-            new(await _messageProvider.GetMessage(Constants.MessageNames.AocRaceMenuMessage))
+            new(await _messageProvider.GetMessage(Constants.MessageNames.AocRaceMenuMessage)),
+            new(await _messageProvider.GetMessage(Constants.MessageNames.AocGuildPreferenceMenuMessage))
         };
         AddAocRoleMenuComponents(l);
         expectedChannelMessages[(DiscordChannelId)_dynamicConfiguration.DiscordMapping["AshesOfCreationRoleChannelId"]] = new ExpectedChannelMessages(l);
@@ -214,7 +215,7 @@ public class StaticMessageProvider : IStaticMessageProvider
 
     private static void AddAocRoleMenuComponents(List<ExpectedChannelMessage> messages)
     {
-        if (messages.Count != 3)
+        if (messages.Count != 4)
             throw new ArgumentException("Unexpected amount of messages received.", nameof(messages));
 
         // Class menu
@@ -235,6 +236,13 @@ public class StaticMessageProvider : IStaticMessageProvider
                                                            "Select races ...",
                                                            Constants.AocRaceMenu.GetOptions(),
                                                            true));
+
+        // Guild preference menu
+        messages[3].Components.Add(new SelectMenuComponent(Constants.AocGuildPreferenceMenu.CustomId,
+                                                           0,
+                                                           "Select preferred in-game guild ...",
+                                                           Constants.AocGuildPreferenceMenu.GetOptions(),
+                                                           false));
     }
 
     private static void AddWowRoleMenuComponents(List<ExpectedChannelMessage> messages)

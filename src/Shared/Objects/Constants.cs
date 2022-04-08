@@ -24,6 +24,7 @@ public static class Constants
         public const string AocClassMenuMessage = "AocClassMenu";
         public const string AocPlayStyleMenuMessage = "AocPlayStyleMenu";
         public const string AocRaceMenuMessage = "AocRaceMenu";
+        public const string AocGuildPreferenceMenuMessage = "AocGuildPreferenceMenu";
         public const string WowRoleMenuMessage = "WowRoleMenu";
         public const string LostArkRoleMenuMessage = "LostArkRoleMenu";
         public const string LostArkAdvancedClassMenuMessage = "LostArkAdvancedClassMenu";
@@ -68,6 +69,7 @@ public static class Constants
                 {AocArchetypeMenu.CustomId, "AshesOfCreationPrimaryGameDiscordRoleId"},
                 {AocPlayStyleMenu.CustomId, "AshesOfCreationPrimaryGameDiscordRoleId"},
                 {AocRaceMenu.CustomId, "AshesOfCreationPrimaryGameDiscordRoleId"},
+                {AocGuildPreferenceMenu.CustomId, "AshesOfCreationPrimaryGameDiscordRoleId"},
                 {WowClassMenu.CustomId, "WorldOfWarcraftPrimaryGameRoleId"},
                 {LostArkClassMenu.CustomId, "LostArkPrimaryGameRoleId"},
                 {LostArkAdvancedClassMenu.CustomId, "LostArkPrimaryGameRoleId"},
@@ -134,6 +136,18 @@ public static class Constants
                 {"dunir", "Dunir"},
                 {"nikua", "Nikua"},
                 {"tulnar", "Tulnar"},
+            };
+    }
+
+    public static class AocGuildPreferenceMenu
+    {
+        public const string CustomId = "96057296-919d-42b8-a555-ebf419c16440";
+
+        public static IDictionary<string, string> GetOptions() =>
+            new Dictionary<string, string>
+            {
+                {"handofunity", "Hand of Unity"},
+                {"homeofunity", "Home of Unity"}
             };
     }
 
