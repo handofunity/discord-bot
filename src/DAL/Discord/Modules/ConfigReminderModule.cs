@@ -68,15 +68,15 @@ public partial class ConfigModule
             try
             {
                 var scheduledReminderId = await _configurationDatabaseAccess.CreateScheduledReminderAsync(sri);
+                await _dynamicConfiguration.LoadScheduledReminderInfosAsync();
                 await FollowupAsync("Successfully created a new reminder. "
                                   + $"**Scheduled Reminder Id:** `{scheduledReminderId}`. **Use this Id to add mentions.** "
                                   + $"Next occurrence of reminder (_guild time_): {(nextOccurrenceUtc?.ToString("dd.MM.yyyy HH:mm") ?? "<UNKNOWN>")}");
-                await _dynamicConfiguration.LoadScheduledReminderInfosAsync();
             }
             catch (Exception e)
             {
-                await FollowupAsync($"Failed to create reminder. **Error:** {e.GetBaseException().Message}");
                 _logger.LogError(e, "Failed to create new reminder.");
+                await FollowupAsync($"Failed to create reminder. **Error:** {e.GetBaseException().Message}");
             }
         }
 
@@ -86,29 +86,32 @@ public partial class ConfigModule
                                               [Summary(description: "The user to mention.")]
                                               IUser user)
         {
+            await DeferAsync();
+
             var sri = await _configurationDatabaseAccess.GetScheduledReminderInfosAsync(scheduledReminderId);
             if (sri == null)
             {
-                await RespondAsync($"Couldn't find scheduled reminder with Id {scheduledReminderId}.");
+                await FollowupAsync($"Couldn't find scheduled reminder with Id {scheduledReminderId}.");
                 return;
             }
 
             var userId = (DiscordUserId)user.Id;
             if (sri.RemindUsers.Contains(userId))
             {
-                await RespondAsync($"User {user.Mention} is already in the mentioning list of this scheduled reminder.");
+                await FollowupAsync($"User {user.Mention} is already in the mentioning list of this scheduled reminder.");
                 return;
             }
 
             try
             {
                 await _configurationDatabaseAccess.AddScheduledReminderMentionAsync(scheduledReminderId, userId);
-                await RespondAsync($"Successfully added mention for {user.Mention}.");
+                await _dynamicConfiguration.LoadScheduledReminderInfosAsync();
+                await FollowupAsync($"Successfully added mention for {user.Mention}.");
             }
             catch (Exception e)
             {
-                await RespondAsync($"Failed to add user mention. **Error:** {e.GetBaseException().Message}");
                 _logger.LogError(e, "Failed to add user mention.");
+                await FollowupAsync($"Failed to add user mention. **Error:** {e.GetBaseException().Message}");
             }
         }
 
@@ -118,29 +121,32 @@ public partial class ConfigModule
                                               [Summary(description: "The role to mention.")]
                                               IRole role)
         {
+            await DeferAsync();
+
             var sri = await _configurationDatabaseAccess.GetScheduledReminderInfosAsync(scheduledReminderId);
             if (sri == null)
             {
-                await RespondAsync($"Couldn't find scheduled reminder with Id {scheduledReminderId}.");
+                await FollowupAsync($"Couldn't find scheduled reminder with Id {scheduledReminderId}.");
                 return;
             }
 
             var roleId = (DiscordRoleId)role.Id;
             if (sri.RemindRoles.Contains(roleId))
             {
-                await RespondAsync($"Role {role.Mention} is already in the mentioning list of this scheduled reminder.");
+                await FollowupAsync($"Role {role.Mention} is already in the mentioning list of this scheduled reminder.");
                 return;
             }
 
             try
             {
                 await _configurationDatabaseAccess.AddScheduledReminderMentionAsync(scheduledReminderId, roleId);
-                await RespondAsync($"Successfully added mention for {role.Mention}.");
+                await _dynamicConfiguration.LoadScheduledReminderInfosAsync();
+                await FollowupAsync($"Successfully added mention for {role.Mention}.");
             }
             catch (Exception e)
             {
-                await RespondAsync($"Failed to add role mention. **Error:** {e.GetBaseException().Message}");
                 _logger.LogError(e, "Failed to add role mention.");
+                await FollowupAsync($"Failed to add role mention. **Error:** {e.GetBaseException().Message}");
             }
         }
     }
