@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Interactions;
@@ -552,6 +553,30 @@ public class DiscordAccess : IDiscordAccess
         return builder.Build();
     }
 
+    private static async Task<TResult> WithRetry<TResult>(Func<Task<TResult>> act,
+                                                          Action<Exception> handleError,
+                                                          TResult fallbackResult)
+    {
+        var tries = 0;
+        while (true)
+        {
+            tries++;
+            try
+            {
+                return await act();
+            }
+            catch (Exception e)
+            {
+                handleError(e);
+                if (tries >= 5)
+                    return fallbackResult;
+
+                // Retry in 500 ms.
+                await Task.Delay(500);
+            }
+        }
+    }
+
     bool IDiscordAccess.IsConnected => _client.ConnectionState == ConnectionState.Connected;
 
     bool IDiscordAccess.IsGuildAvailable => _guildAvailable;
@@ -669,16 +694,14 @@ public class DiscordAccess : IDiscordAccess
         var gu = GetGuildUserById(userId);
         if (gu.Roles.Any(m => m.Id == role.Id))
             return false;
-        try
-        {
-            await gu.AddRoleAsync(role);
-            return true;
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Failed to set game role '{Role}' for user {UserId}.", role.Name, userId);
-            return false;
-        }
+
+        return await WithRetry(async () =>
+                               {
+                                   await gu.AddRoleAsync(role);
+                                   return true;
+                               },
+                               e => _logger.LogError(e, "Failed to set game role '{Role}' for user {UserId}.", role.Name, userId),
+                               false);
     }
 
     async Task<(bool Success, string RoleName)> IDiscordAccess.TryAddNonMemberRole(DiscordUserId userId,
@@ -689,16 +712,14 @@ public class DiscordAccess : IDiscordAccess
         var gu = GetGuildUserById(userId);
         if (gu.Roles.Any(m => m.Id == role.Id))
             return (false, role.Name);
-        try
-        {
-            await gu.AddRoleAsync(role);
-            return (true, role.Name);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Failed to set game role '{Role}' for user {UserId}.", role.Name, userId);
-            return (false, role.Name);
-        }
+
+        return await WithRetry(async () =>
+                               {
+                                   await gu.AddRoleAsync(role);
+                                   return (true, role.Name);
+                               },
+                               e => _logger.LogError(e, "Failed to set game role '{Role}' for user {UserId}.", role.Name, userId),
+                               (false, role.Name));
     }
 
     async Task<bool> IDiscordAccess.TryRevokeNonMemberRole(DiscordUserId userId,
@@ -709,16 +730,14 @@ public class DiscordAccess : IDiscordAccess
         var gu = GetGuildUserById(userId);
         if (gu.Roles.All(m => m.Id != role.Id))
             return false;
-        try
-        {
-            await gu.RemoveRoleAsync(role);
-            return true;
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Failed to revoke game role '{Role}' for user {UserId}.", role.Name, userId);
-            return false;
-        }
+
+        return await WithRetry(async () =>
+                               {
+                                   await gu.RemoveRoleAsync(role);
+                                   return true;
+                               },
+                               e => _logger.LogError(e, "Failed to revoke game role '{Role}' for user {UserId}.", role.Name, userId),
+                               false);
     }
 
     async Task<(bool Success, string RoleName)> IDiscordAccess.TryRevokeNonMemberRole(DiscordUserId userId,
@@ -729,16 +748,14 @@ public class DiscordAccess : IDiscordAccess
         var gu = GetGuildUserById(userId);
         if (gu.Roles.All(m => m.Id != role.Id))
             return (false, role.Name);
-        try
-        {
-            await gu.RemoveRoleAsync(role);
-            return (true, role.Name);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Failed to revoke game role '{Role}' for user {UserId}.", role.Name, userId);
-            return (false, role.Name);
-        }
+
+        return await WithRetry(async () =>
+                               {
+                                   await gu.RemoveRoleAsync(role);
+                                   return (true, role.Name);
+                               },
+                               e => _logger.LogError(e, "Failed to revoke game role '{Role}' for user {UserId}.", role.Name, userId),
+                               (false, role.Name));
     }
 
     async Task<bool> IDiscordAccess.TryAssignRoleAsync(DiscordUserId userId,
@@ -753,17 +770,14 @@ public class DiscordAccess : IDiscordAccess
         if (gu.Roles.Any(m => m.Id == role.Id))
             return false; // If it's assigned, we cannot assign it.
 
-        try
-        {
-            // If the role isn't currently assigned, assign it to the user.
-            await gu.AddRoleAsync(role);
-            return true;
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Failed to add '{Role}' to UserId {DiscordUserId}.", role.Name, userId);
-            return false;
-        }
+        return await WithRetry(async () =>
+                               {
+                                   // If the role isn't currently assigned, assign it to the user.
+                                   await gu.AddRoleAsync(role);
+                                   return true;
+                               },
+                               e => _logger.LogError(e, "Failed to add '{Role}' to UserId {DiscordUserId}.", role.Name, userId),
+                               false);
     }
 
     async Task<bool> IDiscordAccess.TryRevokeGameRole(DiscordUserId userId,
@@ -778,17 +792,14 @@ public class DiscordAccess : IDiscordAccess
         if (gu.Roles.All(m => m.Id != role.Id))
             return false; // If isn't assigned, we cannot revoke it.
 
-        try
-        {
-            // If the role is currently assigned, revoke it from the user.
-            await gu.RemoveRoleAsync(role);
-            return true;
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Failed to revoke '{Role}' for UserId {DiscordUserId}.", role.Name, userId);
-            return false;
-        }
+        return await WithRetry(async () =>
+                               {
+                                   // If the role is currently assigned, revoke it from the user.
+                                   await gu.RemoveRoleAsync(role);
+                                   return true;
+                               },
+                               e => _logger.LogError(e, "Failed to revoke '{Role}' for UserId {DiscordUserId}.", role.Name, userId),
+                               false);
     }
 
     bool IDiscordAccess.CanManageRolesForUser(DiscordUserId userId)
