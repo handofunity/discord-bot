@@ -76,6 +76,7 @@ public class AshesOfCreationModule : InteractionModuleBase<SocketInteractionCont
                 ChartType.Classes => () => _imageProvider.CreateAocClassDistributionImage(),
                 ChartType.Races => () => _imageProvider.CreateAocRaceDistributionImage(),
                 ChartType.PlayStyles => () => _imageProvider.CreateAocPlayStyleDistributionImage(),
+                ChartType.GuildPreference => () => _imageProvider.CreateAocGuildPreferenceDistributionImage(),
                 _ => throw new NotSupportedException($"Chart type {chartType} is not supported.")
             };
             await using var imageStream = getImage();
@@ -95,6 +96,7 @@ public class AshesOfCreationModule : InteractionModuleBase<SocketInteractionCont
     {
         Classes = 1,
         Races = 2,
-        PlayStyles = 3
+        PlayStyles = 3,
+        GuildPreference = 4
     }
 }

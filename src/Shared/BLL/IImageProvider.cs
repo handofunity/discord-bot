@@ -12,6 +12,8 @@ public interface IImageProvider
 
     Stream CreateAocRaceDistributionImage();
 
+    Stream CreateAocGuildPreferenceDistributionImage();
+
     Task<Stream> CreateProfileImage(DiscordUserId userID,
                                     string avatarUrl);
 

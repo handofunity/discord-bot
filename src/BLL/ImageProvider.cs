@@ -225,7 +225,27 @@ public class ImageProvider : IImageProvider
                                    (DiscordRoleId)_dynamicConfiguration.DiscordMapping["AshesOfCreationPrimaryGameDiscordRoleId"],
                                    rolesInChart);
     }
-        
+
+    Stream IImageProvider.CreateAocGuildPreferenceDistributionImage()
+    {
+        var barColors = new Dictionary<string, SKColor>
+        {
+            { "Hand of Unity Guild", SKColors.CornflowerBlue },
+            { "Home of Unity Guild", SKColors.LightSkyBlue }
+        };
+        var rolesInChart = barColors.Keys.ToArray();
+        return CreateBarChartImage(new BarChartDrawingData("AoCRolesBackground_Right.png",
+                                                           "AoCGuildPreferenceForeground.png",
+                                                           barColors,
+                                                           368f,
+                                                           131.5f)
+                                   {
+                                       LabelFontSize = 9f
+                                   },
+                                   (DiscordRoleId)_dynamicConfiguration.DiscordMapping["AshesOfCreationPrimaryGameDiscordRoleId"],
+                                   rolesInChart);
+    }
+
     public async Task<Stream> CreateProfileImage(DiscordUserId userID,
                                                  string avatarUrl)
     {
