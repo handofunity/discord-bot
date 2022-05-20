@@ -90,13 +90,31 @@ public class GameRoleProvider : IGameRoleProvider
                                                                 false)));
             }
 
-            var ed = new EmbedData
+            if (fields.Count > 25)
             {
-                Color = Colors.LightGreen,
-                Title = $"Game information for \"{game.DisplayName}\"",
-                Fields = fields.ToArray()
-            };
-            result.Add(ed);
+                var chunks = fields.Chunk(25).ToArray();
+                for (var i = 1; i <= chunks.Length; i++)
+                {
+                    var chunk = chunks[i - 1];
+                    var ed = new EmbedData
+                    {
+                        Color = Colors.LightGreen,
+                        Title = $"Game information for \"{game.DisplayName}\" ({i}/{chunks.Length})",
+                        Fields = chunk
+                    };
+                    result.Add(ed);
+                }
+            }
+            else
+            {
+                var ed = new EmbedData
+                {
+                    Color = Colors.LightGreen,
+                    Title = $"Game information for \"{game.DisplayName}\"",
+                    Fields = fields.ToArray()
+                };
+                result.Add(ed);
+            }
         }
 
         return result;
