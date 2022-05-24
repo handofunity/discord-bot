@@ -14,23 +14,23 @@
    "SelectedToBeGenerated": 0,
    "Tables": [
       {
-         "Name": "hou.user_birthday",
-         "ObjectType": 0
-      },
-      {
-         "Name": "hou.user",
-         "ObjectType": 0
-      },
-      {
-         "Name": "hou.vacation",
-         "ObjectType": 0
-      },
-      {
-         "Name": "hou.user_info",
+         "Name": "config.discord_mapping",
          "ObjectType": 0
       },
       {
          "Name": "config.spam_protected_channel",
+         "ObjectType": 0
+      },
+      {
+         "Name": "config.message",
+         "ObjectType": 0
+      },
+      {
+         "Name": "config.game_role",
+         "ObjectType": 0
+      },
+      {
+         "Name": "config.desired_time_zone",
          "ObjectType": 0
       },
       {
@@ -42,7 +42,7 @@
          "ObjectType": 0
       },
       {
-         "Name": "config.message",
+         "Name": "config.scheduled_reminder_mention",
          "ObjectType": 0
       },
       {
@@ -50,23 +50,19 @@
          "ObjectType": 0
       },
       {
-         "Name": "config.game_role",
+         "Name": "hou.vacation",
          "ObjectType": 0
       },
       {
-         "Name": "config.discord_mapping",
+         "Name": "hou.user_info",
          "ObjectType": 0
       },
       {
-         "Name": "config.scheduled_reminder_mention",
+         "Name": "hou.user_birthday",
          "ObjectType": 0
       },
       {
-         "Name": "config.flyway_schema_history",
-         "ObjectType": 0
-      },
-      {
-         "Name": "config.desired_time_zone",
+         "Name": "hou.user",
          "ObjectType": 0
       }
    ],
@@ -75,7 +71,7 @@
    "UseDatabaseNames": false,
    "UseDbContextSplitting": false,
    "UseFluentApiOnly": true,
-   "UseHandleBars": false,
+   "UseHandleBars": true,
    "UseHierarchyId": false,
    "UseInflector": false,
    "UseLegacyPluralizer": false,
@@ -85,7 +81,7 @@
    "UseNoNavigations": false,
    "UseNoObjectFilter": false,
    "UseNodaTime": false,
-   "UseNullableReferences": false,
+   "UseNullableReferences": true,
    "UseSchemaFolders": false,
    "UseSpatial": false
 }

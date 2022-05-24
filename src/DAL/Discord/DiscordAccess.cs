@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Threading;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Interactions;
@@ -26,6 +25,7 @@ namespace HoU.GuildBot.DAL.Discord;
 [UsedImplicitly]
 public class DiscordAccess : IDiscordAccess
 {
+    private const string GroupRolePrefix = "●";
     private static readonly Dictionary<string, Role> _roleMapping;
     private readonly ILogger<DiscordAccess> _logger;
     private readonly RootSettings _rootSettings;
@@ -211,6 +211,16 @@ public class DiscordAccess : IDiscordAccess
         }
 
         return r;
+    }
+
+    private static string ConcatRoleNames(IEnumerable<SocketRole> roles)
+    {
+        return string.Join(", ",
+                           roles.Where(m => m.Name != "@everyone" && !m.Name.StartsWith(GroupRolePrefix))
+                                .Select(m => TrimRoleName(m.Name))
+                                .OrderBy(m => m)
+                                .Select(m => $"`{m}`"));
+
     }
 
     private async Task LogToDiscordInternal(string? message)
@@ -433,17 +443,16 @@ public class DiscordAccess : IDiscordAccess
         if (!CanBotModifyUser(discordUserId))
             return;
 
-        const string groupRolePrefix = "●";
         var rolesRemoved = previousRoles.Except(currentRoles)
-                                        .Any(m => !m.Name.StartsWith(groupRolePrefix));
+                                        .Any(m => !m.Name.StartsWith(GroupRolePrefix));
         var rolesAdded = currentRoles.Except(previousRoles)
-                                     .Any(m => !m.Name.StartsWith(groupRolePrefix));
+                                     .Any(m => !m.Name.StartsWith(GroupRolePrefix));
         if (!rolesRemoved && !rolesAdded)
             return;
 
         var g = GetGuild();
         var groupRoles = g.Roles
-                          .Where(m => m.Name.StartsWith(groupRolePrefix))
+                          .Where(m => m.Name.StartsWith(GroupRolePrefix))
                           .OrderBy(m => m.Position)
                           .ToArray();
         var groupRolesToAdd = new List<SocketRole>();
@@ -486,17 +495,17 @@ public class DiscordAccess : IDiscordAccess
                              gu.Username,
                              gu.Id);
         }
+    }
 
-        static string TrimRoleName(string roleName)
-        {
-            var result = roleName.Trim();
-            while (result.Contains('\u2063'))
-                result = result.Replace("\u2063", string.Empty);
-            while (result.Contains('\u2002'))
-                result = result.Replace("\u2002", string.Empty);
+    private static string TrimRoleName(string roleName)
+    {
+        var result = roleName.Trim();
+        while (result.Contains('\u2063'))
+            result = result.Replace("\u2063", string.Empty);
+        while (result.Contains('\u2002'))
+            result = result.Replace("\u2002", string.Empty);
 
-            return result;
-        }
+        return result;
     }
 
     private static bool IsOnline(IPresence gu) => gu.Status != UserStatus.Offline && gu.Status != UserStatus.Invisible;
@@ -1264,7 +1273,11 @@ public class DiscordAccess : IDiscordAccess
                 // Initialize user store only once
                 await guild.DownloadUsersAsync();
                 var allGuildUsers = guild.Users;
-                var mappedGuildUsers = allGuildUsers.Select(m => ((DiscordUserId) m.Id, SocketRoleToRole(m.Roles))).ToArray();
+                var mappedGuildUsers = allGuildUsers.Select(m => ((DiscordUserId) m.Id,
+                                                                  SocketRoleToRole(m.Roles),
+                                                                  ConcatRoleNames(m.Roles),
+                                                                  m.JoinedAt?.DateTime.ToUniversalTime() ?? User.DefaultJoinedDate))
+                                                    .ToArray();
                 await _userStore.Initialize(mappedGuildUsers);
             }
                 
@@ -1304,7 +1317,9 @@ public class DiscordAccess : IDiscordAccess
 
     private Task Client_UserJoined(SocketGuildUser guildUser)
     {
-        _discordUserEventHandler.HandleJoined((DiscordUserId)guildUser.Id, SocketRoleToRole(guildUser.Roles));
+        _discordUserEventHandler.HandleJoined((DiscordUserId)guildUser.Id,
+                                              SocketRoleToRole(guildUser.Roles),
+                                              guildUser.JoinedAt?.Date.ToUniversalTime() ?? User.DefaultJoinedDate);
         return Task.CompletedTask;
     }
 
@@ -1317,12 +1332,9 @@ public class DiscordAccess : IDiscordAccess
 
         try
         {
-            var guildUser = guild.GetUser(user.Id);
-            _discordUserEventHandler.HandleLeft((DiscordUserId)guildUser.Id,
-                                                guildUser.Username,
-                                                guildUser.DiscriminatorValue,
-                                                guildUser.JoinedAt,
-                                                guildUser.Roles.Where(m => !m.IsEveryone).Select(m => m.Name).ToArray());
+            _discordUserEventHandler.HandleLeft((DiscordUserId)user.Id,
+                                                user.Username,
+                                                user.DiscriminatorValue);
         }
         catch (Exception e)
         {
@@ -1387,8 +1399,15 @@ public class DiscordAccess : IDiscordAccess
             // Handle possible role change, that would end up in new or removed group roles
             await ApplyGroupRoles(discordUserId,
                                   oldGuildUser.Value.Roles,
-                                  newGuildUser.Roles)
-                ;
+                                  newGuildUser.Roles);
+
+            // Handle possible role changes that need to be persisted in case the user loses his roles by accident.
+            var previousRoleNames = ConcatRoleNames(oldGuildUser.Value.Roles);
+            var currentRoleNames = ConcatRoleNames(newGuildUser.Roles);
+            if (previousRoleNames != currentRoleNames)
+            {
+                await _discordUserEventHandler.HandleRolesChanged(discordUserId, currentRoleNames);
+            }
         });
         return Task.CompletedTask;
     }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using HoU.GuildBot.Shared.Enums;
 using HoU.GuildBot.Shared.Objects;
@@ -19,7 +18,7 @@ public interface IUserStore
     /// </summary>
     /// <param name="guildUsers">User information provided by Discord.</param>
     /// <returns>An awaitable <see cref="Task"/>.</returns>
-    Task Initialize((DiscordUserId UserId, Role Roles)[] guildUsers);
+    Task Initialize((DiscordUserId UserId, Role Roles, string CurrentRoles, DateTime JoinedDate)[] guildUsers);
 
     /// <summary>
     /// Gets an user by the <see cref="DiscordUserId"/>.

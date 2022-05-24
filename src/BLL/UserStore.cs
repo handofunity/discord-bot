@@ -83,7 +83,7 @@ public class UserStore : IUserStore
 
     bool IUserStore.IsInitialized => _isInitialized;
 
-    async Task IUserStore.Initialize((DiscordUserId UserId, Role Roles)[] guildUsersCurrentlyOnServer)
+    async Task IUserStore.Initialize((DiscordUserId UserId, Role Roles, string CurrentRoles, DateTime JoinedDate)[] guildUsersCurrentlyOnServer)
     {
         if (_isInitialized)
             return;
@@ -100,17 +100,40 @@ public class UserStore : IUserStore
             _logger.LogInformation("Loaded {UsersInDatabase} users from the database.", usersInDatabase.Length);
 
             _logger.LogInformation("Intersecting users on server with users in database to apply Discord information for memory-cache...");
+            var userInfosToPersistToDatabase = new List<User>();
             var existingUsers = usersInDatabase.Join(guildUsersCurrentlyOnServer,
                                                      user => user.DiscordUserId,
                                                      tuple => tuple.UserId,
                                                      (user, tuple) =>
                                                      {
+                                                         var persist = true;
                                                          user.Roles = tuple.Roles;
+                                                         if (user.CurrentRoles != tuple.CurrentRoles)
+                                                         {
+                                                             user.CurrentRoles = tuple.CurrentRoles;
+                                                             persist = true;
+                                                         }
+                                                         if (tuple.JoinedDate != user.JoinedDate && tuple.JoinedDate != User.DefaultJoinedDate)
+                                                         {
+                                                             user.JoinedDate = tuple.JoinedDate;
+                                                             persist = true;
+                                                         }
+
+                                                         if (persist)
+                                                             userInfosToPersistToDatabase.Add(user);
+
                                                          return user;
                                                      }).ToArray();
 
             foreach (var user in existingUsers)
                 _store.Add(user);
+
+            if (userInfosToPersistToDatabase.Any())
+            {
+                _logger.LogInformation("Persisting user information about {Amount} users to the database ...", userInfosToPersistToDatabase.Count);
+                await _databaseAccess.UpdateUserInformationAsync(userInfosToPersistToDatabase);
+            }
+
             _isInitialized = true;
             _logger.LogInformation("User store initialized with {Users} users in memory-cache.", _store.Count);
         }

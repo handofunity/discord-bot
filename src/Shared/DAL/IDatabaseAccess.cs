@@ -68,21 +68,21 @@ public interface IDatabaseAccess
     /// Gets all upcoming vacations.
     /// </summary>
     /// <returns>An array of tupples, containing the user Id, the vacation start and end, as well as an optional note.</returns>
-    Task<(DiscordUserId UserId, DateTime Start, DateTime End, string Note)[]> GetVacationsAsync();
+    Task<(DiscordUserId UserId, DateTime Start, DateTime End, string? Note)[]> GetVacationsAsync();
 
     /// <summary>
     /// Gets all vacations for a specific <paramref name="user"/>.
     /// </summary>
     /// <param name="user">The user to get the vacations for.</param>
     /// <returns>An array of tupples, containing the user Id, the vacation start and end, as well as an optional note.</returns>
-    Task<(DiscordUserId UserId, DateTime Start, DateTime End, string Note)[]> GetVacationsAsync(User user);
+    Task<(DiscordUserId UserId, DateTime Start, DateTime End, string? Note)[]> GetVacationsAsync(User user);
 
     /// <summary>
     /// Gets all vacations for a specific <paramref name="date"/>.
     /// </summary>
     /// <param name="date">The date to get the vacations for.</param>
     /// <returns>An array of tupples, containing the user Id, the vacation start and end, as well as an optional note.</returns>
-    Task<(DiscordUserId UserId, DateTime Start, DateTime End, string Note)[]> GetVacationsAsync(DateTime date);
+    Task<(DiscordUserId UserId, DateTime Start, DateTime End, string? Note)[]> GetVacationsAsync(DateTime date);
 
     /// <summary>
     /// Gets all available games.
@@ -97,6 +97,13 @@ public interface IDatabaseAccess
     /// <param name="lastSeen">The timestamp to use as info.</param>
     /// <returns>An awaitable <see cref="Task"/>.</returns>
     Task UpdateUserInfoLastSeenAsync(User user, DateTime lastSeen);
+
+    /// <summary>
+    /// Updates the user information for the given <paramref name="users"/>.
+    /// </summary>
+    /// <param name="users">The users to update the information for.</param>
+    /// <returns>An awaitable <see cref="Task"/>.</returns>
+    Task UpdateUserInformationAsync(IEnumerable<User> users);
 
     /// <summary>
     /// Gets the last seen info for the given <paramref name="users"/>.

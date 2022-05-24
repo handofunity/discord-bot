@@ -12,15 +12,18 @@ public interface IDiscordUserEventHandler
 {
     IDiscordAccess DiscordAccess { set; }
 
-    void HandleJoined(DiscordUserId userID, Role roles);
+    void HandleJoined(DiscordUserId userID,
+                      Role roles,
+                      DateTime joinedDate);
 
     void HandleLeft(DiscordUserId userID,
                     string username,
-                    ushort discriminatorValue,
-                    DateTimeOffset? joinedAt,
-                    string[] roles);
+                    ushort discriminatorValue);
 
     UserRolesChangedResult HandleRolesChanged(DiscordUserId userID, Role oldRoles, Role newRoles);
+
+    Task HandleRolesChanged(DiscordUserId userId,
+                            string currentRoles);
 
     Task HandleStatusChanged(DiscordUserId userID, bool wasOnline, bool isOnline);
 

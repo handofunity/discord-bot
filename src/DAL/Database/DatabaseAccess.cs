@@ -36,14 +36,20 @@ public class DatabaseAccess : IDatabaseAccess
 
     private static User Map(Model.User user) =>
         new((InternalUserId)user.UserId,
-            (DiscordUserId)user.DiscordUserId);
+            (DiscordUserId)user.DiscordUserId)
+        {
+            JoinedDate = user.UserInfo?.JoinedDate ?? User.DefaultJoinedDate,
+            CurrentRoles = user.UserInfo?.CurrentRoles
+        };
 
     async Task<User[]> IDatabaseAccess.GetAllUsers()
     {
         Model.User[] dbObjects;
         await using (var entities = GetDbContext())
         {
-            dbObjects = await entities.User.ToArrayAsync();
+            dbObjects = await entities.User
+                                      .Include(m => m.UserInfo)
+                                      .ToArrayAsync();
         }
 
         return dbObjects.Select(Map).ToArray();
@@ -168,7 +174,7 @@ public class DatabaseAccess : IDatabaseAccess
         await entities.SaveChangesAsync();
     }
 
-    async Task<(DiscordUserId UserId, DateTime Start, DateTime End, string Note)[]> IDatabaseAccess.GetVacationsAsync()
+    async Task<(DiscordUserId UserId, DateTime Start, DateTime End, string? Note)[]> IDatabaseAccess.GetVacationsAsync()
     {
         await using var entities = GetDbContext();
         var localItems = await entities.Vacation
@@ -187,7 +193,7 @@ public class DatabaseAccess : IDatabaseAccess
                          .ToArray();
     }
 
-    async Task<(DiscordUserId UserId, DateTime Start, DateTime End, string Note)[]> IDatabaseAccess.GetVacationsAsync(User user)
+    async Task<(DiscordUserId UserId, DateTime Start, DateTime End, string? Note)[]> IDatabaseAccess.GetVacationsAsync(User user)
     {
         await using var entities = GetDbContext();
         var localItems = await entities.Vacation
@@ -207,7 +213,7 @@ public class DatabaseAccess : IDatabaseAccess
                          .ToArray();
     }
 
-    async Task<(DiscordUserId UserId, DateTime Start, DateTime End, string Note)[]> IDatabaseAccess.GetVacationsAsync(DateTime date)
+    async Task<(DiscordUserId UserId, DateTime Start, DateTime End, string? Note)[]> IDatabaseAccess.GetVacationsAsync(DateTime date)
     {
         await using var entities = GetDbContext();
         var localItems = await entities.Vacation
@@ -252,8 +258,8 @@ public class DatabaseAccess : IDatabaseAccess
                                                            DateTime lastSeen)
     {
         await using var entities = GetDbContext(true);
-        var existingInfo = await entities.UserInfo.SingleOrDefaultAsync(m => m.UserId == (decimal)user.InternalUserId);
-        if (existingInfo != null)
+        var existingInfo = await entities.UserInfo.SingleOrDefaultAsync(m => m.UserId == (int)user.InternalUserId);
+        if (existingInfo is not null)
         {
             existingInfo.LastSeen = lastSeen;
             await entities.SaveChangesAsync();
@@ -263,6 +269,51 @@ public class DatabaseAccess : IDatabaseAccess
         // Create new user info
         entities.UserInfo.Add(new UserInfo { UserId = (int)user.InternalUserId, LastSeen = lastSeen });
         await entities.SaveChangesAsync();
+    }
+
+    async Task IDatabaseAccess.UpdateUserInformationAsync(IEnumerable<User> users)
+    {
+        var localData = users.ToArray();
+        var userIds = localData.Select(m => (int)m.InternalUserId).ToArray();
+
+        await using var entities = GetDbContext(true);
+        var databaseEntries = await entities.UserInfo
+                                          .Where(m => userIds.Contains(m.UserId))
+                                          .ToArrayAsync();
+        var matchingData = databaseEntries.Join(localData,
+                                                db => db.UserId,
+                                                mem => (int)mem.InternalUserId,
+                                                (db,
+                                                 mem) =>
+                                                {
+                                                    db.CurrentRoles = mem.CurrentRoles;
+                                                    db.JoinedDate = mem.JoinedDate;
+                                                    return mem;
+                                                })
+                                          .ToArray();
+        if (matchingData.Any())
+        {
+            await entities.SaveChangesAsync();
+            return;
+        }
+
+        var missing = localData.Except(matchingData)
+                               .ToArray();
+        if (missing.Any())
+        {
+            foreach (var user in missing)
+            {
+                // Create new user information
+                entities.UserInfo.Add(new UserInfo
+                {
+                    UserId = (int)user.InternalUserId,
+                    LastSeen = DateTime.UtcNow,
+                    JoinedDate = user.JoinedDate,
+                    CurrentRoles = user.CurrentRoles
+                });
+            }
+            await entities.SaveChangesAsync();
+        }
     }
 
     async Task<(InternalUserId UserId, DateTime? LastSeen)[]> IDatabaseAccess.GetLastSeenInfoForUsersAsync(User[] users)

@@ -40,21 +40,26 @@ public class DiscordUserEventHandler : IDiscordUserEventHandler
         set => _discordAccess = value;
     }
 
-    void IDiscordUserEventHandler.HandleJoined(DiscordUserId userID, Role roles)
+    void IDiscordUserEventHandler.HandleJoined(DiscordUserId userID,
+                                               Role roles,
+                                               DateTime joinedDate)
     {
         _ = Task.Run(async () =>
         {
             await _userStore.AddUserIfNewAsync(userID, roles);
+            if (_userStore.TryGetUser(userID, out var user) && user is not null)
+            {
+                user.JoinedDate = joinedDate;
+                await _databaseAccess.UpdateUserInformationAsync(new []{ user });
+            }
         }).ConfigureAwait(false);
     }
 
     void IDiscordUserEventHandler.HandleLeft(DiscordUserId userID,
                                              string username,
-                                             ushort discriminatorValue,
-                                             DateTimeOffset? joinedAt,
-                                             string[] roles)
+                                             ushort discriminatorValue)
     {
-        if(!_userStore.TryGetUser(userID, out var user))
+        if(!_userStore.TryGetUser(userID, out var user) || user == null)
             return;
         _ = Task.Run(async () =>
         {
@@ -63,8 +68,7 @@ public class DiscordUserEventHandler : IDiscordUserEventHandler
             await _privacyProvider.DeleteUserRelatedData(user!);
             var now = DateTime.UtcNow;
             // Only post to Discord log if the user was on the server for more than 10 minutes, or the time on the server cannot be determined.
-            if (!joinedAt.HasValue
-             || (now - joinedAt.Value.UtcDateTime).TotalMinutes > 10)
+            if ((now - user.JoinedDate).TotalMinutes > 10)
             {
                 var mentionPrefix = string.Empty;
                 if (user!.Roles != Role.NoRole
@@ -75,9 +79,9 @@ public class DiscordUserEventHandler : IDiscordUserEventHandler
                     var officerMention = discordAccess.GetRoleMention(Constants.RoleNames.OfficerRoleName);
                     mentionPrefix = $"{leaderMention} {officerMention}: ";
                 }
-                var formattedRolesMessage = roles.Length == 0
+                var formattedRolesMessage = user.CurrentRoles is null
                                                 ? string.Empty
-                                                : $"; Roles: {string.Join(", ", roles.Select(m => "`" + m + "`"))}";
+                                                : $"; Roles: {user.CurrentRoles}";
                 await discordAccess.LogToDiscord(
                                                  $"{mentionPrefix}User `{username}#{discriminatorValue}` " +
                                                  $"(Membership level: **{user.Roles}**{formattedRolesMessage}) " +
@@ -122,6 +126,16 @@ public class DiscordUserEventHandler : IDiscordUserEventHandler
             Description = description
         };
         return new UserRolesChangedResult(a, $"{user.Mention} has been promoted to **{promotedTo}**.");
+    }
+
+    async Task IDiscordUserEventHandler.HandleRolesChanged(DiscordUserId userId,
+                                                           string currentRoles)
+    {
+        if (!_userStore.TryGetUser(userId, out var user) || user == null)
+            return;
+
+        user.CurrentRoles = currentRoles;
+        await _databaseAccess.UpdateUserInformationAsync(new []{ user });
     }
 
     async Task IDiscordUserEventHandler.HandleStatusChanged(DiscordUserId userID, bool wasOnline, bool isOnline)
