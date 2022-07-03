@@ -21,7 +21,7 @@ public class IgnoreModule : InteractionModuleBase<SocketInteractionContext>
 
     [SlashCommand("start", "Starts ignoring interactions from the invoking user for the given amount of minutes.")]
     [AllowedRoles(Role.Developer)]
-    public async Task StartIgnoreAsync([MinValue(5), MaxValue(60)] int minutes)
+    public async Task StartIgnoreAsync([MinValue(5), MaxValue(60)] int minutes = 60)
     {
         var embedData = _ignoreGuard.EnsureOnIgnoreList((DiscordUserId)Context.User.Id,
                                                         Context.User.Username,

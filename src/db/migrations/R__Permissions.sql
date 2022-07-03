@@ -1,3 +1,4 @@
+-- ${flyway:timestamp}
 DO LANGUAGE plpgsql $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_roles AS r WHERE r.rolname = 'hou_guildbot')
@@ -17,7 +18,7 @@ BEGIN
         GRANT SELECT, INSERT, DELETE ON hou.vacation TO hou_guildbot;
         GRANT SELECT, INSERT, UPDATE, DELETE ON config.game TO hou_guildbot;
         GRANT SELECT, INSERT, UPDATE, DELETE ON config.game_role TO hou_guildbot;
-        GRANT SELECT, INSERT ON config.scheduled_reminder TO hou_guildbot;
+        GRANT SELECT, INSERT, UPDATE ON config.scheduled_reminder TO hou_guildbot;
         GRANT SELECT, INSERT ON config.scheduled_reminder_mention TO hou_guildbot;
         GRANT SELECT ON config.message TO hou_guildbot;
         GRANT SELECT ON config.discord_mapping TO hou_guildbot;

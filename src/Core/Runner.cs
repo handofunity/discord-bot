@@ -25,7 +25,7 @@ namespace HoU.GuildBot.Core;
 
 public class Runner
 {
-    private static readonly Version _botVersion = new(9, 2, 0);
+    private static readonly Version _botVersion = new(9, 3, 0);
 
     private BackgroundJobServer? _backgroundJobServer;
     private ILogger<Runner>? _logger;
@@ -120,6 +120,7 @@ public class Runner
            .AddTransient<IImageProvider, ImageProvider>()
            .AddTransient<ITimeInformationProvider, TimeInformationProvider>()
            .AddTransient<IUnitsSyncService, UnitsSyncService>()
+           .AddTransient<IScheduledReminderProvider, ScheduledReminderProvider>()
             // Triggered as scheduled HangFire job
            .AddTransient<UnityHubSyncService>()
            .AddTransient<ReminderService>();

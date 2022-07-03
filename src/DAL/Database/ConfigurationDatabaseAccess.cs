@@ -101,6 +101,20 @@ public class ConfigurationDatabaseAccess : IConfigurationDatabaseAccess
         return sr.ScheduledReminderId;
     }
 
+    async Task IConfigurationDatabaseAccess.UpdateScheduledReminderAsync(ScheduledReminderInfo scheduledReminderInfo)
+    {
+        await using var entities = GetDbContext();
+        var entity = await entities.ScheduledReminder
+                                   .AsTracking()
+                                   .FirstAsync(m => m.ScheduledReminderId == scheduledReminderInfo.ReminderId);
+
+        entity.CronSchedule = scheduledReminderInfo.CronSchedule;
+        entity.DiscordChannelId = (decimal)scheduledReminderInfo.Channel;
+        entity.Text = scheduledReminderInfo.Text;
+
+        await entities.SaveChangesAsync();
+    }
+
     async Task<ScheduledReminderInfo?> IConfigurationDatabaseAccess.GetScheduledReminderInfosAsync(int scheduledReminderId)
     {
         await using var entities = GetDbContext();

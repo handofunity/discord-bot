@@ -25,6 +25,13 @@ public interface IConfigurationDatabaseAccess
     Task<int> CreateScheduledReminderAsync(ScheduledReminderInfo scheduledReminderInfo);
 
     /// <summary>
+    /// Updates the existing <paramref name="scheduledReminderInfo"/> in the database.
+    /// </summary>
+    /// <param name="scheduledReminderInfo">The updated information.</param>
+    /// <returns>An awaitable <see cref="Task"/>.</returns>
+    Task UpdateScheduledReminderAsync(ScheduledReminderInfo scheduledReminderInfo);
+
+    /// <summary>
     /// Tries to get the <see cref="ScheduledReminderInfo"/> for the given <paramref name="scheduledReminderId"/>.
     /// </summary>
     /// <param name="scheduledReminderId">The Id of the <see cref="ScheduledReminderInfo"/> to look up.</param>

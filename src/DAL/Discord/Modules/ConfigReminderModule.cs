@@ -8,6 +8,7 @@ using HoU.GuildBot.DAL.Discord.Preconditions;
 using HoU.GuildBot.Shared.BLL;
 using HoU.GuildBot.Shared.DAL;
 using HoU.GuildBot.Shared.Enums;
+using HoU.GuildBot.Shared.Extensions;
 using HoU.GuildBot.Shared.Objects;
 using HoU.GuildBot.Shared.StrongTypes;
 using JetBrains.Annotations;
@@ -23,15 +24,51 @@ public partial class ConfigModule
     {
         private readonly IConfigurationDatabaseAccess _configurationDatabaseAccess;
         private readonly IDynamicConfiguration _dynamicConfiguration;
+        private readonly IScheduledReminderProvider _scheduledReminderProvider;
         private readonly ILogger<ConfigReminderModule> _logger;
 
         public ConfigReminderModule(IConfigurationDatabaseAccess configurationDatabaseAccess,
                                     IDynamicConfiguration dynamicConfiguration,
+                                    IScheduledReminderProvider scheduledReminderProvider,
                                     ILogger<ConfigReminderModule> logger)
         {
             _configurationDatabaseAccess = configurationDatabaseAccess;
             _dynamicConfiguration = dynamicConfiguration;
+            _scheduledReminderProvider = scheduledReminderProvider;
             _logger = logger;
+        }
+
+        /// <summary>
+        /// Validates the <paramref name="cronSchedule"/> and calculates the next occurrence.
+        /// </summary>
+        /// <param name="cronSchedule">The user-given cron schedule.</param>
+        /// <returns>The next occurrence of the <paramref name="cronSchedule"/> if it is valid, otherwise <b>null</b>.</returns>
+        private async Task<DateTime?> GetNextOccurrenceOfCronAsync(string cronSchedule)
+        {
+            try
+            {
+                return CronExpression.Parse(cronSchedule).GetNextOccurrence(DateTime.UtcNow);
+            }
+            catch (Exception e)
+            {
+                await
+                    FollowupAsync($"Failed to get next occurrence. Cron expression might be invalid. **Error:** {e.GetBaseException().Message}");
+                _logger.LogError(e, "Failed to get next occurrence. Cron expression might be invalid.");
+                return null;
+            }
+        }
+
+        [SlashCommand("list", "Lists existing scheduled reminders.", runMode: RunMode.Async)]
+        [AllowedRoles(Role.Developer)]
+        public async Task ListRemindersAsync()
+        {
+            var embedData = await _scheduledReminderProvider.GetAllReminderInfosAsync();
+            await RespondAsync($"Found {embedData.Length} reminder(s):");
+            await embedData.PerformBulkOperation(async data =>
+            {
+                var embed = data.ToEmbed();
+                await ReplyAsync(embed: embed);
+            });
         }
 
         [SlashCommand("add", "Adds a new scheduled reminder.", runMode: RunMode.Async)]
@@ -45,18 +82,9 @@ public partial class ConfigModule
         {
             await DeferAsync();
 
-            DateTime? nextOccurrenceUtc;
-            try
-            {
-                nextOccurrenceUtc = CronExpression.Parse(cronSchedule).GetNextOccurrence(DateTime.UtcNow);
-            }
-            catch (Exception e)
-            {
-                await
-                    FollowupAsync($"Failed to get next occurrence. Cron expression might be invalid. **Error:** {e.GetBaseException().Message}");
-                _logger.LogError(e, "Failed to get next occurrence. Cron expression might be invalid.");
+            var nextOccurrenceUtc = await GetNextOccurrenceOfCronAsync(cronSchedule);
+            if (nextOccurrenceUtc is null)
                 return;
-            }
 
             var sri = new ScheduledReminderInfo(0,
                                                 cronSchedule,
@@ -77,6 +105,42 @@ public partial class ConfigModule
             {
                 _logger.LogError(e, "Failed to create new reminder.");
                 await FollowupAsync($"Failed to create reminder. **Error:** {e.GetBaseException().Message}");
+            }
+        }
+
+        [SlashCommand("reschedule", "Reschedules an existing reminder.", runMode: RunMode.Async)]
+        [AllowedRoles(Role.Developer | Role.Leader | Role.Officer | Role.Coordinator)]
+        public async Task RescheduleReminderAsync(
+            [Summary(description: "The Id of the scheduled reminder.")] int scheduledReminderId,
+            [Summary(description: "When the reminder should trigger, see: https://crontab.guru/")] string cronSchedule)
+        {
+            await DeferAsync();
+
+            var sri = await _configurationDatabaseAccess.GetScheduledReminderInfosAsync(scheduledReminderId);
+            if (sri is null)
+            {
+                await FollowupAsync($"Couldn't find scheduled reminder with Id {scheduledReminderId}.");
+                return;
+            }
+
+            var nextOccurrenceUtc = await GetNextOccurrenceOfCronAsync(cronSchedule);
+            if (nextOccurrenceUtc is null)
+                return;
+
+            var updatedSri = sri with { CronSchedule = cronSchedule };
+
+            try
+            {
+                await _configurationDatabaseAccess.UpdateScheduledReminderAsync(updatedSri);
+                await _dynamicConfiguration.LoadScheduledReminderInfosAsync();
+                await FollowupAsync("Successfully updated the reminder. "
+                                  + $"**Scheduled Reminder Id:** `{scheduledReminderId}`. "
+                                  + $"Next occurrence of reminder (_guild time_): {(nextOccurrenceUtc?.ToString("dd.MM.yyyy HH:mm") ?? "<UNKNOWN>")}");
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Failed to reschedule existing reminder.");
+                await FollowupAsync($"Failed to reschedule existing reminder. **Error:** {e.GetBaseException().Message}");
             }
         }
 
