@@ -390,9 +390,9 @@ public class ImageProvider : IImageProvider
         var barColors = new Dictionary<string, SKColor>
         {
             { "Melee DPS", SKColors.DarkRed },
-            { "Ranged DPS", SKColors.Crimson },
+            { "Ranged DPS", SKColors.Teal },
             { "Healer", SKColors.ForestGreen },
-            { "Tank", SKColors.CornflowerBlue }
+            { "Tank", SKColors.SaddleBrown }
         };
         var rolesInChart = barColors.Keys.ToArray();
         return CreateBarChartImage(new BarChartDrawingData("WowRetailPlaystyleBackground.png",
