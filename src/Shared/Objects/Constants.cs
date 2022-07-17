@@ -22,6 +22,7 @@ public static class Constants
         public const string AocRaceMenuMessage = "AocRaceMenu";
         public const string AocGuildPreferenceMenuMessage = "AocGuildPreferenceMenu";
         public const string WowRoleMenuMessage = "WowRoleMenu";
+        public const string WowRetailPlayStyleMenuMessage = "WowRetailPlayStyleMenuMessage";
         public const string LostArkRoleMenuMessage = "LostArkRoleMenu";
         public const string LostArkAdvancedClassMenuMessage = "LostArkAdvancedClassMenu";
         public const string LostArkPlayStyleMenuMessage = "LostArkPlayStyleMenu";
@@ -67,6 +68,7 @@ public static class Constants
                 {AocRaceMenu.CustomId, "AshesOfCreationPrimaryGameDiscordRoleId"},
                 {AocGuildPreferenceMenu.CustomId, "AshesOfCreationPrimaryGameDiscordRoleId"},
                 {WowClassMenu.CustomId, "WorldOfWarcraftPrimaryGameRoleId"},
+                {WowRetailPlayStyleMenu.CustomId, "WorldOfWarcraftRetailPrimaryGameRoleId"},
                 {LostArkClassMenu.CustomId, "LostArkPrimaryGameRoleId"},
                 {LostArkAdvancedClassMenu.CustomId, "LostArkPrimaryGameRoleId"},
                 {LostArkPlayStyleMenu.CustomId, "LostArkPrimaryGameRoleId"},
@@ -157,6 +159,20 @@ public static class Constants
                 {"tank", "Tank"},
                 {"healer", "Healer"},
                 {"dps", "DPS"}
+            };
+    }
+    
+    public static class WowRetailPlayStyleMenu
+    {
+        public const string CustomId = "1f9ef663-d535-4824-9573-efee37e5b71e";
+
+        public static IDictionary<string, string> GetOptions() =>
+            new Dictionary<string, string>
+            {
+                { "tank", "Tank" },
+                { "healer", "Healer" },
+                { "meleedps", "Melee DPS" },
+                { "rangeddps", "Ranged DPS" }
             };
     }
 

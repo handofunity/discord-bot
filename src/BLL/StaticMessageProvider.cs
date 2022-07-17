@@ -26,8 +26,8 @@ public class StaticMessageProvider : IStaticMessageProvider
 #if DEBUG
         _provideStaticMessages = botInformationProvider.GetEnvironmentName() == Constants.RuntimeEnvironment.Production;
 #else
-            // Don't change this statement, or the bot might not behave the way it should in the production environment.
-            _provideStaticMessages = botInformationProvider.GetEnvironmentName() == Constants.RuntimeEnvironment.Production;
+        // Don't change this statement, or the bot might not behave the way it should in the production environment.
+        _provideStaticMessages = botInformationProvider.GetEnvironmentName() == Constants.RuntimeEnvironment.Production;
 #endif
 
         if (_provideStaticMessages)
@@ -92,6 +92,19 @@ public class StaticMessageProvider : IStaticMessageProvider
         expectedChannelMessages[(DiscordChannelId)_dynamicConfiguration.DiscordMapping["WorldOfWarcraftRoleChannelId"]] = new ExpectedChannelMessages(l);
     }
 
+    private async Task LoadWowRetailRoleMenuMessages(IDictionary<DiscordChannelId, ExpectedChannelMessages> expectedChannelMessages)
+    {
+        if (!_provideStaticMessages)
+            return;
+
+        var l = new List<ExpectedChannelMessage>
+        {
+            new(await _messageProvider.GetMessage(Constants.MessageNames.WowRetailPlayStyleMenuMessage))
+        };
+        AddWowRetailRoleMenuComponents(l);
+        expectedChannelMessages[(DiscordChannelId)_dynamicConfiguration.DiscordMapping["WorldOfWarcraftRetailRoleChannelId"]] = new ExpectedChannelMessages(l);
+    }
+
     private async Task LoadLostArkRoleMenuMessages(IDictionary<DiscordChannelId, ExpectedChannelMessages> expectedChannelMessages)
     {
         if (!_provideStaticMessages)
@@ -122,7 +135,7 @@ public class StaticMessageProvider : IStaticMessageProvider
         {
             _logger.LogInformation("{Channel} - Waiting for channel-edit-semaphore ...", channelLocationAndName);
             await semaphore.WaitAsync();
-            _logger.LogInformation("{Channel} - Got channel-edit-semaphore.", channelLocationAndName);
+            _logger.LogInformation("{Channel} - Got channel-edit-semaphore", channelLocationAndName);
             _logger.LogInformation("{Channel} - Deleting existing bot messages in the channel ...", channelLocationAndName);
             await DiscordAccess.DeleteBotMessagesInChannel(channelID);
             _logger.LogInformation("{Channel} - Creating new messages in the channel ...", channelLocationAndName);
@@ -130,13 +143,13 @@ public class StaticMessageProvider : IStaticMessageProvider
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "{Channel} - Failed to create all messages for channel.", channelLocationAndName);
+            _logger.LogError(e, "{Channel} - Failed to create all messages for channel", channelLocationAndName);
         }
         finally
         {
             _logger.LogInformation("{Channel} - Releasing channel-edit-semaphore ...", channelLocationAndName);
             semaphore.Release();
-            _logger.LogInformation("{Channel} - Channel-edit-semaphore released.", channelLocationAndName);
+            _logger.LogInformation("{Channel} - Channel-edit-semaphore released", channelLocationAndName);
         }
     }
 
@@ -245,6 +258,19 @@ public class StaticMessageProvider : IStaticMessageProvider
                                                            true));
     }
 
+    private static void AddWowRetailRoleMenuComponents(List<ExpectedChannelMessage> messages)
+    {
+        if (messages.Count != 1)
+            throw new ArgumentException("Unexpected amount of messages received.", nameof(messages));
+
+        // Class menu
+        messages[0].Components.Add(new SelectMenuComponent(Constants.WowRetailPlayStyleMenu.CustomId,
+                                                           0,
+                                                           "Select play styles ...",
+                                                           Constants.WowRetailPlayStyleMenu.GetOptions(),
+                                                           true));
+    }
+
     private static void AddLostArkRoleMenuComponents(List<ExpectedChannelMessage> messages)
     {
         if (messages.Count != 3)
@@ -304,12 +330,13 @@ public class StaticMessageProvider : IStaticMessageProvider
 
     async Task IStaticMessageProvider.EnsureStaticMessagesExist()
     {
-        _logger.LogInformation("Ensuring that all static messages exist.");
+        _logger.LogInformation("Ensuring that all static messages exist");
         var expectedChannelMessages = new Dictionary<DiscordChannelId, ExpectedChannelMessages>();
         await LoadInfosAndRolesMenuMessages(expectedChannelMessages);
         await LoadGamesRolesMenuMessages(expectedChannelMessages);
         await LoadAocRoleMenuMessages(expectedChannelMessages);
         await LoadWowRoleMenuMessages(expectedChannelMessages);
+        await LoadWowRetailRoleMenuMessages(expectedChannelMessages);
         await LoadLostArkRoleMenuMessages(expectedChannelMessages);
         
         var gamesRolesChannelId = (DiscordChannelId)_dynamicConfiguration.DiscordMapping["GamesRolesChannelId"];
@@ -321,7 +348,7 @@ public class StaticMessageProvider : IStaticMessageProvider
             if (existingMessages.Length != pair.Value.Messages.Length)
             {
                 // If the count of messages or action components is different, we don't have to check every message/action component.
-                _logger.LogInformation("Messages in channel '{Channel}' are incomplete or too many ({ExistingMessages}/{ExpectedMessages}).",
+                _logger.LogInformation("Messages in channel '{Channel}' are incomplete or too many ({ExistingMessages}/{ExpectedMessages})",
                                        channelLocationAndName,
                                        existingMessages.Length,
                                        pair.Value.Messages.Length);
@@ -331,7 +358,7 @@ public class StaticMessageProvider : IStaticMessageProvider
             else if (pair.Value.Messages.Where((t, i) => t.Content != existingMessages[i].Content).Any())
             {
                 // If there is any message that is not at the same position and equal, we re-create all of them
-                _logger.LogInformation("Messages in channel '{Channel}' are in the wrong order or have the wrong content.", channelLocationAndName);
+                _logger.LogInformation("Messages in channel '{Channel}' are in the wrong order or have the wrong content", channelLocationAndName);
                 await CreateMessagesInChannel(pair.Key, pair.Value);
             }
             // If the messages are OK, we need to check the action components and options for correctness.
@@ -342,12 +369,12 @@ public class StaticMessageProvider : IStaticMessageProvider
                 {
                     _gameRoleProvider.GamesRolesCustomIds = existingMessages.SelectMany(m => m.CustomIdsAndOptions.Keys).ToArray();
                 }
-                _logger.LogInformation("Messages in channel '{Channel}' are correct.", channelLocationAndName);
+                _logger.LogInformation("Messages in channel '{Channel}' are correct", channelLocationAndName);
             }
             else
             {
                 // If the actions components or options are not correct, we need to re-create all of them.
-                _logger.LogInformation("Action components or options in channel '{Channel}' have the wrong count, are in the wrong order or have the wrong content.",
+                _logger.LogInformation("Action components or options in channel '{Channel}' have the wrong count, are in the wrong order or have the wrong content",
                                        channelLocationAndName);
                 await CreateMessagesInChannel(pair.Key, pair.Value);
             }

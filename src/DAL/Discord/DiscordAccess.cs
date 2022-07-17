@@ -359,7 +359,7 @@ public class DiscordAccess : IDiscordAccess
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Failed to verify username characters of user {DiscordUserId}.", userId);
+                _logger.LogError(e, "Failed to verify username characters of user {DiscordUserId}", userId);
                 return true;
             }
         }
@@ -381,7 +381,7 @@ public class DiscordAccess : IDiscordAccess
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Promotion announcement for user {DiscordUserId} failed.", userId);
+                _logger.LogError(e, "Promotion announcement for user {DiscordUserId} failed", userId);
             }
         }
     }
@@ -473,7 +473,7 @@ public class DiscordAccess : IDiscordAccess
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Failed to add or remove user {Username} ({DiscordUserId}) to or from group roles.",
+            _logger.LogError(e, "Failed to add or remove user {Username} ({DiscordUserId}) to or from group roles",
                              gu.Username,
                              gu.Id);
         }
@@ -597,7 +597,7 @@ public class DiscordAccess : IDiscordAccess
                     }
                     catch (Exception e)
                     {
-                        _logger.LogError(e, "Failed to run post-connected logic.");
+                        _logger.LogError(e, "Failed to run post-connected logic");
                     }
                 }).ConfigureAwait(false);
                 // Return immediately
@@ -650,7 +650,7 @@ public class DiscordAccess : IDiscordAccess
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Unexpected error while connecting to Discord.");
+            _logger.LogError(e, "Unexpected error while connecting to Discord");
         }
     }
 
@@ -691,7 +691,7 @@ public class DiscordAccess : IDiscordAccess
                                    await gu.AddRoleAsync(role);
                                    return true;
                                },
-                               e => _logger.LogError(e, "Failed to set game role '{Role}' for user {UserId}.", role.Name, userId),
+                               e => _logger.LogError(e, "Failed to set game role '{Role}' for user {UserId}", role.Name, userId),
                                false);
     }
 
@@ -709,7 +709,7 @@ public class DiscordAccess : IDiscordAccess
                                    await gu.AddRoleAsync(role);
                                    return (true, role.Name);
                                },
-                               e => _logger.LogError(e, "Failed to set game role '{Role}' for user {UserId}.", role.Name, userId),
+                               e => _logger.LogError(e, "Failed to set game role '{Role}' for user {UserId}", role.Name, userId),
                                (false, role.Name));
     }
 
@@ -727,7 +727,7 @@ public class DiscordAccess : IDiscordAccess
                                    await gu.RemoveRoleAsync(role);
                                    return true;
                                },
-                               e => _logger.LogError(e, "Failed to revoke game role '{Role}' for user {UserId}.", role.Name, userId),
+                               e => _logger.LogError(e, "Failed to revoke game role '{Role}' for user {UserId}", role.Name, userId),
                                false);
     }
 
@@ -745,7 +745,7 @@ public class DiscordAccess : IDiscordAccess
                                    await gu.RemoveRoleAsync(role);
                                    return (true, role.Name);
                                },
-                               e => _logger.LogError(e, "Failed to revoke game role '{Role}' for user {UserId}.", role.Name, userId),
+                               e => _logger.LogError(e, "Failed to revoke game role '{Role}' for user {UserId}", role.Name, userId),
                                (false, role.Name));
     }
 
@@ -767,7 +767,7 @@ public class DiscordAccess : IDiscordAccess
                                    await gu.AddRoleAsync(role);
                                    return true;
                                },
-                               e => _logger.LogError(e, "Failed to add '{Role}' to UserId {DiscordUserId}.", role.Name, userId),
+                               e => _logger.LogError(e, "Failed to add '{Role}' to UserId {DiscordUserId}", role.Name, userId),
                                false);
     }
 
@@ -789,7 +789,7 @@ public class DiscordAccess : IDiscordAccess
                                    await gu.RemoveRoleAsync(role);
                                    return true;
                                },
-                               e => _logger.LogError(e, "Failed to revoke '{Role}' for UserId {DiscordUserId}.", role.Name, userId),
+                               e => _logger.LogError(e, "Failed to revoke '{Role}' for UserId {DiscordUserId}", role.Name, userId),
                                false);
     }
 
@@ -870,15 +870,15 @@ public class DiscordAccess : IDiscordAccess
             current++;
             try
             {
-                _logger.LogTrace("Channel {ChannelId}: Deleting message {CurrentMessageNumber}/{TotalMessagesToDelete} with Id {MessageId}.",
+                _logger.LogTrace("Channel {ChannelId}: Deleting message {CurrentMessageNumber}/{TotalMessagesToDelete} with Id {MessageId}",
                                  channelId, current, messagesToDelete.Count, message.Id);
                 await message.DeleteAsync();
-                _logger.LogTrace("Channel {ChannelId}: Deleted message {CurrentMessageNumber}/{TotalMessagesToDelete} with Id {MessageId}.",
+                _logger.LogTrace("Channel {ChannelId}: Deleted message {CurrentMessageNumber}/{TotalMessagesToDelete} with Id {MessageId}",
                                  channelId, current, messagesToDelete.Count, message.Id);
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Failed to delete message with Id {MessageId} in channel {ChannelId}.", message.Id, channelId);
+                _logger.LogError(e, "Failed to delete message with Id {MessageId} in channel {ChannelId}", message.Id, channelId);
             }
         });
     }
@@ -903,7 +903,7 @@ public class DiscordAccess : IDiscordAccess
                              channelId, current, messages.Length);
             var createdMessage = await channel.SendMessageAsync(message);
             result.Add(createdMessage.Id);
-            _logger.LogTrace("Channel {ChannelId}: Created message {CurrentMessageNumber}/{TotalMessages} with Id {CreatedMessageId}.",
+            _logger.LogTrace("Channel {ChannelId}: Created message {CurrentMessageNumber}/{TotalMessages} with Id {CreatedMessageId}",
                              channelId, current, messages.Length, createdMessage.Id);
         });
 
@@ -932,7 +932,7 @@ public class DiscordAccess : IDiscordAccess
             current++;
             _logger.LogTrace("Channel {ChannelId}: Creating message {CurrentMessageNumber}/{TotalMessages} ...", channelId, current, messages.Length);
             var createdMessage = await channel.SendMessageAsync(message.Content, components: ToMessageComponent(message.Components));
-            _logger.LogTrace("Channel {ChannelId}: Created message {CurrentMessageNumber}/{TotalMessages} with Id {CreatedMessageId}.",
+            _logger.LogTrace("Channel {ChannelId}: Created message {CurrentMessageNumber}/{TotalMessages} with Id {CreatedMessageId}",
                              channelId, current, messages.Length, createdMessage.Id);
         });
     }
@@ -1014,7 +1014,7 @@ public class DiscordAccess : IDiscordAccess
             if (baseChannel?.CategoryId == null)
             {
                 _logger.LogWarning("Trying to reorder channels, " +
-                                   "but the given base channel ({ChannelId}) to position the channels above is not a nested channel.",
+                                   "but the given base channel ({ChannelId}) to position the channels above is not a nested channel",
                                    positionAboveChannelId);
                 return;
             }
@@ -1052,7 +1052,7 @@ public class DiscordAccess : IDiscordAccess
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Failed to reorder channels.");
+            _logger.LogError(e, "Failed to reorder channels");
         }
     }
 
@@ -1112,7 +1112,7 @@ public class DiscordAccess : IDiscordAccess
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Failed to send UNITS notification.");
+            _logger.LogError(e, "Failed to send UNITS notification");
         }
     }
 
@@ -1169,7 +1169,7 @@ public class DiscordAccess : IDiscordAccess
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Failed to send UNITS notification with mentions.");
+            _logger.LogError(e, "Failed to send UNITS notification with mentions");
         }
     }
 
@@ -1247,7 +1247,7 @@ public class DiscordAccess : IDiscordAccess
             return;
 
         _guildAvailable = true;
-        _logger.LogInformation("Guild '{GuildName}' is available.", guild.Name);
+        _logger.LogInformation("Guild '{GuildName}' is available", guild.Name);
         _ = Task.Run(async () =>
         {
             if (!_userStore.IsInitialized)
@@ -1275,9 +1275,9 @@ public class DiscordAccess : IDiscordAccess
             // TODO: Register once per version/the commands change, not every time the bot boots
             // Register interactions only once
             var addedModules = (await _interactionService.AddModulesAsync(typeof(DiscordAccess).Assembly, _serviceProvider)).ToArray();
-            _logger.LogInformation("Found {Count} modules in the assembly.", addedModules.Length);
+            _logger.LogInformation("Found {Count} modules in the assembly", addedModules.Length);
             var registeredCommands = await _interactionService.RegisterCommandsToGuildAsync(guild.Id);
-            _logger.LogInformation("Registered {Count} commands with Discord.", registeredCommands.Count);
+            _logger.LogInformation("Registered {Count} commands with Discord", registeredCommands.Count);
         }).ConfigureAwait(false);
 
         while (_pendingMessages.Count > 0)
@@ -1320,7 +1320,7 @@ public class DiscordAccess : IDiscordAccess
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "An unhandled exception has been thrown while handling UserLeft event.");
+            _logger.LogError(e, "An unhandled exception has been thrown while handling UserLeft event");
         }
 
         return Task.CompletedTask;
@@ -1409,7 +1409,7 @@ public class DiscordAccess : IDiscordAccess
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Failed to execute command for interaction.");
+            _logger.LogError(e, "Failed to execute command for interaction");
         }
     }
 
