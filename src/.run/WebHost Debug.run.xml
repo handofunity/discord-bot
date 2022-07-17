@@ -1,0 +1,38 @@
+﻿<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="WebHost Debug" type="docker-deploy" factoryName="dockerfile" server-name="Docker">
+    <deployment type="dockerfile">
+      <settings>
+        <option name="buildArgs">
+          <list>
+            <DockerEnvVarImpl>
+              <option name="name" value="CONFIGURATION" />
+              <option name="value" value="Debug" />
+            </DockerEnvVarImpl>
+          </list>
+        </option>
+        <option name="containerName" value="" />
+        <option name="contextFolderPath" value="." />
+        <option name="envVars">
+          <list>
+            <DockerEnvVarImpl>
+              <option name="name" value="ASPNETCORE_ENVIRONMENT" />
+              <option name="value" value="Development" />
+            </DockerEnvVarImpl>
+          </list>
+        </option>
+        <option name="sourceFilePath" value="WebHost/Dockerfile" />
+        <option name="volumeBindings">
+          <list>
+            <DockerVolumeBindingImpl>
+              <option name="containerPath" value="/home/houguildbotuser/.microsoft/usersecrets/" />
+              <option name="hostPath" value="%APPDATA%\Microsoft\UserSecrets" />
+              <option name="readOnly" value="true" />
+            </DockerVolumeBindingImpl>
+          </list>
+        </option>
+      </settings>
+    </deployment>
+    <EXTENSION ID="com.jetbrains.rider.docker.debug" isFastModeEnabled="true" isPublishEnabled="true" />
+    <method v="2" />
+  </configuration>
+</component>

@@ -7,6 +7,7 @@ RUN ln -s /lib/x86_64-linux-gnu/libdl.so.2 /lib/x86_64-linux-gnu/libdl.so \
 WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
+ARG CONFIGURATION
 WORKDIR /src
 COPY ["WebHost/WebHost.csproj", "WebHost/"]
 COPY ["DAL/DAL.csproj", "DAL/"]
@@ -16,10 +17,11 @@ COPY ["BLL/BLL.csproj", "BLL/"]
 RUN dotnet restore "WebHost/WebHost.csproj"
 COPY . .
 WORKDIR "/src/WebHost"
-RUN dotnet build "WebHost.csproj" -c Release -o /app
+RUN dotnet build "WebHost.csproj" -c $CONFIGURATION -o /app
 
 FROM build AS publish
-RUN dotnet publish "WebHost.csproj" -c Release -o /app
+ARG CONFIGURATION
+RUN dotnet publish "WebHost.csproj" -c $CONFIGURATION -o /app
 
 FROM base AS final
 WORKDIR /app

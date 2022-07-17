@@ -1,0 +1,22 @@
+﻿<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="WebHost Publish" type="docker-deploy" factoryName="dockerfile" server-name="Docker">
+    <deployment type="dockerfile">
+      <settings>
+        <option name="imageTag" value="handofunity/guildbot:latest" />
+        <option name="buildArgs">
+          <list>
+            <DockerEnvVarImpl>
+              <option name="name" value="CONFIGURATION" />
+              <option name="value" value="Release" />
+            </DockerEnvVarImpl>
+          </list>
+        </option>
+        <option name="containerName" value="" />
+        <option name="contextFolderPath" value="." />
+        <option name="sourceFilePath" value="WebHost/Dockerfile" />
+      </settings>
+    </deployment>
+    <EXTENSION ID="com.jetbrains.rider.docker.debug" isFastModeEnabled="true" isPublishEnabled="true" />
+    <method v="2" />
+  </configuration>
+</component>
