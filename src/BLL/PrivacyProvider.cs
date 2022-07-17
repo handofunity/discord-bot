@@ -1,9 +1,4 @@
-﻿using System.Threading.Tasks;
-using System.Timers;
-using JetBrains.Annotations;
-using HoU.GuildBot.Shared.BLL;
-using HoU.GuildBot.Shared.DAL;
-using HoU.GuildBot.Shared.Objects;
+﻿using Timer = System.Timers.Timer;
 
 namespace HoU.GuildBot.BLL;
 

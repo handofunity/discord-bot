@@ -1,12 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-using JetBrains.Annotations;
-using HoU.GuildBot.Shared.BLL;
-using HoU.GuildBot.Shared.DAL;
-using HoU.GuildBot.Shared.StrongTypes;
-
-namespace HoU.GuildBot.BLL;
+﻿namespace HoU.GuildBot.BLL;
 
 [UsedImplicitly]
 public class VacationProvider : IVacationProvider
@@ -24,7 +16,7 @@ public class VacationProvider : IVacationProvider
         _discordAccess = discordAccess;
     }
         
-    private string FormatVacations((DiscordUserId UserID, DateTime Start, DateTime End, string Note)[] vacations)
+    private string FormatVacations((DiscordUserId UserID, DateTime Start, DateTime End, string? Note)[] vacations)
     {
         var names = _discordAccess.GetUserNames(vacations.Select(m => m.UserID).Distinct());
         var orderedVacations =

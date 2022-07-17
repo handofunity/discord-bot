@@ -1,9 +1,4 @@
-﻿using System;
-using System.Text;
-using HoU.GuildBot.Shared.Extensions;
-using HoU.GuildBot.Shared.StrongTypes;
-
-namespace HoU.GuildBot.Shared.Objects;
+﻿namespace HoU.GuildBot.Shared.Objects;
 
 public record ScheduledReminderInfo(int ReminderId,
                                     string CronSchedule,

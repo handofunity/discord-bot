@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using HoU.GuildBot.Shared.Objects;
-
-namespace HoU.GuildBot.Shared.Extensions;
+﻿namespace HoU.GuildBot.Shared.Extensions;
 
 public static class EnumerableExtensions
 {

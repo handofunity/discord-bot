@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using HoU.GuildBot.Shared.BLL;
-using HoU.GuildBot.Shared.DAL;
-using HoU.GuildBot.Shared.StrongTypes;
-
-namespace HoU.GuildBot.BLL;
+﻿namespace HoU.GuildBot.BLL;
 
 public class RoleRemover : IRoleRemover
 {

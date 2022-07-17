@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using HoU.GuildBot.Shared.Objects;
-using HoU.GuildBot.Shared.StrongTypes;
-
-namespace HoU.GuildBot.Shared.DAL;
+﻿namespace HoU.GuildBot.Shared.DAL;
 
 public interface IDatabaseAccess
 {

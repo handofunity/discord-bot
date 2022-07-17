@@ -1,16 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Threading.Tasks;
-using Discord;
-using Discord.Interactions;
-using HoU.GuildBot.DAL.Discord.Preconditions;
-using HoU.GuildBot.Shared.BLL;
-using HoU.GuildBot.Shared.Enums;
-using HoU.GuildBot.Shared.StrongTypes;
-using JetBrains.Annotations;
-using Microsoft.Extensions.Logging;
-
-namespace HoU.GuildBot.DAL.Discord.Modules;
+﻿namespace HoU.GuildBot.DAL.Discord.Modules;
 
 [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 [Group("aoc", "Ashes of Creation related commands.")]

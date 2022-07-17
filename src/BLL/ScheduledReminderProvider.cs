@@ -1,12 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-using Cronos;
-using HoU.GuildBot.Shared.BLL;
-using HoU.GuildBot.Shared.DAL;
-using HoU.GuildBot.Shared.Objects;
-
-namespace HoU.GuildBot.BLL;
+﻿namespace HoU.GuildBot.BLL;
 
 public class ScheduledReminderProvider : IScheduledReminderProvider
 {

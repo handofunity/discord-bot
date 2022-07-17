@@ -1,0 +1,34 @@
+﻿// Global using directives
+
+global using System;
+global using System.Collections.Generic;
+global using System.IdentityModel.Tokens.Jwt;
+global using System.IO;
+global using System.Linq;
+global using System.Net;
+global using System.Net.Http;
+global using System.Net.Http.Headers;
+global using System.Reflection;
+global using System.Text;
+global using System.Threading.Tasks;
+global using Cronos;
+global using Discord;
+global using Discord.Interactions;
+global using Discord.Net;
+global using Discord.WebSocket;
+global using HoU.GuildBot.DAL.Database.Model;
+global using HoU.GuildBot.DAL.Discord.Preconditions;
+global using HoU.GuildBot.Shared.BLL;
+global using HoU.GuildBot.Shared.DAL;
+global using HoU.GuildBot.Shared.Enums;
+global using HoU.GuildBot.Shared.Exceptions;
+global using HoU.GuildBot.Shared.Extensions;
+global using HoU.GuildBot.Shared.Objects;
+global using HoU.GuildBot.Shared.StrongTypes;
+global using JetBrains.Annotations;
+global using Microsoft.AspNetCore.SignalR.Client;
+global using Microsoft.EntityFrameworkCore;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.Extensions.Logging;
+global using Newtonsoft.Json;
+global using Serilog;

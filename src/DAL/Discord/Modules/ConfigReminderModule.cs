@@ -1,20 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-using Cronos;
-using Discord;
-using Discord.Interactions;
-using HoU.GuildBot.DAL.Discord.Preconditions;
-using HoU.GuildBot.Shared.BLL;
-using HoU.GuildBot.Shared.DAL;
-using HoU.GuildBot.Shared.Enums;
-using HoU.GuildBot.Shared.Extensions;
-using HoU.GuildBot.Shared.Objects;
-using HoU.GuildBot.Shared.StrongTypes;
-using JetBrains.Annotations;
-using Microsoft.Extensions.Logging;
-
-namespace HoU.GuildBot.DAL.Discord.Modules;
+﻿namespace HoU.GuildBot.DAL.Discord.Modules;
 
 public partial class ConfigModule
 {

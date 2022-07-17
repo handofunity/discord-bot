@@ -1,17 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Threading.Tasks;
-using HoU.GuildBot.Shared.DAL;
-using HoU.GuildBot.Shared.Extensions;
-using HoU.GuildBot.Shared.Objects;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-
-namespace HoU.GuildBot.DAL.UNITS;
+﻿namespace HoU.GuildBot.DAL.UNITS;
 
 public class UnitsBearerTokenManager : IUnitsBearerTokenManager
 {

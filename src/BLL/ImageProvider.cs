@@ -385,6 +385,25 @@ public class ImageProvider : IImageProvider
                                    rolesInChart);
     }
 
+    Stream IImageProvider.CreateWowRetailPlayStyleDistributionImage()
+    {
+        var barColors = new Dictionary<string, SKColor>
+        {
+            { "Melee DPS", SKColors.DarkRed },
+            { "Ranged DPS", SKColors.Crimson },
+            { "Healer", SKColors.ForestGreen },
+            { "Tank", SKColors.CornflowerBlue }
+        };
+        var rolesInChart = barColors.Keys.ToArray();
+        return CreateBarChartImage(new BarChartDrawingData("WowRetailPlaystyleBackground.png",
+                                                           "WowRetailPlaystyleForeground.png",
+                                                           barColors,
+                                                           222f,
+                                                           56f),
+                                   (DiscordRoleId)_dynamicConfiguration.DiscordMapping["WowRetailPrimaryGameRoleId"],
+                                   rolesInChart);
+    }
+
     private class BarChartDrawingData
     {
         public const int ImageWidth = 1000;

@@ -1,7 +1,4 @@
-﻿using HoU.GuildBot.Shared.Objects;
-using System.Threading.Tasks;
-
-namespace HoU.GuildBot.Shared.DAL;
+﻿namespace HoU.GuildBot.Shared.DAL;
 
 public interface IUnitsSignalRClient
 {

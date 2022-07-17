@@ -1,7 +1,4 @@
-﻿using System.Net.Http;
-using System.Threading.Tasks;
-
-namespace HoU.GuildBot.Shared.DAL;
+﻿namespace HoU.GuildBot.Shared.DAL;
 
 public interface IUnitsBearerTokenManager
 {

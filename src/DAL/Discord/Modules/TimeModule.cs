@@ -1,12 +1,4 @@
-﻿using System.Text;
-using System.Threading.Tasks;
-using Discord.Interactions;
-using HoU.GuildBot.DAL.Discord.Preconditions;
-using HoU.GuildBot.Shared.BLL;
-using HoU.GuildBot.Shared.Enums;
-using JetBrains.Annotations;
-
-namespace HoU.GuildBot.DAL.Discord.Modules;
+﻿namespace HoU.GuildBot.DAL.Discord.Modules;
 
 [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 public class TimeModule : InteractionModuleBase<SocketInteractionContext>

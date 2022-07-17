@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using JetBrains.Annotations;
-using HoU.GuildBot.Shared.BLL;
-using HoU.GuildBot.Shared.Enums;
-using HoU.GuildBot.Shared.StrongTypes;
-
-namespace HoU.GuildBot.BLL;
+﻿namespace HoU.GuildBot.BLL;
 
 [UsedImplicitly]
 public class SpamGuard : ISpamGuard

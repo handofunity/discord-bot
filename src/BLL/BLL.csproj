@@ -27,6 +27,8 @@
     <None Remove="Resources\UnitsProfileBadge_MediumPoints.png" />
     <None Remove="Resources\UnitsProfileBadge_TopTenPoints.png" />
     <None Remove="Resources\UnitsProfileNameplate.png" />
+    <None Remove="Resources\WowRetailPlaystyleForeground.png" />
+    <None Remove="Resources\WowRetailPlaystyleBackground.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -48,6 +50,8 @@
     <EmbeddedResource Include="Resources\UnitsProfileBadge_MediumPoints.png" />
     <EmbeddedResource Include="Resources\UnitsProfileBadge_TopTenPoints.png" />
     <EmbeddedResource Include="Resources\UnitsProfileNameplate.png" />
+    <EmbeddedResource Include="Resources\WowRetailPlaystyleBackground.png" />
+    <EmbeddedResource Include="Resources\WowRetailPlaystyleForeground.png" />
   </ItemGroup>
 
   <ItemGroup>

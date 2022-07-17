@@ -1,13 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
-using Discord;
-using Discord.Interactions;
-using HoU.GuildBot.Shared.BLL;
-using HoU.GuildBot.Shared.Enums;
-using HoU.GuildBot.Shared.StrongTypes;
-using Microsoft.Extensions.DependencyInjection;
-
-namespace HoU.GuildBot.DAL.Discord.Preconditions;
+﻿namespace HoU.GuildBot.DAL.Discord.Preconditions;
 
 [AttributeUsage(AttributeTargets.Method)]
 public class AllowedRolesAttribute : PreconditionAttribute

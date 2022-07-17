@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace HoU.GuildBot.Shared.Enums;
+﻿namespace HoU.GuildBot.Shared.Enums;
 
 [Flags]
 public enum RequestType

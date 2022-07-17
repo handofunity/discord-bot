@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace HoU.GuildBot.Shared.Objects;
+﻿namespace HoU.GuildBot.Shared.Objects;
 
 public record SelectMenuComponent(string CustomId,
                                   byte ActionRowNumber,

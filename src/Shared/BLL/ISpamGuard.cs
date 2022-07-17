@@ -1,7 +1,4 @@
-﻿using HoU.GuildBot.Shared.Enums;
-using HoU.GuildBot.Shared.StrongTypes;
-
-namespace HoU.GuildBot.Shared.BLL;
+﻿namespace HoU.GuildBot.Shared.BLL;
 
 public interface ISpamGuard
 {

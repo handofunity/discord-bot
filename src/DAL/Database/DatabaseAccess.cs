@@ -1,14 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using HoU.GuildBot.DAL.Database.Model;
-using HoU.GuildBot.Shared.DAL;
-using HoU.GuildBot.Shared.Objects;
-using HoU.GuildBot.Shared.StrongTypes;
+﻿using Game = HoU.GuildBot.DAL.Database.Model.Game;
 using User = HoU.GuildBot.Shared.Objects.User;
 
 namespace HoU.GuildBot.DAL.Database;

@@ -1,6 +1,4 @@
-﻿using JetBrains.Annotations;
-
-namespace HoU.GuildBot.Shared.Objects;
+﻿namespace HoU.GuildBot.Shared.Objects;
 
 public class BotAuthenticationResponse
 {

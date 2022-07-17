@@ -1,8 +1,4 @@
-﻿using System.Diagnostics;
-using HoU.GuildBot.Shared.StrongTypes;
-using Newtonsoft.Json;
-
-namespace HoU.GuildBot.Shared.Objects;
+﻿namespace HoU.GuildBot.Shared.Objects;
 
 [DebuggerDisplay(nameof(DisplayName))]
 public class EventVoiceChannel

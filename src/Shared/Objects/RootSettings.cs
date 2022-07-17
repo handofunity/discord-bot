@@ -1,9 +1,4 @@
-﻿using System;
-using System.Buffers.Text;
-using System.Text;
-using Microsoft.Extensions.Configuration;
-
-namespace HoU.GuildBot.Shared.Objects;
+﻿namespace HoU.GuildBot.Shared.Objects;
 
 public class RootSettings
 {

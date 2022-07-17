@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using HoU.GuildBot.Shared.BLL;
-using HoU.GuildBot.Shared.Objects;
-using SkiaSharp;
-
-namespace HoU.GuildBot.BLL;
+﻿namespace HoU.GuildBot.BLL;
 
 public class BotInformationProvider : IBotInformationProvider
 {

@@ -1,12 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using HoU.GuildBot.DAL.Database.Model;
-using HoU.GuildBot.Shared.DAL;
-using HoU.GuildBot.Shared.Objects;
-using HoU.GuildBot.Shared.StrongTypes;
-using Microsoft.EntityFrameworkCore;
-using DesiredTimeZone = HoU.GuildBot.Shared.Objects.DesiredTimeZone;
+﻿using DesiredTimeZone = HoU.GuildBot.Shared.Objects.DesiredTimeZone;
 using UnitsEndpoint = HoU.GuildBot.Shared.Objects.UnitsEndpoint;
 
 namespace HoU.GuildBot.DAL.Database;
@@ -123,7 +115,7 @@ public class ConfigurationDatabaseAccess : IConfigurationDatabaseAccess
                                    .FirstOrDefaultAsync(m => m.ScheduledReminderId == scheduledReminderId);
         return result == null
                    ? null
-                   : Map(result);
+                   : Map(result) ;
     }
 
     async Task IConfigurationDatabaseAccess.AddScheduledReminderMentionAsync(int scheduledReminderId,

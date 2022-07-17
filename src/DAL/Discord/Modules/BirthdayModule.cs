@@ -1,12 +1,4 @@
-﻿using System.Threading.Tasks;
-using Discord.Interactions;
-using HoU.GuildBot.DAL.Discord.Preconditions;
-using HoU.GuildBot.Shared.BLL;
-using HoU.GuildBot.Shared.Enums;
-using HoU.GuildBot.Shared.StrongTypes;
-using JetBrains.Annotations;
-
-namespace HoU.GuildBot.DAL.Discord.Modules;
+﻿namespace HoU.GuildBot.DAL.Discord.Modules;
 
 [UsedImplicitly]
 [Group("birthday", "Commands related to member birthdays.")]

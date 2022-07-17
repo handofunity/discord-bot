@@ -1,10 +1,4 @@
-﻿using System;
-using System.Threading;
-using HoU.GuildBot.Shared.Enums;
-using HoU.GuildBot.Shared.Extensions;
-using HoU.GuildBot.Shared.StrongTypes;
-
-namespace HoU.GuildBot.Shared.Objects;
+﻿namespace HoU.GuildBot.Shared.Objects;
 
 public class User
 {

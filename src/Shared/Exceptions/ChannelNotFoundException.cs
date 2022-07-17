@@ -1,7 +1,4 @@
-﻿using System;
-using HoU.GuildBot.Shared.StrongTypes;
-
-namespace HoU.GuildBot.Shared.Exceptions;
+﻿namespace HoU.GuildBot.Shared.Exceptions;
 
 public class ChannelNotFoundException : Exception
 {

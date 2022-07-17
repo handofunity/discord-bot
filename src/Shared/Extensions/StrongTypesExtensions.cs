@@ -1,6 +1,4 @@
-﻿using HoU.GuildBot.Shared.StrongTypes;
-
-namespace HoU.GuildBot.Shared.Extensions;
+﻿namespace HoU.GuildBot.Shared.Extensions;
 
 public static class StrongTypesExtensions
 {

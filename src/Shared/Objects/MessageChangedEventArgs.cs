@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace HoU.GuildBot.Shared.Objects;
+﻿namespace HoU.GuildBot.Shared.Objects;
 
 public class MessageChangedEventArgs : EventArgs
 {

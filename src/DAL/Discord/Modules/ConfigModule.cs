@@ -1,7 +1,4 @@
-﻿using Discord.Interactions;
-using JetBrains.Annotations;
-
-namespace HoU.GuildBot.DAL.Discord.Modules;
+﻿namespace HoU.GuildBot.DAL.Discord.Modules;
 
 [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 [Group("config", "Commands for live bot configuration.")]

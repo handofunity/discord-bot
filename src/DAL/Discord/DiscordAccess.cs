@@ -1,24 +1,6 @@
-﻿using System.Text;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
-using Discord;
-using Discord.Interactions;
-using Discord.Net;
-using Discord.WebSocket;
-using JetBrains.Annotations;
-using Microsoft.Extensions.Logging;
-using HoU.GuildBot.Shared.BLL;
-using HoU.GuildBot.Shared.DAL;
-using HoU.GuildBot.Shared.Enums;
-using HoU.GuildBot.Shared.Exceptions;
-using HoU.GuildBot.Shared.Extensions;
-using HoU.GuildBot.Shared.Objects;
-using HoU.GuildBot.Shared.StrongTypes;
-using ButtonComponent = HoU.GuildBot.Shared.Objects.ButtonComponent;
+﻿using ButtonComponent = HoU.GuildBot.Shared.Objects.ButtonComponent;
 using SelectMenuComponent = HoU.GuildBot.Shared.Objects.SelectMenuComponent;
+using User = HoU.GuildBot.Shared.Objects.User;
 
 namespace HoU.GuildBot.DAL.Discord;
 

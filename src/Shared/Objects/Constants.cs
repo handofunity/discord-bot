@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using HoU.GuildBot.Shared.BLL;
-
-namespace HoU.GuildBot.Shared.Objects;
+﻿namespace HoU.GuildBot.Shared.Objects;
 
 public static class Constants
 {

@@ -1,7 +1,4 @@
-﻿using System.Threading.Tasks;
-using HoU.GuildBot.Shared.Objects;
-
-namespace HoU.GuildBot.Shared.DAL;
+﻿namespace HoU.GuildBot.Shared.DAL;
 
 public interface IUnityHubAccess
 {

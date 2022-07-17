@@ -1,10 +1,4 @@
-﻿using System;
-using System.Net.Http;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using HoU.GuildBot.Shared.DAL;
-
-namespace HoU.GuildBot.DAL;
+﻿namespace HoU.GuildBot.DAL;
 
 public class WebAccess : IWebAccess
 {

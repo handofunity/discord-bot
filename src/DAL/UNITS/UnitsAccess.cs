@@ -1,15 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Threading.Tasks;
-using HoU.GuildBot.Shared.DAL;
-using HoU.GuildBot.Shared.Extensions;
-using HoU.GuildBot.Shared.Objects;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
+﻿using UnitsEndpoint = HoU.GuildBot.Shared.Objects.UnitsEndpoint;
 
 namespace HoU.GuildBot.DAL.UNITS;
 

@@ -1,7 +1,4 @@
-﻿using System;
-using HoU.GuildBot.Shared.Enums;
-
-namespace HoU.GuildBot.Shared.Attributes;
+﻿namespace HoU.GuildBot.Shared.Attributes;
 
 [AttributeUsage(AttributeTargets.Method)]
 public class CommandCategoryAttribute : Attribute

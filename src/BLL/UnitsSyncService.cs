@@ -1,14 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using HoU.GuildBot.Shared.BLL;
-using JetBrains.Annotations;
-using Microsoft.Extensions.Logging;
-using HoU.GuildBot.Shared.DAL;
-using HoU.GuildBot.Shared.Objects;
-
-namespace HoU.GuildBot.BLL;
+﻿namespace HoU.GuildBot.BLL;
 
 [UsedImplicitly]
 public class UnitsSyncService : IUnitsSyncService

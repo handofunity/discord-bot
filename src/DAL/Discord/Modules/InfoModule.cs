@@ -1,15 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
-using Discord.Interactions;
-using JetBrains.Annotations;
-using HoU.GuildBot.DAL.Discord.Preconditions;
-using HoU.GuildBot.Shared.BLL;
-using HoU.GuildBot.Shared.Enums;
-using HoU.GuildBot.Shared.Extensions;
-using Microsoft.Extensions.Logging;
-
-namespace HoU.GuildBot.DAL.Discord.Modules;
+﻿namespace HoU.GuildBot.DAL.Discord.Modules;
 
 [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 [Group("info", "Informational commands for the developer.")]

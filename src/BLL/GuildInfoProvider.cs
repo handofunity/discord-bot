@@ -1,10 +1,4 @@
-﻿using System.Collections.Generic;
-using HoU.GuildBot.Shared.Objects;
-using HoU.GuildBot.Shared.BLL;
-using HoU.GuildBot.Shared.DAL;
-using System.Linq;
-
-namespace HoU.GuildBot.BLL;
+﻿namespace HoU.GuildBot.BLL;
 
 public class GuildInfoProvider : IGuildInfoProvider
 {

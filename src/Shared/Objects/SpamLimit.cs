@@ -1,6 +1,4 @@
-﻿using HoU.GuildBot.Shared.StrongTypes;
-
-namespace HoU.GuildBot.Shared.Objects;
+﻿namespace HoU.GuildBot.Shared.Objects;
 
 public class SpamLimit
 {

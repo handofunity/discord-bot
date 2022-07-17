@@ -1,8 +1,4 @@
-﻿using System.Net.Http;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-
-namespace HoU.GuildBot.Shared.Extensions;
+﻿namespace HoU.GuildBot.Shared.Extensions;
 
 public static class LoggerExtensions
 {

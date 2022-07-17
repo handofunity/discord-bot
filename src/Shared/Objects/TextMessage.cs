@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace HoU.GuildBot.Shared.Objects;
+﻿namespace HoU.GuildBot.Shared.Objects;
 
 public record TextMessage(string Content,
                           Dictionary<string,Dictionary<string, string>?> CustomIdsAndOptions);

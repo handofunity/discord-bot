@@ -1,7 +1,4 @@
-﻿using global::Discord;
-using HoU.GuildBot.Shared.Objects;
-
-namespace HoU.GuildBot.DAL.Discord;
+﻿namespace HoU.GuildBot.DAL.Discord;
 
 public static class Extensions
 {
