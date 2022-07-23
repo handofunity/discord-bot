@@ -23,8 +23,6 @@ public static class Constants
         public const string AocGuildPreferenceMenuMessage = "AocGuildPreferenceMenu";
         public const string WowRoleMenuMessage = "WowRoleMenu";
         public const string WowRetailPlayStyleMenuMessage = "WowRetailPlayStyleMenuMessage";
-        public const string LostArkRoleMenuMessage = "LostArkRoleMenu";
-        public const string LostArkAdvancedClassMenuMessage = "LostArkAdvancedClassMenu";
         public const string LostArkPlayStyleMenuMessage = "LostArkPlayStyleMenu";
         public const string GamesRolesMenuMessage = "GamesRolesMenu";
         public const string FriendOrGuestMenuMessage = "FriendOrGuestMenu";
@@ -69,8 +67,6 @@ public static class Constants
                 {AocGuildPreferenceMenu.CustomId, "AshesOfCreationPrimaryGameDiscordRoleId"},
                 {WowClassMenu.CustomId, "WorldOfWarcraftPrimaryGameRoleId"},
                 {WowRetailPlayStyleMenu.CustomId, "WorldOfWarcraftRetailPrimaryGameRoleId"},
-                {LostArkClassMenu.CustomId, "LostArkPrimaryGameRoleId"},
-                {LostArkAdvancedClassMenu.CustomId, "LostArkPrimaryGameRoleId"},
                 {LostArkPlayStyleMenu.CustomId, "LostArkPrimaryGameRoleId"},
             };
         }
@@ -176,46 +172,6 @@ public static class Constants
             };
     }
 
-    public static class LostArkClassMenu
-    {
-        public const string CustomId = "272b3c09-a9e8-444d-b5e9-febd46a24718";
-
-        public static IDictionary<string, string> GetOptions() =>
-            new Dictionary<string, string>
-            {
-                {"warrior", "Warrior"},
-                {"martialartist", "Martial Artist"},
-                {"mage", "Mage"},
-                {"assassin", "Assassin"},
-                {"gunner", "Gunner"}
-            };
-    }
-
-    public static class LostArkAdvancedClassMenu
-    {
-        public const string CustomId = "6C7D6191-8719-45E7-B94D-F109102B84DC";
-
-        public static IDictionary<string, string> GetOptions() =>
-            new Dictionary<string, string>
-            {
-                {"berserker", "Berserker"},
-                {"paladin", "Paladin"},
-                {"gunlancer", "Gunlancer"},
-                {"striker", "Striker"},
-                {"wardancer", "Wardancer"},
-                {"scrapper", "Scrapper"},
-                {"soulfist", "Soulfist"},
-                {"gunslinger", "Gunslinger"},
-                {"artillerist", "Artillerist"},
-                {"deadeye", "Deadeye"},
-                {"sharpshooter", "Sharpshooter"},
-                {"bard", "Bard"},
-                {"sorceress", "Sorceress"},
-                {"shadowhunter", "Shadowhunter"},
-                {"deathblade", "Deathblade"}
-            };
-    }
-
     public static class LostArkPlayStyleMenu
     {
         public const string CustomId = "BEA37582-5B00-4784-AC0E-2BBAE4500260";
@@ -224,7 +180,8 @@ public static class Constants
             new Dictionary<string, string>
             {
                 {"dps", "DPS"},
-                {"support", "Support"}
+                {"support", "Support"},
+                {"thirain-server", "Thirain Server"}
             };
     }
 }

@@ -17,8 +17,6 @@ public interface IImageProvider
 
     Stream LoadClassListImage();
 
-    Stream CreateLostArkClassDistributionImage();
-
     Stream CreateLostArkPlayStyleDistributionImage();
     
     Stream CreateWowRetailPlayStyleDistributionImage();

@@ -348,26 +348,6 @@ public class ImageProvider : IImageProvider
                            });
     }
 
-    Stream IImageProvider.CreateLostArkClassDistributionImage()
-    {
-        var barColors = new Dictionary<string, SKColor>
-        {
-            { "Warrior", SKColors.DarkRed },
-            { "Martial Artist", SKColors.ForestGreen },
-            { "Mage", SKColors.Navy },
-            { "Assassin", SKColors.DimGray },
-            { "Gunner", SKColors.Goldenrod }
-        };
-        var rolesInChart = barColors.Keys.ToArray();
-        return CreateBarChartImage(new BarChartDrawingData("LostArkClassBackground.png",
-                                                           "LostArkClassForeground.png",
-                                                           barColors,
-                                                           184.33f,
-                                                           38f),
-                                   (DiscordRoleId)_dynamicConfiguration.DiscordMapping["LostArkPrimaryGameRoleId"],
-                                   rolesInChart);
-    }
-
     Stream IImageProvider.CreateLostArkPlayStyleDistributionImage()
     {
         var barColors = new Dictionary<string, SKColor>

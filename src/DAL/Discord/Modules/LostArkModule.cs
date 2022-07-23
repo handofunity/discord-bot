@@ -16,14 +16,13 @@ public class LostArkModule : InteractionModuleBase<SocketInteractionContext>
 
     [SlashCommand("chart", "Shows classes charts for Lost ark.", runMode: RunMode.Async)]
     [AllowedRoles(Role.AnyGuildMember)]
-    public async Task GetLostArkRolesChartAsync(ChartType chartType)
+    public async Task GetLostArkRolesChartAsync(ChartType chartType = ChartType.PlayStyles)
     {
         await DeferAsync();
         try
         {
             Func<Stream> getImage = chartType switch
             {
-                ChartType.Classes => () => _imageProvider.CreateLostArkClassDistributionImage(),
                 ChartType.PlayStyles => () => _imageProvider.CreateLostArkPlayStyleDistributionImage(),
                 _ => throw new NotSupportedException($"Chart type {chartType} is not supported.")
             };
@@ -32,7 +31,7 @@ public class LostArkModule : InteractionModuleBase<SocketInteractionContext>
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Failed to create Lost Ark class distribution chart.");
+            _logger.LogError(e, "Failed to create Lost Ark class distribution chart");
             await FollowupAsync("Failed to create chart.");
         }
     }
@@ -42,7 +41,6 @@ public class LostArkModule : InteractionModuleBase<SocketInteractionContext>
     /// </summary>
     public enum ChartType
     {
-        Classes = 1,
-        PlayStyles = 2
+        PlayStyles = 1
     }
 }

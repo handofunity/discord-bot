@@ -42,8 +42,6 @@
     <EmbeddedResource Include="Resources\AoCRolesBackground_Right.png" />
     <EmbeddedResource Include="Resources\AoCLaunchRoster.jpg" />
     <EmbeddedResource Include="Resources\GuildLogo.png" />
-    <EmbeddedResource Include="Resources\LostArkClassBackground.png" />
-    <EmbeddedResource Include="Resources\LostArkClassForeground.png" />
     <EmbeddedResource Include="Resources\LostArkPlaystyleBackground.png" />
     <EmbeddedResource Include="Resources\LostArkPlaystyleForeground.png" />
     <EmbeddedResource Include="Resources\UnitsProfileBackground.png" />
