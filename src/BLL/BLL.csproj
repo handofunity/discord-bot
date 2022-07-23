@@ -17,6 +17,7 @@
     <None Remove="Resources\AoCRolesBackground_Centered.png" />
     <None Remove="Resources\AoCRolesBackground_Right.png" />
     <None Remove="Resources\AocRolesForeground.png" />
+    <None Remove="Resources\AoCLaunchRoster.jpg" />
     <None Remove="Resources\GuildLogo.png" />
     <None Remove="Resources\LostArkClassBackground.png" />
     <None Remove="Resources\LostArkClassForeground.png" />
@@ -39,6 +40,7 @@
     <EmbeddedResource Include="Resources\AoCRaceForeground.png" />
     <EmbeddedResource Include="Resources\AoCRolesBackground_Centered.png" />
     <EmbeddedResource Include="Resources\AoCRolesBackground_Right.png" />
+    <EmbeddedResource Include="Resources\AoCLaunchRoster.jpg" />
     <EmbeddedResource Include="Resources\GuildLogo.png" />
     <EmbeddedResource Include="Resources\LostArkClassBackground.png" />
     <EmbeddedResource Include="Resources\LostArkClassForeground.png" />

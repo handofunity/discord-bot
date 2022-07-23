@@ -1,16 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using JetBrains.Annotations;
-using HoU.GuildBot.Shared.BLL;
-using HoU.GuildBot.Shared.DAL;
-using HoU.GuildBot.Shared.StrongTypes;
-using SkiaSharp;
-
-namespace HoU.GuildBot.BLL;
+﻿namespace HoU.GuildBot.BLL;
 
 [UsedImplicitly]
 public class ImageProvider : IImageProvider
@@ -54,9 +42,9 @@ public class ImageProvider : IImageProvider
     private static SKImage GetImageFromResource(string name)
     {
         var assembly = typeof(ImageProvider).Assembly;
-        var guildLogoResourceName = assembly.GetManifestResourceNames().Single(m => m.EndsWith(name));
-        using var guildLogoStream = assembly.GetManifestResourceStream(guildLogoResourceName);
-        return SKImage.FromEncodedData(guildLogoStream);
+        var resourceName = assembly.GetManifestResourceNames().Single(m => m.EndsWith(name));
+        using var resourceStream = assembly.GetManifestResourceStream(resourceName);
+        return SKImage.FromEncodedData(resourceStream);
     }
 
     private Stream CreateBarChartImage(BarChartDrawingData barChartDrawingData,
@@ -244,6 +232,18 @@ public class ImageProvider : IImageProvider
                                    },
                                    (DiscordRoleId)_dynamicConfiguration.DiscordMapping["AshesOfCreationPrimaryGameDiscordRoleId"],
                                    rolesInChart);
+    }
+
+    Stream IImageProvider.LoadLaunchRosterImage()
+    {
+        var content = GetImageFromResource("AoCLaunchRoster.jpg");
+        return CreateImage(1320,
+                           600,
+                           bitmap =>
+                           {
+                               using var canvas = new SKCanvas(bitmap);
+                               canvas.DrawImage(content, 0, 0);
+                           });
     }
 
     public async Task<Stream> CreateProfileImage(DiscordUserId userID,

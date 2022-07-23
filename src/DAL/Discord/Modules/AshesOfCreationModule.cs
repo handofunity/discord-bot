@@ -29,12 +29,12 @@ public class AshesOfCreationModule : InteractionModuleBase<SocketInteractionCont
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Failed to create UNITS profile card image.");
+            _logger.LogError(e, "Failed to create UNITS profile card image");
             await FollowupAsync("Failed to create image.");
         }
     }
 
-    [SlashCommand("archetype-combinations", "Shows a overview table of all possible archetype combinations in AoC.", runMode: RunMode.Async)]
+    [SlashCommand("archetype-combinations", "Shows an overview table of all possible archetype combinations in AoC.", runMode: RunMode.Async)]
     [AllowedRoles(Role.AnyGuildMember)]
     public async Task GetArchetypeCombinationsImageAsync()
     {
@@ -43,11 +43,29 @@ public class AshesOfCreationModule : InteractionModuleBase<SocketInteractionCont
         try
         {
             await using var imageStream = _imageProvider.LoadClassListImage();
-            await Context.Interaction.FollowupWithFileAsync(imageStream, "archetype-combinations.jpg");
+            await FollowupWithFileAsync(imageStream, "archetype-combinations.jpg");
         }
         catch (Exception e)
         {
-            _logger.LogError(e, $"Failed to create the archetype combinations image.");
+            _logger.LogError(e, "Failed to create the archetype combinations image");
+            await FollowupAsync("Failed to create image.");
+        }
+    }
+
+    [SlashCommand("launch-roster", "Shows the possibilities to get into the AoC launch roster.", runMode: RunMode.Async)]
+    [AllowedRoles(Role.AnyGuildMember)]
+    public async Task GetLaunchRosterImageAsync()
+    {
+        await DeferAsync();
+
+        try
+        {
+            await using var imageStream = _imageProvider.LoadLaunchRosterImage();
+            await FollowupWithFileAsync(imageStream, "launch-roster.jpg");
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Failed to create launch roster image");
             await FollowupAsync("Failed to create image.");
         }
     }
@@ -72,7 +90,7 @@ public class AshesOfCreationModule : InteractionModuleBase<SocketInteractionCont
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Failed to create {ChartType} chart.", chartType);
+            _logger.LogError(e, "Failed to create {ChartType} chart", chartType);
             await FollowupAsync("Failed to create chart.");
         }
     }
