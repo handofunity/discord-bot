@@ -64,7 +64,7 @@ public class Runner
     public void NotifyShutdown(string message)
     {
         _backgroundJobServer?.Dispose();
-        _logger?.LogCritical("Unexpected shutdown: " + message);
+        _logger?.LogCritical("Unexpected shutdown: {Message}", message);
     }
 
     private static void RegisterBLL(IServiceCollection serviceCollection, string environment)
@@ -91,6 +91,7 @@ public class Runner
            .AddSingleton<IUnitsBotClient, UnitsBotClient>()
            .AddSingleton<IRoleRemover, RoleRemover>()
            .AddSingleton<IDynamicConfiguration, DynamicConfiguration>()
+           .AddSingleton<IMenuRegistry, MenuRegistry>()
             // Transients
            .AddTransient<IVacationProvider, VacationProvider>()
            .AddTransient<IBirthdayProvider, BirthdayProvider>()

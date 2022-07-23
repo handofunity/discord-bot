@@ -8,6 +8,7 @@ public class DiscordUserEventHandler : IDiscordUserEventHandler
     private readonly IGameRoleProvider _gameRoleProvider;
     private readonly IDatabaseAccess _databaseAccess;
     private readonly IDynamicConfiguration _dynamicConfiguration;
+    private readonly IMenuRegistry _menuRegistry;
     private IDiscordAccess? _discordAccess;
         
     public DiscordUserEventHandler(IUserStore userStore,
@@ -15,7 +16,8 @@ public class DiscordUserEventHandler : IDiscordUserEventHandler
                                    INonMemberRoleProvider nonMemberRoleProvider,
                                    IGameRoleProvider gameRoleProvider,
                                    IDatabaseAccess databaseAccess,
-                                   IDynamicConfiguration dynamicConfiguration)
+                                   IDynamicConfiguration dynamicConfiguration,
+                                   IMenuRegistry menuRegistry)
     {
         _userStore = userStore;
         _privacyProvider = privacyProvider;
@@ -23,6 +25,7 @@ public class DiscordUserEventHandler : IDiscordUserEventHandler
         _gameRoleProvider = gameRoleProvider;
         _databaseAccess = databaseAccess;
         _dynamicConfiguration = dynamicConfiguration;
+        _menuRegistry = menuRegistry;
     }
         
     IDiscordAccess IDiscordUserEventHandler.DiscordAccess
@@ -55,13 +58,13 @@ public class DiscordUserEventHandler : IDiscordUserEventHandler
         {
             var discordAccess = _discordAccess ?? throw new InvalidOperationException($"{nameof(IDiscordUserEventHandler.DiscordAccess)} not set.");
             await _userStore.RemoveUser(userID);
-            await _privacyProvider.DeleteUserRelatedData(user!);
+            await _privacyProvider.DeleteUserRelatedData(user);
             var now = DateTime.UtcNow;
             // Only post to Discord log if the user was on the server for more than 10 minutes, or the time on the server cannot be determined.
             if ((now - user.JoinedDate).TotalMinutes > 10)
             {
                 var mentionPrefix = string.Empty;
-                if (user!.Roles != Role.NoRole
+                if (user.Roles != Role.NoRole
                  && user.Roles != Role.Guest
                  && user.Roles != Role.FriendOfMember)
                 {
@@ -148,52 +151,16 @@ public class DiscordUserEventHandler : IDiscordUserEventHandler
                                                                                      string customId,
                                                                                      IReadOnlyCollection<string> selectedValues)
     {
-        // TODO: Validate button to spawn specific revoke menu
-        // TODO: Validate select menu to revoke roles
-        
-        if (Constants.FriendOrGuestMenu.GetOptions().ContainsKey(customId))
-        {
-            // If the message is from the friend or guest menu, forward the data to the non-member role provider.
-            return await _nonMemberRoleProvider.ToggleNonMemberRoleAsync(userId, customId, ToDiscordRoleIds(selectedValues), RoleToggleMode.Dynamic);
-        }
-        
-        if (customId == Constants.GameInterestMenu.CustomId)
-        {
-            // If the message is from the game interest menu, forward the data to the non-member role provider.
-            return await _nonMemberRoleProvider.ToggleNonMemberRoleAsync(userId, customId, ToDiscordRoleIds(selectedValues), RoleToggleMode.Assign);
-        }
+        if (_menuRegistry.IsButtonMenu(customId, out var buttonCallback))
+            return await buttonCallback!(userId, customId, selectedValues);
 
-        if (Constants.Menus.IsMappedToPrimaryGameRoleIdConfigurationKey(customId, out var primaryGameRoleIdConfigurationKey)
-            && primaryGameRoleIdConfigurationKey != null)
-        {
-            // If the action is one of the primary game role actions, forward the data to the game role provider.
-            var primaryGameDiscordRoleId = (DiscordRoleId)_dynamicConfiguration.DiscordMapping[primaryGameRoleIdConfigurationKey];
-            return await _gameRoleProvider.ToggleGameSpecificRolesAsync(userId,
-                                                                        customId,
-                                                                        _gameRoleProvider.Games.Single(m => m.PrimaryGameDiscordRoleId == primaryGameDiscordRoleId),
-                                                                        ToDiscordRoleIds(selectedValues),
-                                                                        RoleToggleMode.Assign);
-        }
+        if (_menuRegistry.IsSelectMenu(customId, out var selectCallback))
+            return await selectCallback!(userId, customId, selectedValues);
 
-        if (_gameRoleProvider.GamesRolesCustomIds.Contains(customId))
-        {
-            // If the message is one of the games roles menu messages, forward the data to the game role provider.
-            var selectedGames = _gameRoleProvider.Games
-                                                 .Where(m => selectedValues.Contains(m.PrimaryGameDiscordRoleId.ToString()))
-                                                 .ToArray();
-            return await _gameRoleProvider.TogglePrimaryGameRolesAsync(userId, selectedGames, RoleToggleMode.Assign);
-        }
+        if (_menuRegistry.IsModalMenu(customId, out var modalCallback))
+            return await modalCallback!(userId, customId, selectedValues);
 
         // CustomId is unknown.
         return null;
-
-        DiscordRoleId[] ToDiscordRoleIds(IReadOnlyCollection<string> values)
-        {
-            var result = new List<DiscordRoleId>(values.Count);
-            foreach (var value in values)
-                if (ulong.TryParse(value, out var ulongValue))
-                    result.Add((DiscordRoleId)ulongValue);
-            return result.ToArray();
-        }
     }
 }

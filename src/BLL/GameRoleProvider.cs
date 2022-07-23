@@ -9,7 +9,6 @@ public class GameRoleProvider : IGameRoleProvider
     private readonly List<AvailableGame> _games;
 
     private IDiscordAccess? _discordAccess;
-    private string[] _gamesRolesCustomIds;
 
     public GameRoleProvider(IDatabaseAccess databaseAccess,
                             IDynamicConfiguration dynamicConfiguration,
@@ -19,7 +18,6 @@ public class GameRoleProvider : IGameRoleProvider
         _dynamicConfiguration = dynamicConfiguration;
         _logger = logger;
         _games = new List<AvailableGame>();
-        _gamesRolesCustomIds = Array.Empty<string>();
     }
 
     public event EventHandler<GameChangedEventArgs>? GameChanged;
@@ -31,12 +29,6 @@ public class GameRoleProvider : IGameRoleProvider
     }
 
     public IReadOnlyList<AvailableGame> Games => _games;
-
-    string[] IGameRoleProvider.GamesRolesCustomIds
-    {
-        get => _gamesRolesCustomIds;
-        set => _gamesRolesCustomIds = value;
-    }
 
     IReadOnlyList<EmbedData> IGameRoleProvider.GetGameInfoAsEmbedData(string? filter)
     {
@@ -276,7 +268,7 @@ public class GameRoleProvider : IGameRoleProvider
     async Task<string?> IGameRoleProvider.ToggleGameSpecificRolesAsync(DiscordUserId userId,
                                                                        string customId,
                                                                        AvailableGame game,
-                                                                       IReadOnlyCollection<DiscordRoleId> selectedValues,
+                                                                       IReadOnlyCollection<string> selectedMenuValues,
                                                                        RoleToggleMode roleToggleMode)
     {
         if (!DiscordAccess.CanManageRolesForUser(userId))
@@ -287,13 +279,13 @@ public class GameRoleProvider : IGameRoleProvider
         DiscordAccess.EnsureDisplayNamesAreSet(new[] { game });
         DiscordAccess.EnsureDisplayNamesAreSet(game.AvailableRoles);
 
-        var selectedAndValidRoleIds = selectedValues.Select(selectedValue => _dynamicConfiguration.DiscordMapping
-                                                                                  .TryGetValue($"{customId}___{selectedValue}",
-                                                                                       out var roleId)
-                                                                 ? (DiscordRoleId)roleId
-                                                                 : default)
-                                    .Where(m => m != default && game.AvailableRoles.Any(r => r.DiscordRoleId == m))
-                                    .ToArray();
+        var selectedAndValidRoleIds = selectedMenuValues.Select(selectedMenuValue => _dynamicConfiguration.DiscordMapping
+                                                                                    .TryGetValue($"{customId}___{selectedMenuValue}",
+                                                                                         out var roleId)
+                                                                                     ? (DiscordRoleId)roleId
+                                                                                     : default)
+                                                        .Where(m => m != default && game.AvailableRoles.Any(r => r.DiscordRoleId == m))
+                                                        .ToArray();
         var currentUserRoleIds = DiscordAccess.GetUserRoles(userId);
 
         switch (roleToggleMode)

@@ -8,6 +8,7 @@ public class StaticMessageProvider : IStaticMessageProvider
     private readonly IGameRoleProvider _gameRoleProvider;
     private readonly ILogger<StaticMessageProvider> _logger;
     private readonly IDynamicConfiguration _dynamicConfiguration;
+    private readonly IMenuRegistry _menuRegistry;
     private readonly bool _provideStaticMessages;
 
     private IDiscordAccess? _discordAccess;
@@ -16,13 +17,15 @@ public class StaticMessageProvider : IStaticMessageProvider
                                  IGameRoleProvider gameRoleProvider,
                                  IBotInformationProvider botInformationProvider,
                                  ILogger<StaticMessageProvider> logger,
-                                 IDynamicConfiguration dynamicConfiguration)
+                                 IDynamicConfiguration dynamicConfiguration,
+                                 IMenuRegistry menuRegistry)
     {
         _channelSemaphores = new Dictionary<DiscordChannelId, SemaphoreSlim>();
         _messageProvider = messageProvider;
         _gameRoleProvider = gameRoleProvider;
         _logger = logger;
         _dynamicConfiguration = dynamicConfiguration;
+        _menuRegistry = menuRegistry;
 #if DEBUG
         _provideStaticMessages = botInformationProvider.GetEnvironmentName() == Constants.RuntimeEnvironment.Production;
 #else
@@ -157,129 +160,64 @@ public class StaticMessageProvider : IStaticMessageProvider
             throw new ArgumentException("Unexpected amount of messages received.", nameof(messages));
         
         // Friend or Guest menu
-        foreach (var (customId, label) in Constants.FriendOrGuestMenu.GetOptions())
-        {
-            messages[0].Components.Add(new ButtonComponent(customId,
-                                                           0,
-                                                           label,
-                                                           InteractionButtonStyle.Primary));
-        }
+        messages[0].Components.Add(_menuRegistry.GetButtonMenuComponent(Constants.FriendOrGuestMenu.GuestCustomId));
+        messages[0].Components.Add(_menuRegistry.GetButtonMenuComponent(Constants.FriendOrGuestMenu.FriendOfMemberCustomId));
 
         // Game interest menu
-        DiscordAccess.EnsureDisplayNamesAreSet(_gameRoleProvider.Games);
-        var games = _gameRoleProvider.Games
-                                     // Only those games with the GameInterestRoleId set can be used here
-                                     .Where(m => m.GameInterestRoleId != null)
-                                     .OrderBy(m => m.DisplayName)
-                                     .Take(25)
-                                     .ToDictionary(m => m.GameInterestRoleId.ToString()!, m => m.DisplayName ?? "<UNKNOWN>");
-        messages[1].Components.Add(new SelectMenuComponent(Constants.GameInterestMenu.CustomId,
-                                                           0,
-                                                           "Select game interests ...",
-                                                           games,
-                                                           true));
+        messages[1].Components.AddRange(_menuRegistry.GetSelectMenuComponents(Constants.GameInterestMenu.CustomId));
     }
 
     private void AddGamesRolesMenuComponents(List<ExpectedChannelMessage> messages)
     {
         if (messages.Count != 1)
             throw new ArgumentException("Unexpected amount of messages received.", nameof(messages));
-
-        DiscordAccess.EnsureDisplayNamesAreSet(_gameRoleProvider.Games);
-        var games = _gameRoleProvider.Games
-                                      // Only those games with the flag IncludeInGamesMenu enabled can be used here
-                                     .Where(m => m.IncludeInGamesMenu)
-                                     .OrderBy(m => m.DisplayName)
-                                     .Take(125)
-                                     .ToDictionary(m => m.PrimaryGameDiscordRoleId.ToString(), m => m.DisplayName ?? "<UNKNOWN>");
-
-        var customIds = Enumerable.Range(0, (int)Math.Ceiling(games.Count / 25m))
-                                  .Select(_ => Guid.NewGuid().ToString("D"))
-                                  .ToArray();
-        _gameRoleProvider.GamesRolesCustomIds = customIds;
-        byte actionRowNumber = 0;
-        foreach (var customId in customIds)
-        {
-            messages[0].Components.Add(new SelectMenuComponent(customId,
-                                                               actionRowNumber,
-                                                               "Select games ...",
-                                                               games.Skip(actionRowNumber * 25)
-                                                                    .Take(25)
-                                                                    .ToDictionary(m => m.Key, m => m.Value),
-                                                               true));
-            actionRowNumber++;
-        }
+        
+        messages[0].Components.AddRange(_menuRegistry.GetSelectMenuComponents(Constants.GameRoleMenu.CustomId));
     }
 
-    private static void AddAocRoleMenuComponents(List<ExpectedChannelMessage> messages)
+    private void AddAocRoleMenuComponents(List<ExpectedChannelMessage> messages)
     {
         if (messages.Count != 4)
             throw new ArgumentException("Unexpected amount of messages received.", nameof(messages));
 
         // Class menu
-        messages[0].Components.Add(new SelectMenuComponent(Constants.AocArchetypeMenu.CustomId,
-                                                           0,
-                                                           "Select archetypes ...",
-                                                           Constants.AocArchetypeMenu.GetOptions(),
-                                                           true));
+        messages[0].Components.AddRange(_menuRegistry.GetSelectMenuComponents(Constants.AocArchetypeMenu.CustomId));
+        
         // Play style menu
-        messages[1].Components.Add(new SelectMenuComponent(Constants.AocPlayStyleMenu.CustomId,
-                                                           0,
-                                                           "Select play styles ...",
-                                                           Constants.AocPlayStyleMenu.GetOptions(),
-                                                           true));
+        messages[1].Components.AddRange(_menuRegistry.GetSelectMenuComponents(Constants.AocPlayStyleMenu.CustomId));
+
         // Race menu
-        messages[2].Components.Add(new SelectMenuComponent(Constants.AocRaceMenu.CustomId,
-                                                           0,
-                                                           "Select races ...",
-                                                           Constants.AocRaceMenu.GetOptions(),
-                                                           true));
+        messages[2].Components.AddRange(_menuRegistry.GetSelectMenuComponents(Constants.AocRaceMenu.CustomId));
 
         // Guild preference menu
-        messages[3].Components.Add(new SelectMenuComponent(Constants.AocGuildPreferenceMenu.CustomId,
-                                                           0,
-                                                           "Select preferred in-game guild ...",
-                                                           Constants.AocGuildPreferenceMenu.GetOptions(),
-                                                           false));
+        messages[3].Components.AddRange(_menuRegistry.GetSelectMenuComponents(Constants.AocGuildPreferenceMenu.CustomId));
     }
 
-    private static void AddWowRoleMenuComponents(List<ExpectedChannelMessage> messages)
+    private void AddWowRoleMenuComponents(List<ExpectedChannelMessage> messages)
     {
         if (messages.Count != 1)
             throw new ArgumentException("Unexpected amount of messages received.", nameof(messages));
 
         // Class menu
-        messages[0].Components.Add(new SelectMenuComponent(Constants.WowClassMenu.CustomId,
-                                                           0,
-                                                           "Select classes ...",
-                                                           Constants.WowClassMenu.GetOptions(),
-                                                           true));
+        messages[0].Components.AddRange(_menuRegistry.GetSelectMenuComponents(Constants.WowClassMenu.CustomId));
     }
 
-    private static void AddWowRetailRoleMenuComponents(List<ExpectedChannelMessage> messages)
-    {
-        if (messages.Count != 1)
-            throw new ArgumentException("Unexpected amount of messages received.", nameof(messages));
-
-        // Class menu
-        messages[0].Components.Add(new SelectMenuComponent(Constants.WowRetailPlayStyleMenu.CustomId,
-                                                           0,
-                                                           "Select play styles ...",
-                                                           Constants.WowRetailPlayStyleMenu.GetOptions(),
-                                                           true));
-    }
-
-    private static void AddLostArkRoleMenuComponents(List<ExpectedChannelMessage> messages)
+    private void AddWowRetailRoleMenuComponents(List<ExpectedChannelMessage> messages)
     {
         if (messages.Count != 1)
             throw new ArgumentException("Unexpected amount of messages received.", nameof(messages));
 
         // Play style menu
-        messages[0].Components.Add(new SelectMenuComponent(Constants.LostArkPlayStyleMenu.CustomId,
-                                                           0,
-                                                           "Select play styles ...",
-                                                           Constants.LostArkPlayStyleMenu.GetOptions(),
-                                                           true));
+        messages[0].Components.AddRange(_menuRegistry.GetSelectMenuComponents(Constants.WowRetailPlayStyleMenu.CustomId));
+    }
+
+    private void AddLostArkRoleMenuComponents(List<ExpectedChannelMessage> messages)
+    {
+        if (messages.Count != 1)
+            throw new ArgumentException("Unexpected amount of messages received.", nameof(messages));
+
+        // Play style menu
+        messages[0].Components.AddRange(_menuRegistry.GetSelectMenuComponents(Constants.LostArkPlayStyleMenu.CustomId));
     }
 
     private void ReCreateGameRoleMenuMessages()
@@ -351,7 +289,8 @@ public class StaticMessageProvider : IStaticMessageProvider
                 // If the count is the same, and all messages are the same, and the action components are correct, provide existing custom ids to dependent classes.
                 if (pair.Key == gamesRolesChannelId)
                 {
-                    _gameRoleProvider.GamesRolesCustomIds = existingMessages.SelectMany(m => m.CustomIdsAndOptions.Keys).ToArray();
+                    var existingPartialCustomIds = existingMessages.SelectMany(m => m.CustomIdsAndOptions.Keys).ToArray();
+                    _menuRegistry.UpdateExistingPartialCustomIds(Constants.GameRoleMenu.CustomId, existingPartialCustomIds);
                 }
                 _logger.LogInformation("Messages in channel '{Channel}' are correct", channelLocationAndName);
             }

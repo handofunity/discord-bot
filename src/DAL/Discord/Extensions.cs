@@ -1,4 +1,7 @@
-﻿namespace HoU.GuildBot.DAL.Discord;
+﻿using ButtonComponent = HoU.GuildBot.Shared.Objects.ButtonComponent;
+using SelectMenuComponent = HoU.GuildBot.Shared.Objects.SelectMenuComponent;
+
+namespace HoU.GuildBot.DAL.Discord;
 
 public static class Extensions
 {
@@ -42,6 +45,60 @@ public static class Extensions
 
         if (ed.ImageUrl != null)
             builder.ImageUrl = ed.ImageUrl;
+
+        return builder.Build();
+    }
+
+    internal static Modal? ToModal(this ModalData? md)
+    {
+        if (md is null)
+            return null;
+
+        var builder = new ModalBuilder()
+                     .WithCustomId(md.CustomId)
+                     .WithTitle(md.Title);
+
+        if (!md.ActionComponents.Any())
+            return builder.Build();
+        
+        var rows = new Dictionary<int, List<IMessageComponent>>();
+        foreach (var actionComponent in md.ActionComponents)
+        {
+            if (!rows.TryGetValue(actionComponent.ActionRowNumber, out var messageComponents))
+            {
+                messageComponents = new List<IMessageComponent>();
+                rows[actionComponent.ActionRowNumber] = messageComponents;
+            }
+            
+            switch (actionComponent)
+            {
+                case ButtonComponent button:
+                {
+                    var buttonBuilder = new ButtonBuilder()
+                                       .WithCustomId(button.CustomId)
+                                       .WithLabel(button.Label)
+                                       .WithStyle((ButtonStyle)button.Style);
+                    messageComponents.Add(buttonBuilder.Build());
+                    break;
+                }
+                case SelectMenuComponent selectMenu:
+                {
+                    var menuBuilder = new SelectMenuBuilder()
+                                     .WithCustomId(selectMenu.CustomId)
+                                     .WithPlaceholder(selectMenu.Placeholder)
+                                     .WithMinValues(0)
+                                     .WithMaxValues(selectMenu.AllowMultiple ? selectMenu.Options.Count : 1);
+                    foreach (var (optionKey, label) in selectMenu.Options)
+                        menuBuilder.AddOption(label, optionKey);
+
+                    messageComponents.Add(menuBuilder.Build());
+                    break;
+                }
+            }
+        }
+
+        foreach (var row in rows)
+            builder.AddComponents(row.Value, row.Key);
 
         return builder.Build();
     }

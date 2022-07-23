@@ -4,7 +4,7 @@ public class EmbedField
 {
     public string Name { get; }
 
-    public object Value { get; }
+    public object? Value { get; }
 
     public bool Inline { get; }
 

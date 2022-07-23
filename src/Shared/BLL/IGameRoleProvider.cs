@@ -8,8 +8,6 @@ public interface IGameRoleProvider
 
     IReadOnlyList<AvailableGame> Games { get; }
 
-    string[] GamesRolesCustomIds { get; set; }
-
     IReadOnlyList<EmbedData> GetGameInfoAsEmbedData(string? filter);
 
     Task LoadAvailableGames();
@@ -34,7 +32,7 @@ public interface IGameRoleProvider
     Task<string?> ToggleGameSpecificRolesAsync(DiscordUserId userId,
                                                string customId,
                                                AvailableGame game,
-                                               IReadOnlyCollection<DiscordRoleId> selectedValues,
+                                               IReadOnlyCollection<string> selectedMenuValues,
                                                RoleToggleMode roleToggleMode);
 
     Task<string?> TogglePrimaryGameRolesAsync(DiscordUserId userId,

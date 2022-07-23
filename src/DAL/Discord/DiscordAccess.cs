@@ -19,6 +19,7 @@ public class DiscordAccess : IDiscordAccess
     private readonly IStaticMessageProvider _staticMessageProvider;
     private readonly IDiscordUserEventHandler _discordUserEventHandler;
     private readonly IUserStore _userStore;
+    private readonly IMenuRegistry _menuRegistry;
     private readonly DiscordSocketClient _client;
     private readonly InteractionService _interactionService;
     private readonly Queue<string> _pendingMessages;
@@ -51,7 +52,8 @@ public class DiscordAccess : IDiscordAccess
                          IGameRoleProvider gameRoleProvider,
                          IStaticMessageProvider staticMessageProvider,
                          IDiscordUserEventHandler discordUserEventHandler,
-                         IUserStore userStore)
+                         IUserStore userStore,
+                         IMenuRegistry menuRegistry)
     {
         _logger = logger;
         _rootSettings = rootSettings;
@@ -63,9 +65,11 @@ public class DiscordAccess : IDiscordAccess
         _staticMessageProvider = staticMessageProvider;
         _discordUserEventHandler = discordUserEventHandler;
         _userStore = userStore;
+        _menuRegistry = menuRegistry;
         nonMemberRoleProvider.DiscordAccess = this;
         _gameRoleProvider.DiscordAccess = this;
         _staticMessageProvider.DiscordAccess = this;
+        _menuRegistry.DiscordAccess = this;
         _discordUserEventHandler.DiscordAccess = this;
         var clientConfig = new DiscordSocketConfig
         {
@@ -1415,6 +1419,15 @@ public class DiscordAccess : IDiscordAccess
 
     private async Task Client_ButtonExecuted(SocketMessageComponent component)
     {
+        if (_menuRegistry.IsRevokeButtonMenu(component.Data.CustomId))
+        {
+            var modalData = _menuRegistry.GetRevokeMenuModal(component.Data.CustomId,
+                                                             (DiscordUserId)component.User.Id);
+            if (modalData is not null)
+                await component.RespondWithModalAsync(modalData.ToModal());
+            return;
+        }
+        
         var response = await _discordUserEventHandler
                           .HandleMessageComponentExecutedAsync((DiscordUserId)component.User.Id,
                                                                component.Data.CustomId,

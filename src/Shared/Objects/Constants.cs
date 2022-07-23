@@ -38,14 +38,14 @@ public static class Constants
     public static class FriendOrGuestMenu
     {
         public const string FriendOfMemberCustomId = "f32eeb72-3c37-4ef7-bff2-8c95b04d790e";
+        public const string FriendofMemberDisplayName = "Friend of Member";
         public const string GuestCustomId = "63ce7730-02ab-47a2-833a-f77886e3289e";
+        public const string GuestDisplayName = "Guest";
+    }
 
-        public static IDictionary<string, string> GetOptions() =>
-            new Dictionary<string, string>
-            {
-                { FriendOfMemberCustomId, "Friend of Member" },
-                { GuestCustomId, "Guest" }
-            };
+    public static class GameRoleMenu
+    {
+        public const string CustomId = "4084e3ca-9015-41fd-b831-1256ebefa685";
     }
 
     public static class GameInterestMenu
