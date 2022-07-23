@@ -1418,7 +1418,6 @@ public class DiscordAccess : IDiscordAccess
         var response = await _discordUserEventHandler
                           .HandleMessageComponentExecutedAsync((DiscordUserId)component.User.Id,
                                                                component.Data.CustomId,
-                                                               null,
                                                                component.Data.Values)
                     ?? "Internal error.";
         await component.RespondAsync(response, ephemeral: true);
@@ -1426,25 +1425,17 @@ public class DiscordAccess : IDiscordAccess
 
     private async Task Client_SelectMenuExecuted(SocketMessageComponent component)
     {
-        var availableOptions =
-            component.Message
-                     .Components
-                     .SelectMany(c => c.Components.OfType<global::Discord.SelectMenuComponent>()
-                                       .Where(smc => smc.CustomId == component.Data.CustomId)
-                                       .SelectMany(smc => smc.Options.Select(smo => smo.Value)))
-                     .ToArray();
         var response = await _discordUserEventHandler
                           .HandleMessageComponentExecutedAsync((DiscordUserId)component.User.Id,
                                                                component.Data.CustomId,
-                                                               availableOptions,
                                                                component.Data.Values)
                     ?? "Internal error.";
         await component.RespondAsync(response, ephemeral: true);
     }
 
-    private async Task InteractionService_SlashCommandExecuted(SlashCommandInfo commandInfo,
-                                                               IInteractionContext ctx,
-                                                               IResult interactionResult)
+    private static async Task InteractionService_SlashCommandExecuted(SlashCommandInfo commandInfo,
+                                                                      IInteractionContext ctx,
+                                                                      IResult interactionResult)
     {
         if (interactionResult.IsSuccess)
             return;

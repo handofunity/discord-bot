@@ -34,10 +34,10 @@ public interface IGameRoleProvider
     Task<string?> ToggleGameSpecificRolesAsync(DiscordUserId userId,
                                                string customId,
                                                AvailableGame game,
-                                               IReadOnlyCollection<string> availableOptions,
-                                               IReadOnlyCollection<string> selectedValues);
+                                               IReadOnlyCollection<DiscordRoleId> selectedValues,
+                                               RoleToggleMode roleToggleMode);
 
     Task<string?> TogglePrimaryGameRolesAsync(DiscordUserId userId,
-                                              AvailableGame[] availableGames,
-                                              AvailableGame[] selectedGames);
+                                              AvailableGame[] selectedGames,
+                                              RoleToggleMode roleToggleMode);
 }

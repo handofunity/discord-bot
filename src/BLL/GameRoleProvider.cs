@@ -115,7 +115,7 @@ public class GameRoleProvider : IGameRoleProvider
         foreach (var game in games.Where(m => m.AvailableRoles.Any()))
             DiscordAccess.EnsureDisplayNamesAreSet(game.AvailableRoles);
         _games.AddRange(games);
-        _logger.LogInformation("Loaded {Games} games with a total count of {GameRoles} roles.",
+        _logger.LogInformation("Loaded {Games} games with a total count of {GameRoles} roles",
                                _games.Count,
                                _games.Sum(m => m.AvailableRoles.Count));
     }
@@ -276,8 +276,8 @@ public class GameRoleProvider : IGameRoleProvider
     async Task<string?> IGameRoleProvider.ToggleGameSpecificRolesAsync(DiscordUserId userId,
                                                                        string customId,
                                                                        AvailableGame game,
-                                                                       IReadOnlyCollection<string> availableOptions,
-                                                                       IReadOnlyCollection<string> selectedValues)
+                                                                       IReadOnlyCollection<DiscordRoleId> selectedValues,
+                                                                       RoleToggleMode roleToggleMode)
     {
         if (!DiscordAccess.CanManageRolesForUser(userId))
             return "The bot is not allowed to change your roles.";
@@ -287,43 +287,45 @@ public class GameRoleProvider : IGameRoleProvider
         DiscordAccess.EnsureDisplayNamesAreSet(new[] { game });
         DiscordAccess.EnsureDisplayNamesAreSet(game.AvailableRoles);
 
-        var availableGameRoleIds = availableOptions.Select(selectedValue => _dynamicConfiguration.DiscordMapping
-                                                                               .TryGetValue($"{customId}___{selectedValue}",
-                                                                                            out var roleId)
-                                                                                ? (DiscordRoleId)roleId
-                                                                                : default)
-                                                   .Where(m => m != default)
-                                                   .ToArray();
         var selectedAndValidRoleIds = selectedValues.Select(selectedValue => _dynamicConfiguration.DiscordMapping
                                                                                   .TryGetValue($"{customId}___{selectedValue}",
                                                                                        out var roleId)
                                                                  ? (DiscordRoleId)roleId
                                                                  : default)
-                                    .Where(m => m != default && availableGameRoleIds.Contains(m) && game.AvailableRoles.Any(r => r.DiscordRoleId == m))
+                                    .Where(m => m != default && game.AvailableRoles.Any(r => r.DiscordRoleId == m))
                                     .ToArray();
-        var userRoleIds = DiscordAccess.GetUserRoles(userId);
-        
-        var desiredRoleIds = selectedAndValidRoleIds.Intersect(availableGameRoleIds).ToArray();
-        var undesiredRoleIds = availableGameRoleIds.Except(selectedAndValidRoleIds).ToArray();
-        var rolesToAdd = desiredRoleIds.Except(userRoleIds).ToArray();
-        var rolesToRemove = undesiredRoleIds.Intersect(userRoleIds).ToArray();
+        var currentUserRoleIds = DiscordAccess.GetUserRoles(userId);
 
-        foreach (var discordRoleId in rolesToAdd)
+        switch (roleToggleMode)
         {
-            var roleDisplayName = game.AvailableRoles.Single(r => r.DiscordRoleId == discordRoleId).DisplayName;
-            var success = await DiscordAccess.TryAssignRoleAsync(userId, discordRoleId);
-            sb.AppendLine(success
-                              ? $"Successfully assigned the role **{roleDisplayName}**."
-                              : $"Failed to assign the role **{roleDisplayName}**.");
-        }
-
-        foreach (var discordRoleId in rolesToRemove)
-        {
-            var roleDisplayName = game.AvailableRoles.Single(r => r.DiscordRoleId == discordRoleId).DisplayName;
-            var success = await DiscordAccess.TryRevokeGameRole(userId, discordRoleId);
-            sb.AppendLine(success
-                              ? $"Successfully revoked the role **{roleDisplayName}**."
-                              : $"Failed to revoke the role **{roleDisplayName}**.");
+            case RoleToggleMode.Assign:
+            {
+                var rolesToAdd = selectedAndValidRoleIds.Except(currentUserRoleIds).ToArray();
+                foreach (var discordRoleId in rolesToAdd)
+                {
+                    var roleDisplayName = game.AvailableRoles.Single(r => r.DiscordRoleId == discordRoleId).DisplayName;
+                    var success = await DiscordAccess.TryAssignRoleAsync(userId, discordRoleId);
+                    sb.AppendLine(success
+                                      ? $"Successfully assigned the role **{roleDisplayName}**."
+                                      : $"Failed to assign the role **{roleDisplayName}**.");
+                }
+                break;
+            }
+            case RoleToggleMode.Revoke:
+            {
+                var rolesToRemove = selectedAndValidRoleIds.Intersect(currentUserRoleIds).ToArray();
+                foreach (var discordRoleId in rolesToRemove)
+                {
+                    var roleDisplayName = game.AvailableRoles.Single(r => r.DiscordRoleId == discordRoleId).DisplayName;
+                    var success = await DiscordAccess.TryRevokeGameRole(userId, discordRoleId);
+                    sb.AppendLine(success
+                                      ? $"Successfully revoked the role **{roleDisplayName}**."
+                                      : $"Failed to revoke the role **{roleDisplayName}**.");
+                }
+                break;   
+            }
+            default:
+                throw new ArgumentOutOfRangeException(nameof(roleToggleMode), roleToggleMode, null);
         }
 
         return sb.Length == 0
@@ -332,41 +334,49 @@ public class GameRoleProvider : IGameRoleProvider
     }
 
     async Task<string?> IGameRoleProvider.TogglePrimaryGameRolesAsync(DiscordUserId userId,
-                                                                      AvailableGame[] availableGames,
-                                                                      AvailableGame[] selectedGames)
+                                                                      AvailableGame[] selectedGames,
+                                                                      RoleToggleMode roleToggleMode)
     {
         if (!DiscordAccess.CanManageRolesForUser(userId))
             return "The bot is not allowed to change your roles.";
 
         var sb = new StringBuilder();
 
-        DiscordAccess.EnsureDisplayNamesAreSet(availableGames);
+        DiscordAccess.EnsureDisplayNamesAreSet(selectedGames);
 
-        var availableGameRoleIds = availableGames.Select(m => m.PrimaryGameDiscordRoleId).ToArray();
         var selectedGameRoleIds = selectedGames.Select(m => m.PrimaryGameDiscordRoleId).ToArray();
-        var userRoleIds = DiscordAccess.GetUserRoles(userId);
+        var currentUserRoleIds = DiscordAccess.GetUserRoles(userId);
 
-        var desiredRoleIds = selectedGameRoleIds.Intersect(availableGameRoleIds).ToArray();
-        var undesiredRoleIds = availableGameRoleIds.Except(selectedGameRoleIds).ToArray();
-        var rolesToAdd = desiredRoleIds.Except(userRoleIds).ToArray();
-        var rolesToRemove = undesiredRoleIds.Intersect(userRoleIds).ToArray();
-
-        foreach (var discordRoleId in rolesToAdd)
+        switch (roleToggleMode)
         {
-            var roleDisplayName = availableGames.Single(r => r.PrimaryGameDiscordRoleId == discordRoleId).DisplayName;
-            var success = await DiscordAccess.TryAssignRoleAsync(userId, discordRoleId);
-            sb.AppendLine(success
-                              ? $"Successfully assigned the game role **{roleDisplayName}**."
-                              : $"Failed to assign the game role **{roleDisplayName}**.");
-        }
-
-        foreach (var discordRoleId in rolesToRemove)
-        {
-            var roleDisplayName = availableGames.Single(r => r.PrimaryGameDiscordRoleId == discordRoleId).DisplayName;
-            var success = await DiscordAccess.TryRevokeGameRole(userId, discordRoleId);
-            sb.AppendLine(success
-                              ? $"Successfully revoked the game role **{roleDisplayName}**."
-                              : $"Failed to revoke the game role **{roleDisplayName}**.");
+            case RoleToggleMode.Assign:
+            {
+                var rolesToAdd = selectedGameRoleIds.Except(currentUserRoleIds).ToArray();
+                foreach (var discordRoleId in rolesToAdd)
+                {
+                    var roleDisplayName = selectedGames.Single(r => r.PrimaryGameDiscordRoleId == discordRoleId).DisplayName;
+                    var success = await DiscordAccess.TryAssignRoleAsync(userId, discordRoleId);
+                    sb.AppendLine(success
+                                      ? $"Successfully assigned the game role **{roleDisplayName}**."
+                                      : $"Failed to assign the game role **{roleDisplayName}**.");
+                }
+                break;
+            }
+            case RoleToggleMode.Revoke:
+            {
+                var rolesToRemove = selectedGameRoleIds.Intersect(currentUserRoleIds).ToArray();
+                foreach (var discordRoleId in rolesToRemove)
+                {
+                    var roleDisplayName = selectedGames.Single(r => r.PrimaryGameDiscordRoleId == discordRoleId).DisplayName;
+                    var success = await DiscordAccess.TryRevokeGameRole(userId, discordRoleId);
+                    sb.AppendLine(success
+                                      ? $"Successfully revoked the game role **{roleDisplayName}**."
+                                      : $"Failed to revoke the game role **{roleDisplayName}**.");
+                }
+                break;
+            }
+            default:
+                throw new ArgumentOutOfRangeException(nameof(roleToggleMode), roleToggleMode, null);
         }
 
         return sb.Length == 0

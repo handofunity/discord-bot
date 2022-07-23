@@ -6,6 +6,6 @@ public interface INonMemberRoleProvider
 
     Task<string> ToggleNonMemberRoleAsync(DiscordUserId userId,
                                           string customId,
-                                          IReadOnlyCollection<string>? availableOptions,
-                                          IReadOnlyCollection<string> selectedValues);
+                                          IEnumerable<DiscordRoleId> selectedRoleIds,
+                                          RoleToggleMode roleToggleMode);
 }

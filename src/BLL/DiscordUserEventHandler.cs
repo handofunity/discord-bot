@@ -146,19 +146,22 @@ public class DiscordUserEventHandler : IDiscordUserEventHandler
 
     async Task<string?> IDiscordUserEventHandler.HandleMessageComponentExecutedAsync(DiscordUserId userId,
                                                                                      string customId,
-                                                                                     IReadOnlyCollection<string>? availableOptions,
                                                                                      IReadOnlyCollection<string> selectedValues)
     {
-        if (customId == Constants.GameInterestMenu.CustomId || Constants.FriendOrGuestMenu.GetOptions().ContainsKey(customId))
+        // TODO: Validate button to spawn specific revoke menu
+        // TODO: Validate select menu to revoke roles
+        
+        if (Constants.FriendOrGuestMenu.GetOptions().ContainsKey(customId))
         {
             // If the message is from the friend or guest menu, forward the data to the non-member role provider.
-            return await _nonMemberRoleProvider.ToggleNonMemberRoleAsync(userId, customId, availableOptions, selectedValues);
+            return await _nonMemberRoleProvider.ToggleNonMemberRoleAsync(userId, customId, ToDiscordRoleIds(selectedValues), RoleToggleMode.Dynamic);
         }
-
-        // All other options require the availableOptions to be set.
-        if (availableOptions == null)
-            throw new ArgumentNullException(nameof(availableOptions),
-                                            $"For the given {nameof(customId)} the {nameof(availableOptions)} must be set.");
+        
+        if (customId == Constants.GameInterestMenu.CustomId)
+        {
+            // If the message is from the game interest menu, forward the data to the non-member role provider.
+            return await _nonMemberRoleProvider.ToggleNonMemberRoleAsync(userId, customId, ToDiscordRoleIds(selectedValues), RoleToggleMode.Assign);
+        }
 
         if (Constants.Menus.IsMappedToPrimaryGameRoleIdConfigurationKey(customId, out var primaryGameRoleIdConfigurationKey)
             && primaryGameRoleIdConfigurationKey != null)
@@ -168,8 +171,8 @@ public class DiscordUserEventHandler : IDiscordUserEventHandler
             return await _gameRoleProvider.ToggleGameSpecificRolesAsync(userId,
                                                                         customId,
                                                                         _gameRoleProvider.Games.Single(m => m.PrimaryGameDiscordRoleId == primaryGameDiscordRoleId),
-                                                                        availableOptions,
-                                                                        selectedValues);
+                                                                        ToDiscordRoleIds(selectedValues),
+                                                                        RoleToggleMode.Assign);
         }
 
         if (_gameRoleProvider.GamesRolesCustomIds.Contains(customId))
@@ -178,13 +181,19 @@ public class DiscordUserEventHandler : IDiscordUserEventHandler
             var selectedGames = _gameRoleProvider.Games
                                                  .Where(m => selectedValues.Contains(m.PrimaryGameDiscordRoleId.ToString()))
                                                  .ToArray();
-            var availableGames = _gameRoleProvider.Games
-                                                  .Where(m => availableOptions.Contains(m.PrimaryGameDiscordRoleId.ToString()))
-                                                  .ToArray();
-            return await _gameRoleProvider.TogglePrimaryGameRolesAsync(userId, availableGames, selectedGames);
+            return await _gameRoleProvider.TogglePrimaryGameRolesAsync(userId, selectedGames, RoleToggleMode.Assign);
         }
 
         // CustomId is unknown.
         return null;
+
+        DiscordRoleId[] ToDiscordRoleIds(IReadOnlyCollection<string> values)
+        {
+            var result = new List<DiscordRoleId>(values.Count);
+            foreach (var value in values)
+                if (ulong.TryParse(value, out var ulongValue))
+                    result.Add((DiscordRoleId)ulongValue);
+            return result.ToArray();
+        }
     }
 }
