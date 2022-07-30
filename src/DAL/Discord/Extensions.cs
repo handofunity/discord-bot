@@ -98,7 +98,12 @@ public static class Extensions
         }
 
         foreach (var row in rows)
-            builder.AddComponents(row.Value, row.Key);
+        {
+            var actionRowBuilder = new ActionRowBuilder()
+               .WithComponents(row.Value);
+            
+            builder.Components.ActionRows.Add(actionRowBuilder);
+        }
 
         return builder.Build();
     }

@@ -4,7 +4,11 @@ public interface IMenuRegistry
 {
     delegate Task<string?> MenuCallback(DiscordUserId userId, string customId, IReadOnlyCollection<string> selectedValues);
     
+    delegate Task<string?> ModalCallback(ModalResponse response);
+    
     IDiscordAccess DiscordAccess { set; }
+
+    void Initialize();
     
     bool IsButtonMenu(string customId, out MenuCallback? callback);
 
@@ -19,7 +23,7 @@ public interface IMenuRegistry
 
     IEnumerable<ActionComponent> GetSelectMenuComponents(string customId);
     
-    bool IsModalMenu(string customId, out MenuCallback? callback);
+    bool IsModalMenu(string customId, out ModalCallback? callback);
 
     void UpdateExistingPartialCustomIds(string customId,
                                         string[] existingPartialCustomIds);

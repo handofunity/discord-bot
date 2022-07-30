@@ -34,6 +34,15 @@ public class Runner
             RunHangFireServer(serviceProvider);
             RunBotEngine(serviceProvider, cancellationToken);
         }
+        catch (Exception e)
+        {
+            Log.Fatal(e, "Error running bot");
+#if DEBUG
+            if (System.Diagnostics.Debugger.IsAttached)
+                System.Diagnostics.Debugger.Break();
+#endif
+            throw;
+        }
         finally
         {
             Log.CloseAndFlush();
@@ -139,7 +148,7 @@ public class Runner
 
         Log.Logger = loggerConfiguration.CreateLogger();
 
-        Log.Information("Initialized logger.");
+        Log.Information("Initialized logger");
 
         serviceCollection.AddLogging(builder =>
         {

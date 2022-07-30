@@ -1,4 +1,5 @@
-﻿using ButtonComponent = HoU.GuildBot.Shared.Objects.ButtonComponent;
+﻿using System.Collections.Immutable;
+using ButtonComponent = HoU.GuildBot.Shared.Objects.ButtonComponent;
 using SelectMenuComponent = HoU.GuildBot.Shared.Objects.SelectMenuComponent;
 using User = HoU.GuildBot.Shared.Objects.User;
 
@@ -598,6 +599,7 @@ public class DiscordAccess : IDiscordAccess
                         _client.ButtonExecuted += Client_ButtonExecuted;
                         _client.SelectMenuExecuted += Client_SelectMenuExecuted;
                         _client.MessageReceived += Client_MessageReceived;
+                        _client.ModalSubmitted += Client_ModalSubmitted;
                     }
                     catch (Exception e)
                     {
@@ -620,6 +622,7 @@ public class DiscordAccess : IDiscordAccess
                     _client.InteractionCreated -= Client_InteractionCreated;
                     _client.ButtonExecuted -= Client_ButtonExecuted;
                     _client.SelectMenuExecuted -= Client_SelectMenuExecuted;
+                    _client.ModalSubmitted -= Client_ModalSubmitted;
                     await disconnectedHandler();
                 }).ConfigureAwait(false);
                 // Return immediately
@@ -1273,6 +1276,9 @@ public class DiscordAccess : IDiscordAccess
                 await _gameRoleProvider.LoadAvailableGames();
             }
 
+            // Ensure menu registry is initialized
+            _menuRegistry.Initialize();
+            
             // Ensure that static messages exist
             await _staticMessageProvider.EnsureStaticMessagesExist();
 
@@ -1421,10 +1427,13 @@ public class DiscordAccess : IDiscordAccess
     {
         if (_menuRegistry.IsRevokeButtonMenu(component.Data.CustomId))
         {
-            var modalData = _menuRegistry.GetRevokeMenuModal(component.Data.CustomId,
+            var modalData = _menuRegistry.GetRevokeMenuModal(component.Data.CustomId[..36],
                                                              (DiscordUserId)component.User.Id);
             if (modalData is not null)
                 await component.RespondWithModalAsync(modalData.ToModal());
+            else
+                await component.RespondAsync("No roles to revoked.");
+            
             return;
         }
         
@@ -1444,6 +1453,48 @@ public class DiscordAccess : IDiscordAccess
                                                                component.Data.Values)
                     ?? "Internal error.";
         await component.RespondAsync(response, ephemeral: true);
+    }
+
+    private async Task Client_ModalSubmitted(SocketModal modal)
+    {
+        if (!modal.HasResponded)
+        {
+            await modal.RespondAsync("No roles were removed or added.");
+            return;
+        }
+
+        var modalResponse = new ModalResponse((DiscordUserId)modal.User.Id,
+                                              modal.Data.CustomId,
+                                              GetResponseItems(modal.Data.Components));
+        var response = await _discordUserEventHandler.HandleModalSubmittedAsync(modalResponse)
+                    ?? "Internal error.";
+        await modal.RespondAsync(response, ephemeral: true);
+
+        IReadOnlyCollection<ModalResponseItem> GetResponseItems(IReadOnlyCollection<SocketMessageComponentData> data)
+        {
+            var result = new List<ModalResponseItem>(data.Count);
+
+            foreach (var item in data)
+            {
+                switch (item.Type)
+                {
+                    case ComponentType.SelectMenu:
+                        // Currently, only select menus are evaluated.
+                        result.Add(new ModalResponseItem(item.CustomId,
+                                                         item.Values));
+                        break;
+                    case ComponentType.ActionRow:
+                    case ComponentType.Button:
+                    case ComponentType.TextInput:
+                    case ComponentType.ModalSubmit:
+                        break;
+                    default:
+                        throw new NotSupportedException();
+                }
+            }
+            
+            return result.ToImmutableArray();
+        }
     }
 
     private static async Task InteractionService_SlashCommandExecuted(SlashCommandInfo commandInfo,

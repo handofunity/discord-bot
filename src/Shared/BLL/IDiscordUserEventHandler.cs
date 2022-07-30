@@ -29,4 +29,6 @@ public interface IDiscordUserEventHandler
     Task<string?> HandleMessageComponentExecutedAsync(DiscordUserId userId,
                                                       string customId,
                                                       IReadOnlyCollection<string> selectedValues);
+
+    Task<string?> HandleModalSubmittedAsync(ModalResponse response);
 }

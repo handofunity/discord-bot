@@ -4,27 +4,18 @@ public class DiscordUserEventHandler : IDiscordUserEventHandler
 {
     private readonly IUserStore _userStore;
     private readonly IPrivacyProvider _privacyProvider;
-    private readonly INonMemberRoleProvider _nonMemberRoleProvider;
-    private readonly IGameRoleProvider _gameRoleProvider;
     private readonly IDatabaseAccess _databaseAccess;
-    private readonly IDynamicConfiguration _dynamicConfiguration;
     private readonly IMenuRegistry _menuRegistry;
     private IDiscordAccess? _discordAccess;
         
     public DiscordUserEventHandler(IUserStore userStore,
                                    IPrivacyProvider privacyProvider,
-                                   INonMemberRoleProvider nonMemberRoleProvider,
-                                   IGameRoleProvider gameRoleProvider,
                                    IDatabaseAccess databaseAccess,
-                                   IDynamicConfiguration dynamicConfiguration,
                                    IMenuRegistry menuRegistry)
     {
         _userStore = userStore;
         _privacyProvider = privacyProvider;
-        _nonMemberRoleProvider = nonMemberRoleProvider;
-        _gameRoleProvider = gameRoleProvider;
         _databaseAccess = databaseAccess;
-        _dynamicConfiguration = dynamicConfiguration;
         _menuRegistry = menuRegistry;
     }
         
@@ -157,9 +148,15 @@ public class DiscordUserEventHandler : IDiscordUserEventHandler
         if (_menuRegistry.IsSelectMenu(customId, out var selectCallback))
             return await selectCallback!(userId, customId, selectedValues);
 
-        if (_menuRegistry.IsModalMenu(customId, out var modalCallback))
-            return await modalCallback!(userId, customId, selectedValues);
+        // CustomId is unknown.
+        return null;
+    }
 
+    async Task<string?> IDiscordUserEventHandler.HandleModalSubmittedAsync(ModalResponse response)
+    {
+        if (_menuRegistry.IsModalMenu(response.CustomId, out var modalCallback))
+            return await modalCallback!(response);
+        
         // CustomId is unknown.
         return null;
     }

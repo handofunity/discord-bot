@@ -3,6 +3,7 @@
 public class MenuRegistry : IMenuRegistry
 {
     private readonly IGameRoleProvider _gameRoleProvider;
+    private readonly INonMemberRoleProvider _nonMemberRoleProvider;
     private readonly IDynamicConfiguration _dynamicConfiguration;
     private readonly Dictionary<string, ButtonMenu> _buttonMenus;
     private readonly Dictionary<string, SelectMenu> _selectMenus;
@@ -14,83 +15,11 @@ public class MenuRegistry : IMenuRegistry
                         IDynamicConfiguration dynamicConfiguration)
     {
         _gameRoleProvider = gameRoleProvider;
+        _nonMemberRoleProvider = nonMemberRoleProvider;
         _dynamicConfiguration = dynamicConfiguration;
 
-        _buttonMenus = new Dictionary<string, ButtonMenu>
-        {
-            {
-                Constants.FriendOrGuestMenu.GuestCustomId, new ButtonMenu(Constants.FriendOrGuestMenu.GuestCustomId,
-                                                                          Constants.FriendOrGuestMenu.GuestDisplayName,
-                                                                          async (userId,
-                                                                                 customId,
-                                                                                 selectedValues) =>
-                                                                              await nonMemberRoleProvider.ToggleNonMemberRoleAsync(userId,
-                                                                                  customId,
-                                                                                  ToDiscordRoleIds(selectedValues),
-                                                                                  RoleToggleMode.Dynamic))
-            },
-            {
-                Constants.FriendOrGuestMenu.FriendOfMemberCustomId, new ButtonMenu(Constants.FriendOrGuestMenu.FriendOfMemberCustomId,
-                                                                                   Constants.FriendOrGuestMenu.FriendofMemberDisplayName,
-                                                                                   async (userId,
-                                                                                          customId,
-                                                                                          selectedValues) =>
-                                                                                       await nonMemberRoleProvider
-                                                                                          .ToggleNonMemberRoleAsync(userId,
-                                                                                               customId,
-                                                                                               ToDiscordRoleIds(selectedValues),
-                                                                                               RoleToggleMode.Dynamic))
-            }
-        };
-
-        _selectMenus = new Dictionary<string, SelectMenu>
-        {
-            {
-                Constants.AocArchetypeMenu.CustomId, CreatePrimaryGameRoleSelectMenu(Constants.AocArchetypeMenu.CustomId,
-                                                                                     "Select archetypes ...",
-                                                                                     Constants.AocArchetypeMenu.GetOptions(),
-                                                                                     true)
-            },
-            {
-                Constants.AocPlayStyleMenu.CustomId, CreatePrimaryGameRoleSelectMenu(Constants.AocPlayStyleMenu.CustomId,
-                                                                                     "Select play styles ...",
-                                                                                     Constants.AocPlayStyleMenu.GetOptions(),
-                                                                                     true)
-            },
-            {
-                Constants.AocRaceMenu.CustomId, CreatePrimaryGameRoleSelectMenu(Constants.AocRaceMenu.CustomId,
-                                                                                "Select races ...",
-                                                                                Constants.AocRaceMenu.GetOptions(),
-                                                                                true)
-            },
-            {
-                Constants.AocGuildPreferenceMenu.CustomId, CreatePrimaryGameRoleSelectMenu(Constants.AocGuildPreferenceMenu.CustomId,
-                                                                                           "Select preferred in-game guild ...",
-                                                                                           Constants.AocGuildPreferenceMenu.GetOptions(),
-                                                                                           false)
-            },
-            {
-                Constants.WowClassMenu.CustomId, CreatePrimaryGameRoleSelectMenu(Constants.WowClassMenu.CustomId,
-                                                                                 "Select classes ...",
-                                                                                 Constants.WowClassMenu.GetOptions(),
-                                                                                 true)
-            },
-            {
-                Constants.WowRetailPlayStyleMenu.CustomId , CreatePrimaryGameRoleSelectMenu(Constants.WowRetailPlayStyleMenu.CustomId,
-                                                                                            "Select play styles ...",
-                                                                                            Constants.WowRetailPlayStyleMenu.GetOptions(),
-                                                                                            true)
-            },
-            {
-                Constants.LostArkPlayStyleMenu.CustomId, CreatePrimaryGameRoleSelectMenu(Constants.LostArkPlayStyleMenu.CustomId,
-                                                                                         "Select play styles ...",
-                                                                                         Constants.LostArkPlayStyleMenu.GetOptions(),
-                                                                                         true)
-            }
-        };
-
-        AddGameInterestMenuOptions(nonMemberRoleProvider);
-        AddGameRolesMenuOptions();
+        _buttonMenus = new Dictionary<string, ButtonMenu>();
+        _selectMenus = new Dictionary<string, SelectMenu>();
     }
 
     private static DiscordRoleId[] ToDiscordRoleIds(IReadOnlyCollection<string> values)
@@ -100,6 +29,33 @@ public class MenuRegistry : IMenuRegistry
             if (ulong.TryParse(value, out var ulongValue))
                 result.Add((DiscordRoleId)ulongValue);
         return result.ToArray();
+    }
+
+    private bool IsRevokeModalResponse(ModalResponse response,
+                                       out DiscordUserId userId,
+                                       out string? parentSelectMenuCustomId,
+                                       out IReadOnlyCollection<string>? selectedValues)
+    {
+        userId = response.UserId;
+        
+        if (IsRevokeModalId(response.CustomId, out parentSelectMenuCustomId))
+        {
+            selectedValues = response.Items.Single().Values;
+            return true;
+        }
+
+        selectedValues = null;
+        return false;
+
+        bool IsRevokeModalId(string customId, out string? parentSelectMenuCustomId)
+        {
+            var isValidCustomId = customId.Length == 86 // 36 guid + 8 middle + 36 guid + 6 suffix
+                && customId[36..44] == "_revoke_"   
+                && customId[^6..] == "_modal"
+                && _selectMenus.ContainsKey(customId[..36]);
+            parentSelectMenuCustomId = isValidCustomId ? customId[..36] : null;
+            return isValidCustomId;
+        }
     }
 
     private async Task<string?> PrimaryGameRoleCallback(DiscordUserId userId,
@@ -133,10 +89,18 @@ public class MenuRegistry : IMenuRegistry
                    callbackCustomId,
                    selectedValues) =>
                 await PrimaryGameRoleCallback(userId, callbackCustomId, selectedValues, RoleToggleMode.Assign),
-            async (userId,
-                   callbackCustomId,
-                   selectedValues) =>
-                await PrimaryGameRoleCallback(userId, callbackCustomId, selectedValues, RoleToggleMode.Revoke));
+            async response =>
+            {
+                if (IsRevokeModalResponse(response,
+                                          out var userId,
+                                          out var parentSelectMenuCustomId,
+                                          out var selectedValues))
+                {
+                    return await PrimaryGameRoleCallback(userId, parentSelectMenuCustomId!, selectedValues!, RoleToggleMode.Revoke);
+                }
+
+                return "Unexpected response.";
+            });
 
     private void AddGameInterestMenuOptions(INonMemberRoleProvider nonMemberRoleProvider)
     {
@@ -151,13 +115,22 @@ public class MenuRegistry : IMenuRegistry
                                                                                    customId,
                                                                                    ToDiscordRoleIds(selectedValues),
                                                                                    RoleToggleMode.Assign),
-                                                                           async (userId,
-                                                                                  customId,
-                                                                                  selectedValues) =>
-                                                                               await nonMemberRoleProvider.ToggleNonMemberRoleAsync(userId,
-                                                                                   customId,
-                                                                                   ToDiscordRoleIds(selectedValues),
-                                                                                   RoleToggleMode.Revoke),
+                                                                           async response =>
+                                                                           {
+                                                                               if (IsRevokeModalResponse(response,
+                                                                                       out var userId,
+                                                                                       out var parentSelectMenuCustomId,
+                                                                                       out var selectedValues))
+                                                                               {
+                                                                                   return await nonMemberRoleProvider
+                                                                                             .ToggleNonMemberRoleAsync(userId,
+                                                                                                  parentSelectMenuCustomId!,
+                                                                                                  ToDiscordRoleIds(selectedValues!),
+                                                                                                  RoleToggleMode.Revoke);
+                                                                               }
+
+                                                                               return "Unexpected response.";
+                                                                           },
                                                                            existingOptions =>
                                                                            {
                                                                                var currentOptions = GetCurrentOptions();
@@ -192,8 +165,25 @@ public class MenuRegistry : IMenuRegistry
                                                                        "Select games ...",
                                                                        GetCurrentOptions(),
                                                                        true,
-                                                                       async (id, _, values) => await Callback(id, values, RoleToggleMode.Assign),
-                                                                       async (id, _, values) => await Callback(id, values, RoleToggleMode.Revoke),
+                                                                       async (userId,
+                                                                              _,
+                                                                              values) => await Callback(userId,
+                                                                                             values,
+                                                                                             RoleToggleMode.Assign),
+                                                                       async response =>
+                                                                       {
+                                                                           if (IsRevokeModalResponse(response,
+                                                                                   out var userId,
+                                                                                   out _,
+                                                                                   out var selectedValues))
+                                                                           {
+                                                                               return await Callback(userId,
+                                                                                          selectedValues!,
+                                                                                          RoleToggleMode.Revoke);
+                                                                           }
+
+                                                                           return "Unexpected response.";
+                                                                       },
                                                                        existingOptions =>
                                                                        {
                                                                            var currentOptions = GetCurrentOptions();
@@ -241,6 +231,74 @@ public class MenuRegistry : IMenuRegistry
     {
         set => _discordAccess = value;
         private get => _discordAccess ?? throw new InvalidOperationException();
+    }
+
+    void IMenuRegistry.Initialize()
+    {
+        if (_buttonMenus.Any() ||_selectMenus.Any())
+            return;
+
+        _buttonMenus.Add(Constants.FriendOrGuestMenu.GuestCustomId,
+                         new ButtonMenu(Constants.FriendOrGuestMenu.GuestCustomId,
+                                        Constants.FriendOrGuestMenu.GuestDisplayName,
+                                        async (userId,
+                                               customId,
+                                               selectedValues) =>
+                                            await _nonMemberRoleProvider.ToggleNonMemberRoleAsync(userId,
+                                                customId,
+                                                ToDiscordRoleIds(selectedValues),
+                                                RoleToggleMode.Dynamic)));
+        _buttonMenus.Add(Constants.FriendOrGuestMenu.FriendOfMemberCustomId, new ButtonMenu(Constants.FriendOrGuestMenu
+                                                                                               .FriendOfMemberCustomId,
+                                                                                            Constants.FriendOrGuestMenu
+                                                                                               .FriendofMemberDisplayName,
+                                                                                            async (userId,
+                                                                                                    customId,
+                                                                                                    selectedValues) =>
+                                                                                                await _nonMemberRoleProvider
+                                                                                                   .ToggleNonMemberRoleAsync(userId,
+                                                                                                        customId,
+                                                                                                        ToDiscordRoleIds(selectedValues),
+                                                                                                        RoleToggleMode.Dynamic)));
+
+        _selectMenus.Add(Constants.AocArchetypeMenu.CustomId,
+                         CreatePrimaryGameRoleSelectMenu(Constants.AocArchetypeMenu.CustomId,
+                                                         "Select archetypes ...",
+                                                         Constants.AocArchetypeMenu.GetOptions(),
+                                                         true));
+        _selectMenus.Add(Constants.AocPlayStyleMenu.CustomId,
+                         CreatePrimaryGameRoleSelectMenu(Constants.AocPlayStyleMenu.CustomId,
+                                                         "Select play styles ...",
+                                                         Constants.AocPlayStyleMenu.GetOptions(),
+                                                         true));
+        _selectMenus.Add(Constants.AocRaceMenu.CustomId,
+                         CreatePrimaryGameRoleSelectMenu(Constants.AocRaceMenu.CustomId,
+                                                         "Select races ...",
+                                                         Constants.AocRaceMenu.GetOptions(),
+                                                         true));
+        _selectMenus.Add(Constants.AocGuildPreferenceMenu.CustomId,
+                         CreatePrimaryGameRoleSelectMenu(Constants.AocGuildPreferenceMenu.CustomId,
+                                                         "Select preferred in-game guild ...",
+                                                         Constants.AocGuildPreferenceMenu.GetOptions(),
+                                                         false));
+        _selectMenus.Add(Constants.WowClassMenu.CustomId,
+                         CreatePrimaryGameRoleSelectMenu(Constants.WowClassMenu.CustomId,
+                                                         "Select classes ...",
+                                                         Constants.WowClassMenu.GetOptions(),
+                                                         true));
+        _selectMenus.Add(Constants.WowRetailPlayStyleMenu.CustomId,
+                         CreatePrimaryGameRoleSelectMenu(Constants.WowRetailPlayStyleMenu.CustomId,
+                                                         "Select play styles ...",
+                                                         Constants.WowRetailPlayStyleMenu.GetOptions(),
+                                                         true));
+        _selectMenus.Add(Constants.LostArkPlayStyleMenu.CustomId,
+                         CreatePrimaryGameRoleSelectMenu(Constants.LostArkPlayStyleMenu.CustomId,
+                                                         "Select play styles ...",
+                                                         Constants.LostArkPlayStyleMenu.GetOptions(),
+                                                         true));
+        
+        AddGameInterestMenuOptions(_nonMemberRoleProvider);
+        AddGameRolesMenuOptions();
     }
 
     bool IMenuRegistry.IsButtonMenu(string customId,
@@ -294,7 +352,7 @@ public class MenuRegistry : IMenuRegistry
         var revokeId = Guid.NewGuid().ToString("D");
         return new ModalData($"{customId}_revoke_{revokeId}_modal",
                              "Select role(s) to revoke",
-                             new[]
+                             new ActionComponent[]
                              {
                                  new SelectMenuComponent($"{customId}_revoke_{revokeId}_select",
                                                          0,
@@ -336,11 +394,11 @@ public class MenuRegistry : IMenuRegistry
     }
 
     bool IMenuRegistry.IsModalMenu(string customId,
-                                   out IMenuRegistry.MenuCallback? callback)
+                                   out IMenuRegistry.ModalCallback? callback)
     {
         if (_selectMenus.TryGetValue(customId, out var selectMenu))
         {
-            callback = selectMenu.Callback;
+            callback = selectMenu.RevokeCallback;
             return true;
         }
 
@@ -381,7 +439,7 @@ public class MenuRegistry : IMenuRegistry
 
         internal IMenuRegistry.MenuCallback Callback { get; }
         
-        internal IMenuRegistry.MenuCallback RevokeCallback { get; }
+        internal IMenuRegistry.ModalCallback RevokeCallback { get; }
 
         internal string[]? PartialCustomIds { get; set; }
 
@@ -390,7 +448,7 @@ public class MenuRegistry : IMenuRegistry
                             IDictionary<string, string> options,
                             bool allowMultiple,
                             IMenuRegistry.MenuCallback callback,
-                            IMenuRegistry.MenuCallback revokeCallback)
+                            IMenuRegistry.ModalCallback revokeCallback)
         {
             CustomId = customId;
             Placeholder = placeholder;
@@ -405,7 +463,7 @@ public class MenuRegistry : IMenuRegistry
                             IDictionary<string, string> options,
                             bool allowMultiple,
                             IMenuRegistry.MenuCallback callback,
-                            IMenuRegistry.MenuCallback revokeCallback,
+                            IMenuRegistry.ModalCallback revokeCallback,
                             Action<IDictionary<string, string>> optionsUpdater)
             : this(customId, placeholder, options, allowMultiple, callback, revokeCallback)
         {
