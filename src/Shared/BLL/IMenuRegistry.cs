@@ -3,14 +3,17 @@
 public interface IMenuRegistry
 {
     delegate Task<string?> MenuCallback(DiscordUserId userId, string customId, IReadOnlyCollection<string> selectedValues);
-    
+
+    delegate Task<string?> ButtonCallback(DiscordUserId userId,
+                                          string customId);
+
     delegate Task<string?> ModalCallback(ModalResponse response);
     
     IDiscordAccess DiscordAccess { set; }
 
     void Initialize();
     
-    bool IsButtonMenu(string customId, out MenuCallback? callback);
+    bool IsButtonMenu(string customId, out ButtonCallback? callback);
 
     ButtonComponent GetButtonMenuComponent(string customId);
 

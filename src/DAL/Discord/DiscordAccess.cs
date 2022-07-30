@@ -1425,6 +1425,7 @@ public class DiscordAccess : IDiscordAccess
 
     private async Task Client_ButtonExecuted(SocketMessageComponent component)
     {
+        await component.DeferAsync();
         if (_menuRegistry.IsRevokeButtonMenu(component.Data.CustomId))
         {
             // TODO: Replace temporary solution with modal.
@@ -1435,10 +1436,12 @@ public class DiscordAccess : IDiscordAccess
             var selectMenuWorkaround = _menuRegistry.GetRevokeMenuSelectWorkaround(component.Data.CustomId[..36],
                                                                                    (DiscordUserId)component.User.Id);
             if (selectMenuWorkaround is not null)
-                await component.RespondAsync(components: ToMessageComponent(new[] { selectMenuWorkaround }),
+                await component.FollowupAsync(text: "Select role(s) to revoke",
+                                              components: ToMessageComponent(new[] { selectMenuWorkaround }),
                                              ephemeral: true);
             else
-                await component.RespondAsync("No roles to revoked.");
+                await component.FollowupAsync("No roles to revoke.",
+                                              ephemeral: true);
             
             return;
         }
@@ -1448,24 +1451,27 @@ public class DiscordAccess : IDiscordAccess
                                                                component.Data.CustomId,
                                                                component.Data.Values)
                     ?? "Internal error.";
-        await component.RespondAsync(response, ephemeral: true);
+        await component.FollowupAsync(response, ephemeral: true);
     }
 
     private async Task Client_SelectMenuExecuted(SocketMessageComponent component)
     {
+        await component.DeferAsync(true);
         var response = await _discordUserEventHandler
                           .HandleMessageComponentExecutedAsync((DiscordUserId)component.User.Id,
                                                                component.Data.CustomId,
                                                                component.Data.Values)
                     ?? "Internal error.";
-        await component.RespondAsync(response, ephemeral: true);
+        await component.FollowupAsync(response, ephemeral: true);
     }
 
     private async Task Client_ModalSubmitted(SocketModal modal)
     {
+        await modal.DeferAsync();
+        
         if (!modal.HasResponded)
         {
-            await modal.RespondAsync("No roles were removed or added.");
+            await modal.FollowupAsync("No roles were removed or added.");
             return;
         }
 
@@ -1474,7 +1480,7 @@ public class DiscordAccess : IDiscordAccess
                                               GetResponseItems(modal.Data.Components));
         var response = await _discordUserEventHandler.HandleModalSubmittedAsync(modalResponse)
                     ?? "Internal error.";
-        await modal.RespondAsync(response, ephemeral: true);
+        await modal.FollowupAsync(response, ephemeral: true);
 
         IReadOnlyCollection<ModalResponseItem> GetResponseItems(IReadOnlyCollection<SocketMessageComponentData> data)
         {

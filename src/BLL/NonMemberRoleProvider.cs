@@ -98,8 +98,9 @@ public class NonMemberRoleProvider : INonMemberRoleProvider
             default:
                 throw new ArgumentOutOfRangeException(nameof(roleToggleMode), roleToggleMode, null);
         }
-        
-        await DiscordAccess.LogToDiscord(logSb.ToString());
+
+        if (logSb.Length > 0)
+            await DiscordAccess.LogToDiscord(logSb.ToString());
 
         return sb.Length > 0
                    ? sb.ToString()

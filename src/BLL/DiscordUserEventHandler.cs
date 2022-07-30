@@ -143,7 +143,7 @@ public class DiscordUserEventHandler : IDiscordUserEventHandler
                                                                                      IReadOnlyCollection<string> selectedValues)
     {
         if (_menuRegistry.IsButtonMenu(customId, out var buttonCallback))
-            return await buttonCallback!(userId, customId, selectedValues);
+            return await buttonCallback!(userId, customId);
 
         if (_menuRegistry.IsSelectMenu(customId, out var selectCallback))
             return await selectCallback!(userId, customId, selectedValues);

@@ -280,23 +280,21 @@ public class MenuRegistry : IMenuRegistry
                          new ButtonMenu(Constants.FriendOrGuestMenu.GuestCustomId,
                                         Constants.FriendOrGuestMenu.GuestDisplayName,
                                         async (userId,
-                                               customId,
-                                               selectedValues) =>
+                                               customId) =>
                                             await _nonMemberRoleProvider.ToggleNonMemberRoleAsync(userId,
                                                 customId,
-                                                ToDiscordRoleIds(selectedValues),
+                                                Array.Empty<DiscordRoleId>(),
                                                 RoleToggleMode.Dynamic)));
         _buttonMenus.Add(Constants.FriendOrGuestMenu.FriendOfMemberCustomId, new ButtonMenu(Constants.FriendOrGuestMenu
                                                                                                .FriendOfMemberCustomId,
                                                                                             Constants.FriendOrGuestMenu
                                                                                                .FriendofMemberDisplayName,
                                                                                             async (userId,
-                                                                                                    customId,
-                                                                                                    selectedValues) =>
+                                                                                                    customId) =>
                                                                                                 await _nonMemberRoleProvider
                                                                                                    .ToggleNonMemberRoleAsync(userId,
                                                                                                         customId,
-                                                                                                        ToDiscordRoleIds(selectedValues),
+                                                                                                        Array.Empty<DiscordRoleId>(),
                                                                                                         RoleToggleMode.Dynamic)));
 
         _selectMenus.Add(Constants.AocArchetypeMenu.CustomId,
@@ -340,7 +338,7 @@ public class MenuRegistry : IMenuRegistry
     }
 
     bool IMenuRegistry.IsButtonMenu(string customId,
-                                    out IMenuRegistry.MenuCallback? callback)
+                                    out IMenuRegistry.ButtonCallback? callback)
     {
         if (_buttonMenus.TryGetValue(customId, out var buttonMenu))
         {
@@ -403,29 +401,47 @@ public class MenuRegistry : IMenuRegistry
     SelectMenuComponent? IMenuRegistry.GetRevokeMenuSelectWorkaround(string customId,
                                                                      DiscordUserId userId)
     {
-        if (!Constants.Menus.IsMappedToPrimaryGameRoleIdConfigurationKey(customId, out var primaryGameRoleIdConfigurationKey))
+        if (!_selectMenus.TryGetValue(customId, out var selectMenu))
             return null;
-        
-        // Get role ids for available options.
-        var options = _selectMenus[customId].Options;
-        var primaryGameDiscordRoleId = (DiscordRoleId)_dynamicConfiguration.DiscordMapping[primaryGameRoleIdConfigurationKey!];
-        var game = _gameRoleProvider.Games.Single(m => m.PrimaryGameDiscordRoleId == primaryGameDiscordRoleId);
-        var availableOptions = options.Select<KeyValuePair<string, string>,
-                                           (DiscordRoleId RoleId, string MenuValue, string MenuDisplayName)>(option => _dynamicConfiguration
-                                          .DiscordMapping
-                                          .TryGetValue($"{customId}___{option.Key}",
-                                                       out var roleId)
-                                           ? ((DiscordRoleId)roleId, option.Key, option.Value)
-                                           : default)
-                                      .Where(m => m != default && game.AvailableRoles.Any(r => r.DiscordRoleId == m.RoleId))
-                                      .ToArray();
+
+        (DiscordRoleId RoleId, string MenuValue, string MenuDisplayName)[] availableOptions;
+        if (Constants.Menus.IsMappedToPrimaryGameRoleIdConfigurationKey(customId, out var primaryGameRoleIdConfigurationKey))
+        {
+            // Map available options to valid game roles.
+            var primaryGameDiscordRoleId = (DiscordRoleId)_dynamicConfiguration.DiscordMapping[primaryGameRoleIdConfigurationKey!];
+            var game = _gameRoleProvider.Games.Single(m => m.PrimaryGameDiscordRoleId == primaryGameDiscordRoleId);
+            availableOptions = selectMenu.Options.Select<KeyValuePair<string, string>,
+                                              (DiscordRoleId RoleId, string MenuValue, string MenuDisplayName)>(option =>
+                                              _dynamicConfiguration
+                                                 .DiscordMapping
+                                                 .TryGetValue($"{customId}___{option.Key}",
+                                                              out var roleId)
+                                                  ? ((DiscordRoleId)roleId, option.Key, option.Value)
+                                                  : default)
+                                         .Where(m => m != default && game.AvailableRoles.Any(r => r.DiscordRoleId == m.RoleId))
+                                         .ToArray();
+        }
+        else
+        {
+            // Use all available options.
+            availableOptions = selectMenu.Options
+                                         .Select(m => (ulong.TryParse(m.Key, out var ulongRoleId)
+                                                           ? (DiscordRoleId)ulongRoleId
+                                                           : default,
+                                                       m.Key,
+                                                       m.Value))
+                                         .Where(m => m.Item1 != default)
+                                         .ToArray();
+        }
         
         // Filter for roles that are valid for the customId and the user currently has.
         var currentUserRoleIds = DiscordAccess.GetUserRoles(userId);
         var rolesThatCanBeRevoked = availableOptions.Where(m => currentUserRoleIds.Contains(m.RoleId))
                                                     .ToDictionary(m => m.MenuValue,
                                                                   m => m.MenuDisplayName);
-        
+        if (rolesThatCanBeRevoked.Count == 0)
+            return null;
+
         var revokeId = Guid.NewGuid().ToString("D");
         return new SelectMenuComponent($"{customId}_revoke_{revokeId}_select_workaround",
                                        0,
@@ -495,7 +511,7 @@ public class MenuRegistry : IMenuRegistry
 
     private record ButtonMenu(string CustomId,
                               string DisplayName,
-                              IMenuRegistry.MenuCallback Callback)
+                              IMenuRegistry.ButtonCallback Callback)
     {
         internal ButtonComponent GetComponent() =>
             new(CustomId,
