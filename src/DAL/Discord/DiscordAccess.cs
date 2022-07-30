@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using Discord.Rest;
 using ButtonComponent = HoU.GuildBot.Shared.Objects.ButtonComponent;
 using SelectMenuComponent = HoU.GuildBot.Shared.Objects.SelectMenuComponent;
 using User = HoU.GuildBot.Shared.Objects.User;
@@ -1248,6 +1249,48 @@ public class DiscordAccess : IDiscordAccess
         return Task.CompletedTask;
     }
 
+    private void LogAddedModules(ModuleInfo[] addedModules)
+    {
+        _logger.LogInformation("Found {Count} modules in the assembly", addedModules.Length);
+        foreach (var addedModule in addedModules)
+            _logger.LogTrace("Added module {ModuleName}", addedModule.Name);
+    }
+
+    private void LogRegisteredCommands(IReadOnlyCollection<RestGuildCommand>? registeredCommands)
+    {
+        if (registeredCommands is null)
+        {
+            _logger.LogWarning("No commands were registered");
+            return;
+        }
+
+        var registeredCommandsCount = 0;
+        foreach (var registeredCommand in registeredCommands)
+        {
+            if (registeredCommand.Options.Any())
+                foreach (var firstLevelOption in registeredCommand.Options)
+                    if (firstLevelOption.Options.Any())
+                        foreach (var secondLevelOption in firstLevelOption.Options)
+                        {
+                            registeredCommandsCount++;
+                            _logger.LogTrace("Registered command /{CommandName}",
+                                             $"{registeredCommand.Name} {firstLevelOption.Name} {secondLevelOption.Name}");
+
+                        }
+                    else
+                    {
+                        registeredCommandsCount++;
+                        _logger.LogTrace("Registered command /{CommandName}", $"{registeredCommand.Name} {firstLevelOption.Name}");
+                    }
+            else
+            {
+                registeredCommandsCount++;
+                _logger.LogTrace("Registered command /{CommandName}", registeredCommand.Name);
+            }
+        }
+        _logger.LogInformation("Registered {Count} commands with Discord", registeredCommandsCount);
+    }
+
     private async Task Client_GuildAvailable(SocketGuild guild)
     {
         if (guild.Id != _dynamicConfiguration.DiscordMapping["ValidGuildId"])
@@ -1285,9 +1328,9 @@ public class DiscordAccess : IDiscordAccess
             // TODO: Register once per version/the commands change, not every time the bot boots
             // Register interactions only once
             var addedModules = (await _interactionService.AddModulesAsync(typeof(DiscordAccess).Assembly, _serviceProvider)).ToArray();
-            _logger.LogInformation("Found {Count} modules in the assembly", addedModules.Length);
+            LogAddedModules(addedModules);
             var registeredCommands = await _interactionService.RegisterCommandsToGuildAsync(guild.Id);
-            _logger.LogInformation("Registered {Count} commands with Discord", registeredCommands.Count);
+            LogRegisteredCommands(registeredCommands);
         }).ConfigureAwait(false);
 
         while (_pendingMessages.Count > 0)

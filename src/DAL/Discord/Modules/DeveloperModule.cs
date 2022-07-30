@@ -1,14 +1,14 @@
 ﻿namespace HoU.GuildBot.DAL.Discord.Modules;
 
 [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
-[Group("admin", "Administrative commands.")]
-public class AdminModule : InteractionModuleBase<SocketInteractionContext>
+[Group("dev", "Administrative commands.")]
+public class DeveloperModule : InteractionModuleBase<SocketInteractionContext>
 {
     private readonly IUnitsSyncService _unitsSyncService;
-    private readonly ILogger<AdminModule> _logger;
+    private readonly ILogger<DeveloperModule> _logger;
 
-    public AdminModule(IUnitsSyncService unitsSyncService,
-                       ILogger<AdminModule> logger)
+    public DeveloperModule(IUnitsSyncService unitsSyncService,
+                       ILogger<DeveloperModule> logger)
     {
         _unitsSyncService = unitsSyncService;
         _logger = logger;
