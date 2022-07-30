@@ -538,7 +538,7 @@ public class DiscordAccess : IDiscordAccess
                 var menuBuilder = new SelectMenuBuilder()
                                  .WithCustomId(selectMenu.CustomId)
                                  .WithPlaceholder(selectMenu.Placeholder)
-                                 .WithMinValues(0)
+                                 .WithMinValues(1)
                                  .WithMaxValues(selectMenu.AllowMultiple ? selectMenu.Options.Count : 1);
                 foreach (var (optionKey, label) in selectMenu.Options)
                     menuBuilder.AddOption(label, optionKey);
