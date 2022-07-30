@@ -19,6 +19,9 @@ public interface IMenuRegistry
     ModalData? GetRevokeMenuModal(string customId,
                                   DiscordUserId userId);
     
+    SelectMenuComponent? GetRevokeMenuSelectWorkaround(string customId,
+                                                       DiscordUserId userId);
+    
     bool IsSelectMenu(string customId, out MenuCallback? callback);
 
     IEnumerable<ActionComponent> GetSelectMenuComponents(string customId);

@@ -58,6 +58,17 @@ public class MenuRegistry : IMenuRegistry
         }
     }
 
+    private bool IsRevokeSelectWorkaroundResponse(string customId,
+                                                  out string? parentSelectMenuCustomId)
+    {
+        var isValidCustomId = customId.Length == 98 // 36 guid + 8 middle + 36 guid + 18 suffix
+                           && customId[36..44] == "_revoke_"   
+                           && customId[^18..] == "_select_workaround"
+                           && _selectMenus.ContainsKey(customId[..36]);
+        parentSelectMenuCustomId = isValidCustomId ? customId[..36] : null;
+        return isValidCustomId;
+    }
+
     private async Task<string?> PrimaryGameRoleCallback(DiscordUserId userId,
                                                         string customId,
                                                         IReadOnlyCollection<string> selectedValues,
@@ -89,14 +100,24 @@ public class MenuRegistry : IMenuRegistry
                    callbackCustomId,
                    selectedValues) =>
                 await PrimaryGameRoleCallback(userId, callbackCustomId, selectedValues, RoleToggleMode.Assign),
-            async response =>
+            async (userId, responseCustomId, selectedValues) =>
             {
-                if (IsRevokeModalResponse(response,
-                                          out var userId,
-                                          out var parentSelectMenuCustomId,
-                                          out var selectedValues))
+                // TODO: Replace temporary solution with modal.
+                // if (IsRevokeModalResponse(response,
+                //                           out var userId,
+                //                           out var parentSelectMenuCustomId,
+                //                           out var selectedValues))
+                // {
+                //     return await PrimaryGameRoleCallback(userId, parentSelectMenuCustomId!, selectedValues!, RoleToggleMode.Revoke);
+                // }
+
+                if (IsRevokeSelectWorkaroundResponse(responseCustomId,
+                                                     out var parentSelectMenuCustomId))
                 {
-                    return await PrimaryGameRoleCallback(userId, parentSelectMenuCustomId!, selectedValues!, RoleToggleMode.Revoke);
+                    return await PrimaryGameRoleCallback(userId,
+                                                         parentSelectMenuCustomId!,
+                                                         selectedValues,
+                                                         RoleToggleMode.Revoke);
                 }
 
                 return "Unexpected response.";
@@ -115,17 +136,27 @@ public class MenuRegistry : IMenuRegistry
                                                                                    customId,
                                                                                    ToDiscordRoleIds(selectedValues),
                                                                                    RoleToggleMode.Assign),
-                                                                           async response =>
+                                                                           async (userId, responseCustomId, selectedValues) =>
                                                                            {
-                                                                               if (IsRevokeModalResponse(response,
-                                                                                       out var userId,
-                                                                                       out var parentSelectMenuCustomId,
-                                                                                       out var selectedValues))
+                                                                               // TODO: Replace temporary solution with modal.
+                                                                               // if (IsRevokeModalResponse(response,
+                                                                               //         out var userId,
+                                                                               //         out var parentSelectMenuCustomId,
+                                                                               //         out var selectedValues))
+                                                                               // {
+                                                                               //     return await nonMemberRoleProvider
+                                                                               //               .ToggleNonMemberRoleAsync(userId,
+                                                                               //                    parentSelectMenuCustomId!,
+                                                                               //                    ToDiscordRoleIds(selectedValues!),
+                                                                               //                    RoleToggleMode.Revoke);
+                                                                               // }
+                                                                               if (IsRevokeSelectWorkaroundResponse(responseCustomId,
+                                                                                       out var parentSelectMenuCustomId))
                                                                                {
                                                                                    return await nonMemberRoleProvider
                                                                                              .ToggleNonMemberRoleAsync(userId,
                                                                                                   parentSelectMenuCustomId!,
-                                                                                                  ToDiscordRoleIds(selectedValues!),
+                                                                                                  ToDiscordRoleIds(selectedValues),
                                                                                                   RoleToggleMode.Revoke);
                                                                                }
 
@@ -170,15 +201,22 @@ public class MenuRegistry : IMenuRegistry
                                                                               values) => await Callback(userId,
                                                                                              values,
                                                                                              RoleToggleMode.Assign),
-                                                                       async response =>
+                                                                       async (userId, responseCustomId, selectedValues) =>
                                                                        {
-                                                                           if (IsRevokeModalResponse(response,
-                                                                                   out var userId,
-                                                                                   out _,
-                                                                                   out var selectedValues))
+                                                                           // TODO: Replace temporary solution with modal.
+                                                                           // if (IsRevokeModalResponse(response,
+                                                                           //         out var userId,
+                                                                           //         out _,
+                                                                           //         out var selectedValues))
+                                                                           // {
+                                                                           //     return await Callback(userId,
+                                                                           //                selectedValues!,
+                                                                           //                RoleToggleMode.Revoke);
+                                                                           // }
+                                                                           if (IsRevokeSelectWorkaroundResponse(responseCustomId, out _))
                                                                            {
                                                                                return await Callback(userId,
-                                                                                          selectedValues!,
+                                                                                          selectedValues,
                                                                                           RoleToggleMode.Revoke);
                                                                            }
 
@@ -360,7 +398,40 @@ public class MenuRegistry : IMenuRegistry
                                                          rolesThatCanBeRevoked,
                                                          true)
                              });
+    }
 
+    SelectMenuComponent? IMenuRegistry.GetRevokeMenuSelectWorkaround(string customId,
+                                                                     DiscordUserId userId)
+    {
+        if (!Constants.Menus.IsMappedToPrimaryGameRoleIdConfigurationKey(customId, out var primaryGameRoleIdConfigurationKey))
+            return null;
+        
+        // Get role ids for available options.
+        var options = _selectMenus[customId].Options;
+        var primaryGameDiscordRoleId = (DiscordRoleId)_dynamicConfiguration.DiscordMapping[primaryGameRoleIdConfigurationKey!];
+        var game = _gameRoleProvider.Games.Single(m => m.PrimaryGameDiscordRoleId == primaryGameDiscordRoleId);
+        var availableOptions = options.Select<KeyValuePair<string, string>,
+                                           (DiscordRoleId RoleId, string MenuValue, string MenuDisplayName)>(option => _dynamicConfiguration
+                                          .DiscordMapping
+                                          .TryGetValue($"{customId}___{option.Key}",
+                                                       out var roleId)
+                                           ? ((DiscordRoleId)roleId, option.Key, option.Value)
+                                           : default)
+                                      .Where(m => m != default && game.AvailableRoles.Any(r => r.DiscordRoleId == m.RoleId))
+                                      .ToArray();
+        
+        // Filter for roles that are valid for the customId and the user currently has.
+        var currentUserRoleIds = DiscordAccess.GetUserRoles(userId);
+        var rolesThatCanBeRevoked = availableOptions.Where(m => currentUserRoleIds.Contains(m.RoleId))
+                                                    .ToDictionary(m => m.MenuValue,
+                                                                  m => m.MenuDisplayName);
+        
+        var revokeId = Guid.NewGuid().ToString("D");
+        return new SelectMenuComponent($"{customId}_revoke_{revokeId}_select_workaround",
+                                       0,
+                                       "Select role(s) to revoke",
+                                       rolesThatCanBeRevoked,
+                                       true);
     }
 
     bool IMenuRegistry.IsSelectMenu(string customId,
@@ -376,6 +447,13 @@ public class MenuRegistry : IMenuRegistry
         if (selectMenuByPartialCustomId is not null)
         {
             callback = selectMenuByPartialCustomId.Callback;
+            return true;
+        }
+
+        if (IsRevokeSelectWorkaroundResponse(customId, out var parentSelectMenuCustomId)
+         && _selectMenus.TryGetValue(parentSelectMenuCustomId!, out var revokeSelectMenu))
+        {
+            callback = revokeSelectMenu.RevokeCallback;
             return true;
         }
 
@@ -396,11 +474,12 @@ public class MenuRegistry : IMenuRegistry
     bool IMenuRegistry.IsModalMenu(string customId,
                                    out IMenuRegistry.ModalCallback? callback)
     {
-        if (_selectMenus.TryGetValue(customId, out var selectMenu))
-        {
-            callback = selectMenu.RevokeCallback;
-            return true;
-        }
+        // TODO: Replace temporary solution with modal.
+        // if (_selectMenus.TryGetValue(customId, out var selectMenu))
+        // {
+        //     callback = selectMenu.RevokeCallback;
+        //     return true;
+        // }
 
         callback = null;
         return false;
@@ -439,7 +518,7 @@ public class MenuRegistry : IMenuRegistry
 
         internal IMenuRegistry.MenuCallback Callback { get; }
         
-        internal IMenuRegistry.ModalCallback RevokeCallback { get; }
+        internal IMenuRegistry.MenuCallback RevokeCallback { get; }
 
         internal string[]? PartialCustomIds { get; set; }
 
@@ -448,7 +527,7 @@ public class MenuRegistry : IMenuRegistry
                             IDictionary<string, string> options,
                             bool allowMultiple,
                             IMenuRegistry.MenuCallback callback,
-                            IMenuRegistry.ModalCallback revokeCallback)
+                            IMenuRegistry.MenuCallback revokeCallback)
         {
             CustomId = customId;
             Placeholder = placeholder;
@@ -463,7 +542,7 @@ public class MenuRegistry : IMenuRegistry
                             IDictionary<string, string> options,
                             bool allowMultiple,
                             IMenuRegistry.MenuCallback callback,
-                            IMenuRegistry.ModalCallback revokeCallback,
+                            IMenuRegistry.MenuCallback revokeCallback,
                             Action<IDictionary<string, string>> optionsUpdater)
             : this(customId, placeholder, options, allowMultiple, callback, revokeCallback)
         {

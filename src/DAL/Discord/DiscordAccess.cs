@@ -1427,10 +1427,16 @@ public class DiscordAccess : IDiscordAccess
     {
         if (_menuRegistry.IsRevokeButtonMenu(component.Data.CustomId))
         {
-            var modalData = _menuRegistry.GetRevokeMenuModal(component.Data.CustomId[..36],
-                                                             (DiscordUserId)component.User.Id);
-            if (modalData is not null)
-                await component.RespondWithModalAsync(modalData.ToModal());
+            // TODO: Replace temporary solution with modal.
+            // var modalData = _menuRegistry.GetRevokeMenuModal(component.Data.CustomId[..36],
+            //                                                  (DiscordUserId)component.User.Id);
+            // if (modalData is not null)
+            //     await component.RespondWithModalAsync(modalData.ToModal());
+            var selectMenuWorkaround = _menuRegistry.GetRevokeMenuSelectWorkaround(component.Data.CustomId[..36],
+                                                                                   (DiscordUserId)component.User.Id);
+            if (selectMenuWorkaround is not null)
+                await component.RespondAsync(components: ToMessageComponent(new[] { selectMenuWorkaround }),
+                                             ephemeral: true);
             else
                 await component.RespondAsync("No roles to revoked.");
             
