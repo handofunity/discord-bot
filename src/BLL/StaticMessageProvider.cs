@@ -337,6 +337,19 @@ public class StaticMessageProvider : IStaticMessageProvider
                         return false;
                 }
             }
+
+            foreach (var buttonComponent in pair.expectedMessage.Components.OfType<ButtonComponent>())
+            {
+                // Get existing button properties for the expected custom id.
+                if (!pair.existingMessage.CustomIdsAndOptions.TryGetValue(buttonComponent.CustomId, out var buttonProperties)
+                 || buttonProperties is null)
+                    return false;
+
+                // Button components should have the same label
+                if (!buttonProperties.TryGetValue(nameof(Shared.Objects.ButtonComponent.Label), out var existingLabel)
+                    || buttonComponent.Label != existingLabel)
+                    return false;
+            }
         }
 
         return true;

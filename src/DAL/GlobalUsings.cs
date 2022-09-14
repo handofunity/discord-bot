@@ -2,6 +2,7 @@
 
 global using System;
 global using System.Collections.Generic;
+global using System.Collections.Immutable;
 global using System.IdentityModel.Tokens.Jwt;
 global using System.IO;
 global using System.Linq;
@@ -15,6 +16,7 @@ global using Cronos;
 global using Discord;
 global using Discord.Interactions;
 global using Discord.Net;
+global using Discord.Rest;
 global using Discord.WebSocket;
 global using HoU.GuildBot.DAL.Database.Model;
 global using HoU.GuildBot.DAL.Discord.Preconditions;

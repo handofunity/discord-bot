@@ -606,7 +606,7 @@ public class MenuRegistry : IMenuRegistry
                 PartialCustomIds is null
                     ? (byte)1
                     : (byte)PartialCustomIds.Length,
-                "Select role(s) to revoke",
+                "Click here to remove roles",
                 InteractionButtonStyle.Danger);
     }
 }

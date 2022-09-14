@@ -1,6 +1,4 @@
-﻿using System.Collections.Immutable;
-using Discord.Rest;
-using ButtonComponent = HoU.GuildBot.Shared.Objects.ButtonComponent;
+﻿using ButtonComponent = Discord.ButtonComponent;
 using SelectMenuComponent = HoU.GuildBot.Shared.Objects.SelectMenuComponent;
 using User = HoU.GuildBot.Shared.Objects.User;
 
@@ -526,7 +524,7 @@ public class DiscordAccess : IDiscordAccess
 
         foreach (var component in components)
         {
-            if (component is ButtonComponent button)
+            if (component is Shared.Objects.ButtonComponent button)
             {
                 var buttonBuilder = new ButtonBuilder()
                                    .WithCustomId(button.CustomId)
@@ -844,7 +842,10 @@ public class DiscordAccess : IDiscordAccess
                             customIds[n.Key] = n.Value;
                         break;
                     case ComponentType.Button:
-                        customIds.Add(messageComponent.CustomId, null);
+                        customIds.Add(messageComponent.CustomId, new Dictionary<string, string>
+                        {
+                            {nameof(Shared.Objects.ButtonComponent.Label), ((ButtonComponent)messageComponent).Label}
+                        });
                         break;
                     case ComponentType.SelectMenu:
                         if (messageComponent is global::Discord.SelectMenuComponent selectMenuComponent)
@@ -921,9 +922,9 @@ public class DiscordAccess : IDiscordAccess
     async Task IDiscordAccess.CreateBotMessagesInChannelAsync(DiscordChannelId channelId,
                                                               (string Content, ActionComponent[] Components)[] messages)
     {
-        if (messages.Any(m => m.Components.OfType<ButtonComponent>().Count() > 25))
+        if (messages.Any(m => m.Components.OfType<Shared.Objects.ButtonComponent>().Count() > 25))
             throw new ArgumentOutOfRangeException(nameof(messages), "At least one message contains too many buttons.");
-        if (messages.Any(m => m.Components.OfType<ButtonComponent>().GroupBy(b => b.ActionRowNumber).Any(g => g.Count() > 5)))
+        if (messages.Any(m => m.Components.OfType<Shared.Objects.ButtonComponent>().GroupBy(b => b.ActionRowNumber).Any(g => g.Count() > 5)))
             throw new ArgumentOutOfRangeException(nameof(messages), "At least one message contains too many buttons in a single row.");
         if (messages.Any(m => m.Components.OfType<SelectMenuComponent>().Count() > 5))
             throw new ArgumentOutOfRangeException(nameof(messages), "At least one message contains too many select menus.");
