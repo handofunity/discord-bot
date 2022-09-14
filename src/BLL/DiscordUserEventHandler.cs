@@ -4,17 +4,20 @@ public class DiscordUserEventHandler : IDiscordUserEventHandler
 {
     private readonly IUserStore _userStore;
     private readonly IPrivacyProvider _privacyProvider;
+    private readonly IDynamicConfiguration _dynamicConfiguration;
     private readonly IDatabaseAccess _databaseAccess;
     private readonly IMenuRegistry _menuRegistry;
     private IDiscordAccess? _discordAccess;
         
     public DiscordUserEventHandler(IUserStore userStore,
                                    IPrivacyProvider privacyProvider,
+                                   IDynamicConfiguration dynamicConfiguration,
                                    IDatabaseAccess databaseAccess,
                                    IMenuRegistry menuRegistry)
     {
         _userStore = userStore;
         _privacyProvider = privacyProvider;
+        _dynamicConfiguration = dynamicConfiguration;
         _databaseAccess = databaseAccess;
         _menuRegistry = menuRegistry;
     }
@@ -36,6 +39,17 @@ public class DiscordUserEventHandler : IDiscordUserEventHandler
                 user.JoinedDate = joinedDate;
                 await _databaseAccess.UpdateUserInformationAsync(new []{ user });
             }
+            
+            var infosAndRolesChannelId = (DiscordChannelId)_dynamicConfiguration.DiscordMapping["InfoAndRolesChannelId"];
+            var messageContent = $"Welcome {userID.ToMention()}! Please use the two menus above to assign yourself roles "
+                               + "regarding your relationship to the guild and your game interests.";
+
+            await Task.Delay(TimeSpan.FromSeconds(15));
+            var messageIds = await _discordAccess!.CreateBotMessagesInChannelAsync(infosAndRolesChannelId,
+                                                                                   new[] { messageContent });
+            await Task.Delay(TimeSpan.FromMinutes(15));
+            await _discordAccess!.DeleteBotMessageInChannelAsync(infosAndRolesChannelId, messageIds[0]);
+
         }).ConfigureAwait(false);
     }
 
@@ -51,8 +65,8 @@ public class DiscordUserEventHandler : IDiscordUserEventHandler
             await _userStore.RemoveUser(userID);
             await _privacyProvider.DeleteUserRelatedData(user);
             var now = DateTime.UtcNow;
-            // Only post to Discord log if the user was on the server for more than 10 minutes, or the time on the server cannot be determined.
-            if ((now - user.JoinedDate).TotalMinutes > 10)
+            // Only post to Discord log if the user was on the server for more than a day, or the time on the server cannot be determined.
+            if (now.Date > user.JoinedDate)
             {
                 var mentionPrefix = string.Empty;
                 if (user.Roles != Role.NoRole
@@ -71,7 +85,7 @@ public class DiscordUserEventHandler : IDiscordUserEventHandler
                                                  $"(Membership level: **{user.Roles}**{formattedRolesMessage}) " +
                                                  $"has left the server on {now:D} at {now:HH:mm:ss} UTC.");
             }
-            // If it has been less than 10 minutes, write to the #public-chat, so people will know that a new user left before greeting them.
+            // If it has been less than a day, write to the #public-chat, so people will know that a new user left before greeting them.
             else
             {
                 await discordAccess.CreateBotMessageInWelcomeChannel($"User `{username}#{discriminatorValue}` has left the server.");
