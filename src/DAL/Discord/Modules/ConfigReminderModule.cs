@@ -37,7 +37,7 @@ public partial class ConfigModule
             {
                 await
                     FollowupAsync($"Failed to get next occurrence. Cron expression might be invalid. **Error:** {e.GetBaseException().Message}");
-                _logger.LogError(e, "Failed to get next occurrence. Cron expression might be invalid.");
+                _logger.LogError(e, "Failed to get next occurrence. Cron expression might be invalid");
                 return null;
             }
         }
@@ -87,7 +87,7 @@ public partial class ConfigModule
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Failed to create new reminder.");
+                _logger.LogError(e, "Failed to create new reminder");
                 await FollowupAsync($"Failed to create reminder. **Error:** {e.GetBaseException().Message}");
             }
         }
@@ -123,7 +123,7 @@ public partial class ConfigModule
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Failed to reschedule existing reminder.");
+                _logger.LogError(e, "Failed to reschedule existing reminder");
                 await FollowupAsync($"Failed to reschedule existing reminder. **Error:** {e.GetBaseException().Message}");
             }
         }
@@ -158,7 +158,7 @@ public partial class ConfigModule
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Failed to add user mention.");
+                _logger.LogError(e, "Failed to add user mention");
                 await FollowupAsync($"Failed to add user mention. **Error:** {e.GetBaseException().Message}");
             }
         }
@@ -193,7 +193,7 @@ public partial class ConfigModule
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Failed to add role mention.");
+                _logger.LogError(e, "Failed to add role mention");
                 await FollowupAsync($"Failed to add role mention. **Error:** {e.GetBaseException().Message}");
             }
         }

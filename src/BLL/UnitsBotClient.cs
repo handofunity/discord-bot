@@ -125,7 +125,7 @@ public class UnitsBotClient : IUnitsBotClient
                                                                bool isAllDay,
                                                                string cardUrl)
     {
-        _logger.LogDebug("Received EventCreatedMessage for event \"{EventName}\" (Id: {AppointmentId}).",
+        _logger.LogDebug("Received EventCreatedMessage for event \"{EventName}\" (Id: {AppointmentId})",
                          eventName,
                          appointmentId);
         var fields = new List<EmbedField>();
@@ -147,7 +147,7 @@ public class UnitsBotClient : IUnitsBotClient
         }
         else
         {
-            _logger.LogDebug("Image URL for event {AppointmentId} is null.",
+            _logger.LogDebug("Image URL for event {AppointmentId} is null",
                              appointmentId);
         }
         await _discordAccess.SendUnitsNotificationAsync(embed);
@@ -259,7 +259,7 @@ public class UnitsBotClient : IUnitsBotClient
         if (unitsSyncData == null)
         {
             _logger.LogError($"Cannot find matching sync-endpoint in {nameof(IDynamicConfiguration)}.{nameof(IDynamicConfiguration.UnitsEndpoints)} " +
-                             "for base address {BaseAddress}.", baseAddress);
+                             "for base address {BaseAddress}", baseAddress);
             return;
         }
 
@@ -318,12 +318,12 @@ public class UnitsBotClient : IUnitsBotClient
             try
             {
                 await _discordAccess.DeleteVoiceChannel((DiscordChannelId)voiceChannelId);
-                _logger.LogInformation("Deleted voice channel {VoiceChannelId}.", voiceChannelId);
+                _logger.LogInformation("Deleted voice channel {VoiceChannelId}", voiceChannelId);
             }
             catch (Exception e)
             {
                 _logger.LogWarning(e,
-                                   "Failed to delete voice channel {VoiceChannelId}.",
+                                   "Failed to delete voice channel {VoiceChannelId}",
                                    voiceChannelId);
             }
         }
@@ -341,7 +341,7 @@ public class UnitsBotClient : IUnitsBotClient
         if (unitsSyncData == null)
         {
             _logger.LogError($"Cannot find matching sync-endpoint in {nameof(IDynamicConfiguration)}.{nameof(IDynamicConfiguration.UnitsEndpoints)} " +
-                             "for base address {BaseAddress}.", baseAddress);
+                             "for base address {BaseAddress}", baseAddress);
             return;
         }
 

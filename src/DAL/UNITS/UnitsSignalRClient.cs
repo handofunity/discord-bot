@@ -158,7 +158,7 @@ public class UnitsSignalRClient : IUnitsSignalRClient
                 }
                 catch (Exception e)
                 {
-                    _logger.LogError(e, "Failed to re-connect to UNITS at {BaseUrl}.", unitsEndpoint.BaseAddress);
+                    _logger.LogError(e, "Failed to re-connect to UNITS at {BaseUrl}", unitsEndpoint.BaseAddress);
                     if (e is HttpRequestException httpRequestException && httpRequestException.Message.Contains("401"))
                     {
                         _requiresTokenRefresh[unitsEndpoint.BaseAddress] = true;
@@ -181,7 +181,7 @@ public class UnitsSignalRClient : IUnitsSignalRClient
                 await connection.StartAsync();
                     
                 if (connection.State == HubConnectionState.Connected)
-                    _logger.LogInformation("Connected to UNITS at {BaseUrl}.", unitsEndpoint.BaseAddress);
+                    _logger.LogInformation("Connected to UNITS at {BaseUrl}", unitsEndpoint.BaseAddress);
             }
             catch (Exception e)
             {

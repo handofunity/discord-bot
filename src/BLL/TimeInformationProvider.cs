@@ -18,8 +18,8 @@ public class TimeInformationProvider : ITimeInformationProvider
         var supportedTimeZones = TimeZoneInfo.GetSystemTimeZones();
         var result = new List<string>(_dynamicConfiguration.DesiredTimeZones.Length);
 
-        _logger.LogDebug($"Desired time zones: {_dynamicConfiguration.DesiredTimeZones.Length}");
-        _logger.LogDebug($"Supported time zones: {supportedTimeZones.Count}");
+        _logger.LogDebug("Desired time zones: {DesiredTimeZones}", _dynamicConfiguration.DesiredTimeZones.Length);
+        _logger.LogDebug("Supported time zones: {SupportedTimeZones}", supportedTimeZones.Count);
 
         foreach (var desiredTimeZone in _dynamicConfiguration.DesiredTimeZones)
         {
@@ -32,7 +32,7 @@ public class TimeInformationProvider : ITimeInformationProvider
                 var tz = supportedTimeZones.SingleOrDefault(m => m.Id == desiredTimeZone.TimeZoneId);
                 if (tz == null)
                 {
-                    _logger.LogWarning($"Desired time zone '{desiredTimeZone}' is not available.");
+                    _logger.LogWarning("Desired time zone '{TimeZone}' is not available", desiredTimeZone);
                     continue;
                 }
 

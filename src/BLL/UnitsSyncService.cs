@@ -39,7 +39,7 @@ public class UnitsSyncService : IUnitsSyncService
     {
         if (_dynamicConfiguration.UnitsEndpoints.Length == 0)
         {
-            _logger.LogWarning("No UNITS access configured.");
+            _logger.LogWarning("No UNITS access configured");
             return;
         }
 
@@ -52,20 +52,20 @@ public class UnitsSyncService : IUnitsSyncService
         {
             if (string.IsNullOrWhiteSpace(unitsSyncData.BaseAddress))
             {
-                _logger.LogWarning("UNITS base address not configured.");
+                _logger.LogWarning("UNITS base address not configured");
                 continue;
             }
 
             if (string.IsNullOrWhiteSpace(unitsSyncData.Secret))
             {
-                _logger.LogWarning("UNITS access secret not configured.");
+                _logger.LogWarning("UNITS access secret not configured");
                 continue;
             }
 
             var allowedRoles = await _unitsAccess.GetValidRoleNamesAsync(unitsSyncData);
             if (allowedRoles == null)
             {
-                _logger.LogWarning("Failed to synchronize all users: {Reason}.", "unable to fetch allowed roles");
+                _logger.LogWarning("Failed to synchronize all users: {Reason}", "unable to fetch allowed roles");
                 continue;
             }
 
@@ -134,7 +134,7 @@ public class UnitsSyncService : IUnitsSyncService
             }
             else
             {
-                _logger.LogWarning("Failed to synchronize all users: {Reason}.", "unable to fetch allowed users");
+                _logger.LogWarning("Failed to synchronize all users: {Reason}", "unable to fetch allowed users");
             }
         }
     }

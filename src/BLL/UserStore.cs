@@ -84,7 +84,7 @@ public class UserStore : IUserStore
 
             _logger.LogInformation("Loading users from database...");
             var usersInDatabase = await _databaseAccess.GetAllUsers();
-            _logger.LogInformation("Loaded {UsersInDatabase} users from the database.", usersInDatabase.Length);
+            _logger.LogInformation("Loaded {UsersInDatabase} users from the database", usersInDatabase.Length);
 
             _logger.LogInformation("Intersecting users on server with users in database to apply Discord information for memory-cache...");
             var userInfosToPersistToDatabase = new List<User>();
@@ -122,7 +122,7 @@ public class UserStore : IUserStore
             }
 
             _isInitialized = true;
-            _logger.LogInformation("User store initialized with {Users} users in memory-cache.", _store.Count);
+            _logger.LogInformation("User store initialized with {Users} users in memory-cache", _store.Count);
         }
         finally
         {
@@ -142,7 +142,7 @@ public class UserStore : IUserStore
             user = _store.SingleOrDefault(m => m.DiscordUserId == userID);
             var success = user != null;
             if (!success)
-                _logger.LogWarning("Failed to get user {DiscordUserId} from the user store.", userID);
+                _logger.LogWarning("Failed to get user {DiscordUserId} from the user store", userID);
             return success;
         }
         finally

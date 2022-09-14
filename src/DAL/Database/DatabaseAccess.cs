@@ -66,7 +66,7 @@ public class DatabaseAccess : IDatabaseAccess
         }
 
         await entities.SaveChangesAsync();
-        _logger.LogInformation("Added {UsersAdded} missing users to the database.", added);
+        _logger.LogInformation("Added {UsersAdded} missing users to the database", added);
     }
 
     async Task<(User User, bool IsNew)> IDatabaseAccess.GetOrAddUserAsync(DiscordUserId userId)
@@ -368,7 +368,7 @@ public class DatabaseAccess : IDatabaseAccess
         catch (Exception e)
         {
             _logger.LogError(e,
-                             "Failed to set birthday for user {InternalUserId} to {Day}(st/nd/th) {Month}.",
+                             "Failed to set birthday for user {InternalUserId} to {Day}(st/nd/th) {Month}",
                              user.InternalUserId,
                              birthday.Day,
                              birthday.Month);
