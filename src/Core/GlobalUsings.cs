@@ -9,7 +9,6 @@ global using HoU.GuildBot.DAL;
 global using HoU.GuildBot.DAL.Database;
 global using HoU.GuildBot.DAL.Discord;
 global using HoU.GuildBot.DAL.UNITS;
-global using HoU.GuildBot.DAL.UnityHub;
 global using HoU.GuildBot.Shared.BLL;
 global using HoU.GuildBot.Shared.DAL;
 global using HoU.GuildBot.Shared.Objects;

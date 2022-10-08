@@ -1,4 +1,5 @@
 ﻿using DesiredTimeZone = HoU.GuildBot.Shared.Objects.DesiredTimeZone;
+using KeycloakEndpoint = HoU.GuildBot.Shared.Objects.KeycloakEndpoint;
 using UnitsEndpoint = HoU.GuildBot.Shared.Objects.UnitsEndpoint;
 
 namespace HoU.GuildBot.DAL.Database;
@@ -33,10 +34,22 @@ public class ConfigurationDatabaseAccess : IConfigurationDatabaseAccess
     {
         await using var entities = GetDbContext();
         var dbEntries = await entities.UnitsEndpoint.ToArrayAsync();
-        return dbEntries.Select(m => new UnitsEndpoint(m.BaseAddress,
+        return dbEntries.Select(m => new UnitsEndpoint(new Uri(m.BaseAddress),
                                                        m.Secret,
                                                        m.ConnectToRestApi,
                                                        m.ConnectToNotificationsHub))
+                        .ToArray();
+    }
+
+    async Task<KeycloakEndpoint[]> IConfigurationDatabaseAccess.GetAllKeycloakEndpointsAsync()
+    {
+        await using var entities = GetDbContext();
+        var dbEntries = await entities.KeycloakEndpoint.ToArrayAsync();
+        return dbEntries.Select(m => new KeycloakEndpoint(new Uri(m.BaseUrl),
+                                                          new Uri(m.AccessTokenUrl),
+                                                          m.ClientId,
+                                                          m.ClientSecret,
+                                                          m.Realm))
                         .ToArray();
     }
 

@@ -508,16 +508,6 @@ public class DiscordAccess : IDiscordAccess
                 .ToArray();
     }
 
-    private SocketGuildUser[] GetGuildMembersWithAnyGivenRole(SocketGuild guild,
-                                                              ulong[]? roleIds)
-    {
-        return guild.Users
-                    .Where(m => _userStore.TryGetUser((DiscordUserId) m.Id, out var user)
-                             && user!.IsGuildMember
-                             && (roleIds == null || roleIds.Intersect(m.Roles.Select(r => r.Id)).Any()))
-                    .ToArray();
-    }
-
     private static MessageComponent ToMessageComponent(IEnumerable<ActionComponent> components)
     {
         var builder = new ComponentBuilder();
@@ -1081,26 +1071,23 @@ public class DiscordAccess : IDiscordAccess
         return gu.AvatarId;
     }
 
-    UserModel[] IDiscordAccess.GetUsersInRoles(string[] allowedRoles)
+    async Task<UserModel[]> IDiscordAccess.GetAllUsersAsync()
     {
+        var result = new List<UserModel>();
         var g = GetGuild();
-        var allowedRoleIds = allowedRoles.Select(GetRoleByName)
-                                         .Select(m => m.Id)
-                                         .ToArray();
-        var users = GetGuildMembersWithAnyGivenRole(g, allowedRoleIds);
-        return users.Select(m => new UserModel
-                     {
-                         DiscordUserId = (DiscordUserId)m.Id,
-                         Username = m.Username,
-                         Discriminator = (short)m.DiscriminatorValue,
-                         Nickname = m.Nickname,
-                         AvatarId = m.AvatarId,
-                         Roles = m.Roles
-                                  .Where(r => allowedRoleIds.Contains(r.Id))
-                                  .Select(r => r.Name)
-                                  .ToArray()
-                     })
-                    .ToArray();
+        await foreach (var users in g.GetUsersAsync())
+        {
+            result.AddRange(users.Select(user => new UserModel
+            {
+                DiscordUserId = (DiscordUserId)user.Id,
+                Username = user.Username,
+                Discriminator = (short)user.DiscriminatorValue,
+                AvatarId = user.AvatarId,
+                Roles = user.RoleIds.Select(m => (DiscordRoleId)m).ToArray()
+            }));
+        }
+
+        return result.ToArray();
     }
 
     string IDiscordAccess.GetLeadershipMention()
@@ -1594,7 +1581,10 @@ public class DiscordAccess : IDiscordAccess
                 break;
         }
 
-        await ctx.Interaction.RespondAsync(embeds: new[] { builder.Build() }, ephemeral: true);
+        if (ctx.Interaction.HasResponded)
+            await ctx.Interaction.FollowupAsync(embeds: new[] { builder.Build() }, ephemeral: true);
+        else
+            await ctx.Interaction.RespondAsync(embeds: new[] { builder.Build() }, ephemeral: true);
     }
 
     private async Task Client_MessageReceived(SocketMessage message)

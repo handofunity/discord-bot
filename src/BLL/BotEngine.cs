@@ -56,8 +56,8 @@ public class BotEngine : IBotEngine
                 try
                 {
                     // Connect to UNITS to receive push notifications
-                    foreach (var unitsSyncData in _dynamicConfiguration.UnitsEndpoints.Where(m => !string.IsNullOrWhiteSpace(m.BaseAddress)
-                                                                                              && !string.IsNullOrWhiteSpace(m.Secret)
+                    foreach (var unitsSyncData in _dynamicConfiguration.UnitsEndpoints.Where(m => !string.IsNullOrWhiteSpace(m.BaseAddress.ToString())
+                                                                                              && !string.IsNullOrWhiteSpace(m.ClientSecret)
                                                                                               && m.ConnectToNotificationHub))
                     {
                         await _unitsSignalRClient.ConnectAsync(unitsSyncData);
@@ -118,10 +118,10 @@ public class BotEngine : IBotEngine
             _privacyProvider.Start();
 
             // Register background jobs (HangFire).
-            // Sync all users every 15 minutes to UNITS.
-            RecurringJob.AddOrUpdate<IUnitsSyncService>("sync-users-to-UNITS", service => service.SyncAllUsers(), "0,15,30,45 0-23 * * *");
-            // Sync all users every 15 minutes to UnityHub.
-            RecurringJob.AddOrUpdate<UnityHubSyncService>("sync-users-to-UnityHub", service => service.SyncAllUsers(), "0,15,30,45 0-23 * * *");
+            // Sync all users every 15 minutes to Keycloak.
+            RecurringJob.AddOrUpdate<IKeycloakSyncService>("sync-users-to-Keycloak", service => service.SyncAllUsersAsync(), "0,15,30,45 0-23 * * *");
+            // Delete flagged users in Keycloak once a day.
+            RecurringJob.AddOrUpdate<IKeycloakSyncService>("delete-flagged-users-in-Keycloak", service => service.DeleteFlaggedUsersAsync(), "30 4 * * *");
             // Send personal reminders as scheduled.
             SchedulePersonalReminders();
             // Apply birthday role at 09:00 community time (UTC).

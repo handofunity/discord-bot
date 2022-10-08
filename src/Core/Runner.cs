@@ -1,10 +1,13 @@
-﻿using DiscordUserEventHandler = HoU.GuildBot.BLL.DiscordUserEventHandler;
+﻿using System.Net.Http;
+using System.Net.Http.Headers;
+using HoU.GuildBot.DAL.Keycloak;
+using DiscordUserEventHandler = HoU.GuildBot.BLL.DiscordUserEventHandler;
 
 namespace HoU.GuildBot.Core;
 
 public class Runner
 {
-    private static readonly Version _botVersion = new(9, 5, 0);
+    private static readonly Version _botVersion = new(10, 0, 0);
 
     private BackgroundJobServer? _backgroundJobServer;
     private ILogger<Runner>? _logger;
@@ -108,8 +111,9 @@ public class Runner
            .AddTransient<IUserInfoProvider, UserInfoProvider>()
            .AddTransient<IImageProvider, ImageProvider>()
            .AddTransient<ITimeInformationProvider, TimeInformationProvider>()
-           .AddTransient<IUnitsSyncService, UnitsSyncService>()
+           .AddTransient<IKeycloakSyncService, KeycloakSyncService>()
            .AddTransient<IScheduledReminderProvider, ScheduledReminderProvider>()
+           .AddTransient<IKeycloakDiscordComparer, KeycloakDiscordComparer>()
             // Triggered as scheduled HangFire job
            .AddTransient<UnityHubSyncService>()
            .AddTransient<ReminderService>();
@@ -117,14 +121,33 @@ public class Runner
 
     private static void RegisterDAL(IServiceCollection serviceCollection)
     {
+        serviceCollection.AddHttpClient("units")
+                         .ConfigureHttpClient(client =>
+                          {
+                              client.DefaultRequestHeaders.Accept.Clear();
+                              client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                          })
+                         .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+                          {
+#if DEBUG
+                              ServerCertificateCustomValidationCallback = (_, _, _, _) => true
+#endif
+                          });
+        serviceCollection.AddHttpClient("keycloak")
+                         .ConfigureHttpClient(client =>
+                          {
+                              client.DefaultRequestHeaders.Accept.Clear();
+                              client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                          });
         serviceCollection.AddSingleton<IConfigurationDatabaseAccess, ConfigurationDatabaseAccess>();
         serviceCollection.AddSingleton<IDatabaseAccess, DatabaseAccess>();
         serviceCollection.AddSingleton<IDiscordAccess, DiscordAccess>();
         serviceCollection.AddSingleton<IWebAccess, WebAccess>();
-        serviceCollection.AddSingleton<IUnitsBearerTokenManager, UnitsBearerTokenManager>();
+        serviceCollection.AddSingleton<IBearerTokenManager<UnitsAccess>, BearerTokenManager<UnitsAccess>>();
+        serviceCollection.AddSingleton<IBearerTokenManager<KeycloakAccess>, BearerTokenManager<KeycloakAccess>>();
         serviceCollection.AddSingleton<IUnitsAccess, UnitsAccess>();
         serviceCollection.AddSingleton<IUnitsSignalRClient, UnitsSignalRClient>();
-        serviceCollection.AddSingleton<IUnityHubAccess, UnityHubAccess>();
+        serviceCollection.AddSingleton<IKeycloakAccess, KeycloakAccess>();
     }
 
     private static void RegisterLogging(IServiceCollection serviceCollection, IConfiguration completeConfiguration)

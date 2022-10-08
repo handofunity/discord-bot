@@ -1,6 +1,7 @@
 ﻿namespace HoU.GuildBot.Shared.Objects;
 
-public record UnitsEndpoint(string BaseAddress,
-                            string Secret,
+public record UnitsEndpoint(Uri BaseAddress,
+                            string ClientSecret,
                             bool ConnectToRestApi,
-                            bool ConnectToNotificationHub);
+                            bool ConnectToNotificationHub)
+    : AuthorizationEndpoint(new Uri(BaseAddress, "/bot-api/auth/token"), "GuildBot", ClientSecret);

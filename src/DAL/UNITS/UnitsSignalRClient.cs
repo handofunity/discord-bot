@@ -4,53 +4,30 @@ namespace HoU.GuildBot.DAL.UNITS;
 
 public class UnitsSignalRClient : IUnitsSignalRClient
 {
-    private readonly IUnitsBearerTokenManager _bearerTokenManager;
+    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly IBearerTokenManager<UnitsAccess> _bearerTokenManager;
     private readonly IUnitsBotClient _botClient;
     private readonly ILogger<UnitsSignalRClient> _logger;
     private const string BotHubRoute = "/bot-hub";
 
-    private readonly Dictionary<string, HubConnection> _hubConnections;
-    private readonly Dictionary<string, bool> _requiresTokenRefresh;
+    private readonly Dictionary<Uri, HubConnection> _hubConnections;
+    private readonly Dictionary<Uri, bool> _requiresTokenRefresh;
 
-    private readonly Dictionary<string, HttpClient> _authHttpClients;
-
-    public UnitsSignalRClient(IUnitsBearerTokenManager bearerTokenManager,
+    public UnitsSignalRClient(IHttpClientFactory httpClientFactory,
+                              IBearerTokenManager<UnitsAccess> bearerTokenManager,
                               IUnitsBotClient botClient,
                               ILogger<UnitsSignalRClient> logger)
     {
+        _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
         _bearerTokenManager = bearerTokenManager ?? throw new ArgumentNullException(nameof(bearerTokenManager));
         _botClient = botClient ?? throw new ArgumentNullException(nameof(botClient));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _hubConnections = new Dictionary<string, HubConnection>();
-        _requiresTokenRefresh = new Dictionary<string, bool>();
-        _authHttpClients = new Dictionary<string, HttpClient>();
-    }
-
-    private HttpClient GetHttpClient(string baseAddress)
-    {
-        if (_authHttpClients.TryGetValue(baseAddress, out var httpClient))
-            return httpClient;
-
-        var httpClientHandler = new HttpClientHandler
-        {
-#if DEBUG
-            ServerCertificateCustomValidationCallback = (message,
-                                                         certificate2,
-                                                         arg3,
-                                                         arg4) => true
-#endif
-        };
-        httpClient = new HttpClient(httpClientHandler) { BaseAddress = new Uri(baseAddress) };
-        httpClient.DefaultRequestHeaders.Accept.Clear();
-        httpClient.DefaultRequestHeaders.Accept
-                  .Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-        _authHttpClients[baseAddress] = httpClient;
-        return httpClient;
+        _hubConnections = new Dictionary<Uri, HubConnection>();
+        _requiresTokenRefresh = new Dictionary<Uri, bool>();
     }
 
     private void RegisterHandlers(HubConnection connection,
-                                  string baseAddress)
+                                  Uri baseAddress)
     {
         var methods = typeof(IUnitsBotClient)
                      .GetMethods(BindingFlags.Instance | BindingFlags.Public)
@@ -130,9 +107,8 @@ public class UnitsSignalRClient : IUnitsSignalRClient
                                      options.AccessTokenProvider = async () =>
                                      {
                                          var token =
-                                             await _bearerTokenManager.GetBearerTokenAsync(GetHttpClient(unitsEndpoint.BaseAddress),
-                                                                                           unitsEndpoint.BaseAddress,
-                                                                                           unitsEndpoint.Secret,
+                                             await _bearerTokenManager.GetBearerTokenAsync(_httpClientFactory.CreateClient("units"),
+                                                                                           unitsEndpoint,
                                                                                            _requiresTokenRefresh
                                                                                                [unitsEndpoint.BaseAddress]);
                                          _requiresTokenRefresh[unitsEndpoint.BaseAddress] = false;

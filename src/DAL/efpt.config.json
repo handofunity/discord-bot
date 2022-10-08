@@ -42,6 +42,10 @@
          "ObjectType": 0
       },
       {
+         "Name": "config.keycloak_endpoint",
+         "ObjectType": 0
+      },
+      {
          "Name": "config.scheduled_reminder_mention",
          "ObjectType": 0
       },

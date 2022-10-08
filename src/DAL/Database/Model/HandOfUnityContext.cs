@@ -1,4 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata;
+﻿using System;
+using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace HoU.GuildBot.DAL.Database.Model
 {
@@ -8,6 +11,7 @@ namespace HoU.GuildBot.DAL.Database.Model
         public virtual DbSet<DiscordMapping> DiscordMapping { get; set; } = null!;
         public virtual DbSet<Game> Game { get; set; } = null!;
         public virtual DbSet<GameRole> GameRole { get; set; } = null!;
+        public virtual DbSet<KeycloakEndpoint> KeycloakEndpoint { get; set; } = null!;
         public virtual DbSet<Message> Message { get; set; } = null!;
         public virtual DbSet<ScheduledReminder> ScheduledReminder { get; set; } = null!;
         public virtual DbSet<ScheduledReminderMention> ScheduledReminderMention { get; set; } = null!;
@@ -126,6 +130,38 @@ namespace HoU.GuildBot.DAL.Database.Model
                     .HasForeignKey(d => d.ModifiedByUserId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("fk_game_role_user_modified_by_user_id");
+            });
+
+            modelBuilder.Entity<KeycloakEndpoint>(entity =>
+            {
+                entity.ToTable("keycloak_endpoint", "config");
+
+                entity.HasIndex(e => new { e.BaseUrl, e.Realm }, "uq_base_url_realm")
+                    .IsUnique();
+
+                entity.Property(e => e.KeycloakEndpointId)
+                    .HasColumnName("keycloak_endpoint_id")
+                    .UseIdentityAlwaysColumn();
+
+                entity.Property(e => e.AccessTokenUrl)
+                    .HasMaxLength(256)
+                    .HasColumnName("access_token_url");
+
+                entity.Property(e => e.BaseUrl)
+                    .HasMaxLength(256)
+                    .HasColumnName("base_url");
+
+                entity.Property(e => e.ClientId)
+                    .HasMaxLength(128)
+                    .HasColumnName("client_id");
+
+                entity.Property(e => e.ClientSecret)
+                    .HasMaxLength(128)
+                    .HasColumnName("client_secret");
+
+                entity.Property(e => e.Realm)
+                    .HasMaxLength(128)
+                    .HasColumnName("realm");
             });
 
             modelBuilder.Entity<Message>(entity =>

@@ -3,7 +3,7 @@
 public class UserModel
 {
     private string _username;
-    private IReadOnlyList<string> _roles;
+    private IReadOnlyList<DiscordRoleId> _roles;
 
     /// <summary>
     /// Gets or sets the user's Discord ID.
@@ -26,11 +26,6 @@ public class UserModel
     public short Discriminator { get; set; }
 
     /// <summary>
-    /// Gets or sets the user's Discord nickname on the guild's server.
-    /// </summary>
-    public string? Nickname { get; set; }
-
-    /// <summary>
     /// Gets or sets the user's Discord avatar hash.
     /// </summary>
     public string? AvatarId { get; set; }
@@ -39,7 +34,7 @@ public class UserModel
     /// Gets or sets the roles the user has.
     /// </summary>
     /// <exception cref="ArgumentNullException">The property gets set to <b>null</b>.</exception>
-    public IReadOnlyList<string> Roles
+    public IReadOnlyList<DiscordRoleId> Roles
     {
         get => _roles;
         set => _roles = value ?? throw new ArgumentNullException(nameof(value), $"{nameof(Roles)} cannot be set to null.");
@@ -51,6 +46,6 @@ public class UserModel
     public UserModel()
     {
         _username = string.Empty;
-        _roles = Array.Empty<string>();
+        _roles = Array.Empty<DiscordRoleId>();
     }
 }

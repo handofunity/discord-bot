@@ -4,6 +4,8 @@ public interface IConfigurationDatabaseAccess
 {
     Task<UnitsEndpoint[]> GetAllUnitsEndpointsAsync();
 
+    Task<KeycloakEndpoint[]> GetAllKeycloakEndpointsAsync();
+
     Task<DesiredTimeZone[]> GetAllDesiredTimeZonesAsync();
 
     Task<ScheduledReminderInfo[]> GetAllScheduledReminderInfosAsync();

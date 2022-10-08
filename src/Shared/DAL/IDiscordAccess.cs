@@ -242,13 +242,12 @@ public interface IDiscordAccess
     /// <param name="userId">The <see cref="DiscordUserId"/> of the user to get the avatar Id for.</param>
     /// <returns>The avatar Id, or <b>null</b>.</returns>
     string? GetAvatarId(DiscordUserId userId);
-
+    
     /// <summary>
-    /// Gets all users that have one or more of the <paramref name="allowedRoles"/>.
+    /// Gets all users on the Discord server.
     /// </summary>
-    /// <param name="allowedRoles">The roles that are allowed for users in the result set.</param>
-    /// <returns>All users with their allowed roles and detailed information.</returns>
-    UserModel[] GetUsersInRoles(string[] allowedRoles);
+    /// <returns>All users with their roles and detailed information.</returns>
+    Task<UserModel[]> GetAllUsersAsync();
 
     /// <summary>
     /// Gets the leadership mention string.
@@ -304,4 +303,6 @@ public interface IDiscordAccess
     /// <param name="userId">The <see cref="DiscordUserId"/> of the user to get the roles for.</param>
     /// <returns>An array of all current roles the user has.</returns>
     DiscordRoleId[] GetUserRoles(DiscordUserId userId);
+
+    
 }

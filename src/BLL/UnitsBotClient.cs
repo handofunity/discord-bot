@@ -255,7 +255,7 @@ public class UnitsBotClient : IUnitsBotClient
                                                                            byte maxAmountOfGroups,
                                                                            byte? maxGroupSize)
     {
-        var unitsSyncData = _dynamicConfiguration.UnitsEndpoints.SingleOrDefault(m => m.BaseAddress == baseAddress);
+        var unitsSyncData = _dynamicConfiguration.UnitsEndpoints.SingleOrDefault(m => m.BaseAddress.ToString() == baseAddress);
         if (unitsSyncData == null)
         {
             _logger.LogError($"Cannot find matching sync-endpoint in {nameof(IDynamicConfiguration)}.{nameof(IDynamicConfiguration.UnitsEndpoints)} " +
@@ -337,7 +337,7 @@ public class UnitsBotClient : IUnitsBotClient
         if (voiceChannelIds == null || voiceChannelIds.Length == 0)
             return;
 
-        var unitsSyncData = _dynamicConfiguration.UnitsEndpoints.SingleOrDefault(m => m.BaseAddress == baseAddress);
+        var unitsSyncData = _dynamicConfiguration.UnitsEndpoints.SingleOrDefault(m => m.BaseAddress.ToString() == baseAddress);
         if (unitsSyncData == null)
         {
             _logger.LogError($"Cannot find matching sync-endpoint in {nameof(IDynamicConfiguration)}.{nameof(IDynamicConfiguration.UnitsEndpoints)} " +

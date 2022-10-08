@@ -86,4 +86,30 @@
   	<excludeOperator>LessThanOrEqual</excludeOperator>
   	<excludeOperator>GreaterThanOrEqual</excludeOperator>
   </strongType>
+  <strongType name="KeycloakUserId"
+              internalType="System.Guid"
+              provideSystemTextJsonConverter="false"
+              provideNewtonsoftJsonConverter="false">
+    <excludeOperator>Add</excludeOperator>
+    <excludeOperator>Subtract</excludeOperator>
+    <excludeOperator>Increment</excludeOperator>
+    <excludeOperator>Decrement</excludeOperator>
+    <excludeOperator>LessThan</excludeOperator>
+    <excludeOperator>GreaterThan</excludeOperator>
+    <excludeOperator>LessThanOrEqual</excludeOperator>
+    <excludeOperator>GreaterThanOrEqual</excludeOperator>
+  </strongType>
+  <strongType name="KeycloakGroupId"
+              internalType="System.Guid"
+              provideSystemTextJsonConverter="false"
+              provideNewtonsoftJsonConverter="false">
+    <excludeOperator>Add</excludeOperator>
+    <excludeOperator>Subtract</excludeOperator>
+    <excludeOperator>Increment</excludeOperator>
+    <excludeOperator>Decrement</excludeOperator>
+    <excludeOperator>LessThan</excludeOperator>
+    <excludeOperator>GreaterThan</excludeOperator>
+    <excludeOperator>LessThanOrEqual</excludeOperator>
+    <excludeOperator>GreaterThanOrEqual</excludeOperator>
+  </strongType>
 </strongTypes>

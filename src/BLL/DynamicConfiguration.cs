@@ -6,6 +6,7 @@ public class DynamicConfiguration : IDynamicConfiguration
 
     private EventHandler<EventArgs>? _dataLoaded;
     private UnitsEndpoint[]? _unitsEndpoints;
+    private KeycloakEndpoint[]? _keycloakEndpoints;
     private DesiredTimeZone[]? _desiredTimeZones;
     private ScheduledReminderInfo[]? _scheduledReminderInfos;
     private Dictionary<string, ulong>? _discordMapping;
@@ -29,6 +30,8 @@ public class DynamicConfiguration : IDynamicConfiguration
 
     UnitsEndpoint[] IDynamicConfiguration.UnitsEndpoints => _unitsEndpoints ?? throw InvalidAccess();
 
+    KeycloakEndpoint[] IDynamicConfiguration.KeycloakEndpoints => _keycloakEndpoints ?? throw InvalidAccess();
+
     DesiredTimeZone[] IDynamicConfiguration.DesiredTimeZones => _desiredTimeZones ?? throw InvalidAccess();
 
     ScheduledReminderInfo[] IDynamicConfiguration.ScheduledReminderInfos => _scheduledReminderInfos ?? throw InvalidAccess();
@@ -40,6 +43,7 @@ public class DynamicConfiguration : IDynamicConfiguration
     async Task IDynamicConfiguration.LoadAllDataAsync()
     {
         _unitsEndpoints = await _configurationDatabaseAccess.GetAllUnitsEndpointsAsync();
+        _keycloakEndpoints = await _configurationDatabaseAccess.GetAllKeycloakEndpointsAsync();
         _desiredTimeZones = await _configurationDatabaseAccess.GetAllDesiredTimeZonesAsync();
         _scheduledReminderInfos = await _configurationDatabaseAccess.GetAllScheduledReminderInfosAsync();
         _discordMapping = await _configurationDatabaseAccess.GetFullDiscordMappingAsync();

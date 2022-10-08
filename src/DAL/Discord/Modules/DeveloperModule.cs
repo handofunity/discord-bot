@@ -4,13 +4,13 @@
 [Group("dev", "Administrative commands.")]
 public class DeveloperModule : InteractionModuleBase<SocketInteractionContext>
 {
-    private readonly IUnitsSyncService _unitsSyncService;
+    private readonly IKeycloakSyncService _keycloakSyncService;
     private readonly ILogger<DeveloperModule> _logger;
 
-    public DeveloperModule(IUnitsSyncService unitsSyncService,
-                       ILogger<DeveloperModule> logger)
+    public DeveloperModule(IKeycloakSyncService keycloakSyncService,
+                           ILogger<DeveloperModule> logger)
     {
-        _unitsSyncService = unitsSyncService;
+        _keycloakSyncService = keycloakSyncService;
         _logger = logger;
     }
 
@@ -27,12 +27,13 @@ public class DeveloperModule : InteractionModuleBase<SocketInteractionContext>
         }).ConfigureAwait(false);
     }
 
-    [SlashCommand("sync-units", "Synchronizes all current guild users with the configured UNITS endpoints.", runMode: RunMode.Async)]
+    [SlashCommand("sync-keycloak", "Synchronizes all current guild users with the configured Keycloak endpoints.", runMode: RunMode.Async)]
     [AllowedRoles(Role.Leader | Role.Officer)]
     public async Task SyncUnitsAsync()
     {
         await DeferAsync();
-        await _unitsSyncService.SyncAllUsers();
+        await _keycloakSyncService.SyncAllUsersAsync();
+        await _keycloakSyncService.DeleteFlaggedUsersAsync();
         await FollowupAsync("Synchronization finished.");
     }
 }

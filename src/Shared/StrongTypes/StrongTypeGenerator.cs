@@ -1522,4 +1522,384 @@ namespace HoU.GuildBot.Shared.StrongTypes
         }
         
             }
+
+	/// <summary>
+	/// Implements the strong type <see cref="KeycloakUserId" />.
+	/// </summary>
+	[GeneratedCode("Herdo.StrongTypes.StrongTypeGenerator", "2.1.0")]
+	[Serializable]
+			public partial struct KeycloakUserId : IEquatable<KeycloakUserId>, IComparable<KeycloakUserId>, IComparable, ISerializable, IXmlSerializable
+	{
+        /// <summary>
+        /// Actual backing property which holds the value.
+        /// </summary>
+        /// <remarks>This property is basically readonly, but must be non-readonly due to the XML-deserialization which will be called from outside the constructor.</remarks>
+        [UsedImplicitly]
+		public System.Guid V { get; set; }
+
+		[ExcludeFromCodeCoverage]
+		private KeycloakUserId(System.Guid value)
+	    {
+	        V = value;
+	    }
+
+		[ExcludeFromCodeCoverage]
+		private KeycloakUserId(SerializationInfo info, StreamingContext context)
+		{
+            V = (System.Guid)(info.GetValue("v", typeof(System.Guid)) ?? throw new InvalidOperationException("Couldn't get value."));
+		}
+
+	    /// <summary>
+	    /// Converts the weak type into a <see cref="KeycloakUserId"/> instance.
+	    /// </summary>
+	    /// <param name="value">The value to convert.</param>
+	    /// <returns>A new instance of the strong type.</returns>
+		[ExcludeFromCodeCoverage]
+	    public static explicit operator KeycloakUserId(System.Guid value)
+	    {
+	        return new KeycloakUserId(value);
+	    }
+
+	    /// <summary>
+	    /// Converts the strong type into a <see cref="System.Guid"/> value.
+	    /// </summary>
+	    /// <param name="value">The instance to convert.</param>
+	    /// <returns>The converted value.</returns>
+		[ExcludeFromCodeCoverage]
+	    public static explicit operator System.Guid(KeycloakUserId value)
+	    {
+	        return value.V;
+	    }
+
+		/// <summary>
+        /// Returns a value indicating whether this instance and a specified <see cref="KeycloakUserId"/> object represent the same value.
+        /// </summary>
+        /// <param name="other">An object to compare to this instance.</param>
+        /// <returns><b>true</b> if <paramref name="other"/> is equal to this instance; otherwise, <b>false</b>.</returns>
+		[ExcludeFromCodeCoverage]
+		public bool Equals(KeycloakUserId other)
+		{
+			if (ReferenceEquals(null, other)) return false;
+			if (ReferenceEquals(this, other)) return true;
+			return this.V == other.V;
+		}
+		
+		/// <summary>
+        /// Returns a value indicating whether this instance and a specified object represent the same value.
+        /// </summary>
+        /// <param name="other">An object to compare to this instance.</param>
+        /// <returns><b>true</b> if <paramref name="other"/> is equal to this instance; otherwise, <b>false</b>.</returns>
+		[ExcludeFromCodeCoverage]
+		public override bool Equals(object? other)
+		{
+			if (ReferenceEquals(null, other)) return false;
+			if (ReferenceEquals(this, other)) return true;
+			return Equals((KeycloakUserId)other);
+		}
+
+		/// <summary>
+        /// Returns the hash code for this instance.
+        /// </summary>
+        /// <returns>A hash code for the current <see cref="KeycloakUserId"/>.</returns>
+		[ExcludeFromCodeCoverage]
+		public override int GetHashCode()
+		{
+			if (Equals(null, V))
+				return 0;
+			return V.GetHashCode();
+		}
+        
+        /// <summary>
+        /// Compares the current instance with another object of the same type and returns
+        /// an integer that indicates whether the current instance precedes, follows, or
+        /// occurs in the same position in the sort order as the other object.
+        /// </summary>
+        /// <param name="obj">An object to compare with this instance.</param>
+        /// <exception cref="System.ArgumentException"><paramref name="obj"/> is not the same type as this instance.</exception>
+        /// <returns>
+        /// A value that indicates the relative order of the objects being compared. The
+        /// return value has these meanings: Value Meaning Less than zero This instance precedes
+        /// obj in the sort order. Zero This instance occurs in the same position in the
+        /// sort order as obj. Greater than zero This instance follows obj in the sort order.
+        /// </returns>
+        [ExcludeFromCodeCoverage]
+        int IComparable.CompareTo(object? obj)
+        {
+            if (obj is KeycloakUserId other)
+                return CompareTo(other);
+            throw new ArgumentException($"{nameof(obj)} is not of the same type as this instance.", nameof(obj));
+        }
+
+		/// <summary>
+        /// Compares this instance to a specified <see cref="KeycloakUserId"/> and returns an indication of their relative values.
+        /// </summary>
+        /// <param name="other">A <see cref="KeycloakUserId"/> to compare to.</param>
+        /// <returns>A signed integer that indicates the relative order of this instance and <paramref name="other"/>.</returns>
+		[ExcludeFromCodeCoverage]
+		public int CompareTo(KeycloakUserId other)
+		{
+			if (Equals(null, V))
+				return 1;
+			return V.CompareTo(other.V);
+		}
+
+        /// <summary>
+        /// Checks if both operands are equal.
+        /// </summary>
+        /// <param name="first">The first operand.</param>
+        /// <param name="second">The second operand.</param>
+        /// <returns><b>True</b>, if both operands are equal; otherwise, <b>false</b>.</returns>
+        [ExcludeFromCodeCoverage]
+        public static bool operator ==(KeycloakUserId first, KeycloakUserId second)
+	    {
+	        if (ReferenceEquals(first, second))
+	            return true;
+
+			return first.V == second.V;
+	    }
+
+        /// <summary>
+        /// Checks if both operands are not equal.
+        /// </summary>
+        /// <param name="first">The first operand.</param>
+        /// <param name="second">The second operand.</param>
+        /// <returns><b>False</b>, if both operands are equal; otherwise, <b>true</b>.</returns>
+        [ExcludeFromCodeCoverage]
+        public static bool operator !=(KeycloakUserId first, KeycloakUserId second)
+	    {
+	        return !(first == second);
+	    }
+
+		/// <summary>
+        /// Returns a string that represents the current object.
+        /// </summary>
+        /// <returns>A string that represents the current object.</returns>
+		[ExcludeFromCodeCoverage]
+	    public override string ToString()
+	    {
+	        if ((object)V == null)
+#pragma warning disable CS8603 // Possible null reference return.
+	            return null;
+#pragma warning restore CS8603 // Possible null reference return.
+	        return V.ToString();
+	    }
+				
+		[ExcludeFromCodeCoverage]
+		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context)
+		{
+			info.AddValue("v", V);
+		}
+		
+		[ExcludeFromCodeCoverage]
+		XmlSchema IXmlSerializable.GetSchema()
+	    {
+#pragma warning disable CS8603 // Possible null reference return.
+	        return null;
+#pragma warning restore CS8603 // Possible null reference return.
+	    }
+		
+		[ExcludeFromCodeCoverage]
+	    void IXmlSerializable.ReadXml(XmlReader reader)
+	    {
+	        V = Guid.Parse((System.String)reader.ReadElementContentAs(typeof(System.String), null!));
+	    }
+		
+		[ExcludeFromCodeCoverage]
+	    void IXmlSerializable.WriteXml(XmlWriter writer)
+	    {
+            writer.WriteString(XmlConvert.ToString(V));
+	    }
+
+		        
+            }
+
+	/// <summary>
+	/// Implements the strong type <see cref="KeycloakGroupId" />.
+	/// </summary>
+	[GeneratedCode("Herdo.StrongTypes.StrongTypeGenerator", "2.1.0")]
+	[Serializable]
+			public partial struct KeycloakGroupId : IEquatable<KeycloakGroupId>, IComparable<KeycloakGroupId>, IComparable, ISerializable, IXmlSerializable
+	{
+        /// <summary>
+        /// Actual backing property which holds the value.
+        /// </summary>
+        /// <remarks>This property is basically readonly, but must be non-readonly due to the XML-deserialization which will be called from outside the constructor.</remarks>
+        [UsedImplicitly]
+		public System.Guid V { get; set; }
+
+		[ExcludeFromCodeCoverage]
+		private KeycloakGroupId(System.Guid value)
+	    {
+	        V = value;
+	    }
+
+		[ExcludeFromCodeCoverage]
+		private KeycloakGroupId(SerializationInfo info, StreamingContext context)
+		{
+            V = (System.Guid)(info.GetValue("v", typeof(System.Guid)) ?? throw new InvalidOperationException("Couldn't get value."));
+		}
+
+	    /// <summary>
+	    /// Converts the weak type into a <see cref="KeycloakGroupId"/> instance.
+	    /// </summary>
+	    /// <param name="value">The value to convert.</param>
+	    /// <returns>A new instance of the strong type.</returns>
+		[ExcludeFromCodeCoverage]
+	    public static explicit operator KeycloakGroupId(System.Guid value)
+	    {
+	        return new KeycloakGroupId(value);
+	    }
+
+	    /// <summary>
+	    /// Converts the strong type into a <see cref="System.Guid"/> value.
+	    /// </summary>
+	    /// <param name="value">The instance to convert.</param>
+	    /// <returns>The converted value.</returns>
+		[ExcludeFromCodeCoverage]
+	    public static explicit operator System.Guid(KeycloakGroupId value)
+	    {
+	        return value.V;
+	    }
+
+		/// <summary>
+        /// Returns a value indicating whether this instance and a specified <see cref="KeycloakGroupId"/> object represent the same value.
+        /// </summary>
+        /// <param name="other">An object to compare to this instance.</param>
+        /// <returns><b>true</b> if <paramref name="other"/> is equal to this instance; otherwise, <b>false</b>.</returns>
+		[ExcludeFromCodeCoverage]
+		public bool Equals(KeycloakGroupId other)
+		{
+			if (ReferenceEquals(null, other)) return false;
+			if (ReferenceEquals(this, other)) return true;
+			return this.V == other.V;
+		}
+		
+		/// <summary>
+        /// Returns a value indicating whether this instance and a specified object represent the same value.
+        /// </summary>
+        /// <param name="other">An object to compare to this instance.</param>
+        /// <returns><b>true</b> if <paramref name="other"/> is equal to this instance; otherwise, <b>false</b>.</returns>
+		[ExcludeFromCodeCoverage]
+		public override bool Equals(object? other)
+		{
+			if (ReferenceEquals(null, other)) return false;
+			if (ReferenceEquals(this, other)) return true;
+			return Equals((KeycloakGroupId)other);
+		}
+
+		/// <summary>
+        /// Returns the hash code for this instance.
+        /// </summary>
+        /// <returns>A hash code for the current <see cref="KeycloakGroupId"/>.</returns>
+		[ExcludeFromCodeCoverage]
+		public override int GetHashCode()
+		{
+			if (Equals(null, V))
+				return 0;
+			return V.GetHashCode();
+		}
+        
+        /// <summary>
+        /// Compares the current instance with another object of the same type and returns
+        /// an integer that indicates whether the current instance precedes, follows, or
+        /// occurs in the same position in the sort order as the other object.
+        /// </summary>
+        /// <param name="obj">An object to compare with this instance.</param>
+        /// <exception cref="System.ArgumentException"><paramref name="obj"/> is not the same type as this instance.</exception>
+        /// <returns>
+        /// A value that indicates the relative order of the objects being compared. The
+        /// return value has these meanings: Value Meaning Less than zero This instance precedes
+        /// obj in the sort order. Zero This instance occurs in the same position in the
+        /// sort order as obj. Greater than zero This instance follows obj in the sort order.
+        /// </returns>
+        [ExcludeFromCodeCoverage]
+        int IComparable.CompareTo(object? obj)
+        {
+            if (obj is KeycloakGroupId other)
+                return CompareTo(other);
+            throw new ArgumentException($"{nameof(obj)} is not of the same type as this instance.", nameof(obj));
+        }
+
+		/// <summary>
+        /// Compares this instance to a specified <see cref="KeycloakGroupId"/> and returns an indication of their relative values.
+        /// </summary>
+        /// <param name="other">A <see cref="KeycloakGroupId"/> to compare to.</param>
+        /// <returns>A signed integer that indicates the relative order of this instance and <paramref name="other"/>.</returns>
+		[ExcludeFromCodeCoverage]
+		public int CompareTo(KeycloakGroupId other)
+		{
+			if (Equals(null, V))
+				return 1;
+			return V.CompareTo(other.V);
+		}
+
+        /// <summary>
+        /// Checks if both operands are equal.
+        /// </summary>
+        /// <param name="first">The first operand.</param>
+        /// <param name="second">The second operand.</param>
+        /// <returns><b>True</b>, if both operands are equal; otherwise, <b>false</b>.</returns>
+        [ExcludeFromCodeCoverage]
+        public static bool operator ==(KeycloakGroupId first, KeycloakGroupId second)
+	    {
+	        if (ReferenceEquals(first, second))
+	            return true;
+
+			return first.V == second.V;
+	    }
+
+        /// <summary>
+        /// Checks if both operands are not equal.
+        /// </summary>
+        /// <param name="first">The first operand.</param>
+        /// <param name="second">The second operand.</param>
+        /// <returns><b>False</b>, if both operands are equal; otherwise, <b>true</b>.</returns>
+        [ExcludeFromCodeCoverage]
+        public static bool operator !=(KeycloakGroupId first, KeycloakGroupId second)
+	    {
+	        return !(first == second);
+	    }
+
+		/// <summary>
+        /// Returns a string that represents the current object.
+        /// </summary>
+        /// <returns>A string that represents the current object.</returns>
+		[ExcludeFromCodeCoverage]
+	    public override string ToString()
+	    {
+	        if ((object)V == null)
+#pragma warning disable CS8603 // Possible null reference return.
+	            return null;
+#pragma warning restore CS8603 // Possible null reference return.
+	        return V.ToString();
+	    }
+				
+		[ExcludeFromCodeCoverage]
+		void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context)
+		{
+			info.AddValue("v", V);
+		}
+		
+		[ExcludeFromCodeCoverage]
+		XmlSchema IXmlSerializable.GetSchema()
+	    {
+#pragma warning disable CS8603 // Possible null reference return.
+	        return null;
+#pragma warning restore CS8603 // Possible null reference return.
+	    }
+		
+		[ExcludeFromCodeCoverage]
+	    void IXmlSerializable.ReadXml(XmlReader reader)
+	    {
+	        V = Guid.Parse((System.String)reader.ReadElementContentAs(typeof(System.String), null!));
+	    }
+		
+		[ExcludeFromCodeCoverage]
+	    void IXmlSerializable.WriteXml(XmlWriter writer)
+	    {
+            writer.WriteString(XmlConvert.ToString(V));
+	    }
+
+		        
+            }
 }

@@ -25,6 +25,7 @@ BEGIN
         GRANT SELECT ON config.spam_protected_channel TO hou_guildbot;
         GRANT SELECT ON config.desired_time_zone TO hou_guildbot;
         GRANT SELECT ON config.units_endpoint TO hou_guildbot;
+        GRANT SELECT ON config.keycloak_endpoint TO hou_guildbot;
     END IF;
 
     IF NOT EXISTS (SELECT 1 FROM pg_roles AS r WHERE r.rolname = 'hang_fire_user')
