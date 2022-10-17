@@ -22,6 +22,12 @@ public class KeycloakSyncService : IKeycloakSyncService
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
+    private string GetDeveloperRoleMention()
+    {
+        var roleId = (DiscordRoleId)_dynamicConfiguration.DiscordMapping["DeveloperRoleId"];
+        return roleId.ToMention();
+    }
+
     private bool IsValidEndpoint(KeycloakEndpoint endpoint)
     {
         if (string.IsNullOrWhiteSpace(endpoint.BaseUrl.ToString()))
@@ -140,68 +146,44 @@ public class KeycloakSyncService : IKeycloakSyncService
                                                         keycloakGroupMembers,
                                                         disabledUsers);
             
-            _logger.LogInformation("Sending {Diff} to Keycloak at {Address} ...",
+            _logger.LogInformation("Sending {@Diff} to Keycloak at {Address} ...",
                                    diff,
                                    keycloakEndpoint.BaseUrl);
             var result = await _keycloakAccess.SendDiffAsync(keycloakEndpoint, diff);
             if (result is null)
                 continue;
 
+            _logger.LogInformation("Sent {@Result} to Keycloak at {Address}",
+                                   result,
+                                   keycloakEndpoint.BaseUrl);
             var utcNow = DateTime.UtcNow;
             var notificationRequired = utcNow.Hour == 15 && utcNow.Minute < 15;
-            var onlySkippedUsers = result.SkippedUsers > 0
-                                && result.CreatedUsers == 0
-                                && result.UpdatedUsers == 0
-                                && result.UpdatedUserRoleRelations == 0
-                                && (result.Errors?.Count ?? 0) == 0;
-            var shouldPostResults = notificationRequired || !onlySkippedUsers;
+            var hasChanges = result.AddedUsers > 0
+                          || result.DisabledUsers > 0
+                          || result.LoggedOutUsers > 0
+                          || result.EnabledUsers > 0
+                          || result.AssignedGroupMemberships > 0
+                          || result.RemovedGroupMemberships > 0;
+            var shouldPostResults = notificationRequired || hasChanges;
             if (!shouldPostResults)
                 continue;
 
-            var sb = new StringBuilder($"Synchronized {allDiscordUsers.Length} users with Keycloak at {keycloakEndpoint.BaseUrl}:");
+            var sb = new StringBuilder($"**Keycloak Sync:** Synchronized {allDiscordUsers.Length} users with Keycloak");
             sb.AppendLine();
-            if (result.CreatedUsers > 0)
-                sb.AppendLine($"Created {result.CreatedUsers} users.");
-            if (result.UpdatedUsers > 0)
-                sb.AppendLine($"Updated {result.UpdatedUsers} users.");
-            if (result.SkippedUsers > 0)
-                sb.AppendLine($"Skipped {result.SkippedUsers} users.");
-            if (result.UpdatedUserRoleRelations > 0)
-                sb.AppendLine($"Updated {result.UpdatedUserRoleRelations} user-role relations.");
-            if (result.Errors != null && result.Errors.Any())
-            {
-                if (notificationRequired)
-                {
-                    var leadershipMention = _discordAccess.GetLeadershipMention();
-                    sb.AppendLine($"**{leadershipMention} - errors synchronizing Discord with the UNIT system:**");
-                }
-                else
-                {
-                    sb.AppendLine("**Errors synchronizing Discord with the UNIT system:**");
-                }
+            if (result.AddedUsers > 0)
+                sb.AppendLine($"Added {result.AddedUsers} users.");
+            if (result.DisabledUsers > 0)
+                sb.AppendLine($"Disabled {result.DisabledUsers} users.");
+            if (result.LoggedOutUsers > 0)
+                sb.AppendLine($"Logged out {result.LoggedOutUsers} users.");
+            if (result.EnabledUsers > 0)
+                sb.AppendLine($"Enabled {result.EnabledUsers} users.");
+            if (result.AssignedGroupMemberships > 0)
+                sb.AppendLine($"Assigned {result.AssignedGroupMemberships} users to groups.");
+            if (result.RemovedGroupMemberships > 0)
+                sb.AppendLine($"Removed {result.RemovedGroupMemberships} users from groups.");
 
-                for (var index = 0; index < result.Errors.Count; index++)
-                {
-                    var error = result.Errors[index];
-                    var errorMessage = $"`{error}`";
-
-                    // Check if this error message would create a too long Discord message.
-                    if (sb.Length + errorMessage.Length > 1900 && index < result.Errors.Count - 1
-                     || sb.Length + errorMessage.Length > 2000)
-                    {
-                        sb.AppendLine($"**{result.Errors.Count - index} more errors were truncated from this message.**");
-                        break;
-                    }
-
-                    sb.AppendLine(errorMessage);
-                }
-
-                await _discordAccess.LogToDiscordAsync(sb.ToString());
-            }
-            else
-            {
-                _logger.LogWarning("Failed to synchronize all users: {Reason}", "unable to fetch allowed users");
-            }
+            await _discordAccess.LogToDiscordAsync(sb.ToString());
         }
     }
 
@@ -225,8 +207,14 @@ public class KeycloakSyncService : IKeycloakSyncService
             {
                 _logger.LogWarning("Couldn't fetch users flagged for deletion from Keycloak instance at {Endpoint}",
                                    keycloakEndpoint.BaseUrl);
+                await
+                    _discordAccess
+                       .LogToDiscordAsync($"**Keycloak Sync:** Couldn't fetch users flagged for deletion {GetDeveloperRoleMention()}");
                 continue;
             }
+
+            if (flaggedUsers.Length == 0)
+                return;
 
             _logger.LogInformation("Starting to delete {Count} users", flaggedUsers.Length);
 
@@ -238,13 +226,20 @@ public class KeycloakSyncService : IKeycloakSyncService
                     _logger.LogInformation("Successfully deleted {Count} users from Keycloak instance at {Endpoint}",
                                            deletedCount,
                                            keycloakEndpoint.BaseUrl);
+                    await
+                        _discordAccess
+                           .LogToDiscordAsync($"**Keycloak Sync:** Successfully deleted {deletedCount} users");
                 }
                 else
                 {
                     _logger.LogWarning("Partially deleted {ActualCount} from {ExpectedCount} users from Keycloak instance at {Endpoint}",
                                        deletedCount,
                                        flaggedUsers.Length,
-                                       keycloakEndpoint);
+                                       keycloakEndpoint.BaseUrl);
+                    await
+                        _discordAccess
+                           .LogToDiscordAsync($"**Keycloak Sync:** Partially deleted {deletedCount} from {flaggedUsers.Length} "
+                                            + $"users {GetDeveloperRoleMention()}");
                 }
             }
             catch (Exception e)

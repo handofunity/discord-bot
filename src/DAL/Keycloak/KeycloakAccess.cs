@@ -200,27 +200,47 @@ public class KeycloakAccess : IKeycloakAccess
                                                                  KeycloakEndpoint endpoint,
                                                                  KeycloakGroupId groupId)
     {
-        var uri = new Uri(endpoint.BaseUrl, $"{endpoint.Realm}/groups/{groupId}/members?briefRepresentation=true");
-        return await httpClient.PerformAuthorizedRequestAsync(_bearerTokenManager,
-                                                              endpoint,
-                                                              InvokeHttpGetRequest(httpClient, uri),
-                                                              HandleResponseMessage);
+        var result = new List<KeycloakUserId>();
 
-        async Task<KeycloakUserId[]?> HandleResponseMessage(HttpResponseMessage? responseMessage)
+        var offset = 0;
+        do
         {
-            JsonNode? json;
-            if ((json = await TryGetJsonRootFromResponseAsync(responseMessage, uri)) is null)
-                return null;
+            var batch = await GetGroupMemberIdsByOffsetAsync(offset);
+            if (batch is null || batch.Length == 0)
+                break;
+            
+            result.AddRange(batch);
 
-            var users = json.AsArray();
-            if (users.Count == 0)
-                return Array.Empty<KeycloakUserId>();
+            offset += 100;
+        } while (result.Count % 100 == 0);
+        
+        return result.ToArray();
 
-            return (from user in users
-                    select user?["id"]?.GetValue<Guid?>()
-                    into id
-                    where id is not null
-                    select (KeycloakUserId)id.Value).ToArray();
+        async Task<KeycloakUserId[]?> GetGroupMemberIdsByOffsetAsync(int offset)
+        {
+            var uri = new Uri(endpoint.BaseUrl, $"{endpoint.Realm}/groups/{groupId}/"
+                                              + $"members?briefRepresentation=true&first={offset}&max=100");
+            return await httpClient.PerformAuthorizedRequestAsync(_bearerTokenManager,
+                                                                  endpoint,
+                                                                  InvokeHttpGetRequest(httpClient, uri),
+                                                                  HandleResponseMessage);
+
+            async Task<KeycloakUserId[]?> HandleResponseMessage(HttpResponseMessage? responseMessage)
+            {
+                JsonNode? json;
+                if ((json = await TryGetJsonRootFromResponseAsync(responseMessage, uri)) is null)
+                    return null;
+
+                var users = json.AsArray();
+                if (users.Count == 0)
+                    return Array.Empty<KeycloakUserId>();
+
+                return (from user in users
+                        select user?["id"]?.GetValue<Guid?>()
+                        into id
+                        where id is not null
+                        select (KeycloakUserId)id.Value).ToArray();
+            }
         }
     }
 
@@ -562,14 +582,16 @@ public class KeycloakAccess : IKeycloakAccess
                                                        userId);
     }
 
-    async Task<SyncAllUsersResponse?> IKeycloakAccess.SendDiffAsync(KeycloakEndpoint endpoint,
+    async Task<KeycloakSyncResponse?> IKeycloakAccess.SendDiffAsync(KeycloakEndpoint endpoint,
                                                                     KeycloakDiscordDiff diff)
     {
         var httpClient = _httpClientFactory.CreateClient("keycloak");
 
+        var addedUsers = 0;
         if (diff.UsersToAdd.Any())
         {
             var newUsers = await AddUsersAsync(httpClient, endpoint, diff.UsersToAdd.Select(m => m.DiscordUser));
+            addedUsers = newUsers.Count;
             var rolesToAddToNewUsers = newUsers.Join(diff.UsersToAdd,
                                                      kvp => kvp.Key,
                                                      tuple => tuple.DiscordUser.DiscordUserId,
@@ -583,28 +605,38 @@ public class KeycloakAccess : IKeycloakAccess
                 diff.GroupsToAdd.Add(newUser.KeycloakUserId, newUser.KeycloakGroupIds);
         }
 
+        var disabledUsers = 0;
+        var loggedOutUsers = 0;
         if (diff.UsersToDisable.Any())
         {
-            var disabledUsers = await DisableUsersAsync(httpClient, endpoint, diff.UsersToDisable);
-            var loggedOutUsers = await LogoutUsersAsync(httpClient, endpoint, diff.UsersToDisable);
+            disabledUsers = await DisableUsersAsync(httpClient, endpoint, diff.UsersToDisable);
+            loggedOutUsers = await LogoutUsersAsync(httpClient, endpoint, diff.UsersToDisable);
         }
 
+        var enabledUsers = 0;
         if (diff.UsersToEnable.Any())
         {
-            var enabledUsers = await EnableUsersAsync(httpClient, endpoint, diff.UsersToEnable);
+            enabledUsers = await EnableUsersAsync(httpClient, endpoint, diff.UsersToEnable);
         }
 
+        var assignedGroupMemberships = 0;
         if (diff.GroupsToAdd.Any())
         {
-            var assignedGroupMemberships = await AddToGroupsAsync(httpClient, endpoint, diff.GroupsToAdd);
+            assignedGroupMemberships = await AddToGroupsAsync(httpClient, endpoint, diff.GroupsToAdd);
         }
 
+        var removedGroupMemberships = 0;
         if (diff.GroupsToRemove.Any())
         {
-            var removedGroupMemberships = await RemoveGroupsAsync(httpClient, endpoint, diff.GroupsToRemove);
+            removedGroupMemberships = await RemoveGroupsAsync(httpClient, endpoint, diff.GroupsToRemove);
         }
 
-        return new SyncAllUsersResponse();
+        return new KeycloakSyncResponse(addedUsers,
+                                        disabledUsers,
+                                        loggedOutUsers,
+                                        enabledUsers,
+                                        assignedGroupMemberships,
+                                        removedGroupMemberships);
     }
 
     async Task<KeycloakUserId[]?> IKeycloakAccess.GetUsersFlaggedForDeletionAsync(KeycloakEndpoint endpoint,

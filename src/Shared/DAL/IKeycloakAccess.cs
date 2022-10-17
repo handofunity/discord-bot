@@ -32,8 +32,8 @@ public interface IKeycloakAccess
     /// </summary>
     /// <param name="endpoint">The data used to sync with Keycloak.</param>
     /// <param name="diff">The diff that will be sent to Keycloak.</param>
-    /// <returns>A <see cref="SyncAllUsersResponse"/>, if the <paramref name="diff"/> was synchronized, otherwise <b>null</b>.</returns>
-    Task<SyncAllUsersResponse?> SendDiffAsync(KeycloakEndpoint endpoint,
+    /// <returns>A <see cref="KeycloakSyncResponse"/>, if the <paramref name="diff"/> was synchronized, otherwise <b>null</b>.</returns>
+    Task<KeycloakSyncResponse?> SendDiffAsync(KeycloakEndpoint endpoint,
                                               KeycloakDiscordDiff diff);
 
     /// <summary>
