@@ -79,6 +79,7 @@ public class DiscordAccess : IDiscordAccess
                            | GatewayIntents.GuildVoiceStates
                            | GatewayIntents.GuildPresences
                            | GatewayIntents.GuildMessages
+                           | GatewayIntents.MessageContent
         };
         _client = new DiscordSocketClient(clientConfig);
         _interactionService = new InteractionService(_client,
