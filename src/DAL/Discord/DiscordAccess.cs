@@ -566,7 +566,7 @@ public class DiscordAccess : IDiscordAccess
 
     bool IDiscordAccess.IsGuildAvailable => _guildAvailable;
 
-    async Task IDiscordAccess.Connect(Func<Task> connectedHandler, Func<Task> disconnectedHandler)
+    async Task IDiscordAccess.ConnectAsync(Func<Task> connectedHandler, Func<Task> disconnectedHandler)
     {
         if (connectedHandler == null)
             throw new ArgumentNullException(nameof(connectedHandler));
@@ -650,12 +650,12 @@ public class DiscordAccess : IDiscordAccess
         }
     }
 
-    async Task IDiscordAccess.SetCurrentGame(string gameName)
+    async Task IDiscordAccess.SetCurrentGameAsync(string gameName)
     {
         await _client.SetGameAsync(gameName);
     }
 
-    async Task IDiscordAccess.LogToDiscord(string message)
+    async Task IDiscordAccess.LogToDiscordAsync(string message)
     {
         if (message == null)
             throw new ArgumentNullException(nameof(message));
@@ -673,7 +673,7 @@ public class DiscordAccess : IDiscordAccess
 
     Dictionary<DiscordUserId, string> IDiscordAccess.GetUserNames(IEnumerable<DiscordUserId> userIds) => userIds.Select(GetGuildUserById).ToDictionary(gu => (DiscordUserId)gu.Id, gu => gu.Username);
 
-    async Task<bool> IDiscordAccess.TryAddNonMemberRole(DiscordUserId userId,
+    async Task<bool> IDiscordAccess.TryAddNonMemberRoleAsync(DiscordUserId userId,
                                                         Role targetRole)
     {
         var roleDisplayName = _roleMapping.Single(m => m.Value == targetRole).Key;
@@ -691,7 +691,7 @@ public class DiscordAccess : IDiscordAccess
                                false);
     }
 
-    async Task<(bool Success, string RoleName)> IDiscordAccess.TryAddNonMemberRole(DiscordUserId userId,
+    async Task<(bool Success, string RoleName)> IDiscordAccess.TryAddNonMemberRoleAsync(DiscordUserId userId,
                                                                                    DiscordRoleId targetRole)
     {
         var g = GetGuild();
@@ -709,7 +709,7 @@ public class DiscordAccess : IDiscordAccess
                                (false, role.Name));
     }
 
-    async Task<bool> IDiscordAccess.TryRevokeNonMemberRole(DiscordUserId userId,
+    async Task<bool> IDiscordAccess.TryRevokeNonMemberRoleAsync(DiscordUserId userId,
                                                            Role targetRole)
     {
         var roleDisplayName = _roleMapping.Single(m => m.Value == targetRole).Key;
@@ -727,7 +727,7 @@ public class DiscordAccess : IDiscordAccess
                                false);
     }
 
-    async Task<(bool Success, string RoleName)> IDiscordAccess.TryRevokeNonMemberRole(DiscordUserId userId,
+    async Task<(bool Success, string RoleName)> IDiscordAccess.TryRevokeNonMemberRoleAsync(DiscordUserId userId,
                                                                                       DiscordRoleId targetRole)
     {
         var g = GetGuild();
@@ -767,7 +767,7 @@ public class DiscordAccess : IDiscordAccess
                                false);
     }
 
-    async Task<bool> IDiscordAccess.TryRevokeGameRole(DiscordUserId userId,
+    async Task<bool> IDiscordAccess.TryRevokeGameRoleAsync(DiscordUserId userId,
                                                       DiscordRoleId roleId)
     {
         // Get role
@@ -799,7 +799,7 @@ public class DiscordAccess : IDiscordAccess
         return GetRoleByName(roleName).Mention;
     }
 
-    async Task<TextMessage[]> IDiscordAccess.GetBotMessagesInChannel(DiscordChannelId channelId)
+    async Task<TextMessage[]> IDiscordAccess.GetBotMessagesInChannelAsync(DiscordChannelId channelId)
     {
         var result = new List<TextMessage>();
         var channel = (ITextChannel)GetGuild().GetChannel((ulong)channelId);
@@ -850,7 +850,7 @@ public class DiscordAccess : IDiscordAccess
         }
     }
 
-    async Task IDiscordAccess.DeleteBotMessagesInChannel(DiscordChannelId channelId)
+    async Task IDiscordAccess.DeleteBotMessagesInChannelAsync(DiscordChannelId channelId)
     {
         var channel = (ITextChannel)GetGuild().GetChannel((ulong)channelId);
         var messagesToDelete = new List<IMessage>();
@@ -936,7 +936,7 @@ public class DiscordAccess : IDiscordAccess
         });
     }
 
-    async Task IDiscordAccess.CreateBotMessageInWelcomeChannel(string message)
+    async Task IDiscordAccess.CreateBotMessageInWelcomeChannelAsync(string message)
     {
         var g = GetGuild();
         await g.SystemChannel.SendMessageAsync(message);
@@ -979,7 +979,7 @@ public class DiscordAccess : IDiscordAccess
         return $"/{channel.Category.Name}/{channel.Name}";
     }
 
-    async Task<(DiscordChannelId VoiceChannelId, string? Error)> IDiscordAccess.CreateVoiceChannel(DiscordChannelId voiceChannelsCategoryId,
+    async Task<(DiscordChannelId VoiceChannelId, string? Error)> IDiscordAccess.CreateVoiceChannelAsync(DiscordChannelId voiceChannelsCategoryId,
                                                                                                    string name,
                                                                                                    int maxUsers)
     {
@@ -1055,7 +1055,7 @@ public class DiscordAccess : IDiscordAccess
         }
     }
 
-    async Task IDiscordAccess.DeleteVoiceChannel(DiscordChannelId voiceChannelId)
+    async Task IDiscordAccess.DeleteVoiceChannelAsync(DiscordChannelId voiceChannelId)
     {
         var g = GetGuild();
         var voiceChannel = g.GetVoiceChannel((ulong)voiceChannelId);

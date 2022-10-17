@@ -138,7 +138,7 @@ public class StaticMessageProvider : IStaticMessageProvider
             await semaphore.WaitAsync();
             _logger.LogInformation("{Channel} - Got channel-edit-semaphore", channelLocationAndName);
             _logger.LogInformation("{Channel} - Deleting existing bot messages in the channel ...", channelLocationAndName);
-            await DiscordAccess.DeleteBotMessagesInChannel(channelID);
+            await DiscordAccess.DeleteBotMessagesInChannelAsync(channelID);
             _logger.LogInformation("{Channel} - Creating new messages in the channel ...", channelLocationAndName);
             await DiscordAccess.CreateBotMessagesInChannelAsync(channelID, messages.ToArray());
         }
@@ -266,7 +266,7 @@ public class StaticMessageProvider : IStaticMessageProvider
         {
             var channelLocationAndName = DiscordAccess.GetChannelLocationAndName(pair.Key);
             _logger.LogInformation("Loading existing messages for channel '{Channel}' ...", channelLocationAndName);
-            var existingMessages = await DiscordAccess.GetBotMessagesInChannel(pair.Key);
+            var existingMessages = await DiscordAccess.GetBotMessagesInChannelAsync(pair.Key);
             if (existingMessages.Length != pair.Value.Messages.Length)
             {
                 // If the count of messages or action components is different, we don't have to check every message/action component.

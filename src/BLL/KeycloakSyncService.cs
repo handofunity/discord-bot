@@ -196,7 +196,7 @@ public class KeycloakSyncService : IKeycloakSyncService
                     sb.AppendLine(errorMessage);
                 }
 
-                await _discordAccess.LogToDiscord(sb.ToString());
+                await _discordAccess.LogToDiscordAsync(sb.ToString());
             }
             else
             {

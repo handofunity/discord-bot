@@ -30,7 +30,7 @@ public class BotEngine : IBotEngine
 
     private async Task Connect()
     {
-        await _discordAccess.Connect(ConnectedHandler, DisconnectedHandler);
+        await _discordAccess.ConnectAsync(ConnectedHandler, DisconnectedHandler);
     }
 
     private void SchedulePersonalReminders()
@@ -108,12 +108,12 @@ public class BotEngine : IBotEngine
     
     private async Task ConnectedHandler()
     {
-        await _discordAccess.SetCurrentGame("Hand of Unity");
+        await _discordAccess.SetCurrentGameAsync("Hand of Unity");
 
         if (_isFirstConnect)
         {
             _isFirstConnect = false;
-            await _discordAccess.LogToDiscord($"Bot started on **{_botInformationProvider.GetEnvironmentName()}** in version {_botInformationProvider.GetFormattedVersion()}.");
+            await _discordAccess.LogToDiscordAsync($"Bot started on **{_botInformationProvider.GetEnvironmentName()}** in version {_botInformationProvider.GetFormattedVersion()}.");
             // Start privacy provider clean up
             _privacyProvider.Start();
 

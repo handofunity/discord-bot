@@ -19,14 +19,15 @@ public interface IDiscordAccess
     /// <param name="disconnectedHandler"><see cref="Func{TResult}"/> that will be invoked when the connection is lost.</param>
     /// <exception cref="ArgumentNullException"><paramref name="connectedHandler"/> or <paramref name="disconnectedHandler"/> are <b>null</b>.</exception>
     /// <returns>An awaitable <see cref="Task"/>.</returns>
-    Task Connect(Func<Task> connectedHandler, Func<Task> disconnectedHandler);
+    Task ConnectAsync(Func<Task> connectedHandler,
+                      Func<Task> disconnectedHandler);
 
     /// <summary>
     /// Sets the <paramref name="gameName"/> as current bot game name.
     /// </summary>
     /// <param name="gameName">The game name.</param>
     /// <returns>An awaitable <see cref="Task"/>.</returns>
-    Task SetCurrentGame(string gameName);
+    Task SetCurrentGameAsync(string gameName);
 
     /// <summary>
     /// Logs the <paramref name="message"/> in the dedicated logging channel on Discord.
@@ -35,7 +36,7 @@ public interface IDiscordAccess
     /// <exception cref="ArgumentNullException"><paramref name="message"/> is <b>null</b>.</exception>
     /// <exception cref="ArgumentException"><paramref name="message"/> is empty or only whitespaces.</exception>
     /// <returns>An awaitable <see cref="Task"/>.</returns>
-    Task LogToDiscord(string message);
+    Task LogToDiscordAsync(string message);
 
     /// <summary>
     /// Checks if the user with the <paramref name="userId"/> is currently online.
@@ -57,8 +58,8 @@ public interface IDiscordAccess
     /// <param name="userId">The user Id.</param>
     /// <param name="targetRole">The target role.</param>
     /// <returns>True, if the role was added, otherwise false.</returns>
-    Task<bool> TryAddNonMemberRole(DiscordUserId userId,
-                                   Role targetRole);
+    Task<bool> TryAddNonMemberRoleAsync(DiscordUserId userId,
+                                        Role targetRole);
 
     /// <summary>
     /// Sets the non-member related <paramref name="targetRole"/> for the given <paramref name="userId"/>.
@@ -66,8 +67,8 @@ public interface IDiscordAccess
     /// <param name="userId">The user Id.</param>
     /// <param name="targetRole">The target role.</param>
     /// <returns>True, if the role was added, otherwise false. Includes the role name.</returns>
-    Task<(bool Success, string RoleName)> TryAddNonMemberRole(DiscordUserId userId,
-                                                              DiscordRoleId targetRole);
+    Task<(bool Success, string RoleName)> TryAddNonMemberRoleAsync(DiscordUserId userId,
+                                                                   DiscordRoleId targetRole);
 
     /// <summary>
     /// Revokes the non-member related <paramref name="targetRole"/> from the given <paramref name="userId"/>.
@@ -75,8 +76,8 @@ public interface IDiscordAccess
     /// <param name="userId">The user Id.</param>
     /// <param name="targetRole">The target role.</param>
     /// <returns>True, if the role was revoked, otherwise false.</returns>
-    Task<bool> TryRevokeNonMemberRole(DiscordUserId userId,
-                                      Role targetRole);
+    Task<bool> TryRevokeNonMemberRoleAsync(DiscordUserId userId,
+                                           Role targetRole);
 
     /// <summary>
     /// Revokes the non-member related <paramref name="targetRole"/> from the given <paramref name="userId"/>.
@@ -84,8 +85,8 @@ public interface IDiscordAccess
     /// <param name="userId">The user Id.</param>
     /// <param name="targetRole">The target role.</param>
     /// <returns>True, if the role was revoked, otherwise false. Includes the role name.</returns>
-    Task<(bool Success, string RoleName)> TryRevokeNonMemberRole(DiscordUserId userId,
-                                                                 DiscordRoleId targetRole);
+    Task<(bool Success, string RoleName)> TryRevokeNonMemberRoleAsync(DiscordUserId userId,
+                                                                      DiscordRoleId targetRole);
 
     /// <summary>
     /// Assigns the <paramref name="roleId"/> to the given <paramref name="userId"/>.
@@ -93,7 +94,8 @@ public interface IDiscordAccess
     /// <param name="userId">The user Id.</param>
     /// <param name="roleId">The Id of the role to assign to the user.</param>
     /// <returns>True, if the role was assigned, otherwise false.</returns>
-    Task<bool> TryAssignRoleAsync(DiscordUserId userId, DiscordRoleId roleId);
+    Task<bool> TryAssignRoleAsync(DiscordUserId userId,
+                                  DiscordRoleId roleId);
 
     /// <summary>
     /// Revokes the <paramref name="roleId"/> from the given <paramref name="userId"/>.
@@ -101,7 +103,8 @@ public interface IDiscordAccess
     /// <param name="userId">The user Id.</param>
     /// <param name="roleId">The Id of the role to revoke from the user.</param>
     /// <returns>True, if the role was revoked, otherwise false.</returns>
-    Task<bool> TryRevokeGameRole(DiscordUserId userId, DiscordRoleId roleId);
+    Task<bool> TryRevokeGameRoleAsync(DiscordUserId userId,
+                                      DiscordRoleId roleId);
 
     /// <summary>
     /// Checks if the bot can manage roles for a specific <paramref name="userId"/>, depending on the guilds role configuration.
@@ -123,14 +126,14 @@ public interface IDiscordAccess
     /// </summary>
     /// <param name="channelId">The Id of the channel to search for bot messages in.</param>
     /// <returns>An array of found messages.</returns>
-    Task<TextMessage[]> GetBotMessagesInChannel(DiscordChannelId channelId);
+    Task<TextMessage[]> GetBotMessagesInChannelAsync(DiscordChannelId channelId);
 
     /// <summary>
     /// Deletes all messages of the bot in the given <paramref name="channelId"/>.
     /// </summary>
     /// <param name="channelId">The Id of the channel to delete the messages in.</param>
     /// <returns>An awaitable <see cref="Task"/>.</returns>
-    Task DeleteBotMessagesInChannel(DiscordChannelId channelId);
+    Task DeleteBotMessagesInChannelAsync(DiscordChannelId channelId);
 
     /// <summary>
     /// Deletes a specific <paramref name="messageId"/> of the bot in the given <paramref name="channelId"/>.
@@ -138,7 +141,8 @@ public interface IDiscordAccess
     /// <param name="channelId">The Id of the channel to delete the message in.</param>
     /// <param name="messageId">The Id of the message to delete.</param>
     /// <returns>An awaitable <see cref="Task"/>.</returns>
-    Task DeleteBotMessageInChannelAsync(DiscordChannelId channelId, ulong messageId);
+    Task DeleteBotMessageInChannelAsync(DiscordChannelId channelId,
+                                        ulong messageId);
 
     /// <summary>
     /// Creates the <paramref name="messages"/> in the given <paramref name="channelId"/>.
@@ -146,8 +150,9 @@ public interface IDiscordAccess
     /// <param name="channelId">The Id of the channel to create the <paramref name="messages"/> in.</param>
     /// <param name="messages">The messages to create.</param>
     /// <returns>An array of the message Ids.</returns>
-    Task<ulong[]> CreateBotMessagesInChannelAsync(DiscordChannelId channelId, string[] messages);
-    
+    Task<ulong[]> CreateBotMessagesInChannelAsync(DiscordChannelId channelId,
+                                                  string[] messages);
+
     /// <summary>
     /// Creates the <paramref name="messages"/> with their <see cref="SelectMenuComponent"/>s in the given <paramref name="channelId"/>.
     /// </summary>
@@ -164,14 +169,15 @@ public interface IDiscordAccess
     /// or
     /// - more than 25 <see cref="SelectMenuComponent.Options"/> per <see cref="SelectMenuComponent"/>.</exception>
     /// <returns>An awaitable <see cref="Task"/>.</returns>
-    Task CreateBotMessagesInChannelAsync(DiscordChannelId channelId, (string Content, ActionComponent[] Components)[] messages);
+    Task CreateBotMessagesInChannelAsync(DiscordChannelId channelId,
+                                         (string Content, ActionComponent[] Components)[] messages);
 
     /// <summary>
     /// Creates the <paramref name="message"/> in the servers welcome channel.
     /// </summary>
     /// <param name="message">The message to create.</param>
     /// <returns>An awaitable <see cref="Task"/>.</returns>
-    Task CreateBotMessageInWelcomeChannel(string message);
+    Task CreateBotMessageInWelcomeChannelAsync(string message);
 
     /// <summary>
     /// Counts the guild members having the <paramref name="roleIds"/>.
@@ -186,7 +192,8 @@ public interface IDiscordAccess
     /// <param name="roleIds">The Ids of the roles to count.</param>
     /// <param name="roleIdsToExclude">The role Ids that will skip a count of the guild member.</param>
     /// <returns>The amount of guild members having the <paramref name="roleIds"/> and not the <paramref name="roleIdsToExclude"/>.</returns>
-    int CountGuildMembersWithRoles(DiscordRoleId[]? roleIds, DiscordRoleId[] roleIdsToExclude);
+    int CountGuildMembersWithRoles(DiscordRoleId[]? roleIds,
+                                   DiscordRoleId[] roleIdsToExclude);
 
     /// <summary>
     /// Counts the guild members having the <paramref name="roleNames"/>.
@@ -216,9 +223,9 @@ public interface IDiscordAccess
     /// <param name="name">The name of the voice channel.</param>
     /// <param name="maxUsers">The maximum number of users allowed into the voice channel.</param>
     /// <returns>The Id of the created channel, or an error while creating it.</returns>
-    Task<(DiscordChannelId VoiceChannelId, string? Error)> CreateVoiceChannel(DiscordChannelId voiceChannelsCategoryId,
-                                                                              string name,
-                                                                              int maxUsers);
+    Task<(DiscordChannelId VoiceChannelId, string? Error)> CreateVoiceChannelAsync(DiscordChannelId voiceChannelsCategoryId,
+                                                                                   string name,
+                                                                                   int maxUsers);
 
     /// <summary>
     /// Reorders the <paramref name="channelIds"/> to be in order above the <paramref name="positionAboveChannelId"/>.
@@ -228,21 +235,21 @@ public interface IDiscordAccess
     /// <returns>An awaitable <see cref="Task"/>.</returns>
     Task ReorderChannelsAsync(DiscordChannelId[] channelIds,
                               DiscordChannelId positionAboveChannelId);
-        
+
     /// <summary>
     /// Deletes the voice channel.
     /// </summary>
     /// <param name="voiceChannelId">The Id of the voice channel to delete.</param>
     /// <returns>An awaitable <see cref="Task"/>.</returns>
-    Task DeleteVoiceChannel(DiscordChannelId voiceChannelId);
-    
+    Task DeleteVoiceChannelAsync(DiscordChannelId voiceChannelId);
+
     /// <summary>
     /// Gets the Id of the avatar for the <paramref name="userId"/>, if the user has any avatar set.
     /// </summary>
     /// <param name="userId">The <see cref="DiscordUserId"/> of the user to get the avatar Id for.</param>
     /// <returns>The avatar Id, or <b>null</b>.</returns>
     string? GetAvatarId(DiscordUserId userId);
-    
+
     /// <summary>
     /// Gets all users on the Discord server.
     /// </summary>
@@ -303,6 +310,4 @@ public interface IDiscordAccess
     /// <param name="userId">The <see cref="DiscordUserId"/> of the user to get the roles for.</param>
     /// <returns>An array of all current roles the user has.</returns>
     DiscordRoleId[] GetUserRoles(DiscordUserId userId);
-
-    
 }

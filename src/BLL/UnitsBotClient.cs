@@ -274,7 +274,7 @@ public class UnitsBotClient : IUnitsBotClient
         foreach (var eventVoiceChannel in voiceChannels)
         {
             var (voiceChannelId, error) =
-                await _discordAccess.CreateVoiceChannel((DiscordChannelId)_dynamicConfiguration.DiscordMapping["VoiceChannelCategoryId"],
+                await _discordAccess.CreateVoiceChannelAsync((DiscordChannelId)_dynamicConfiguration.DiscordMapping["VoiceChannelCategoryId"],
                                                         eventVoiceChannel.DisplayName,
                                                         eventVoiceChannel.MaxUsersInChannel);
             if (error != null)
@@ -317,7 +317,7 @@ public class UnitsBotClient : IUnitsBotClient
 
             try
             {
-                await _discordAccess.DeleteVoiceChannel((DiscordChannelId)voiceChannelId);
+                await _discordAccess.DeleteVoiceChannelAsync((DiscordChannelId)voiceChannelId);
                 _logger.LogInformation("Deleted voice channel {VoiceChannelId}", voiceChannelId);
             }
             catch (Exception e)

@@ -70,7 +70,7 @@ public class NonMemberRoleProvider : INonMemberRoleProvider
                 var rolesToAdd = selectedGameInterestRoles.Except(currentUserRoleIds).ToArray();
                 foreach (var discordRoleId in rolesToAdd)
                 {
-                    var (success, roleName) = await DiscordAccess.TryAddNonMemberRole(userId, discordRoleId);
+                    var (success, roleName) = await DiscordAccess.TryAddNonMemberRoleAsync(userId, discordRoleId);
                     sb.AppendLine(success
                                       ? $"Successfully assigned the role **{roleName}**."
                                       : $"Failed to assign the role **{roleName}**.");
@@ -85,7 +85,7 @@ public class NonMemberRoleProvider : INonMemberRoleProvider
                 var rolesToRemove = selectedGameInterestRoles.Intersect(currentUserRoleIds).ToArray();
                 foreach (var discordRoleId in rolesToRemove)
                 {
-                    var (success, roleName) = await DiscordAccess.TryRevokeNonMemberRole(userId, discordRoleId);
+                    var (success, roleName) = await DiscordAccess.TryRevokeNonMemberRoleAsync(userId, discordRoleId);
                     sb.AppendLine(success
                                       ? $"Successfully revoked the role **{roleName}**."
                                       : $"Failed to revoke the role **{roleName}**.");
@@ -100,7 +100,7 @@ public class NonMemberRoleProvider : INonMemberRoleProvider
         }
 
         if (logSb.Length > 0)
-            await DiscordAccess.LogToDiscord(logSb.ToString());
+            await DiscordAccess.LogToDiscordAsync(logSb.ToString());
 
         return sb.Length > 0
                    ? sb.ToString()
@@ -116,19 +116,19 @@ public class NonMemberRoleProvider : INonMemberRoleProvider
 
         if (revoke)
         {
-            var removed = await DiscordAccess.TryRevokeNonMemberRole(userId, staticRole);
+            var removed = await DiscordAccess.TryRevokeNonMemberRoleAsync(userId, staticRole);
             if (!removed)
                 return "Failed to identify matching role.";
 
-            await DiscordAccess.LogToDiscord($"User {user.Mention} **removed** the role **_{staticRole}_**.");
+            await DiscordAccess.LogToDiscordAsync($"User {user.Mention} **removed** the role **_{staticRole}_**.");
             return $"The role **_{staticRole}_** was **removed**.";
         }
 
-        var added = await DiscordAccess.TryAddNonMemberRole(userId, staticRole);
+        var added = await DiscordAccess.TryAddNonMemberRoleAsync(userId, staticRole);
         if (!added)
             return "Failed to identify matching role.";
 
-        await DiscordAccess.LogToDiscord($"User {user.Mention} **added** the role **_{staticRole}_**.");
+        await DiscordAccess.LogToDiscordAsync($"User {user.Mention} **added** the role **_{staticRole}_**.");
         return $"The role **_{staticRole}_** was **added**.";
     }
 }

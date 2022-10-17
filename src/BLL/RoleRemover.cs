@@ -24,15 +24,15 @@ public class RoleRemover : IRoleRemover
             if (!_discordAccess.CanManageRolesForUser(discordUserID))
                 continue;
 
-            var (success, roleName) = await _discordAccess.TryRevokeNonMemberRole(discordUserID, basementRoleId);
+            var (success, roleName) = await _discordAccess.TryRevokeNonMemberRoleAsync(discordUserID, basementRoleId);
             if (success)
             {
-                await _discordAccess.LogToDiscord($"Automatically removed role `{roleName}` from <@{discordUserID}>.");
+                await _discordAccess.LogToDiscordAsync($"Automatically removed role `{roleName}` from <@{discordUserID}>.");
                 continue;
             }
 
             var leaderMention = _discordAccess.GetRoleMention("Leader");
-            await _discordAccess.LogToDiscord($"{leaderMention}: failed to remove role `{roleName}` from <@{discordUserID}>");
+            await _discordAccess.LogToDiscordAsync($"{leaderMention}: failed to remove role `{roleName}` from <@{discordUserID}>");
         }
 
         // Gather users that should be freed next round.

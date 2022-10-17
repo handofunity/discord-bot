@@ -75,7 +75,7 @@ public partial class ConfigModule
                 _logger.LogInformation("{User} added the game {Game}",
                                        Context.User.Username,
                                        addedGame.DisplayName);
-                await _discordAccess.LogToDiscord($"{Context.User.Username} added the game **{addedGame.DisplayName} ({game.Mention})**.");
+                await _discordAccess.LogToDiscordAsync($"{Context.User.Username} added the game **{addedGame.DisplayName} ({game.Mention})**.");
             }
 
             await RespondAsync(message);
@@ -105,7 +105,7 @@ public partial class ConfigModule
                                        updatedGame.DisplayName,
                                        nameof(AvailableGame.IncludeInGamesMenu),
                                        include);
-                await _discordAccess.LogToDiscord($"{Context.User.Username} changed the property **{nameof(AvailableGame.IncludeInGamesMenu)}** of the game "
+                await _discordAccess.LogToDiscordAsync($"{Context.User.Username} changed the property **{nameof(AvailableGame.IncludeInGamesMenu)}** of the game "
                                                 + $"**{updatedGame.DisplayName}** ({game.Mention}) to **{include}**.");
             }
 
@@ -136,7 +136,7 @@ public partial class ConfigModule
                                        nameof(AvailableGame.IncludeInGuildMembersStatistic),
                                        updatedGame.DisplayName,
                                        include);
-                await _discordAccess.LogToDiscord($"{Context.User.Username} changed the property **{nameof(AvailableGame.IncludeInGuildMembersStatistic)}** of the game "
+                await _discordAccess.LogToDiscordAsync($"{Context.User.Username} changed the property **{nameof(AvailableGame.IncludeInGuildMembersStatistic)}** of the game "
                                                 + $"**{updatedGame.DisplayName}** to **{include}**.");
             }
 
@@ -169,7 +169,7 @@ public partial class ConfigModule
                                        nameof(AvailableGame.GameInterestRoleId),
                                        updatedGame.DisplayName,
                                        (interestRole == null ? "<NULL>" : interestRole.Mention));
-                await _discordAccess.LogToDiscord($"{Context.User.Username} changed the property **{nameof(AvailableGame.GameInterestRoleId)}** of the game "
+                await _discordAccess.LogToDiscordAsync($"{Context.User.Username} changed the property **{nameof(AvailableGame.GameInterestRoleId)}** of the game "
                                                 + $"**{updatedGame.DisplayName}** ({game.Mention}) to **{(interestRole == null ? "<NULL>" : interestRole.Mention)}**.");
 
                 // If the game can be used as "interest role", send an additional message.
@@ -178,7 +178,7 @@ public partial class ConfigModule
                     var leaderMention = _discordAccess.GetRoleMention(Constants.RoleNames.LeaderRoleName);
                     var gameInterestNotification =
                         $"{leaderMention} The game '{updatedGame.DisplayName}' can now be used as \"game interest\" in the infos and roles channel.";
-                    await _discordAccess.LogToDiscord(gameInterestNotification);
+                    await _discordAccess.LogToDiscordAsync(gameInterestNotification);
                 }
             }
 
@@ -197,7 +197,7 @@ public partial class ConfigModule
                 _logger.LogInformation("{User} removed the game {Game}",
                                        Context.User.Username,
                                        removedGame.DisplayName);
-                await _discordAccess.LogToDiscord($"{Context.User.Username} removed the game **{removedGame.DisplayName}** ({game.Mention}).");
+                await _discordAccess.LogToDiscordAsync($"{Context.User.Username} removed the game **{removedGame.DisplayName}** ({game.Mention}).");
             }
 
             await RespondAsync(message);
@@ -224,7 +224,7 @@ public partial class ConfigModule
                                        Context.User.Username,
                                        addedGameRole.DisplayName,
                                        game.Name);
-                await _discordAccess.LogToDiscord($"{Context.User.Username} added the role **{addedGameRole.DisplayName}** ({roleToAdd.Mention}) to the game **{game.Mention}**.");
+                await _discordAccess.LogToDiscordAsync($"{Context.User.Username} added the role **{addedGameRole.DisplayName}** ({roleToAdd.Mention}) to the game **{game.Mention}**.");
             }
 
             await RespondAsync(message);
@@ -242,7 +242,7 @@ public partial class ConfigModule
                 _logger.LogInformation("{User} removed the role {Role}",
                                        Context.User.Username,
                                        removedGameRole.DisplayName);
-                await _discordAccess.LogToDiscord($"{Context.User.Username} removed the role **{removedGameRole.DisplayName}** ({role.Mention}).");
+                await _discordAccess.LogToDiscordAsync($"{Context.User.Username} removed the role **{removedGameRole.DisplayName}** ({role.Mention}).");
             }
 
             await RespondAsync(message);

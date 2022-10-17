@@ -29,14 +29,14 @@ public class BirthdayService
             if(!_discordAccess.CanManageRolesForUser(userId))
                 continue;
 
-            var (success, _) = await _discordAccess.TryAddNonMemberRole(userId, birthdayRoleId);
+            var (success, _) = await _discordAccess.TryAddNonMemberRoleAsync(userId, birthdayRoleId);
             if (success)
             {
                 userIdsWithAppliedRole.Add(userId);
             }
             else
             {
-                await _discordAccess.LogToDiscord($"{_discordAccess.GetLeadershipMention()}: "
+                await _discordAccess.LogToDiscordAsync($"{_discordAccess.GetLeadershipMention()}: "
                                                 + $"Failed to apply role {birthdayRoleId.ToMention()} to {userId.ToMention()}.");
             }
         }
@@ -60,10 +60,10 @@ public class BirthdayService
             if (!_discordAccess.CanManageRolesForUser(userId))
                 continue;
 
-            var (success, _) = await _discordAccess.TryRevokeNonMemberRole(userId, birthdayRoleId);
+            var (success, _) = await _discordAccess.TryRevokeNonMemberRoleAsync(userId, birthdayRoleId);
             if (!success)
             {
-                await _discordAccess.LogToDiscord($"{_discordAccess.GetLeadershipMention()}: "
+                await _discordAccess.LogToDiscordAsync($"{_discordAccess.GetLeadershipMention()}: "
                                                 + $"Failed to revoke role {birthdayRoleId.ToMention()} from {userId.ToMention()}.");
             }
         }

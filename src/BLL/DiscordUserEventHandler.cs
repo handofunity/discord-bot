@@ -80,7 +80,7 @@ public class DiscordUserEventHandler : IDiscordUserEventHandler
                 var formattedRolesMessage = user.CurrentRoles is null
                                                 ? string.Empty
                                                 : $"; Roles: {user.CurrentRoles}";
-                await discordAccess.LogToDiscord(
+                await discordAccess.LogToDiscordAsync(
                                                  $"{mentionPrefix}User `{username}#{discriminatorValue}` " +
                                                  $"(Membership level: **{user.Roles}**{formattedRolesMessage}) " +
                                                  $"has left the server on {now:D} at {now:HH:mm:ss} UTC.");
@@ -88,7 +88,7 @@ public class DiscordUserEventHandler : IDiscordUserEventHandler
             // If it has been less than a day, write to the #public-chat, so people will know that a new user left before greeting them.
             else
             {
-                await discordAccess.CreateBotMessageInWelcomeChannel($"User `{username}#{discriminatorValue}` has left the server.");
+                await discordAccess.CreateBotMessageInWelcomeChannelAsync($"User `{username}#{discriminatorValue}` has left the server.");
             }
         }).ConfigureAwait(false);
     }
