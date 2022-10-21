@@ -348,6 +348,18 @@ public class ImageProvider : IImageProvider
                            });
     }
 
+    Stream IImageProvider.LoadArtisanProfessionsImage()
+    {
+        var content = GetImageFromResource("AoCArtisanProfessions.png");
+        return CreateImage(999,
+                           599,
+                           bitmap =>
+                           {
+                               using var canvas = new SKCanvas(bitmap);
+                               canvas.DrawImage(content, 0, 0);
+                           });
+    }
+
     Stream IImageProvider.CreateLostArkPlayStyleDistributionImage()
     {
         var barColors = new Dictionary<string, SKColor>

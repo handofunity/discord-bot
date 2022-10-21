@@ -17,6 +17,8 @@ public interface IImageProvider
 
     Stream LoadClassListImage();
 
+    Stream LoadArtisanProfessionsImage();
+
     Stream CreateLostArkPlayStyleDistributionImage();
     
     Stream CreateWowRetailPlayStyleDistributionImage();

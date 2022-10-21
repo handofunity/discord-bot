@@ -52,6 +52,24 @@ public class AshesOfCreationModule : InteractionModuleBase<SocketInteractionCont
         }
     }
 
+    [SlashCommand("artisan-professions", "Shows an overview of all possible artisan professions in AoC.", runMode: RunMode.Async)]
+    [AllowedRoles(Role.AnyGuildMember)]
+    public async Task GetArtisanProfessionsImageAsync()
+    {
+        await DeferAsync();
+
+        try
+        {
+            await using var imageStream = _imageProvider.LoadArtisanProfessionsImage();
+            await FollowupWithFileAsync(imageStream, "artisan-professions.png");
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Failed to create the artisan professions image");
+            await FollowupAsync("Failed to create image.");
+        }
+    }
+
     [SlashCommand("launch-roster", "Shows the possibilities to get into the AoC launch roster.", runMode: RunMode.Async)]
     [AllowedRoles(Role.AnyGuildMember)]
     public async Task GetLaunchRosterImageAsync()

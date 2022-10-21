@@ -30,6 +30,7 @@
     <None Remove="Resources\UnitsProfileNameplate.png" />
     <None Remove="Resources\WowRetailPlaystyleForeground.png" />
     <None Remove="Resources\WowRetailPlaystyleBackground.png" />
+    <None Remove="Resources\AoCArtisanClasses.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -52,6 +53,7 @@
     <EmbeddedResource Include="Resources\UnitsProfileNameplate.png" />
     <EmbeddedResource Include="Resources\WowRetailPlaystyleBackground.png" />
     <EmbeddedResource Include="Resources\WowRetailPlaystyleForeground.png" />
+    <EmbeddedResource Include="Resources\AoCArtisanProfessions.png" />
   </ItemGroup>
 
   <ItemGroup>
