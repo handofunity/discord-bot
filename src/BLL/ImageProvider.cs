@@ -49,7 +49,8 @@ public class ImageProvider : IImageProvider
 
     private Stream CreateBarChartImage(BarChartDrawingData barChartDrawingData,
                                        DiscordRoleId primaryGameDiscordRoleId,
-                                       string[] rolesInChart)
+                                       string[] rolesInChart,
+                                       Dictionary<string, string>? barLabelOverrides = null)
     {
         // Collect data
         var game = _gameRoleProvider.Games.Single(m => m.PrimaryGameDiscordRoleId == primaryGameDiscordRoleId);
@@ -111,10 +112,12 @@ public class ImageProvider : IImageProvider
                                foreach (var (roleName, roleCount) in roleDistribution.OrderByDescending(m => m.Value).ThenBy(m => m.Key))
                                {
                                    // Bar label
+                                   if (barLabelOverrides is null || !barLabelOverrides.TryGetValue(roleName, out var barLabelText))
+                                       barLabelText = roleName;
                                    var labelPaint = new SKPaint(labelFont) { Color = SKColors.Black };
                                    var requiredLabelSize = new SKRect();
-                                   labelPaint.MeasureText(roleName, ref requiredLabelSize);
-                                   canvas.DrawText(roleName,
+                                   labelPaint.MeasureText(barLabelText, ref requiredLabelSize);
+                                   canvas.DrawText(barLabelText,
                                                    indent + (barChartDrawingData.IndentIncrement - requiredLabelSize.Width) / 2,
                                                    BarChartDrawingData.LabelsTopOffset,
                                                    labelFont,
@@ -222,16 +225,22 @@ public class ImageProvider : IImageProvider
             { "Fellowship of Unity Guild", SKColors.LightSkyBlue }
         };
         var rolesInChart = barColors.Keys.ToArray();
+        var barLabelOverrides = new Dictionary<string, string>
+        {
+            { "Hand of Unity Guild", "HoU" },
+            { "Fellowship of Unity Guild", "FoU" }
+        };
         return CreateBarChartImage(new BarChartDrawingData("AoCRolesBackground_Right.png",
                                                            "AoCGuildPreferenceForeground.png",
                                                            barColors,
                                                            368f,
                                                            131.5f)
                                    {
-                                       LabelFontSize = 9f
+                                       LabelFontSize = 16f
                                    },
                                    (DiscordRoleId)_dynamicConfiguration.DiscordMapping["AshesOfCreationPrimaryGameDiscordRoleId"],
-                                   rolesInChart);
+                                   rolesInChart,
+                                   barLabelOverrides);
     }
 
     Stream IImageProvider.LoadLaunchRosterImage()
