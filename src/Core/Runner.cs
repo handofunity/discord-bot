@@ -1,4 +1,4 @@
-﻿using System.Net.Http;
+﻿ridusing System.Net.Http;
 using System.Net.Http.Headers;
 using HoU.GuildBot.DAL.Keycloak;
 using DiscordUserEventHandler = HoU.GuildBot.BLL.DiscordUserEventHandler;
@@ -7,7 +7,7 @@ namespace HoU.GuildBot.Core;
 
 public class Runner
 {
-    private static readonly Version _botVersion = new(10, 1, 0);
+    private static readonly Version _botVersion = new(10, 2, 0);
 
     private BackgroundJobServer? _backgroundJobServer;
     private ILogger<Runner>? _logger;

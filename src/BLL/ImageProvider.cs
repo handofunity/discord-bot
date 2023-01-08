@@ -219,7 +219,7 @@ public class ImageProvider : IImageProvider
         var barColors = new Dictionary<string, SKColor>
         {
             { "Hand of Unity Guild", SKColors.CornflowerBlue },
-            { "Home of Unity Guild", SKColors.LightSkyBlue }
+            { "Fellowship of Unity Guild", SKColors.LightSkyBlue }
         };
         var rolesInChart = barColors.Keys.ToArray();
         return CreateBarChartImage(new BarChartDrawingData("AoCRolesBackground_Right.png",

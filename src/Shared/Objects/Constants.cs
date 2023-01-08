@@ -141,7 +141,7 @@ public static class Constants
             new Dictionary<string, string>
             {
                 {"handofunity", "Hand of Unity"},
-                {"homeofunity", "Home of Unity"}
+                {"fellowshipofunity", "Fellowship of Unity"}
             };
     }
 
