@@ -1,4 +1,4 @@
-﻿ridusing System.Net.Http;
+﻿using System.Net.Http;
 using System.Net.Http.Headers;
 using HoU.GuildBot.DAL.Keycloak;
 using DiscordUserEventHandler = HoU.GuildBot.BLL.DiscordUserEventHandler;
