@@ -1,7 +1,4 @@
-﻿using System.Text.Json;
-using Microsoft.AspNetCore.Authentication.OAuth;
-
-namespace HoU.GuildBot.DAL;
+﻿namespace HoU.GuildBot.DAL;
 
 public class BearerTokenManager<TClient> : IBearerTokenManager<TClient>
     where TClient : class

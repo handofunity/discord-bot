@@ -656,16 +656,6 @@ public class DiscordAccess : IDiscordAccess
         await _client.SetGameAsync(gameName);
     }
 
-    async Task IDiscordAccess.LogToDiscordAsync(string message)
-    {
-        if (message == null)
-            throw new ArgumentNullException(nameof(message));
-        if (string.IsNullOrWhiteSpace(message))
-            throw new ArgumentException("Log message must have content.", nameof(message));
-
-        await LogToDiscordInternal(message);
-    }
-
     bool IDiscordAccess.IsUserOnline(DiscordUserId userId)
     {
         var gu = GetGuildUserById(userId);
@@ -1083,8 +1073,9 @@ public class DiscordAccess : IDiscordAccess
                 DiscordUserId = (DiscordUserId)user.Id,
                 Username = user.Username,
                 Discriminator = (short)user.DiscriminatorValue,
-                AvatarId = user.AvatarId,
-                Roles = user.RoleIds.Select(m => (DiscordRoleId)m).ToArray()
+                Nickname = user.Nickname,
+                AvatarId = user.DisplayAvatarId,
+                Roles = user.RoleIds.Select(m => (DiscordRoleId)m).ToArray(),
             }));
         }
 
@@ -1224,6 +1215,16 @@ public class DiscordAccess : IDiscordAccess
     {
         var gu = GetGuildUserById(userId);
         return gu.Roles.Select(m => (DiscordRoleId)m.Id).ToArray();
+    }
+
+    async Task IDiscordLogger.LogToDiscordAsync(string message)
+    {
+        if (message == null)
+            throw new ArgumentNullException(nameof(message));
+        if (string.IsNullOrWhiteSpace(message))
+            throw new ArgumentException("Log message must have content.", nameof(message));
+
+        await LogToDiscordInternal(message);
     }
 
     private Task LogClient(LogMessage arg)

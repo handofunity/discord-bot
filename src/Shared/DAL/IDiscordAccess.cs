@@ -1,6 +1,6 @@
 ﻿namespace HoU.GuildBot.Shared.DAL;
 
-public interface IDiscordAccess
+public interface IDiscordAccess : IDiscordLogger
 {
     /// <summary>
     /// Gets if the Discord access is connected to Discord.
@@ -28,15 +28,6 @@ public interface IDiscordAccess
     /// <param name="gameName">The game name.</param>
     /// <returns>An awaitable <see cref="Task"/>.</returns>
     Task SetCurrentGameAsync(string gameName);
-
-    /// <summary>
-    /// Logs the <paramref name="message"/> in the dedicated logging channel on Discord.
-    /// </summary>
-    /// <param name="message">The message to log.</param>
-    /// <exception cref="ArgumentNullException"><paramref name="message"/> is <b>null</b>.</exception>
-    /// <exception cref="ArgumentException"><paramref name="message"/> is empty or only whitespaces.</exception>
-    /// <returns>An awaitable <see cref="Task"/>.</returns>
-    Task LogToDiscordAsync(string message);
 
     /// <summary>
     /// Checks if the user with the <paramref name="userId"/> is currently online.

@@ -1,13 +1,13 @@
 ﻿namespace HoU.GuildBot.DAL;
 
-internal static class HttpRequestHelper
+public static class HttpRequestHelper
 {
-    internal static async Task<TResult?> PerformAuthorizedRequestAsync<TClient, TResult>(this HttpClient httpClient,
-                                                                                         IBearerTokenManager<TClient> bearerTokenManager,
-                                                                                         AuthorizationEndpoint authorizationEndpoint,
-                                                                                         Func<Task<HttpResponseMessage?>> invokeHttpRequest,
-                                                                                         Func<HttpResponseMessage?, Task<TResult>>
-                                                                                             handleResult)
+    public static async Task<TResult?> PerformAuthorizedRequestAsync<TClient, TResult>(this HttpClient httpClient,
+                                                                                       IBearerTokenManager<TClient> bearerTokenManager,
+                                                                                       AuthorizationEndpoint authorizationEndpoint,
+                                                                                       Func<Task<HttpResponseMessage?>> invokeHttpRequest,
+                                                                                       Func<HttpResponseMessage?, Task<TResult>>
+                                                                                           handleResult)
         where TClient : class
     {
         var tokenSet = await bearerTokenManager.GetAndSetBearerToken(httpClient, authorizationEndpoint, false);
