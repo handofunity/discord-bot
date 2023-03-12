@@ -13,7 +13,7 @@ internal class KeycloakUserReader : KeycloakBaseClient, IKeycloakUserReader
     private async Task<UserRepresentation[]?> GetAllUserRepresentationsAsync(HttpClient httpClient,
                                                                              KeycloakEndpoint keycloakEndpoint)
     {
-        var uri = new Uri(keycloakEndpoint.BaseUrl, $"{keycloakEndpoint.Realm}/users?briefRepresentation=false");
+        var uri = new Uri(keycloakEndpoint.BaseUrl, $"{keycloakEndpoint.Realm}/users?briefRepresentation=false&max=10000");
         return await httpClient.PerformAuthorizedRequestAsync(BearerTokenManager,
                                                               keycloakEndpoint,
                                                               InvokeHttpGetRequest(httpClient, uri),

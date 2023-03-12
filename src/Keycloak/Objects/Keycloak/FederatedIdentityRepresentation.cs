@@ -2,20 +2,27 @@
 
 internal class FederatedIdentityRepresentation
 {
+    [JsonIgnore]
     internal const string DiscordIdentityProviderName = "discord";
 
     [JsonPropertyName("identityProvider")]
-    public string IdentityProvider { get; }
+    public string IdentityProvider { get; init; }
 
     [JsonPropertyName("userId")]
-    public string UserId { get; }
+    public string UserId { get; init; }
 
     [JsonIgnore]
     public DiscordUserId DiscordUserId => (DiscordUserId)ulong.Parse(UserId);
 
     [JsonPropertyName("userName")]
-    public string Username { get; }
+    public string Username { get; init; }
 
+    [JsonConstructor]
+    public FederatedIdentityRepresentation()
+    {
+        
+    }
+    
     public FederatedIdentityRepresentation(DiscordUserId userId,
                                            string username)
     {

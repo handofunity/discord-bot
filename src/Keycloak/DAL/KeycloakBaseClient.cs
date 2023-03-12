@@ -41,8 +41,12 @@ internal abstract class KeycloakBaseClient
 
     protected Func<Task<HttpResponseMessage?>> InvokeHttpPostRequest<TPayload>(HttpClient httpClient,
                                                                                Uri uri,
-                                                                               TPayload payload) =>
-        async () =>
+                                                                               TPayload payload)
+    {
+        if (typeof(TPayload) == typeof(string))
+            throw new ArgumentException("Parameter cannot be of type System.String.", nameof(payload));
+        
+        return async () =>
         {
             try
             {
@@ -54,6 +58,7 @@ internal abstract class KeycloakBaseClient
                 return null;
             }
         };
+    }
 
     protected Func<Task<HttpResponseMessage?>> InvokeHttpPostRequest(HttpClient httpClient,
                                                                      Uri uri) =>

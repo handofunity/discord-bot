@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
+FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS base
 RUN ln -s /lib/x86_64-linux-gnu/libdl.so.2 /lib/x86_64-linux-gnu/libdl.so \
   && apt update \
   && apt install -y libgdiplus \
@@ -6,10 +6,11 @@ RUN ln -s /lib/x86_64-linux-gnu/libdl.so.2 /lib/x86_64-linux-gnu/libdl.so \
 
 WORKDIR /app
 
-FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 ARG CONFIGURATION
 WORKDIR /src
 COPY ["WebHost/WebHost.csproj", "WebHost/"]
+COPY ["Keycloak/Keycloak.csproj", "Keycloak/"]
 COPY ["DAL/DAL.csproj", "DAL/"]
 COPY ["Shared/Shared.csproj", "Shared/"]
 COPY ["Core/Core.csproj", "Core/"]

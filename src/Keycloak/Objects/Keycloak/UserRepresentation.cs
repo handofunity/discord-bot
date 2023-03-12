@@ -2,8 +2,8 @@
 
 internal class UserRepresentation
 {
+    private readonly List<FederatedIdentityRepresentation>? _federatedIdentities;
     private string? _userId;
-    private FederatedIdentityRepresentation[]? _federatedIdentities;
 
     [JsonPropertyName("id")]
     public string? UserId
@@ -22,44 +22,47 @@ internal class UserRepresentation
     public KeycloakUserId KeycloakUserId { get; private set; }
 
     [JsonPropertyName("username")]
-    public string? Username { get; }
+    public string? Username { get; init; }
 
     [JsonPropertyName("enabled")]
-    public bool Enabled { get; }
+    public bool Enabled { get; init; }
 
     [JsonPropertyName("firstName")]
-    public string? FirstName { get; }
+    public string? FirstName { get; init; }
 
-    [JsonPropertyName("federatedIdentities")]
-    public FederatedIdentityRepresentation[]? FederatedIdentities
-    {
-        get => _federatedIdentities;
-        private init
-        {
-            _federatedIdentities = value;
-            var federatedIdentity = _federatedIdentities?.FirstOrDefault();
-            DiscordUserId = federatedIdentity?.DiscordUserId ?? default;
-        }
-    }
+    [JsonIgnore]
+    public IReadOnlyList<FederatedIdentityRepresentation>? FederatedIdentities => _federatedIdentities;
 
     [JsonIgnore]
     public DiscordUserId DiscordUserId { get; private set; }
 
     [JsonPropertyName("attributes")]
-    public AttributeMap? Attributes { get; }
+    public AttributeMap? Attributes { get; init; }
+
+    [JsonConstructor]
+    public UserRepresentation()
+    {
+        _federatedIdentities = new List<FederatedIdentityRepresentation>();
+    }
 
     public UserRepresentation(UserModel userModel)
+        : this()
     {
-        Username = $"{userModel.Username.ToLower()}#{userModel.Discriminator:D4}";
+        Username = userModel.FullUsername.ToLower();
         Enabled = true;
-        FirstName = userModel.Username;
-        FederatedIdentities = new[]
-        {
-            new FederatedIdentityRepresentation(userModel.DiscordUserId, Username)
-        };
+        FirstName = userModel.FullUsername;
+        AddFederatedIdentity(new FederatedIdentityRepresentation(userModel.DiscordUserId,
+                                                                 userModel.FullUsername));
         Attributes = new AttributeMap(userModel.AvatarId,
                                       userModel.Nickname,
                                       null);
+    }
+
+    internal void AddFederatedIdentity(FederatedIdentityRepresentation federatedIdentityRepresentation)
+    {
+        _federatedIdentities.Add(federatedIdentityRepresentation);
+        var federatedIdentity = _federatedIdentities?.FirstOrDefault();
+        DiscordUserId = federatedIdentity?.DiscordUserId ?? default;
     }
 
     internal UserUpdateRepresentation AsUpdateRepresentation() => new(this);

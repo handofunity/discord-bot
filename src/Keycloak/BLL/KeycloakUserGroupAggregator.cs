@@ -21,7 +21,9 @@ internal class KeycloakUserGroupAggregator : IKeycloakUserGroupAggregator
         
         // Get all Keycloak users
         var keycloakUsers = await _keycloakUserReader.GetAllUsersAsync(keycloakEndpoint);
-            
+        if (keycloakUsers is null)
+            return null;
+
         // Get Keycloak group members
         var keycloakGroupMembers = new Dictionary<KeycloakGroupId, KeycloakUserId[]>();
         foreach (var keycloakGroupId in configuredKeycloakGroups.DiscordRoleToKeycloakGroupMapping.Values)
@@ -37,14 +39,16 @@ internal class KeycloakUserGroupAggregator : IKeycloakUserGroupAggregator
             keycloakGroupMembers.Add(configuredKeycloakGroups.FallbackGroupId, fallbackMembers);
 
         // Get mapping of KeycloakUserId to DiscordUserId
-        var userMapping = new Dictionary<KeycloakUserId, DiscordUserId>();
-        var distinctKeycloakUserIds = keycloakGroupMembers.Values.SelectMany(m => m).Distinct();
-        foreach (var keycloakUserId in distinctKeycloakUserIds)
+        foreach (var keycloakUser in keycloakUsers)
         {
-            var federatedIdentity = await _keycloakUserReader.GetFederatedIdentityAsync(keycloakEndpoint, keycloakUserId);
-            if (federatedIdentity is not null)
-                userMapping.Add(keycloakUserId, federatedIdentity.DiscordUserId);
+            var federatedIdentity = await _keycloakUserReader.GetFederatedIdentityAsync(keycloakEndpoint, keycloakUser.KeycloakUserId);
+            if (federatedIdentity is null)
+                continue;
+            keycloakUser.AddFederatedIdentity(federatedIdentity);
         }
+
+        var userMapping = keycloakUsers.Where(m => m.DiscordUserId != default)
+                                       .ToDictionary(m => m.KeycloakUserId, m => m.DiscordUserId);
             
         // Get currently disabled users
         var disabledUsers = keycloakUsers.Where(m => !m.Enabled).Select(m => m.KeycloakUserId).ToArray();

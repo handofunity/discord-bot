@@ -4,7 +4,8 @@ internal class KeycloakUserGroupWriter : KeycloakBaseClient, IKeycloakUserGroupW
 {
     public KeycloakUserGroupWriter(IBearerTokenManager<KeycloakBaseClient> bearerTokenManager,
                                    IHttpClientFactory httpClientFactory,
-                                   ILogger logger)
+                                   // ReSharper disable once SuggestBaseTypeForParameterInConstructor
+                                   ILogger<KeycloakUserGroupWriter> logger)
         : base(bearerTokenManager, httpClientFactory, logger)
     {
     }

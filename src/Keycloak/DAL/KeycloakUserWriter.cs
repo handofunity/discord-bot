@@ -5,7 +5,8 @@ internal class KeycloakUserWriter : KeycloakBaseClient, IKeycloakUserWriter
 
     public KeycloakUserWriter(IBearerTokenManager<KeycloakBaseClient> bearerTokenManager,
                               IHttpClientFactory httpClientFactory,
-                              ILogger logger)
+                              // ReSharper disable once SuggestBaseTypeForParameterInConstructor
+                              ILogger<KeycloakUserWriter> logger)
         : base(bearerTokenManager, httpClientFactory, logger)
     {
     }
@@ -23,14 +24,19 @@ internal class KeycloakUserWriter : KeycloakBaseClient, IKeycloakUserWriter
             var newKeycloakUserId = await httpClient.PerformAuthorizedRequestAsync(BearerTokenManager,
                                                                                    keycloakEndpoint,
                                                                                    InvokeHttpPostRequest(httpClient, uri, request),
-                                                                                   HandleResponseMessage);
+                                                                                   response =>
+                                                                                       HandleResponseMessage(user.FullUsername,
+                                                                                           user.DiscordUserId,
+                                                                                           response));
             if (newKeycloakUserId is not null)
                 result.Add(user.DiscordUserId, newKeycloakUserId.Value);
         }
 
         return result;
 
-        Task<KeycloakUserId?> HandleResponseMessage(HttpResponseMessage? responseMessage)
+        Task<KeycloakUserId?> HandleResponseMessage(string fullUsername,
+                                                    DiscordUserId discordUserId,
+                                                    HttpResponseMessage? responseMessage)
         {
             if (responseMessage is null)
                 return Task.FromResult<KeycloakUserId?>(null);
@@ -41,7 +47,12 @@ internal class KeycloakUserWriter : KeycloakBaseClient, IKeycloakUserWriter
 
             Logger.LogRequestError(uri.Host,
                                     uri.PathAndQuery,
-                                    $"Creating Keycloak user failed: {responseMessage.StatusCode}");
+                                    $"Creating Keycloak user failed: {responseMessage.StatusCode}",
+                                   new Dictionary<string, string>
+                                   {
+                                       {"FullUsername", fullUsername},
+                                       {"DiscordUserId", discordUserId.ToString()}
+                                   });
             return Task.FromResult<KeycloakUserId?>(null);
         }
     }
@@ -134,7 +145,7 @@ internal class KeycloakUserWriter : KeycloakBaseClient, IKeycloakUserWriter
         {
             var updateRep = user.KeycloakState.AsUpdateRepresentation();
 
-            updateRep.FirstName = $"{user.DiscordState.Username}#{user.DiscordState.Discriminator:D4}";
+            updateRep.FirstName = user.DiscordState.FullUsername;
             updateRep.Attributes.SetDiscordAvatarId(user.DiscordState.AvatarId);
             updateRep.Attributes.SetDiscordNickname(user.DiscordState.Nickname);
             
@@ -153,38 +164,56 @@ internal class KeycloakUserWriter : KeycloakBaseClient, IKeycloakUserWriter
         foreach (var (keycloakUserId, discordState) in users)
         {
             var uri = new Uri(keycloakEndpoint.BaseUrl, $"{keycloakEndpoint.Realm}/users/{keycloakUserId}/federated-identity/{FederatedIdentityRepresentation.DiscordIdentityProviderName}");
-            var removed = await httpClient.PerformAuthorizedRequestAsync(BearerTokenManager,
+            var (removed, statusCode, error) = await httpClient.PerformAuthorizedRequestAsync(BearerTokenManager,
                                                                          keycloakEndpoint,
                                                                          InvokeHttpDeleteRequest(httpClient, uri),
                                                                          HandleResponseMessage);
             if (!removed)
             {
-                Logger.LogError("Failed to remove Discord identity provider for {User}", keycloakUserId);
+                Logger.LogError("Failed to remove Discord identity provider for {User}: {StatusCode} {Error}",
+                                keycloakUserId,
+                                statusCode,
+                                error);
             }
             else
             {
                 var federatedIdentity = new FederatedIdentityRepresentation(discordState.DiscordUserId,
-                                                                            $"{discordState.Username}#{discordState.Discriminator:D4}");
-                var json = JsonSerializer.Serialize(federatedIdentity);
-                var added = await httpClient.PerformAuthorizedRequestAsync(BearerTokenManager,
-                                                                           keycloakEndpoint,
-                                                                           InvokeHttpPostRequest(httpClient, uri, json),
-                                                                           HandleResponseMessage);
+                                                                            discordState.FullUsername);
+                (var added, statusCode, error) = await httpClient.PerformAuthorizedRequestAsync(BearerTokenManager,
+                                                                                                keycloakEndpoint,
+                                                                                                InvokeHttpPostRequest(httpClient, uri, federatedIdentity),
+                                                                                                HandleResponseMessage);
                 if (added)
                 {
                     updated++;
                 }
                 else
                 {
-                    Logger.LogError("Failed to re-create Discord identity provider for {User}", keycloakUserId);
+                    Logger.LogError("Failed to re-create Discord identity provider for {User}: {StatusCode} {Error}",
+                                    keycloakUserId,
+                                    statusCode,
+                                    error);
                 }
             }
         }
         
         return updated;
 
-        Task<bool> HandleResponseMessage(HttpResponseMessage? responseMessage) =>
-            Task.FromResult(responseMessage is { StatusCode: HttpStatusCode.NoContent });
+        async Task<(bool Success, HttpStatusCode StatusCodes, string? Error)> HandleResponseMessage(HttpResponseMessage? responseMessage)
+        {
+            if (responseMessage.StatusCode == HttpStatusCode.NoContent)
+                return (true, responseMessage.StatusCode, null);
+
+            try
+            {
+                var error = await responseMessage.Content.ReadAsStringAsync();
+                return (false, responseMessage.StatusCode, error);
+            }
+            catch (Exception e)
+            {
+                return (false, responseMessage.StatusCode, e.ToString());
+            }
+        }
     }
 
     async Task<Dictionary<DiscordUserId, KeycloakUserId>> IKeycloakUserWriter.CreateUsersAsync(KeycloakEndpoint keycloakEndpoint,

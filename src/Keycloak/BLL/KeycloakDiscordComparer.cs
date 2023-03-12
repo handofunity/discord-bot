@@ -88,7 +88,7 @@ internal class KeycloakDiscordComparer : IKeycloakDiscordComparer
                 continue;
             }
 
-            if (matchedUser.DiscordState.Username != matchedUser.KeycloakState.FirstName)
+            if (matchedUser.DiscordState.FullUsername != matchedUser.KeycloakState.FirstName)
             {
                 result.Add(matchedUser);
             }
@@ -100,9 +100,9 @@ internal class KeycloakDiscordComparer : IKeycloakDiscordComparer
     private static IReadOnlyDictionary<KeycloakUserId, UserModel> GetUsersWithDifferentIdentityData(
         IEnumerable<(UserModel DiscordState, UserRepresentation KeycloakState)> matchedUsers) =>
         (from matchedUser in matchedUsers
-         let discordUserName = $"{matchedUser.DiscordState.Username}#{matchedUser.DiscordState.Discriminator:D4}"
+         let discordUserName = matchedUser.DiscordState.FullUsername
          let keycloakIdentityUserName = matchedUser.KeycloakState.FederatedIdentities?.SingleOrDefault()?.Username
-         where discordUserName != keycloakIdentityUserName
+         where !string.Equals(discordUserName, keycloakIdentityUserName, StringComparison.InvariantCultureIgnoreCase)
          select matchedUser)
        .ToDictionary(matchedUser => matchedUser.KeycloakState.KeycloakUserId, matchedUser => matchedUser.DiscordState);
 

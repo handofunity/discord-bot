@@ -4,7 +4,8 @@ internal class KeycloakGroupReader : KeycloakBaseClient, IKeycloakGroupReader
 {
     public KeycloakGroupReader(IBearerTokenManager<KeycloakBaseClient> bearerTokenManager,
                                IHttpClientFactory httpClientFactory,
-                               ILogger logger)
+                               // ReSharper disable once SuggestBaseTypeForParameterInConstructor
+                               ILogger<KeycloakGroupReader> logger)
         : base(bearerTokenManager, httpClientFactory, logger)
     {
     }

@@ -4,7 +4,8 @@ internal class KeycloakUserEraser : KeycloakBaseClient, IKeycloakUserEraser
 {
     public KeycloakUserEraser(IBearerTokenManager<KeycloakBaseClient> bearerTokenManager,
                               IHttpClientFactory httpClientFactory,
-                              ILogger logger)
+                              // ReSharper disable once SuggestBaseTypeForParameterInConstructor
+                              ILogger<KeycloakUserEraser> logger)
         : base(bearerTokenManager, httpClientFactory, logger)
     {
     }

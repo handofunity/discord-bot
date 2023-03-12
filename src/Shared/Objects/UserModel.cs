@@ -2,6 +2,8 @@
 
 public class UserModel
 {
+    private string? _fullUsername;
+    
     /// <summary>
     /// Gets or sets the user's Discord ID.
     /// </summary>
@@ -33,4 +35,9 @@ public class UserModel
     /// </summary>
     /// <exception cref="ArgumentNullException">The property gets set to <b>null</b>.</exception>
     public required IReadOnlyList<DiscordRoleId> Roles { get; set; }
+
+    /// <summary>
+    /// Gets the full username composed of the <see cref="Username"/> and <see cref="Discriminator"/>.
+    /// </summary>
+    public string FullUsername => _fullUsername ??= $"{Username}#{Discriminator:D4}";
 }

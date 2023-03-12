@@ -3,13 +3,13 @@
 internal class AttributeMap
 {
     [JsonPropertyName(KnownAttributes.DiscordAvatarId)]
-    public string[]? DiscordAvatarId { get; private set; }
+    public string[]? DiscordAvatarId { get; set; }
 
     [JsonPropertyName(KnownAttributes.DiscordNickname)]
-    public string[]? DiscordNickname { get; private set; }
+    public string[]? DiscordNickname { get; set; }
 
     [JsonPropertyName(KnownAttributes.DeleteAfter)]
-    public string[]? DeleteAfter { get; private set; }
+    public string[]? DeleteAfter { get; set; }
 
     public AttributeMap(string? discordAvatarId,
                         string? discordNickname,
@@ -20,7 +20,8 @@ internal class AttributeMap
         SetDeleteAfter(deleteAfter);
     }
 
-    private AttributeMap()
+    [JsonConstructor]
+    public AttributeMap()
     {
         
     }
