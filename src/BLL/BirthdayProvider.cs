@@ -4,12 +4,15 @@ public class BirthdayProvider : IBirthdayProvider
 {
     private readonly IUserStore _userStore;
     private readonly IDatabaseAccess _databaseAccess;
+    private readonly ILogger<BirthdayProvider> _logger;
 
     public BirthdayProvider(IUserStore userStore,
-                            IDatabaseAccess databaseAccess)
+                            IDatabaseAccess databaseAccess,
+                            ILogger<BirthdayProvider> logger)
     {
         _userStore = userStore;
         _databaseAccess = databaseAccess;
+        _logger = logger;
     }
 
     async Task<string> IBirthdayProvider.SetBirthdayAsync(DiscordUserId userId,
@@ -26,9 +29,11 @@ public class BirthdayProvider : IBirthdayProvider
             return ":warning: Failed to set birthday. User couldn't be identified.";
 
         var birthdaySet = await _databaseAccess.SetBirthdayAsync(user!, parsedDate);
-        return birthdaySet
-                   ? ":white_check_mark: Birthday set successfully."
-                   : ":warning: Failed to set birthday.";
+        if (!birthdaySet)
+            return ":warning: Failed to set birthday.";
+        
+        _logger.LogInformation("Birthday was set by {User}", userId);
+        return ":white_check_mark: Birthday set successfully.";
     }
 
     async Task<string> IBirthdayProvider.DeleteBirthdayAsync(DiscordUserId userId)
@@ -36,9 +41,11 @@ public class BirthdayProvider : IBirthdayProvider
         if (!_userStore.TryGetUser(userId, out var user))
             return ":warning: Failed to delete birthday. User couldn't be identified.";
         var birthdayDeleted = await _databaseAccess.DeleteUserBirthdayAsync(user!);
-        return birthdayDeleted
-                   ? ":white_check_mark: Birthday deleted successfully."
-                   : ":warning: Failed to delete birthday.";
+        if (!birthdayDeleted)
+            return ":warning: Failed to delete birthday.";
+        
+        _logger.LogInformation("Birthday was deleted by {User}", userId);
+        return ":white_check_mark: Birthday deleted successfully.";
     }
 
     async Task<DiscordUserId[]> IBirthdayProvider.GetBirthdaysAsync(DateOnly forDate)

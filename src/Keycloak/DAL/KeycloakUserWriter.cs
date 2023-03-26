@@ -177,6 +177,7 @@ internal class KeycloakUserWriter : KeycloakBaseClient, IKeycloakUserWriter
             }
             else
             {
+                Logger.LogInformation("Removed the Discord identity provider for {User}", keycloakUserId);
                 var federatedIdentity = new FederatedIdentityRepresentation(discordState.DiscordUserId,
                                                                             discordState.FullUsername);
                 (var added, statusCode, error) = await httpClient.PerformAuthorizedRequestAsync(BearerTokenManager,
@@ -186,6 +187,9 @@ internal class KeycloakUserWriter : KeycloakBaseClient, IKeycloakUserWriter
                 if (added)
                 {
                     updated++;
+                    Logger.LogInformation("Added the Discord identity provider for {User} to be {@FederatedIdentity}",
+                                          keycloakUserId,
+                                          federatedIdentity);
                 }
                 else
                 {
