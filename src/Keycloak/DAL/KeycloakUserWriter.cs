@@ -21,21 +21,38 @@ internal class KeycloakUserWriter : KeycloakBaseClient, IKeycloakUserWriter
         foreach (var user in users)
         {
             var request = new UserRepresentation(user);
+            Logger.LogTrace("Creating new Keycloak user for {FullUsername} ({DiscordUserId}) ...",
+                            user.FullUsername,
+                            user.DiscordUserId);
             var newKeycloakUserId = await httpClient.PerformAuthorizedRequestAsync(BearerTokenManager,
                                                                                    keycloakEndpoint,
                                                                                    InvokeHttpPostRequest(httpClient, uri, request),
                                                                                    response =>
                                                                                        HandleResponseMessage(user.FullUsername,
                                                                                            user.DiscordUserId,
+                                                                                           request,
                                                                                            response));
             if (newKeycloakUserId is not null)
+            {
+                Logger.LogTrace("Created new Keycloak user {UserId} for {FullUsername} ({DiscordUserId})",
+                                newKeycloakUserId.Value,
+                                user.FullUsername,
+                                user.DiscordUserId);
                 result.Add(user.DiscordUserId, newKeycloakUserId.Value);
+            }
+            else
+            {
+                Logger.LogWarning("No new Keycloak user was created for {FullUsername} ({DiscordUserId})",
+                                  user.FullUsername,
+                                  user.DiscordUserId);
+            }
         }
 
         return result;
 
         Task<KeycloakUserId?> HandleResponseMessage(string fullUsername,
                                                     DiscordUserId discordUserId,
+                                                    UserRepresentation request,
                                                     HttpResponseMessage? responseMessage)
         {
             if (responseMessage is null)
@@ -46,13 +63,9 @@ internal class KeycloakUserWriter : KeycloakBaseClient, IKeycloakUserWriter
                 return Task.FromResult((KeycloakUserId?)Guid.Parse(responseMessage.Headers.Location!.Segments.Last()));
 
             Logger.LogRequestError(uri.Host,
-                                    uri.PathAndQuery,
-                                    $"Creating Keycloak user failed: {responseMessage.StatusCode}",
-                                   new Dictionary<string, string>
-                                   {
-                                       {"FullUsername", fullUsername},
-                                       {"DiscordUserId", discordUserId.ToString()}
-                                   });
+                                   uri.PathAndQuery,
+                                   $"Creating Keycloak user failed: {responseMessage.StatusCode}",
+                                   request);
             return Task.FromResult<KeycloakUserId?>(null);
         }
     }
