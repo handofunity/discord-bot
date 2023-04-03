@@ -27,11 +27,7 @@ internal class KeycloakUserWriter : KeycloakBaseClient, IKeycloakUserWriter
             var newKeycloakUserId = await httpClient.PerformAuthorizedRequestAsync(BearerTokenManager,
                                                                                    keycloakEndpoint,
                                                                                    InvokeHttpPostRequest(httpClient, uri, request),
-                                                                                   response =>
-                                                                                       HandleResponseMessage(user.FullUsername,
-                                                                                           user.DiscordUserId,
-                                                                                           request,
-                                                                                           response));
+                                                                                   HandleResponseMessage);
             if (newKeycloakUserId is not null)
             {
                 Logger.LogTrace("Created new Keycloak user {UserId} for {FullUsername} ({DiscordUserId})",
@@ -50,10 +46,7 @@ internal class KeycloakUserWriter : KeycloakBaseClient, IKeycloakUserWriter
 
         return result;
 
-        Task<KeycloakUserId?> HandleResponseMessage(string fullUsername,
-                                                    DiscordUserId discordUserId,
-                                                    UserRepresentation request,
-                                                    HttpResponseMessage? responseMessage)
+        Task<KeycloakUserId?> HandleResponseMessage(HttpResponseMessage? responseMessage)
         {
             if (responseMessage is null)
                 return Task.FromResult<KeycloakUserId?>(null);
@@ -64,8 +57,7 @@ internal class KeycloakUserWriter : KeycloakBaseClient, IKeycloakUserWriter
 
             Logger.LogRequestError(uri.Host,
                                    uri.PathAndQuery,
-                                   $"Creating Keycloak user failed: {responseMessage.StatusCode}",
-                                   request);
+                                   $"Creating Keycloak user failed: {responseMessage.StatusCode}");
             return Task.FromResult<KeycloakUserId?>(null);
         }
     }

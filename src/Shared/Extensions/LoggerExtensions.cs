@@ -5,14 +5,12 @@ public static class LoggerExtensions
     public static void LogRequestError(this ILogger logger,
                                        string baseAddress,
                                        string route,
-                                       string reason,
-                                       object request = null)
+                                       string reason)
     {
-        logger.LogWarning("Failed to call '{HttpAddress}{Route}': {Reason} {@Request}",
+        logger.LogWarning("Failed to call '{HttpAddress}{Route}': {Reason}",
                           baseAddress,
                           route,
-                          reason,
-                          request);
+                          reason);
     }
 
     public static async Task LogRequestErrorAsync(this ILogger logger,

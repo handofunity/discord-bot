@@ -38,32 +38,6 @@ internal class KeycloakUserCreator : IKeycloakUserCreator
         _logger.LogInformation("{Count} roles will be added to the new users", rolesToAddToNewUsers.Length);
         foreach (var newUser in rolesToAddToNewUsers)
             keycloakDiscordDiff.GroupsToAdd.Add(newUser.KeycloakUserId, newUser.KeycloakGroupIds);
-
-        // TODO: This shouldn't be necessary, but for some reasons the IdP linking fails.
-        _logger.LogInformation("Verifying correct IdP linking for new users");
-        foreach (var user in newUsers)
-        {
-            _logger.LogTrace("Verifying IdP linking for {UserId} ...", user.Value);
-            var userIdpLink = await _keycloakUserReader.GetFederatedIdentityAsync(keycloakEndpoint, user.Value);
-            if (userIdpLink is null)
-            {
-                _logger.LogError("IdP linking for {UserId} to {DiscordUserId} is missing", user.Value, user.Key);
-            }
-            else
-            {
-                if (userIdpLink.DiscordUserId == user.Key)
-                {
-                    _logger.LogTrace("IdP linking for {UserId} to {DiscordUserId} is correct", user.Value, user.Key);
-                }
-                else
-                {
-                    _logger.LogError("IdP linking for {UserId} to {DiscordUserId} is incorrect: {@ActualIdpLink}",
-                                     user.Value,
-                                     user.Key,
-                                     userIdpLink);
-                }
-            }
-        }
         
         return newUsers.Count;
     }

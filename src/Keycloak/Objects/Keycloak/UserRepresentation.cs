@@ -21,16 +21,20 @@ internal class UserRepresentation
     [JsonIgnore]
     public KeycloakUserId KeycloakUserId { get; private set; }
 
+    /// <remarks><b>Required</b> for creating a new user.</remarks>
     [JsonPropertyName("username")]
     public string? Username { get; init; }
 
+    /// <remarks><b>Required</b> for creating a new user.</remarks>
     [JsonPropertyName("enabled")]
     public bool Enabled { get; init; }
 
+    /// <remarks><b>Required</b> for creating a new user.</remarks>
     [JsonPropertyName("firstName")]
     public string? FirstName { get; init; }
 
-    [JsonIgnore]
+    /// <remarks><b>Required</b> for creating a new user.</remarks>
+    [JsonPropertyName("federatedIdentities")]
     public IReadOnlyList<FederatedIdentityRepresentation>? FederatedIdentities => _federatedIdentities;
 
     [JsonIgnore]
@@ -60,8 +64,8 @@ internal class UserRepresentation
 
     internal void AddFederatedIdentity(FederatedIdentityRepresentation federatedIdentityRepresentation)
     {
-        _federatedIdentities.Add(federatedIdentityRepresentation);
-        var federatedIdentity = _federatedIdentities?.FirstOrDefault();
+        _federatedIdentities!.Add(federatedIdentityRepresentation);
+        var federatedIdentity = _federatedIdentities!.FirstOrDefault();
         DiscordUserId = federatedIdentity?.DiscordUserId ?? default;
     }
 
