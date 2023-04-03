@@ -1531,7 +1531,10 @@ public class DiscordAccess : IDiscordAccess
                     case ComponentType.ActionRow:
                     case ComponentType.Button:
                     case ComponentType.TextInput:
-                    case ComponentType.ModalSubmit:
+                    case ComponentType.UserSelect:
+                    case ComponentType.RoleSelect:
+                    case ComponentType.MentionableSelect:
+                    case ComponentType.ChannelSelect:
                         break;
                     default:
                         throw new NotSupportedException();
