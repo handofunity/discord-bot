@@ -46,8 +46,8 @@ public class StaticMessageProvider : IStaticMessageProvider
 
         var l = new List<ExpectedChannelMessage>
         {
-            new(await _messageProvider.GetMessage(Constants.MessageNames.FriendOrGuestMenuMessage)),
-            new(await _messageProvider.GetMessage(Constants.MessageNames.GameInterestMenuMessage))
+            new(await _messageProvider.GetMessageAsync(Constants.MessageNames.FriendOrGuestMenuMessage)),
+            new(await _messageProvider.GetMessageAsync(Constants.MessageNames.GameInterestMenuMessage))
         };
         AddFriendOrGuestMenuComponents(l);
         expectedChannelMessages[(DiscordChannelId)_dynamicConfiguration.DiscordMapping["InfoAndRolesChannelId"]] = new ExpectedChannelMessages(l);
@@ -60,7 +60,7 @@ public class StaticMessageProvider : IStaticMessageProvider
         
         var l = new List<ExpectedChannelMessage>
         {
-            new(await _messageProvider.GetMessage(Constants.MessageNames.GamesRolesMenuMessage))
+            new(await _messageProvider.GetMessageAsync(Constants.MessageNames.GamesRolesMenuMessage))
         };
         AddGamesRolesMenuComponents(l);
         expectedChannelMessages[(DiscordChannelId)_dynamicConfiguration.DiscordMapping["GamesRolesChannelId"]] = new ExpectedChannelMessages(l);
@@ -73,10 +73,10 @@ public class StaticMessageProvider : IStaticMessageProvider
 
         var l = new List<ExpectedChannelMessage>
         {
-            new(await _messageProvider.GetMessage(Constants.MessageNames.AocClassMenuMessage)),
-            new(await _messageProvider.GetMessage(Constants.MessageNames.AocPlayStyleMenuMessage)),
-            new(await _messageProvider.GetMessage(Constants.MessageNames.AocRaceMenuMessage)),
-            new(await _messageProvider.GetMessage(Constants.MessageNames.AocGuildPreferenceMenuMessage))
+            new(await _messageProvider.GetMessageAsync(Constants.MessageNames.AocClassMenuMessage)),
+            new(await _messageProvider.GetMessageAsync(Constants.MessageNames.AocPlayStyleMenuMessage)),
+            new(await _messageProvider.GetMessageAsync(Constants.MessageNames.AocRaceMenuMessage)),
+            new(await _messageProvider.GetMessageAsync(Constants.MessageNames.AocGuildPreferenceMenuMessage))
         };
         AddAocRoleMenuComponents(l);
         expectedChannelMessages[(DiscordChannelId)_dynamicConfiguration.DiscordMapping["AshesOfCreationRoleChannelId"]] = new ExpectedChannelMessages(l);
@@ -89,7 +89,7 @@ public class StaticMessageProvider : IStaticMessageProvider
 
         var l = new List<ExpectedChannelMessage>
         {
-            new(await _messageProvider.GetMessage(Constants.MessageNames.WowRoleMenuMessage))
+            new(await _messageProvider.GetMessageAsync(Constants.MessageNames.WowRoleMenuMessage))
         };
         AddWowRoleMenuComponents(l);
         expectedChannelMessages[(DiscordChannelId)_dynamicConfiguration.DiscordMapping["WorldOfWarcraftRoleChannelId"]] = new ExpectedChannelMessages(l);
@@ -102,7 +102,7 @@ public class StaticMessageProvider : IStaticMessageProvider
 
         var l = new List<ExpectedChannelMessage>
         {
-            new(await _messageProvider.GetMessage(Constants.MessageNames.WowRetailPlayStyleMenuMessage))
+            new(await _messageProvider.GetMessageAsync(Constants.MessageNames.WowRetailPlayStyleMenuMessage))
         };
         AddWowRetailRoleMenuComponents(l);
         expectedChannelMessages[(DiscordChannelId)_dynamicConfiguration.DiscordMapping["WorldOfWarcraftRetailRoleChannelId"]] = new ExpectedChannelMessages(l);
@@ -115,7 +115,7 @@ public class StaticMessageProvider : IStaticMessageProvider
 
         var l = new List<ExpectedChannelMessage>
         {
-            new(await _messageProvider.GetMessage(Constants.MessageNames.LostArkPlayStyleMenuMessage))
+            new(await _messageProvider.GetMessageAsync(Constants.MessageNames.LostArkPlayStyleMenuMessage))
         };
         AddLostArkRoleMenuComponents(l);
         expectedChannelMessages[(DiscordChannelId)_dynamicConfiguration.DiscordMapping["LostArkRoleChannelId"]] = new ExpectedChannelMessages(l);

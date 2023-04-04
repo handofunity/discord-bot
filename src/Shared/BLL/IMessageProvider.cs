@@ -2,5 +2,5 @@
 
 public interface IMessageProvider
 {
-    Task<string> GetMessage(string name);
+    Task<string> GetMessageAsync(string name);
 }

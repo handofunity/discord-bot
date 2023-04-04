@@ -4,22 +4,17 @@
 public class MessageProvider : IMessageProvider
 {
     private readonly IDatabaseAccess _databaseAccess;
-    private readonly ConcurrentDictionary<string, string> _cache;
     
     public MessageProvider(IDatabaseAccess databaseAccess)
     {
         _databaseAccess = databaseAccess;
-        _cache = new ConcurrentDictionary<string, string>();
     }
 
-    async Task<string> IMessageProvider.GetMessage(string name)
+    async Task<string> IMessageProvider.GetMessageAsync(string name)
     {
-        if (_cache.TryGetValue(name, out var cachedContent))
-            return cachedContent;
-        var dbContent = await _databaseAccess.GetMessageContentAsync(name);
-        if (dbContent == null)
+        var messageContent = await _databaseAccess.GetMessageContentAsync(name);
+        if (messageContent is null)
             throw new ArgumentOutOfRangeException(nameof(name), $"Message with name '{name}' is not defined.");
-        var n = _cache.AddOrUpdate(name, dbContent, (key, currentValue) => dbContent);
-        return n;
+        return messageContent;
     }
 }

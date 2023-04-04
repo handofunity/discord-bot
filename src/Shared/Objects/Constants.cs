@@ -27,6 +27,7 @@ public static class Constants
         public const string GamesRolesMenuMessage = "GamesRolesMenu";
         public const string FriendOrGuestMenuMessage = "FriendOrGuestMenu";
         public const string GameInterestMenuMessage = "GameInterestMenu";
+        public const string TrialMemberInformationMessage = "TrialMemberInformation";
     }
 
     public static class RoleNames

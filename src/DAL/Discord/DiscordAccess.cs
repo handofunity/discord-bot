@@ -23,6 +23,7 @@ public class DiscordAccess : IDiscordAccess
     private readonly DiscordSocketClient _client;
     private readonly InteractionService _interactionService;
     private readonly Queue<string> _pendingMessages;
+    private readonly IMessageProvider _messageProvider;
 
     private bool _guildAvailable;
     
@@ -53,7 +54,8 @@ public class DiscordAccess : IDiscordAccess
                          IStaticMessageProvider staticMessageProvider,
                          IDiscordUserEventHandler discordUserEventHandler,
                          IUserStore userStore,
-                         IMenuRegistry menuRegistry)
+                         IMenuRegistry menuRegistry,
+                         IMessageProvider messageProvider)
     {
         _logger = logger;
         _rootSettings = rootSettings;
@@ -66,6 +68,7 @@ public class DiscordAccess : IDiscordAccess
         _discordUserEventHandler = discordUserEventHandler;
         _userStore = userStore;
         _menuRegistry = menuRegistry;
+        _messageProvider = messageProvider;
         nonMemberRoleProvider.DiscordAccess = this;
         _gameRoleProvider.DiscordAccess = this;
         _staticMessageProvider.DiscordAccess = this;
@@ -323,7 +326,10 @@ public class DiscordAccess : IDiscordAccess
         {
             var charactersValid = await VerifyUsernameCharacters();
             if (charactersValid)
+            {
+                await SendTrialMemberInformation();
                 await AnnouncePromotion();
+            }
         }
 
         async Task<bool> VerifyUsernameCharacters()
@@ -366,6 +372,21 @@ public class DiscordAccess : IDiscordAccess
             {
                 _logger.LogError(e, "Failed to verify username characters of user {DiscordUserId}", userId);
                 return true;
+            }
+        }
+
+        async Task SendTrialMemberInformation()
+        {
+            try
+            {
+                var message = await _messageProvider.GetMessageAsync(Constants.MessageNames.TrialMemberInformationMessage);
+                var user = GetGuildUserById(userId);
+                var dmChannel = await user.CreateDMChannelAsync();
+                await dmChannel.SendMessageAsync(message);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Sending trial member information for user {DiscordUserId} failed", userId);
             }
         }
 
