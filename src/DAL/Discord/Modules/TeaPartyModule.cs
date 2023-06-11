@@ -4,10 +4,15 @@
 [Group("tea-party", "Commands related to the tea party.")]
 public class TeaPartyModule : InteractionModuleBase<SocketInteractionContext>
 {
+    private const string TeaPartyAttendeeRoleIdKey = "TeaPartyAttendeeRoleId";
+    
+    private readonly IDynamicConfiguration _dynamicConfiguration;
     private readonly ILogger<TeaPartyModule> _logger;
 
-    public TeaPartyModule(ILogger<TeaPartyModule> logger)
+    public TeaPartyModule(IDynamicConfiguration dynamicConfiguration,
+                          ILogger<TeaPartyModule> logger)
     {
+        _dynamicConfiguration = dynamicConfiguration;
         _logger = logger;
     }
     
@@ -18,7 +23,8 @@ public class TeaPartyModule : InteractionModuleBase<SocketInteractionContext>
     {
         await DeferAsync();
 
-        var teaPartyRole = Context.Guild.Roles.FirstOrDefault(r => r.Name == "Tea Party Attendee");
+        var teaPartyAttendeeRoleId = _dynamicConfiguration.DiscordMapping[TeaPartyAttendeeRoleIdKey];
+        var teaPartyRole = Context.Guild.Roles.FirstOrDefault(r => r.Id == teaPartyAttendeeRoleId);
         if (teaPartyRole == null)
         {
             await FollowupAsync("The tea party attendee role does not exist.");
