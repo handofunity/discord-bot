@@ -1,7 +1,4 @@
-﻿using System;
-using HoU.GuildBot.Shared.Objects;
-
-namespace HoU.GuildBot.WebHost;
+﻿namespace HoU.GuildBot.WebHost;
 
 public class EnvironmentEventArgs : EventArgs
 {

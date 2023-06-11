@@ -1,14 +1,4 @@
-﻿using System;
-using System.Diagnostics;
-using JetBrains.Annotations;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using HoU.GuildBot.Shared.Objects;
-using Microsoft.Extensions.Hosting;
-
-namespace HoU.GuildBot.WebHost;
+﻿namespace HoU.GuildBot.WebHost;
 
 [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 public class Startup

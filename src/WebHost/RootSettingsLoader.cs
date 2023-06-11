@@ -1,10 +1,4 @@
-﻿using System;
-using System.Text;
-using HoU.GuildBot.Shared.Objects;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-
-namespace HoU.GuildBot.WebHost;
+﻿namespace HoU.GuildBot.WebHost;
 
 public static class RootSettingsLoader
 {

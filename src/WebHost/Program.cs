@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Threading.Tasks;
-using HoU.GuildBot.Core;
-using HoU.GuildBot.Shared.Objects;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-
-namespace HoU.GuildBot.WebHost;
+﻿namespace HoU.GuildBot.WebHost;
 
 public static class Program
 {
@@ -21,7 +13,6 @@ public static class Program
     {
         try
         {
-            await PrintEnvironmentVariablesAsync();
             Startup.EnvironmentConfigured += Startup_EnvironmentConfigured;
             await Console.Out.WriteLineAsync("Building web host ...");
             var host = BuildWebHost();
@@ -36,19 +27,6 @@ public static class Program
 
         _runner.NotifyShutdown("no reason specified");
         Environment.FailFast("Shutting down process due to lacking connection.");
-    }
-
-    private static async Task PrintEnvironmentVariablesAsync()
-    {
-#if DEBUG
-        await Console.Out.WriteLineAsync("Environment variables are not exposed during debugging.");
-#else
-        await Console.Out.WriteLineAsync("Environment variables:");
-        foreach (DictionaryEntry env in Environment.GetEnvironmentVariables())
-        {
-            await Console.Out.WriteLineAsync($"{env.Key}={env.Value}");
-        }
-#endif
     }
 
     private static IWebHost BuildWebHost() =>
