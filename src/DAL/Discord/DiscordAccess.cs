@@ -321,7 +321,7 @@ public class DiscordAccess : IDiscordAccess
 
     private async Task UpdateGuildUserRoles(DiscordUserId userId, Role oldRoles, Role newRoles)
     {
-        var result = _discordUserEventHandler.HandleRolesChanged(userId, oldRoles, newRoles);
+        var result = await _discordUserEventHandler.HandleRolesChanged(userId, oldRoles, newRoles);
         if (result.IsPromotion)
         {
             var charactersValid = await VerifyUsernameCharacters();
@@ -1236,6 +1236,13 @@ public class DiscordAccess : IDiscordAccess
     {
         var gu = GetGuildUserById(userId);
         return gu.Roles.Select(m => (DiscordRoleId)m.Id).ToArray();
+    }
+
+    async Task IDiscordAccess.RevokeAllRolesAsync(DiscordUserId userId)
+    {
+        var gu = GetGuildUserById(userId);
+        var roleIds = gu.Roles.Select(m => m.Id);
+        await gu.RemoveRolesAsync(roleIds);
     }
 
     async Task IDiscordLogger.LogToDiscordAsync(string message)

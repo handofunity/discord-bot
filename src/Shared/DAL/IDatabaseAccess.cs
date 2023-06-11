@@ -91,6 +91,14 @@ public interface IDatabaseAccess
     /// <param name="lastSeen">The timestamp to use as info.</param>
     /// <returns>An awaitable <see cref="Task"/>.</returns>
     Task UpdateUserInfoLastSeenAsync(User user, DateTime lastSeen);
+    
+    /// <summary>
+    /// Updates the promotion to Trial Member date info for the given <paramref name="user"/>.
+    /// </summary>
+    /// <param name="user">The user to update the date for.</param>
+    /// <remarks>Set the <see cref="User.PromotedToTrialMemberDate"/> to <b>null</b> when promoted to regular member or trial member gets revoked.</remarks>
+    /// <returns>An awaitable <see cref="Task"/>.</returns>
+    Task UpdateUserInfoPromotionToTrialMemberDateAsync(User user);
 
     /// <summary>
     /// Updates the user information for the given <paramref name="users"/>.

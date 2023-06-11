@@ -130,6 +130,8 @@ public class BotEngine : IBotEngine
             RecurringJob.AddOrUpdate<BirthdayService>("birthday-revoke-role", service => service.RevokeRoleAsync(), "59 23 * * *");
             // Remove basement role every hour.
             RecurringJob.AddOrUpdate<IRoleRemover>("remove-basement-role", remover => remover.RemoveBasementRolesAsync(), "0 0-23 * * *");
+            // Remove stale trial members every day at noon.
+            RecurringJob.AddOrUpdate<IRoleRemover>("remove-stale-trial-members", remover => remover.RemoveStaleTrialMembersAsync(), "0 12 * * *");
             
             EstablishUnitsSignalRConnections();
         }

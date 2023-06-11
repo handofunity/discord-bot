@@ -93,7 +93,7 @@ public class DiscordUserEventHandler : IDiscordUserEventHandler
         }).ConfigureAwait(false);
     }
 
-    UserRolesChangedResult IDiscordUserEventHandler.HandleRolesChanged(DiscordUserId userID, Role oldRoles, Role newRoles)
+    async Task<UserRolesChangedResult> IDiscordUserEventHandler.HandleRolesChanged(DiscordUserId userID, Role oldRoles, Role newRoles)
     {
         if (!_userStore.TryGetUser(userID, out var user))
             return new UserRolesChangedResult();
@@ -110,10 +110,22 @@ public class DiscordUserEventHandler : IDiscordUserEventHandler
         {
             promotedTo = Role.TrialMember;
         }
+        else if (oldRoles.HasFlag(Role.TrialMember)
+              && !newRoles.HasFlag(Role.TrialMember))
+        {
+            // Discard promotion date in memory and database
+            user.PromotedToTrialMemberDate = null;
+            await _databaseAccess.UpdateUserInfoPromotionToTrialMemberDateAsync(user);
+            return new UserRolesChangedResult();
+        }
         else
         {
             return new UserRolesChangedResult();
         }
+        
+        // Persist promotion date in memory and database
+        user.PromotedToTrialMemberDate = DateOnly.FromDateTime(DateTime.Today);
+        await _databaseAccess.UpdateUserInfoPromotionToTrialMemberDateAsync(user);
             
         // Return result for announcement and logging the promotion
         var description = $"Congratulations {user.Mention}, you've been promoted to the rank **{promotedTo}**. Welcome aboard!";

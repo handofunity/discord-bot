@@ -106,6 +106,12 @@ public class UserStore : IUserStore
                                                              persist = true;
                                                          }
 
+                                                         if (tuple.CurrentRoles.Contains("Trial Member") && !user.PromotedToTrialMemberDate.HasValue)
+                                                         {
+                                                             user.PromotedToTrialMemberDate = DateOnly.FromDateTime(DateTime.UtcNow);
+                                                             persist = true;
+                                                         }
+
                                                          if (persist)
                                                              userInfosToPersistToDatabase.Add(user);
 

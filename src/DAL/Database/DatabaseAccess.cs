@@ -261,6 +261,22 @@ public class DatabaseAccess : IDatabaseAccess
         await entities.SaveChangesAsync();
     }
 
+    async Task IDatabaseAccess.UpdateUserInfoPromotionToTrialMemberDateAsync(User user)
+    {
+        await using var entities = GetDbContext(true);
+        var existingInfo = await entities.UserInfo.SingleOrDefaultAsync(m => m.UserId == (int)user.InternalUserId);
+        if (existingInfo is not null)
+        {
+            existingInfo.PromotedToTrialMemberDate = user.PromotedToTrialMemberDate;
+            await entities.SaveChangesAsync();
+            return;
+        }
+        
+        // Create new user info
+        entities.UserInfo.Add(new UserInfo { UserId = (int)user.InternalUserId, PromotedToTrialMemberDate = user.PromotedToTrialMemberDate });
+        await entities.SaveChangesAsync();
+    }
+
     async Task IDatabaseAccess.UpdateUserInformationAsync(IEnumerable<User> users)
     {
         var localData = users.ToArray();
@@ -278,6 +294,7 @@ public class DatabaseAccess : IDatabaseAccess
                                                 {
                                                     db.CurrentRoles = mem.CurrentRoles;
                                                     db.JoinedDate = mem.JoinedDate;
+                                                    db.PromotedToTrialMemberDate = mem.PromotedToTrialMemberDate;
                                                     return mem;
                                                 })
                                           .ToArray();
@@ -299,7 +316,8 @@ public class DatabaseAccess : IDatabaseAccess
                     UserId = (int)user.InternalUserId,
                     LastSeen = DateTime.UtcNow,
                     JoinedDate = user.JoinedDate,
-                    CurrentRoles = user.CurrentRoles
+                    CurrentRoles = user.CurrentRoles,
+                    PromotedToTrialMemberDate = user.PromotedToTrialMemberDate
                 });
             }
             await entities.SaveChangesAsync();

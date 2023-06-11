@@ -3,4 +3,6 @@
 public interface IRoleRemover
 {
     Task RemoveBasementRolesAsync();
+
+    Task RemoveStaleTrialMembersAsync();
 }

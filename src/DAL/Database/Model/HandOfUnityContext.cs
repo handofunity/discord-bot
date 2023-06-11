@@ -328,6 +328,8 @@ namespace HoU.GuildBot.DAL.Database.Model
 
                 entity.Property(e => e.LastSeen).HasColumnName("last_seen");
 
+                entity.Property(e => e.PromotedToTrialMemberDate).HasColumnName("promoted_to_trial_member_date");
+
                 entity.HasOne(d => d.User)
                     .WithOne(p => p.UserInfo)
                     .HasForeignKey<UserInfo>(d => d.UserId)

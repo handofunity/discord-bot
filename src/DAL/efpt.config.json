@@ -1,5 +1,5 @@
 ﻿{
-   "CodeGenerationMode": 2,
+   "CodeGenerationMode": 3,
    "ContextClassName": "HandOfUnityContext",
    "ContextNamespace": null,
    "DefaultDacpacSchema": null,
@@ -8,45 +8,18 @@
    "ModelNamespace": null,
    "OutputContextPath": null,
    "OutputPath": "Database\\Model",
+   "PreserveCasingWithRegex": true,
    "ProjectRootNamespace": "HoU.GuildBot.DAL",
    "Schemas": null,
    "SelectedHandlebarsLanguage": 0,
    "SelectedToBeGenerated": 0,
    "Tables": [
       {
-         "Name": "config.discord_mapping",
-         "ObjectType": 0
-      },
-      {
-         "Name": "config.spam_protected_channel",
-         "ObjectType": 0
-      },
-      {
-         "Name": "config.message",
-         "ObjectType": 0
-      },
-      {
-         "Name": "config.game_role",
-         "ObjectType": 0
-      },
-      {
          "Name": "config.desired_time_zone",
          "ObjectType": 0
       },
       {
-         "Name": "config.units_endpoint",
-         "ObjectType": 0
-      },
-      {
-         "Name": "config.scheduled_reminder",
-         "ObjectType": 0
-      },
-      {
-         "Name": "config.keycloak_endpoint",
-         "ObjectType": 0
-      },
-      {
-         "Name": "config.scheduled_reminder_mention",
+         "Name": "config.discord_mapping",
          "ObjectType": 0
       },
       {
@@ -54,11 +27,35 @@
          "ObjectType": 0
       },
       {
-         "Name": "hou.vacation",
+         "Name": "config.game_role",
          "ObjectType": 0
       },
       {
-         "Name": "hou.user_info",
+         "Name": "config.keycloak_endpoint",
+         "ObjectType": 0
+      },
+      {
+         "Name": "config.message",
+         "ObjectType": 0
+      },
+      {
+         "Name": "config.scheduled_reminder",
+         "ObjectType": 0
+      },
+      {
+         "Name": "config.scheduled_reminder_mention",
+         "ObjectType": 0
+      },
+      {
+         "Name": "config.spam_protected_channel",
+         "ObjectType": 0
+      },
+      {
+         "Name": "config.units_endpoint",
+         "ObjectType": 0
+      },
+      {
+         "Name": "hou.user",
          "ObjectType": 0
       },
       {
@@ -66,13 +63,19 @@
          "ObjectType": 0
       },
       {
-         "Name": "hou.user",
+         "Name": "hou.user_info",
+         "ObjectType": 0
+      },
+      {
+         "Name": "hou.vacation",
          "ObjectType": 0
       }
    ],
    "UiHint": "bot-development",
+   "UncountableWords": null,
    "UseBoolPropertiesWithoutDefaultSql": false,
    "UseDatabaseNames": false,
+   "UseDateOnlyTimeOnly": true,
    "UseDbContextSplitting": false,
    "UseFluentApiOnly": true,
    "UseHandleBars": true,
@@ -80,12 +83,11 @@
    "UseInflector": false,
    "UseLegacyPluralizer": false,
    "UseManyToManyEntity": false,
-   "UseNoConstructor": false,
    "UseNoDefaultConstructor": false,
-   "UseNoNavigations": false,
    "UseNoObjectFilter": false,
    "UseNodaTime": false,
    "UseNullableReferences": true,
    "UseSchemaFolders": false,
-   "UseSpatial": false
+   "UseSpatial": false,
+   "UseT4": false
 }

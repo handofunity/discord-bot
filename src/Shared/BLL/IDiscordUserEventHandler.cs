@@ -12,7 +12,7 @@ public interface IDiscordUserEventHandler
                     string username,
                     ushort discriminatorValue);
 
-    UserRolesChangedResult HandleRolesChanged(DiscordUserId userID, Role oldRoles, Role newRoles);
+    Task<UserRolesChangedResult> HandleRolesChanged(DiscordUserId userID, Role oldRoles, Role newRoles);
 
     Task HandleRolesChanged(DiscordUserId userId,
                             string currentRoles);

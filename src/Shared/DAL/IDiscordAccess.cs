@@ -301,4 +301,11 @@ public interface IDiscordAccess : IDiscordLogger
     /// <param name="userId">The <see cref="DiscordUserId"/> of the user to get the roles for.</param>
     /// <returns>An array of all current roles the user has.</returns>
     DiscordRoleId[] GetUserRoles(DiscordUserId userId);
+
+    /// <summary>
+    /// Removes all roles for the given <paramref name="discordUserId"/>.
+    /// </summary>
+    /// <param name="discordUserId">The Id of the user to remove all roles from.</param>
+    /// <returns>An awaitable <see cref="Task"/>.</returns>
+    Task RevokeAllRolesAsync(DiscordUserId discordUserId);
 }

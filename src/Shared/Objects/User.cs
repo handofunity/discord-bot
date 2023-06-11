@@ -16,6 +16,8 @@ public class User
 
     public string? CurrentRoles { get; set; }
 
+    public DateOnly? PromotedToTrialMemberDate { get; set; }
+
     public Role Roles
     {
         get => (Role)_roles;
