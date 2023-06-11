@@ -1,4 +1,5 @@
 Set-Location $PSScriptRoot
+
 $backupDirectory = "$PSScriptRoot\backups"
 if (!(Test-Path -Path $backupDirectory)) {
     New-Item -ItemType Directory -Force -Path $backupDirectory
