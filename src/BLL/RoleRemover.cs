@@ -77,6 +77,7 @@ public class RoleRemover : IRoleRemover
             }
             
             // Check if their promotion date to trial member is more than 90 days ago.
+            // If not, we'll continue with the next user.
             if (user.PromotedToTrialMemberDate.Value.AddDays(90) > today)
                 continue;
             

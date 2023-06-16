@@ -29,7 +29,8 @@ public class DatabaseAccess : IDatabaseAccess
             (DiscordUserId)user.DiscordUserId)
         {
             JoinedDate = user.UserInfo?.JoinedDate ?? User.DefaultJoinedDate,
-            CurrentRoles = user.UserInfo?.CurrentRoles
+            CurrentRoles = user.UserInfo?.CurrentRoles,
+            PromotedToTrialMemberDate = user.UserInfo?.PromotedToTrialMemberDate
         };
 
     async Task<User[]> IDatabaseAccess.GetAllUsers()
