@@ -54,8 +54,7 @@ public class DiscordUserEventHandler : IDiscordUserEventHandler
     }
 
     void IDiscordUserEventHandler.HandleLeft(DiscordUserId userID,
-                                             string username,
-                                             ushort discriminatorValue)
+                                             string username)
     {
         if(!_userStore.TryGetUser(userID, out var user) || user == null)
             return;
@@ -81,14 +80,14 @@ public class DiscordUserEventHandler : IDiscordUserEventHandler
                                                 ? string.Empty
                                                 : $"; Roles: {user.CurrentRoles}";
                 await discordAccess.LogToDiscordAsync(
-                                                 $"{mentionPrefix}User `{username}#{discriminatorValue}` " +
+                                                 $"{mentionPrefix}User `{username}` " +
                                                  $"(Membership level: **{user.Roles}**{formattedRolesMessage}) " +
                                                  $"has left the server on {now:D} at {now:HH:mm:ss} UTC.");
             }
             // If it has been less than a day, write to the #public-chat, so people will know that a new user left before greeting them.
             else
             {
-                await discordAccess.CreateBotMessageInWelcomeChannelAsync($"User `{username}#{discriminatorValue}` has left the server.");
+                await discordAccess.CreateBotMessageInWelcomeChannelAsync($"User `{username}` has left the server.");
             }
         }).ConfigureAwait(false);
     }

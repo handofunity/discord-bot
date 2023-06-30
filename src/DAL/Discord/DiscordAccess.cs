@@ -1092,8 +1092,7 @@ public class DiscordAccess : IDiscordAccess
             result.AddRange(users.Select(user => new UserModel
             {
                 DiscordUserId = (DiscordUserId)user.Id,
-                Username = user.Username,
-                Discriminator = (short)user.DiscriminatorValue,
+                Username =  Format.UsernameAndDiscriminator(user, false),
                 Nickname = user.Nickname,
                 AvatarId = user.DisplayAvatarId,
                 Roles = user.RoleIds.Select(m => (DiscordRoleId)m).ToArray(),
@@ -1386,8 +1385,7 @@ public class DiscordAccess : IDiscordAccess
         try
         {
             _discordUserEventHandler.HandleLeft((DiscordUserId)user.Id,
-                                                user.Username,
-                                                user.DiscriminatorValue);
+                                                user.ToString());
         }
         catch (Exception e)
         {

@@ -9,8 +9,7 @@ public interface IDiscordUserEventHandler
                       DateTime joinedDate);
 
     void HandleLeft(DiscordUserId userID,
-                    string username,
-                    ushort discriminatorValue);
+                    string username);
 
     Task<UserRolesChangedResult> HandleRolesChanged(DiscordUserId userID, Role oldRoles, Role newRoles);
 

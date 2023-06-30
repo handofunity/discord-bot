@@ -52,11 +52,11 @@ internal class UserRepresentation
     public UserRepresentation(UserModel userModel)
         : this()
     {
-        Username = userModel.FullUsername.ToLower();
+        Username = userModel.Username.ToLower();
         Enabled = true;
-        FirstName = userModel.FullUsername;
+        FirstName = userModel.Username;
         AddFederatedIdentity(new FederatedIdentityRepresentation(userModel.DiscordUserId,
-                                                                 userModel.FullUsername));
+                                                                 userModel.Username));
         Attributes = new AttributeMap(userModel.AvatarId,
                                       userModel.Nickname,
                                       null);

@@ -21,8 +21,8 @@ internal class KeycloakUserWriter : KeycloakBaseClient, IKeycloakUserWriter
         foreach (var user in users)
         {
             var request = new UserRepresentation(user);
-            Logger.LogTrace("Creating new Keycloak user for {FullUsername} ({DiscordUserId}) ...",
-                            user.FullUsername,
+            Logger.LogTrace("Creating new Keycloak user for {Username} ({DiscordUserId}) ...",
+                            user.Username,
                             user.DiscordUserId);
             var newKeycloakUserId = await httpClient.PerformAuthorizedRequestAsync(BearerTokenManager,
                                                                                    keycloakEndpoint,
@@ -30,16 +30,16 @@ internal class KeycloakUserWriter : KeycloakBaseClient, IKeycloakUserWriter
                                                                                    HandleResponseMessage);
             if (newKeycloakUserId is not null)
             {
-                Logger.LogTrace("Created new Keycloak user {UserId} for {FullUsername} ({DiscordUserId})",
+                Logger.LogTrace("Created new Keycloak user {UserId} for {Username} ({DiscordUserId})",
                                 newKeycloakUserId.Value,
-                                user.FullUsername,
+                                user.Username,
                                 user.DiscordUserId);
                 result.Add(user.DiscordUserId, newKeycloakUserId.Value);
             }
             else
             {
-                Logger.LogWarning("No new Keycloak user was created for {FullUsername} ({DiscordUserId})",
-                                  user.FullUsername,
+                Logger.LogWarning("No new Keycloak user was created for {Username} ({DiscordUserId})",
+                                  user.Username,
                                   user.DiscordUserId);
             }
         }
@@ -150,7 +150,7 @@ internal class KeycloakUserWriter : KeycloakBaseClient, IKeycloakUserWriter
         {
             var updateRep = user.KeycloakState.AsUpdateRepresentation();
 
-            updateRep.FirstName = user.DiscordState.FullUsername;
+            updateRep.FirstName = user.DiscordState.Username;
             updateRep.Attributes.SetDiscordAvatarId(user.DiscordState.AvatarId);
             updateRep.Attributes.SetDiscordNickname(user.DiscordState.Nickname);
             
@@ -184,7 +184,7 @@ internal class KeycloakUserWriter : KeycloakBaseClient, IKeycloakUserWriter
             {
                 Logger.LogInformation("Removed the Discord identity provider for {User}", keycloakUserId);
                 var federatedIdentity = new FederatedIdentityRepresentation(discordState.DiscordUserId,
-                                                                            discordState.FullUsername);
+                                                                            discordState.Username);
                 (var added, statusCode, error) = await httpClient.PerformAuthorizedRequestAsync(BearerTokenManager,
                                                                                                 keycloakEndpoint,
                                                                                                 InvokeHttpPostRequest(httpClient, uri, federatedIdentity),

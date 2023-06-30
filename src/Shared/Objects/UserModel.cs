@@ -2,15 +2,13 @@
 
 public class UserModel
 {
-    private string? _fullUsername;
-    
     /// <summary>
     /// Gets or sets the user's Discord ID.
     /// </summary>
     public required DiscordUserId DiscordUserId { get; init; }
 
     /// <summary>
-    /// Gets or sets the user's Discord username, not unique across the platform.
+    /// Gets or sets the user's Discord username, unique across the platform.
     /// </summary>
     /// <exception cref="ArgumentNullException">The property gets set to <b>null</b>.</exception>
     public required string Username { get; init; }
@@ -19,11 +17,6 @@ public class UserModel
     /// Gets or sets the user's server-specific Nickname.
     /// </summary>
     public required string? Nickname { get; init; }
-
-    /// <summary>
-    /// Gets or sets the user's 4-digit Discord tag.
-    /// </summary>
-    public required short Discriminator { get; init; }
 
     /// <summary>
     /// Gets or sets the user's (global or server-specific) Discord avatar hash.
@@ -35,9 +28,4 @@ public class UserModel
     /// </summary>
     /// <exception cref="ArgumentNullException">The property gets set to <b>null</b>.</exception>
     public required IReadOnlyList<DiscordRoleId> Roles { get; set; }
-
-    /// <summary>
-    /// Gets the full username composed of the <see cref="Username"/> and <see cref="Discriminator"/>.
-    /// </summary>
-    public string FullUsername => _fullUsername ??= $"{Username}#{Discriminator:D4}";
 }
