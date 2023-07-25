@@ -1240,7 +1240,7 @@ public class DiscordAccess : IDiscordAccess
     async Task IDiscordAccess.RevokeAllRolesAsync(DiscordUserId userId)
     {
         var gu = GetGuildUserById(userId);
-        var roleIds = gu.Roles.Select(m => m.Id);
+        var roleIds = gu.Roles.Where(m => !m.IsEveryone).Select(m => m.Id);
         await gu.RemoveRolesAsync(roleIds);
     }
 
