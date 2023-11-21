@@ -416,7 +416,7 @@ public class ImageProvider : IImageProvider
         var rolesInChart = barColors.Keys.ToArray();
         var barLabelOverrides = new Dictionary<string, string>
         {
-            { "Damage Dealer Role", "DD" },
+            { "Damage Dealer Role", "DPS" },
             { "Support Role", "Support" },
             { "Tank Role", "Tank" }
         };
