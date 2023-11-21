@@ -317,6 +317,11 @@ public class MenuRegistry : IMenuRegistry
                                                          "Select preferred in-game guild ...",
                                                          Constants.AocGuildPreferenceMenu.GetOptions(),
                                                          false));
+        _selectMenus.Add(Constants.AocRolePreferenceMenu.CustomId,
+                         CreatePrimaryGameRoleSelectMenu(Constants.AocRolePreferenceMenu.CustomId,
+                                                         "Select preferred role ...",
+                                                         Constants.AocRolePreferenceMenu.GetOptions(),
+                                                         false));
         _selectMenus.Add(Constants.WowClassMenu.CustomId,
                          CreatePrimaryGameRoleSelectMenu(Constants.WowClassMenu.CustomId,
                                                          "Select classes ...",
