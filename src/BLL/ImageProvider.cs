@@ -405,6 +405,31 @@ public class ImageProvider : IImageProvider
                                    rolesInChart);
     }
 
+    Stream IImageProvider.CreateAocRolePreferenceDistributionImage()
+    {
+        var barColors = new Dictionary<string, SKColor>
+        {
+            { "Damage Dealer Role", SKColors.DarkRed },
+            { "Support Role", SKColors.ForestGreen },
+            { "Tank Role", SKColors.SaddleBrown }
+        };
+        var rolesInChart = barColors.Keys.ToArray();
+        var barLabelOverrides = new Dictionary<string, string>
+        {
+            { "Damage Dealer Role", "DD" },
+            { "Support Role", "Support" },
+            { "Tank Role", "Tank" }
+        };
+        return CreateBarChartImage(new BarChartDrawingData("AoCRolesBackground_Centered.png",
+                                                           "AoCRolePreferenceForeground.png",
+                                                           barColors,
+                                                           278f,
+                                                           83f),
+                                   (DiscordRoleId)_dynamicConfiguration.DiscordMapping["AshesOfCreationPrimaryGameDiscordRoleId"],
+                                   rolesInChart,
+                                   barLabelOverrides);
+    }
+
     private class BarChartDrawingData
     {
         public const int ImageWidth = 1000;

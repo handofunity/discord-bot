@@ -22,4 +22,6 @@ public interface IImageProvider
     Stream CreateLostArkPlayStyleDistributionImage();
     
     Stream CreateWowRetailPlayStyleDistributionImage();
+    
+    Stream CreateAocRolePreferenceDistributionImage();
 }

@@ -1385,7 +1385,7 @@ public class DiscordAccess : IDiscordAccess
         try
         {
             _discordUserEventHandler.HandleLeft((DiscordUserId)user.Id,
-                                                user.ToString());
+                                                user.ToString()!);
         }
         catch (Exception e)
         {
