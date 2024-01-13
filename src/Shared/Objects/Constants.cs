@@ -25,6 +25,8 @@ public static class Constants
         public const string WowRoleMenuMessage = "WowRoleMenu";
         public const string WowRetailPlayStyleMenuMessage = "WowRetailPlayStyleMenuMessage";
         public const string LostArkPlayStyleMenuMessage = "LostArkPlayStyleMenu";
+        public const string TnlRolePreferenceMenuMessage = "TnlRoleMenu";
+        public const string TnlWeaponMenuMessage = "TnlWeaponMenu";
         public const string GamesRolesMenuMessage = "GamesRolesMenu";
         public const string FriendOrGuestMenuMessage = "FriendOrGuestMenu";
         public const string GameInterestMenuMessage = "GameInterestMenu";
@@ -71,6 +73,8 @@ public static class Constants
                 {WowClassMenu.CustomId, "WorldOfWarcraftPrimaryGameRoleId"},
                 {WowRetailPlayStyleMenu.CustomId, "WorldOfWarcraftRetailPrimaryGameRoleId"},
                 {LostArkPlayStyleMenu.CustomId, "LostArkPrimaryGameRoleId"},
+                {TnlRolePreferenceMenu.CustomId, "ThroneAndLibertyPrimaryGameDiscordRoleId"},
+                {TnlWeaponMenu.CustomId, "ThroneAndLibertyPrimaryGameDiscordRoleId"},
             };
         }
 
@@ -198,6 +202,36 @@ public static class Constants
                 {"dps", "DPS"},
                 {"support", "Support"},
                 {"thirain-server", "Thirain Server"}
+            };
+    }
+
+    public static class TnlRolePreferenceMenu
+    {
+        public const string CustomId = "4A05F3D8-F378-4218-A1A7-14A014C13A81";
+
+        public static IDictionary<string, string> GetOptions() =>
+            new Dictionary<string, string>
+            {
+                {"tank", "Tank"},
+                {"dps", "DPS"},
+                {"healer", "Healer"}
+            };
+    }
+
+    public static class TnlWeaponMenu
+    {
+        public const string CustomId = "2CE8547E-075C-45EC-8F98-1DAC9D4E54FF";
+
+        public static IDictionary<string, string> GetOptions() =>
+            new Dictionary<string, string>
+            {
+                {"xbow", "XBox"},
+                {"lbow", "LBow"},
+                {"daggers", "Daggers"},
+                {"gs", "GS"},
+                {"sns", "SnS"},
+                {"staff", "Staff"},
+                {"wand", "Wand"}
             };
     }
 }
