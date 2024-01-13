@@ -1,3 +1,6 @@
+#Requires -Version 7.0
+#Requires -Modules @{ ModuleName="PSToml"; ModuleVersion="0.3.0" }
+
 Set-Location $PSScriptRoot
 
 $backupDirectory = "$PSScriptRoot\backups"
@@ -5,20 +8,20 @@ if (!(Test-Path -Path $backupDirectory)) {
     New-Item -ItemType Directory -Force -Path $backupDirectory
 }
 
-# Read production host from production.flyway.user.conf,
-# which should only contain a single line with the connection string.
-$flywayConf = Get-Content -Path "production.flyway.user.conf" -Raw
-$flywayConf = $flywayConf.Replace('flyway.url=jdbc:postgresql://', '')
-$splitByHostAndDb = $flywayConf.Split('/')
+# Read production user host from flyway.user.toml.
+# File should contain a section for production environment.
+$flywayUserContent = Get-Content -Path "flyway.user.toml" -Raw
+$flywayUserConfig = ConvertFrom-Toml $flywayUserContent
+$username = $flywayUserConfig.environments.production.user
+$productionUrl = $flywayUserConfig.environments.production.url
+$productionUrl = $productionUrl.Replace('jdbc:postgresql://', '')
+$splitByHostAndDb = $productionUrl.Split('/')
 $splitByHostAddressAndPort = $splitByHostAndDb[0].Split(':')
 $hostAddress = $splitByHostAddressAndPort[0]
 $port = $splitByHostAddressAndPort[1]
 $databaseName = $splitByHostAndDb[1]
 
 $resultFileName = "$backupDirectory\$($databaseName)_$(Get-Date -UFormat "%Y-%m-%d_%H-%M-%S").tar"
-
-# Ask for credentials
-$username = Read-Host -Prompt "User name for connection"
 
 Write-Host "Parameters for pg_dump:" -ForegroundColor Yellow
 Write-Host "host: $hostAddress" -ForegroundColor Yellow

@@ -1,15 +1,20 @@
+#Requires -Version 7.0
+#Requires -Modules @{ ModuleName="PSToml"; ModuleVersion="0.3.0" }
+
 Set-Location $PSScriptRoot
 
-# Read local development database information from local.flyway.user.conf,
-# which should contain the host and username.
-$flywayConf = Get-Content -Path "local.flyway.user.conf"
-$url = $flywayConf[0].Replace('flyway.url=jdbc:postgresql://', '')
-$splitByHostAndDb = $url.Split('/')
+# Read development database information from flyway.user.toml.
+# File should contain a section for development environment.
+$flywayUserContent = Get-Content -Path "flyway.user.toml" -Raw
+$flywayUserConfig = ConvertFrom-Toml $flywayUserContent
+$username = $flywayUserConfig.environments.development.user
+$developmentUrl = $flywayUserConfig.environments.development.url
+$developmentUrl = $developmentUrl.Replace('jdbc:postgresql://', '')
+$splitByHostAndDb = $developmentUrl.Split('/')
 $splitByHostAddressAndPort = $splitByHostAndDb[0].Split(':')
 $hostAddress = $splitByHostAddressAndPort[0]
 $port = $splitByHostAddressAndPort[1]
 $databaseName = $splitByHostAndDb[1]
-$username = $flywayConf[1].Replace('flyway.user=', '')
 
 # Ask for backup file
 $backupFilePath = Read-Host -Prompt "Path to backup to restore (*.tar)"

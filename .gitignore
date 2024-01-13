@@ -296,8 +296,5 @@ logs/
 /ClientTools/settings.houguildbot.ini
 /ServerTools/settings.registry.production.ini
 
-# Flyway user configurations
-*.flyway.user.conf
-
 # PostgreSQL backups
 /src/db/backups/

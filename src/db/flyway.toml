@@ -1,0 +1,22 @@
+databaseType = "PostgreSql"
+name = "guild-bot"
+id = "c2924ce2-fa81-403e-8200-f308a1003913"
+
+[flywayDesktop]
+developmentEnvironment = "development"
+shadowEnvironment = "shadow"
+schemaModel = "schema-model"
+
+[flyway]
+validateMigrationNaming = true
+createSchemas = true
+defaultSchema = "config"
+cleanDisabled = false
+locations = [ "filesystem:migrations" ]
+loggers = [ "console" ]
+
+[redgateCompare]
+filterFile = "filter.rgf"
+
+[redgateCompare.postgres.options.ignores]
+ignoreNewlinesInTextObjects = "off"
