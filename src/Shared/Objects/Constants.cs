@@ -225,7 +225,7 @@ public static class Constants
         public static IDictionary<string, string> GetOptions() =>
             new Dictionary<string, string>
             {
-                {"xbow", "XBox"},
+                {"xbow", "XBow"},
                 {"lbow", "LBow"},
                 {"daggers", "Daggers"},
                 {"gs", "GS"},
