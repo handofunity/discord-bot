@@ -33,6 +33,9 @@
     <None Remove="Resources\WowRetailPlaystyleBackground.png" />
     <None Remove="Resources\AoCArtisanClasses.png" />
     <None Remove="Resources\AoCRolePreferenceForeground.png" />
+    <None Remove="Resources\TnLWeaponForeground.png" />
+    <None Remove="Resources\TnLRolesBackground_Centered.png" />
+    <None Remove="Resources\TnLRolePreferenceForeground.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -57,6 +60,9 @@
     <EmbeddedResource Include="Resources\WowRetailPlaystyleForeground.png" />
     <EmbeddedResource Include="Resources\AoCArtisanProfessions.png" />
     <EmbeddedResource Include="Resources\AoCRolePreferenceForeground.png" />
+    <EmbeddedResource Include="Resources\TnLWeaponForeground.png" />
+    <EmbeddedResource Include="Resources\TnLRolesBackground_Centered.png" />
+    <EmbeddedResource Include="Resources\TnLRolePreferenceForeground.png" />
   </ItemGroup>
 
   <ItemGroup>

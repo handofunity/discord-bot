@@ -24,4 +24,8 @@ public interface IImageProvider
     Stream CreateWowRetailPlayStyleDistributionImage();
     
     Stream CreateAocRolePreferenceDistributionImage();
+    
+    Stream CreateTnlRolePreferenceDistributionImage();
+    
+    Stream CreateTnlWeaponDistributionImage();
 }

@@ -430,6 +430,46 @@ public class ImageProvider : IImageProvider
                                    barLabelOverrides);
     }
 
+    Stream IImageProvider.CreateTnlRolePreferenceDistributionImage()
+    {
+        var barColors = new Dictionary<string, SKColor>
+        {
+            { "DPS", SKColors.DarkRed },
+            { "Healer", SKColors.ForestGreen },
+            { "Tank", SKColors.SaddleBrown }
+        };
+        var rolesInChart = barColors.Keys.ToArray();
+        return CreateBarChartImage(new BarChartDrawingData("TnLRolesBackground_Centered.png",
+                                                           "TnLRolePreferenceForeground.png",
+                                                           barColors,
+                                                           278f,
+                                                           83f),
+                                   (DiscordRoleId)_dynamicConfiguration.DiscordMapping["ThroneAndLibertyPrimaryGameDiscordRoleId"],
+                                   rolesInChart);
+    }
+
+    Stream IImageProvider.CreateTnlWeaponDistributionImage()
+    {
+        var barColors = new Dictionary<string, SKColor>
+        {
+            { "XBow", SKColors.YellowGreen },
+            { "LBow", SKColors.ForestGreen },
+            { "Daggers", SKColors.IndianRed },
+            { "GS", SKColors.DarkRed },
+            { "SnS", SKColors.DarkOrange },
+            { "Staff", SKColors.MidnightBlue },
+            { "Wand", SKColors.DodgerBlue }
+        };
+        var rolesInChart = barColors.Keys.ToArray();
+        return CreateBarChartImage(new BarChartDrawingData("TnLRolesBackground_Centered.png",
+                                                           "TnLWeaponForeground.png",
+                                                           barColors,
+                                                           139f,
+                                                           14f),
+                                   (DiscordRoleId)_dynamicConfiguration.DiscordMapping["ThroneAndLibertyPrimaryGameDiscordRoleId"],
+                                   rolesInChart);
+    }
+
     private class BarChartDrawingData
     {
         public const int ImageWidth = 1000;
