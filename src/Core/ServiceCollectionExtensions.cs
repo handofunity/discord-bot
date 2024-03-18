@@ -48,15 +48,20 @@ internal static class ServiceCollectionExtensions
                                                                   _) => true
 #endif
                  });
-        
+
         services.AddSingleton<IConfigurationDatabaseAccess, ConfigurationDatabaseAccess>()
                 .AddSingleton<IDatabaseAccess, DatabaseAccess>()
                 .AddSingleton<IDiscordAccess, DiscordAccess>()
                 .AddSingleton<IDiscordLogger>(provider => provider.GetRequiredService<IDiscordAccess>())
                 .AddSingleton<IWebAccess, WebAccess>()
-                .AddSingleton<IBearerTokenManager<UnitsAccess>, BearerTokenManager<UnitsAccess>>()
                 .AddSingleton<IUnitsAccess, UnitsAccess>()
-                .AddSingleton<IUnitsSignalRClient, UnitsSignalRClient>();
+                .AddSingleton<IUnitsSignalRClient, UnitsSignalRClient>()
+                .AddTransient<IDiscordSyncClient, DiscordSyncClient>(provider =>
+                 {
+                     var httpClientFactory = provider.GetRequiredService<IHttpClientFactory>();
+                     var httpClient = httpClientFactory.CreateClient("units");
+                     return new DiscordSyncClient(httpClient);
+                 });
 
         return services;
     }

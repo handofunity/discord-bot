@@ -2,7 +2,7 @@
 
 internal class KeycloakGroupReader : KeycloakBaseClient, IKeycloakGroupReader
 {
-    public KeycloakGroupReader(IBearerTokenManager<KeycloakBaseClient> bearerTokenManager,
+    public KeycloakGroupReader(IBearerTokenManager bearerTokenManager,
                                IHttpClientFactory httpClientFactory,
                                // ReSharper disable once SuggestBaseTypeForParameterInConstructor
                                ILogger<KeycloakGroupReader> logger)
@@ -14,22 +14,19 @@ internal class KeycloakGroupReader : KeycloakBaseClient, IKeycloakGroupReader
                                                                   KeycloakEndpoint endpoint)
     {
         var uri = new Uri(endpoint.BaseUrl, $"{endpoint.Realm}/groups?briefRepresentation=false");
-        return await httpClient.PerformAuthorizedRequestAsync(BearerTokenManager,
-                                                              endpoint,
-                                                              ExecuteHttpCall,
-                                                              HandleResponseMessage);
+        var request = new HttpRequestMessage(HttpMethod.Get, uri);
 
-        async Task<HttpResponseMessage?> ExecuteHttpCall()
+        try
         {
-            try
-            {
-                return await httpClient.GetAsync(uri);
-            }
-            catch (HttpRequestException e)
-            {
-                LogRequestError(uri, e);
-                return null;
-            }
+            return await httpClient.PerformAuthorizedRequestAsync(request,
+                                                                  BearerTokenManager,
+                                                                  endpoint,
+                                                                  HandleResponseMessage);
+        }
+        catch (HttpRequestException e)
+        {
+            LogRequestError(uri, e);
+            return null;
         }
 
         async Task<KeycloakGroup[]?> HandleResponseMessage(HttpResponseMessage? responseMessage)
@@ -96,9 +93,10 @@ internal class KeycloakGroupReader : KeycloakBaseClient, IKeycloakGroupReader
         {
             var uri = new Uri(endpoint.BaseUrl, $"{endpoint.Realm}/groups/{groupId}/"
                                               + $"members?briefRepresentation=true&first={innerOffset}&max=100");
-            return await httpClient.PerformAuthorizedRequestAsync(BearerTokenManager,
+            var request = new HttpRequestMessage(HttpMethod.Get, uri);
+            return await httpClient.PerformAuthorizedRequestAsync(request,
+                                                                  BearerTokenManager,
                                                                   endpoint,
-                                                                  InvokeHttpGetRequest(httpClient, uri),
                                                                   HandleResponseMessage);
 
             async Task<KeycloakUserId[]?> HandleResponseMessage(HttpResponseMessage? responseMessage)

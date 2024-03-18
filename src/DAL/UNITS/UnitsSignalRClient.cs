@@ -4,8 +4,7 @@ namespace HoU.GuildBot.DAL.UNITS;
 
 public class UnitsSignalRClient : IUnitsSignalRClient
 {
-    private readonly IHttpClientFactory _httpClientFactory;
-    private readonly IBearerTokenManager<UnitsAccess> _bearerTokenManager;
+    private readonly IBearerTokenManager _bearerTokenManager;
     private readonly IUnitsBotClient _botClient;
     private readonly ILogger<UnitsSignalRClient> _logger;
     private const string BotHubRoute = "/bot-hub";
@@ -14,11 +13,10 @@ public class UnitsSignalRClient : IUnitsSignalRClient
     private readonly Dictionary<Uri, bool> _requiresTokenRefresh;
 
     public UnitsSignalRClient(IHttpClientFactory httpClientFactory,
-                              IBearerTokenManager<UnitsAccess> bearerTokenManager,
+                              IBearerTokenManager bearerTokenManager,
                               IUnitsBotClient botClient,
                               ILogger<UnitsSignalRClient> logger)
     {
-        _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
         _bearerTokenManager = bearerTokenManager ?? throw new ArgumentNullException(nameof(bearerTokenManager));
         _botClient = botClient ?? throw new ArgumentNullException(nameof(botClient));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -107,8 +105,8 @@ public class UnitsSignalRClient : IUnitsSignalRClient
                                      options.AccessTokenProvider = async () =>
                                      {
                                          var token =
-                                             await _bearerTokenManager.GetBearerTokenAsync(_httpClientFactory.CreateClient("units"),
-                                                                                           unitsEndpoint,
+                                             await _bearerTokenManager.GetBearerTokenAsync(unitsEndpoint.BaseAddress,
+                                                                                           unitsEndpoint.KeycloakEndpoint,
                                                                                            _requiresTokenRefresh
                                                                                                [unitsEndpoint.BaseAddress]);
                                          _requiresTokenRefresh[unitsEndpoint.BaseAddress] = false;

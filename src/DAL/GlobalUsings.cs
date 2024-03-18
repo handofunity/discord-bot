@@ -30,6 +30,7 @@ global using HoU.GuildBot.Shared.Objects;
 global using HoU.GuildBot.Shared.StrongTypes;
 global using JetBrains.Annotations;
 global using Microsoft.AspNetCore.Authentication.OAuth;
+global using Microsoft.AspNetCore.Mvc;
 global using Microsoft.AspNetCore.SignalR.Client;
 global using Microsoft.EntityFrameworkCore;
 global using Microsoft.Extensions.DependencyInjection;

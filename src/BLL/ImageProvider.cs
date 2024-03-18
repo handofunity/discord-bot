@@ -7,16 +7,19 @@ public class ImageProvider : IImageProvider
     private readonly IWebAccess _webAccess;
     private readonly IDiscordAccess _discordAccess;
     private readonly IDynamicConfiguration _dynamicConfiguration;
+    private readonly IUnitsAccess _unitsAccess;
 
     public ImageProvider(IGameRoleProvider gameRoleProvider,
                          IWebAccess webAccess,
                          IDiscordAccess discordAccess,
-                         IDynamicConfiguration dynamicConfiguration)
+                         IDynamicConfiguration dynamicConfiguration,
+                         IUnitsAccess unitsAccess)
     {
         _gameRoleProvider = gameRoleProvider;
         _webAccess = webAccess;
         _discordAccess = discordAccess;
         _dynamicConfiguration = dynamicConfiguration;
+        _unitsAccess = unitsAccess;
     }
 
     private static Stream CreateImage(int width,
@@ -255,25 +258,39 @@ public class ImageProvider : IImageProvider
                            });
     }
 
-    public async Task<Stream> CreateProfileImage(DiscordUserId userID,
-                                                 string avatarUrl)
+    public async Task<Stream> CreateProfileCardImage(DiscordUserId userID,
+                                                     string avatarUrl,
+                                                     ProfileInfoResponse profileData,
+                                                     string guildTag,
+                                                     bool hasPvpRole,
+                                                     bool hasArtisanRole,
+                                                     bool hasPveRole)
     {
-        const int imageWidth = 400;
-        const int imageHeight = 300;
-        const int maxNameLengthInPixel = 180;
+        const int imageWidth = 1000;
+        const int imageHeight = 750;
 
         // Get current nickname
         var displayName = _discordAccess.GetCurrentDisplayName(userID);
 
-        // Fetch data from UNITS system
-        // TODO
-        var userPointsRating = "Medium";
-
         // Load background image
-        var backgroundImage = GetImageFromResource("UnitsProfileBackground.png");
+        var backgroundImage = GetImageFromResource("UnitsProfile_Background.png");
 
-        // Load nameplate
-        var nameplateImage = GetImageFromResource("UnitsProfileNameplate.png");
+        // Load avatar frame
+        var avatarFrameImage = GetImageFromResource("UnitsProfile_AvatarFrame.png");
+        
+        // Load rank image
+        var rankImage = GetImageFromResource($"ranks.{profileData.SeasonalRankName.ToLower().Replace(" ", "-")}.png");
+        
+        // Load archetype images
+        var archetypeImages = new Dictionary<string, SKImage>();
+        foreach (var character in profileData.Characters)
+        {
+            if (!archetypeImages.ContainsKey(character.PrimaryArchetype))
+                LoadArchetypeImage(archetypeImages, character.PrimaryArchetype);
+
+            if (!archetypeImages.ContainsKey(character.SecondaryArchetype))
+                LoadArchetypeImage(archetypeImages, character.SecondaryArchetype);
+        }
 
         // Load user image
         SKImage? userImage = null;
@@ -282,67 +299,37 @@ public class ImageProvider : IImageProvider
         {
             await using var userImageStream = new MemoryStream(userImageBytes);
             userImage = SKImage.FromEncodedData(userImageStream);
-            // Resize to 100 x 100 px
+            // Resize to 246 x 246 px
             var bitmap = SKBitmap.FromImage(userImage);
-            bitmap = bitmap.Resize(new SKSizeI(100, 100), SKFilterQuality.High);
+            bitmap = bitmap.Resize(new SKSizeI(246, 246), SKFilterQuality.High);
             userImage = SKImage.FromBitmap(bitmap);
         }
-
-        SKImage? userProfileBadgeFrameImage = null;
-        // Load profile badge frame
-        if (userImage != null) userProfileBadgeFrameImage = GetImageFromResource($"UnitsProfileBadge_{userPointsRating}Points.png");
 
         // Create image
         return CreateImage(imageWidth,
                            imageHeight,
                            bitmap =>
                            {
-                               using var canvas = new SKCanvas(bitmap);
-
-                               var ff = SKTypeface.FromFamilyName("Arial");
-                               var textColor = new SKColor(231, 185, 89);
-
-                               // Background
-                               canvas.DrawImage(backgroundImage, 0, 0);
-
-                               // Draw user image and frame
-                               var offsetNameByImage = false;
-                               if (userImage != null && userProfileBadgeFrameImage != null)
-                               {
-                                   canvas.DrawImage(userProfileBadgeFrameImage, 5, 5);
-                                   canvas.DrawImage(userImage, 52, 52);
-                                   offsetNameByImage = true;
-                               }
-
-                               // Draw nameplate depending on user image and frame
-                               var nameplateLeftOffset = offsetNameByImage ? 201 : 105;
-                               canvas.DrawImage(nameplateImage, nameplateLeftOffset, 41);
-
-                               // Calculate name and name position
-                               var nameFont = new SKFont(ff);
-                               var namePaint = new SKPaint(nameFont)
-                               {
-                                   Color = textColor
-                               };
-                               SKRect nameSize = new();
-                               var nameToUse = displayName;
-                               do
-                               {
-                                   namePaint.MeasureText(nameToUse, ref nameSize);
-                                   if (nameSize.Width > maxNameLengthInPixel) nameToUse = nameToUse.Substring(0, nameToUse.Length - 1);
-                               } while (nameSize.Width > maxNameLengthInPixel);
-
-                               var nameLeftOffset = nameplateLeftOffset + 95 - nameSize.Width / 2;
-                               var nameTopOffset = 101 - nameSize.Height / 2;
-
-
-                               // Write name depending on user image and frame
-                               canvas.DrawText(nameToUse,
-                                               nameLeftOffset,
-                                               nameTopOffset,
-                                               nameFont,
-                                               namePaint);
+                               ProfileCardAssembler.AssembleProfileCard(bitmap,
+                                                                        displayName,
+                                                                        backgroundImage,
+                                                                        avatarFrameImage,
+                                                                        userImage,
+                                                                        rankImage,
+                                                                        archetypeImages,
+                                                                        profileData,
+                                                                        guildTag,
+                                                                        hasPvpRole,
+                                                                        hasArtisanRole,
+                                                                        hasPveRole);
                            });
+
+        void LoadArchetypeImage(IDictionary<string, SKImage> skImages,
+                                string archetypeName)
+        {
+            var archetypeImage = GetImageFromResource($"archetypes.{archetypeName.ToLower()}.png");
+            skImages.Add(archetypeName, archetypeImage);
+        }
     }
 
     Stream IImageProvider.LoadClassListImage()

@@ -1,34 +1,36 @@
 ﻿namespace HoU.GuildBot.DAL;
 
-public class BearerTokenManager<TClient> : IBearerTokenManager<TClient>
-    where TClient : class
+public class BearerTokenManager : IBearerTokenManager
 {
-    private readonly ILogger<BearerTokenManager<TClient>> _logger;
+    private readonly HttpClient _httpClient;
+    private readonly ILogger<BearerTokenManager> _logger;
     private readonly Dictionary<Uri, string> _lastBearerTokens;
 
-    public BearerTokenManager(ILogger<BearerTokenManager<TClient>> logger)
+    public BearerTokenManager(HttpClient httpClient,
+                              ILogger<BearerTokenManager> logger)
     {
+        _httpClient = httpClient;
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _lastBearerTokens = new Dictionary<Uri, string>();
     }
 
-    public async Task<bool> GetAndSetBearerToken(HttpClient httpClient,
-                                                 AuthorizationEndpoint authorizationEndpoint,
-                                                 bool forceRefresh)
+    public async Task GetAndSetBearerTokenAsync(HttpRequestMessage httpRequestMessage,
+                                                Uri targetUrl,
+                                                AuthorizationEndpoint authorizationEndpoint,
+                                                bool forceRefresh)
     {
-        var bearerToken = await GetBearerTokenAsync(httpClient, authorizationEndpoint, forceRefresh);
+        var bearerToken = await GetBearerTokenAsync(targetUrl, authorizationEndpoint, forceRefresh);
         if (bearerToken == null)
-            return false;
+            return;
 
-        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
-        return true;
+        httpRequestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
     }
 
-    public async Task<string?> GetBearerTokenAsync(HttpClient httpClient,
+    public async Task<string?> GetBearerTokenAsync(Uri targetUrl,
                                                    AuthorizationEndpoint authorizationEndpoint,
                                                    bool forceRefresh)
     {
-        if (!forceRefresh && _lastBearerTokens.TryGetValue(authorizationEndpoint.AccessTokenUrl, out var lastToken))
+        if (!forceRefresh && _lastBearerTokens.TryGetValue(targetUrl, out var lastToken))
         {
             // Check if token expires within the next 10 seconds.
             var token = new JwtSecurityToken(lastToken);
@@ -50,7 +52,7 @@ public class BearerTokenManager<TClient> : IBearerTokenManager<TClient>
                 Content = new FormUrlEncodedContent(values)
             };
             request.Headers.Add("cache-control", "no-cache");
-            response = await httpClient.SendAsync(request);
+            response = await _httpClient.SendAsync(request);
         }
         catch (HttpRequestException e)
         {
@@ -70,7 +72,7 @@ public class BearerTokenManager<TClient> : IBearerTokenManager<TClient>
                 return null;
             }
             
-            _lastBearerTokens[authorizationEndpoint.AccessTokenUrl] = tokenResponse.AccessToken;
+            _lastBearerTokens[targetUrl] = tokenResponse.AccessToken;
             return tokenResponse.AccessToken;
         }
 

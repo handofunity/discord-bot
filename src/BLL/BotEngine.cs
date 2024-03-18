@@ -57,7 +57,6 @@ public class BotEngine : IBotEngine
                 {
                     // Connect to UNITS to receive push notifications
                     foreach (var unitsSyncData in _dynamicConfiguration.UnitsEndpoints.Where(m => !string.IsNullOrWhiteSpace(m.BaseAddress.ToString())
-                                                                                              && !string.IsNullOrWhiteSpace(m.ClientSecret)
                                                                                               && m.ConnectToNotificationHub))
                     {
                         await _unitsSignalRClient.ConnectAsync(unitsSyncData);

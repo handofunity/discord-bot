@@ -2,7 +2,7 @@
 
 internal class KeycloakUserReader : KeycloakBaseClient, IKeycloakUserReader
 {
-    public KeycloakUserReader(IBearerTokenManager<KeycloakBaseClient> bearerTokenManager,
+    public KeycloakUserReader(IBearerTokenManager bearerTokenManager,
                               IHttpClientFactory httpClientFactory,
                               // ReSharper disable once SuggestBaseTypeForParameterInConstructor
                               ILogger<KeycloakUserReader> logger)
@@ -14,9 +14,10 @@ internal class KeycloakUserReader : KeycloakBaseClient, IKeycloakUserReader
                                                                              KeycloakEndpoint keycloakEndpoint)
     {
         var uri = new Uri(keycloakEndpoint.BaseUrl, $"{keycloakEndpoint.Realm}/users?briefRepresentation=false&max=10000");
-        return await httpClient.PerformAuthorizedRequestAsync(BearerTokenManager,
+        var request = new HttpRequestMessage(HttpMethod.Get, uri);
+        return await httpClient.PerformAuthorizedRequestAsync(request,
+                                                              BearerTokenManager,
                                                               keycloakEndpoint,
-                                                              InvokeHttpGetRequest(httpClient, uri),
                                                               HandleResponseMessage);
 
         async Task<UserRepresentation[]?> HandleResponseMessage(HttpResponseMessage? responseMessage)
@@ -33,9 +34,10 @@ internal class KeycloakUserReader : KeycloakBaseClient, IKeycloakUserReader
                                                                                            KeycloakUserId userId)
     {
         var uri = new Uri(endpoint.BaseUrl, $"{endpoint.Realm}/users/{userId}/federated-identity");
-        return await httpClient.PerformAuthorizedRequestAsync(BearerTokenManager,
+        var request = new HttpRequestMessage(HttpMethod.Get, uri);
+        return await httpClient.PerformAuthorizedRequestAsync(request,
+                                                              BearerTokenManager,
                                                               endpoint,
-                                                              InvokeHttpGetRequest(httpClient, uri),
                                                               HandleResponseMessage);
 
         async Task<FederatedIdentityRepresentation?> HandleResponseMessage(HttpResponseMessage? responseMessage)
@@ -61,10 +63,11 @@ internal class KeycloakUserReader : KeycloakBaseClient, IKeycloakUserReader
     {
         var dateFilter = $"&q={KnownAttributes.DeleteAfter}:{date:yyyy-MM-dd}";
         var uri = new Uri(endpoint.BaseUrl, $"{endpoint.Realm}/users/?enabled=false{dateFilter}&briefRepresentation=true");
+        var request = new HttpRequestMessage(HttpMethod.Get, uri);
 
-        return await httpClient.PerformAuthorizedRequestAsync(BearerTokenManager,
+        return await httpClient.PerformAuthorizedRequestAsync(request,
+                                                              BearerTokenManager,
                                                               endpoint,
-                                                              InvokeHttpGetRequest(httpClient, uri),
                                                               HandleResponseMessage);
 
         async Task<KeycloakUserId[]?> HandleResponseMessage(HttpResponseMessage? responseMessage)

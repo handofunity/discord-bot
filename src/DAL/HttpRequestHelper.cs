@@ -2,25 +2,20 @@
 
 public static class HttpRequestHelper
 {
-    public static async Task<TResult?> PerformAuthorizedRequestAsync<TClient, TResult>(this HttpClient httpClient,
-                                                                                       IBearerTokenManager<TClient> bearerTokenManager,
-                                                                                       AuthorizationEndpoint authorizationEndpoint,
-                                                                                       Func<Task<HttpResponseMessage?>> invokeHttpRequest,
-                                                                                       Func<HttpResponseMessage?, Task<TResult>>
-                                                                                           handleResult)
-        where TClient : class
+    public static async Task<TResult?> PerformAuthorizedRequestAsync<TResult>(this HttpClient httpClient,
+                                                                           HttpRequestMessage request,
+                                                                           IBearerTokenManager bearerTokenManager,
+                                                                           AuthorizationEndpoint authorizationEndpoint,
+                                                                           Func<HttpResponseMessage?, Task<TResult>> handleResult)
     {
-        var tokenSet = await bearerTokenManager.GetAndSetBearerToken(httpClient, authorizationEndpoint, false);
-        if (!tokenSet)
-        {
-            // If the Bearer token is not set, the HTTP request will fail anyway.
-            // Instead of invoking it, just return.
-            return default;
-        }
+        await bearerTokenManager.GetAndSetBearerTokenAsync(request,
+                                                           new Uri(authorizationEndpoint.AccessTokenBaseAddress),
+                                                           authorizationEndpoint,
+                                                           false);
 
-        var response = await invokeHttpRequest();
+        var response = await httpClient.SendAsync(request);
 
-        if (response is null || response.IsSuccessStatusCode)
+        if (response.IsSuccessStatusCode)
         {
             // If the result is null, or a success, invoke the result handler.
             return await handleResult(response);
@@ -34,16 +29,13 @@ public static class HttpRequestHelper
             if (isExpired)
             {
                 // If the token is expired, refresh the token.
-                tokenSet = await bearerTokenManager.GetAndSetBearerToken(httpClient, authorizationEndpoint, true);
-                if (!tokenSet)
-                {
-                    // If the Bearer token is not set, the HTTP request will fail anyway.
-                    // Instead of invoking it, just return.
-                    return default;
-                }
+                await bearerTokenManager.GetAndSetBearerTokenAsync(request,
+                                                                   new Uri(authorizationEndpoint.AccessTokenBaseAddress),
+                                                                   authorizationEndpoint,
+                                                                   true);
 
                 // If the token is set, perform the request again.
-                response = await invokeHttpRequest();
+                response = await httpClient.SendAsync(request);
             }
         }
 

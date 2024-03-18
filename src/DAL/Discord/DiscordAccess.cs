@@ -981,7 +981,7 @@ public class DiscordAccess : IDiscordAccess
     string IDiscordAccess.GetCurrentDisplayName(DiscordUserId userId)
     {
         var gu = GetGuildUserById(userId);
-        return string.IsNullOrWhiteSpace(gu.Nickname) ? gu.Username : gu.Nickname;
+        return gu.DisplayName;
     }
 
     string IDiscordAccess.GetChannelLocationAndName(DiscordChannelId discordChannelId)

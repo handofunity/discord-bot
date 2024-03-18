@@ -3,10 +3,10 @@
 internal abstract class KeycloakBaseClient
 {
     private readonly IHttpClientFactory _httpClientFactory;
-    protected IBearerTokenManager<KeycloakBaseClient> BearerTokenManager { get; }
+    protected IBearerTokenManager BearerTokenManager { get; }
     protected ILogger Logger { get; }
 
-    protected KeycloakBaseClient(IBearerTokenManager<KeycloakBaseClient> bearerTokenManager,
+    protected KeycloakBaseClient(IBearerTokenManager bearerTokenManager,
                                  IHttpClientFactory httpClientFactory,
                                  ILogger logger)
     {
@@ -23,103 +23,6 @@ internal abstract class KeycloakBaseClient
     }
 
     protected HttpClient GetHttpClient() => _httpClientFactory.CreateClient("keycloak");
-
-    protected Func<Task<HttpResponseMessage?>> InvokeHttpGetRequest(HttpClient httpClient,
-                                                                    Uri uri) =>
-        async () =>
-        {
-            try
-            {
-                return await httpClient.GetAsync(uri);
-            }
-            catch (HttpRequestException e)
-            {
-                LogRequestError(uri, e);
-                return null;
-            }
-        };
-
-    protected Func<Task<HttpResponseMessage?>> InvokeHttpPostRequest<TPayload>(HttpClient httpClient,
-                                                                               Uri uri,
-                                                                               TPayload payload)
-    {
-        if (typeof(TPayload) == typeof(string))
-            throw new ArgumentException("Parameter cannot be of type System.String.", nameof(payload));
-        
-        return async () =>
-        {
-            try
-            {
-                return await httpClient.PostAsJsonAsync(uri, payload);
-            }
-            catch (HttpRequestException e)
-            {
-                LogRequestError(uri, e);
-                return null;
-            }
-        };
-    }
-
-    protected Func<Task<HttpResponseMessage?>> InvokeHttpPostRequest(HttpClient httpClient,
-                                                                     Uri uri) =>
-        async () =>
-        {
-            try
-            {
-                return await httpClient.PostAsync(uri, null);
-            }
-            catch (HttpRequestException e)
-            {
-                LogRequestError(uri, e);
-                return null;
-            }
-        };
-
-    protected Func<Task<HttpResponseMessage?>> InvokeHttpPutRequest(HttpClient httpClient,
-                                                                    Uri uri,
-                                                                    JsonNode json) =>
-        async () =>
-        {
-            try
-            {
-                return await httpClient.PutAsync(uri, new StringContent(json.ToJsonString(), Encoding.UTF8, "application/json"));
-            }
-            catch (HttpRequestException e)
-            {
-                LogRequestError(uri, e);
-                return null;
-            }
-        };
-
-    protected Func<Task<HttpResponseMessage?>> InvokeHttpPutRequest(HttpClient httpClient,
-                                                                    Uri uri) =>
-        async () =>
-        {
-            try
-            {
-                return await httpClient.PutAsync(uri, null);
-            }
-            catch (HttpRequestException e)
-            {
-                LogRequestError(uri, e);
-                return null;
-            }
-        };
-
-    protected Func<Task<HttpResponseMessage?>> InvokeHttpDeleteRequest(HttpClient httpClient,
-                                                                       Uri uri) =>
-        async () =>
-        {
-            try
-            {
-                return await httpClient.DeleteAsync(uri);
-            }
-            catch (HttpRequestException e)
-            {
-                LogRequestError(uri, e);
-                return null;
-            }
-        };
 
     protected async Task<JsonNode?> TryGetJsonRootFromResponseAsync(HttpResponseMessage? responseMessage,
                                                                     Uri uri)

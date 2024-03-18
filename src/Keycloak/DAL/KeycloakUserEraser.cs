@@ -2,7 +2,7 @@
 
 internal class KeycloakUserEraser : KeycloakBaseClient, IKeycloakUserEraser
 {
-    public KeycloakUserEraser(IBearerTokenManager<KeycloakBaseClient> bearerTokenManager,
+    public KeycloakUserEraser(IBearerTokenManager bearerTokenManager,
                               IHttpClientFactory httpClientFactory,
                               // ReSharper disable once SuggestBaseTypeForParameterInConstructor
                               ILogger<KeycloakUserEraser> logger)
@@ -19,9 +19,10 @@ internal class KeycloakUserEraser : KeycloakBaseClient, IKeycloakUserEraser
         foreach (var userId in userIds)
         {
             var uri = new Uri(endpoint.BaseUrl, $"{endpoint.Realm}/users/{userId}");
-            var deleted = await httpClient.PerformAuthorizedRequestAsync(BearerTokenManager,
+            var request = new HttpRequestMessage(HttpMethod.Delete, uri);
+            var deleted = await httpClient.PerformAuthorizedRequestAsync(request,
+                                                                         BearerTokenManager,
                                                                          endpoint,
-                                                                         InvokeHttpDeleteRequest(httpClient, uri),
                                                                          HandleResponseMessage);
             if (deleted)
                 deletedCount++;

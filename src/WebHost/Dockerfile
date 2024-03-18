@@ -5,6 +5,12 @@ RUN ln -s /lib/x86_64-linux-gnu/libdl.so.2 /lib/x86_64-linux-gnu/libdl.so \
   && ln -s /usr/lib/libgdiplus.so /lib/x86_64-linux-gnu/libgdiplus.so
 
 WORKDIR /app
+COPY ./WebHost/fonts/Marcellus-Regular.ttf ./WebHost/fonts/linlibertine_regular.ttf ./
+RUN mkdir -p /usr/share/fonts/truetype/ \
+  && install -m644 Marcellus-Regular.ttf /usr/share/fonts/truetype/ \
+  && install -m644 linlibertine_regular.ttf /usr/share/fonts/truetype/ \
+  && rm ./Marcellus-Regular.ttf \
+  && rm ./linlibertine_regular.ttf
 
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 ARG CONFIGURATION

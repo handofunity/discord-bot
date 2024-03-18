@@ -12,8 +12,13 @@ public interface IImageProvider
     
     Stream LoadLaunchRosterImage();
 
-    Task<Stream> CreateProfileImage(DiscordUserId userID,
-                                    string avatarUrl);
+    Task<Stream> CreateProfileCardImage(DiscordUserId userID,
+                                        string avatarUrl,
+                                        ProfileInfoResponse profileData,
+                                        string guildTag,
+                                        bool hasPvpRole,
+                                        bool hasArtisanRole,
+                                        bool hasPveRole);
 
     Stream LoadClassListImage();
 

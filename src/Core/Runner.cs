@@ -2,7 +2,7 @@
 
 public class Runner
 {
-    private static readonly Version _botVersion = new(10, 9, 1);
+    private static readonly Version _botVersion = new(11, 0, 0);
 
     private BackgroundJobServer? _backgroundJobServer;
     private ILogger<Runner>? _logger;
@@ -18,10 +18,10 @@ public class Runner
 
             services.AddSingleton(settings)
                     .AddLogging(settings.CompleteConfiguration)
+                    .AddKeycloak()
                     .AddDataAccessLayer()
                     .AddBusinessLogicLayer(environment, _botVersion)
-                    .AddHangfireWithServer(settings)
-                    .AddKeycloak();
+                    .AddHangfireWithServer(settings);
             
             var serviceProvider = services.BuildServiceProvider();
 

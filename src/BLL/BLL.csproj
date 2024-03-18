@@ -9,60 +9,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Resources\AoCClassForeground.png" />
-    <None Remove="Resources\AoCClasslist.jpg" />
-    <None Remove="Resources\AoCGuildPreferenceForeground.png" />
-    <None Remove="Resources\AoCPlaystyleForeground.png" />
-    <None Remove="Resources\AoCRaceForeground.png" />
-    <None Remove="Resources\AocRolesBackground.png" />
-    <None Remove="Resources\AoCRolesBackground_Centered.png" />
-    <None Remove="Resources\AoCRolesBackground_Right.png" />
-    <None Remove="Resources\AocRolesForeground.png" />
-    <None Remove="Resources\AoCLaunchRoster.jpg" />
-    <None Remove="Resources\GuildLogo.png" />
-    <None Remove="Resources\LostArkClassBackground.png" />
-    <None Remove="Resources\LostArkClassForeground.png" />
-    <None Remove="Resources\LostArkPlaystyleBackground.png" />
-    <None Remove="Resources\LostArkPlaystyleForeground.png" />
-    <None Remove="Resources\UnitsProfileBadge_HighPoints.png" />
-    <None Remove="Resources\UnitsProfileBadge_LowPoints.png" />
-    <None Remove="Resources\UnitsProfileBadge_MediumPoints.png" />
-    <None Remove="Resources\UnitsProfileBadge_TopTenPoints.png" />
-    <None Remove="Resources\UnitsProfileNameplate.png" />
-    <None Remove="Resources\WowRetailPlaystyleForeground.png" />
-    <None Remove="Resources\WowRetailPlaystyleBackground.png" />
-    <None Remove="Resources\AoCArtisanClasses.png" />
-    <None Remove="Resources\AoCRolePreferenceForeground.png" />
-    <None Remove="Resources\TnLWeaponForeground.png" />
-    <None Remove="Resources\TnLRolesBackground_Centered.png" />
-    <None Remove="Resources\TnLRolePreferenceForeground.png" />
+    <None Remove="Resources\**\*.png" />
+    <None Remove="Resources\**\*.jpg" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Resources\AoCClassForeground.png" />
-    <EmbeddedResource Include="Resources\AoCClassList.jpg" />
-    <EmbeddedResource Include="Resources\AoCGuildPreferenceForeground.png" />
-    <EmbeddedResource Include="Resources\AoCPlaystyleForeground.png" />
-    <EmbeddedResource Include="Resources\AoCRaceForeground.png" />
-    <EmbeddedResource Include="Resources\AoCRolesBackground_Centered.png" />
-    <EmbeddedResource Include="Resources\AoCRolesBackground_Right.png" />
-    <EmbeddedResource Include="Resources\AoCLaunchRoster.jpg" />
-    <EmbeddedResource Include="Resources\GuildLogo.png" />
-    <EmbeddedResource Include="Resources\LostArkPlaystyleBackground.png" />
-    <EmbeddedResource Include="Resources\LostArkPlaystyleForeground.png" />
-    <EmbeddedResource Include="Resources\UnitsProfileBackground.png" />
-    <EmbeddedResource Include="Resources\UnitsProfileBadge_HighPoints.png" />
-    <EmbeddedResource Include="Resources\UnitsProfileBadge_LowPoints.png" />
-    <EmbeddedResource Include="Resources\UnitsProfileBadge_MediumPoints.png" />
-    <EmbeddedResource Include="Resources\UnitsProfileBadge_TopTenPoints.png" />
-    <EmbeddedResource Include="Resources\UnitsProfileNameplate.png" />
-    <EmbeddedResource Include="Resources\WowRetailPlaystyleBackground.png" />
-    <EmbeddedResource Include="Resources\WowRetailPlaystyleForeground.png" />
-    <EmbeddedResource Include="Resources\AoCArtisanProfessions.png" />
-    <EmbeddedResource Include="Resources\AoCRolePreferenceForeground.png" />
-    <EmbeddedResource Include="Resources\TnLWeaponForeground.png" />
-    <EmbeddedResource Include="Resources\TnLRolesBackground_Centered.png" />
-    <EmbeddedResource Include="Resources\TnLRolePreferenceForeground.png" />
+    <EmbeddedResource Include="Resources\**\*.png" />
+    <EmbeddedResource Include="Resources\**\*.jpg" />
   </ItemGroup>
 
   <ItemGroup>

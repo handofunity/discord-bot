@@ -2,7 +2,7 @@
 
 internal class KeycloakUserGroupWriter : KeycloakBaseClient, IKeycloakUserGroupWriter
 {
-    public KeycloakUserGroupWriter(IBearerTokenManager<KeycloakBaseClient> bearerTokenManager,
+    public KeycloakUserGroupWriter(IBearerTokenManager bearerTokenManager,
                                    IHttpClientFactory httpClientFactory,
                                    // ReSharper disable once SuggestBaseTypeForParameterInConstructor
                                    ILogger<KeycloakUserGroupWriter> logger)
@@ -20,9 +20,10 @@ internal class KeycloakUserGroupWriter : KeycloakBaseClient, IKeycloakUserGroupW
                             from keycloakGroupId in user.Value
                             select new Uri(keycloakEndpoint.BaseUrl, $"{keycloakEndpoint.Realm}/users/{user.Key}/groups/{keycloakGroupId}"))
         {
-            var addedToGroup = await httpClient.PerformAuthorizedRequestAsync(BearerTokenManager,
+            var request = new HttpRequestMessage(HttpMethod.Put, uri);
+            var addedToGroup = await httpClient.PerformAuthorizedRequestAsync(request,
+                                                                              BearerTokenManager,
                                                                               keycloakEndpoint,
-                                                                              InvokeHttpPutRequest(httpClient, uri),
                                                                               HandleResponseMessage);
             if (addedToGroup)
                 assignedGroupMemberships++;
@@ -44,9 +45,10 @@ internal class KeycloakUserGroupWriter : KeycloakBaseClient, IKeycloakUserGroupW
                             from keycloakGroupId in user.Value
                             select new Uri(keycloakEndpoint.BaseUrl, $"{keycloakEndpoint.Realm}/users/{user.Key}/groups/{keycloakGroupId}"))
         {
-            var removedFromGroup = await httpClient.PerformAuthorizedRequestAsync(BearerTokenManager,
+            var request = new HttpRequestMessage(HttpMethod.Delete, uri);
+            var removedFromGroup = await httpClient.PerformAuthorizedRequestAsync(request,
+                                                                                  BearerTokenManager,
                                                                                   keycloakEndpoint,
-                                                                                  InvokeHttpDeleteRequest(httpClient, uri),
                                                                                   HandleResponseMessage);
             if (removedFromGroup)
                 removedGroupMemberships++;

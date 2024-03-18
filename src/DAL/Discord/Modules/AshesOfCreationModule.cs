@@ -4,28 +4,78 @@
 [Group("aoc", "Ashes of Creation related commands.")]
 public class AshesOfCreationModule : InteractionModuleBase<SocketInteractionContext>
 {
+    private const string UnitsHouGuildRoleIdKey = "UnitsHouGuildRoleId";
+    private const string UnitsFouGuildRoleIdKey = "UnitsFouGuildRoleId";
+    private const string UnitsPvpRoleIdKey = "UnitsPvpRoleId";
+    private const string UnitsArtisanRoleIdKey = "UnitsArtisanRoleId";
+    private const string UnitsPveRoleIdKey = "UnitsPveRoleId";
+    
     private readonly IImageProvider _imageProvider;
+    private readonly IUnitsAccess _unitsAccess;
+    private readonly IDynamicConfiguration _dynamicConfiguration;
     private readonly ILogger<AshesOfCreationModule> _logger;
 
     public AshesOfCreationModule(IImageProvider imageProvider,
+                                 IUnitsAccess unitsAccess,
+                                 IDynamicConfiguration dynamicConfiguration,
                                  ILogger<AshesOfCreationModule> logger)
     {
         _imageProvider = imageProvider;
+        _unitsAccess = unitsAccess;
+        _dynamicConfiguration = dynamicConfiguration;
         _logger = logger;
     }
 
-    [SlashCommand("profile", "Shows the profile image for the current user.", runMode: RunMode.Async)]
+    [SlashCommand("profile", "Shows the profile image for the given or current user.", runMode: RunMode.Async)]
     [AllowedRoles(Role.Developer)] // TODO: Change to any guild member
-    public async Task GetProfileCardAsync()
+    public async Task GetProfileCardAsync(IGuildUser? guildUser = null)
     {
         await DeferAsync();
+        guildUser ??= (IGuildUser)Context.User;
+        var userId = (DiscordUserId)guildUser.Id;
 
         try
         {
-            await using var imageStream = await _imageProvider.CreateProfileImage((DiscordUserId)Context.User.Id,
-                                                                                  Context.User.GetAvatarUrl(ImageFormat.Png));
+            var endpoint = _dynamicConfiguration.UnitsEndpoints.FirstOrDefault(m => m.ConnectToRestApi);
+            if (endpoint is null)
+            {
+                await FollowupAsync("No endpoint configured.");
+                return;
+            }
+            
+            var profileData = await _unitsAccess.GetProfileDataAsync(endpoint, userId);
+            if (profileData is null)
+            {
+                await FollowupAsync("Failed to fetch profile data from UNITS.");
+                return;
+            }
+
+            // Determine guild tag
+            var guildTag = "N/A";
+            var houRoleId = _dynamicConfiguration.DiscordMapping[UnitsHouGuildRoleIdKey];
+            var fouRoleId = _dynamicConfiguration.DiscordMapping[UnitsFouGuildRoleIdKey];
+            if (guildUser.RoleIds.Contains(houRoleId))
+                guildTag = "HoU";
+            else if (guildUser.RoleIds.Contains(fouRoleId))
+                guildTag = "FoU";
+            
+            // Determine play style
+            var pvpRoleId = _dynamicConfiguration.DiscordMapping[UnitsPvpRoleIdKey];
+            var artisanRoleId = _dynamicConfiguration.DiscordMapping[UnitsArtisanRoleIdKey];
+            var pveRoleId = _dynamicConfiguration.DiscordMapping[UnitsPveRoleIdKey];
+            var hasPvpRole = guildUser.RoleIds.Contains(pvpRoleId);
+            var hasArtisanRole = guildUser.RoleIds.Contains(artisanRoleId);
+            var hasPveRole = guildUser.RoleIds.Contains(pveRoleId);
+
+            await using var imageStream = await _imageProvider.CreateProfileCardImage(userId,
+                                                                                      guildUser.GetAvatarUrl(ImageFormat.Png),
+                                                                                      profileData,
+                                                                                      guildTag,
+                                                                                      hasPvpRole,
+                                                                                      hasArtisanRole,
+                                                                                      hasPveRole);
             await Context.Interaction.FollowupWithFileAsync(imageStream,
-                                                            $"{Context.User.Discriminator}_{DateTime.UtcNow:yyyyMMddHHmmss}.png");
+                                                            $"units_{userId}_{DateTime.UtcNow:yyyyMMddHHmmss}.png");
         }
         catch (Exception e)
         {

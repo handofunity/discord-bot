@@ -1,13 +1,13 @@
 ﻿namespace HoU.GuildBot.Shared.DAL;
 
-public interface IBearerTokenManager<TClient>
-    where TClient : class
+public interface IBearerTokenManager
 {
-    Task<bool> GetAndSetBearerToken(HttpClient httpClient,
-                                    AuthorizationEndpoint authorizationEndpoint,
-                                    bool forceRefresh);
+    Task GetAndSetBearerTokenAsync(HttpRequestMessage httpRequestMessage,
+                                   Uri targetUrl,
+                                   AuthorizationEndpoint authorizationEndpoint,
+                                   bool forceRefresh);
 
-    Task<string?> GetBearerTokenAsync(HttpClient httpClient,
+    Task<string?> GetBearerTokenAsync(Uri targetUrl,
                                       AuthorizationEndpoint authorizationEndpoint,
                                       bool forceRefresh);
 }

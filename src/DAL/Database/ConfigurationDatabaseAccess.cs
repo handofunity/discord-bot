@@ -30,27 +30,32 @@ public class ConfigurationDatabaseAccess : IConfigurationDatabaseAccess
               .ToArray(),
             sr.Text);
 
+    private static KeycloakEndpoint Map(DAL.Database.Model.KeycloakEndpoint keycloakEndpoint) =>
+        new(new Uri(keycloakEndpoint.BaseUrl),
+            new Uri(keycloakEndpoint.AccessTokenUrl),
+            keycloakEndpoint.ClientId,
+            keycloakEndpoint.ClientSecret,
+            keycloakEndpoint.Realm);
+
     async Task<UnitsEndpoint[]> IConfigurationDatabaseAccess.GetAllUnitsEndpointsAsync()
     {
         await using var entities = GetDbContext();
-        var dbEntries = await entities.UnitsEndpoint.ToArrayAsync();
+        var dbEntries = await entities.UnitsEndpoint
+                                      .Include(m => m.KeycloakEndpoint)
+                                      .AsNoTrackingWithIdentityResolution()
+                                      .ToArrayAsync();
         return dbEntries.Select(m => new UnitsEndpoint(new Uri(m.BaseAddress),
-                                                       m.Secret,
                                                        m.ConnectToRestApi,
-                                                       m.ConnectToNotificationsHub))
+                                                       m.ConnectToNotificationsHub,
+                                                       Map(m.KeycloakEndpoint!)))
                         .ToArray();
     }
 
     async Task<KeycloakEndpoint[]> IConfigurationDatabaseAccess.GetAllKeycloakEndpointsAsync()
     {
         await using var entities = GetDbContext();
-        var dbEntries = await entities.KeycloakEndpoint.ToArrayAsync();
-        return dbEntries.Select(m => new KeycloakEndpoint(new Uri(m.BaseUrl),
-                                                          new Uri(m.AccessTokenUrl),
-                                                          m.ClientId,
-                                                          m.ClientSecret,
-                                                          m.Realm))
-                        .ToArray();
+        var dbEntries = await entities.KeycloakEndpoint.AsNoTracking().ToArrayAsync();
+        return dbEntries.Select(Map).ToArray();
     }
 
     async Task<DesiredTimeZone[]> IConfigurationDatabaseAccess.GetAllDesiredTimeZonesAsync()

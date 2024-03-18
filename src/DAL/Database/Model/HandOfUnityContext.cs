@@ -266,9 +266,13 @@ namespace HoU.GuildBot.DAL.Database.Model
 
                 entity.Property(e => e.ConnectToRestApi).HasColumnName("connect_to_rest_api");
 
-                entity.Property(e => e.Secret)
-                    .HasMaxLength(128)
-                    .HasColumnName("secret");
+                entity.Property(e => e.KeycloakEndpointId).HasColumnName("keycloak_endpoint_id");
+
+                entity.HasOne(d => d.KeycloakEndpoint)
+                    .WithMany(p => p.UnitsEndpoint)
+                    .HasForeignKey(d => d.KeycloakEndpointId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("units_endpoint_keycloak_endpoint_id_fkey");
             });
 
             modelBuilder.Entity<User>(entity =>

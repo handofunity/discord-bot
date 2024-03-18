@@ -3,7 +3,7 @@
 internal class KeycloakUserWriter : KeycloakBaseClient, IKeycloakUserWriter
 {
 
-    public KeycloakUserWriter(IBearerTokenManager<KeycloakBaseClient> bearerTokenManager,
+    public KeycloakUserWriter(IBearerTokenManager bearerTokenManager,
                               IHttpClientFactory httpClientFactory,
                               // ReSharper disable once SuggestBaseTypeForParameterInConstructor
                               ILogger<KeycloakUserWriter> logger)
@@ -24,9 +24,11 @@ internal class KeycloakUserWriter : KeycloakBaseClient, IKeycloakUserWriter
             Logger.LogTrace("Creating new Keycloak user for {Username} ({DiscordUserId}) ...",
                             user.Username,
                             user.DiscordUserId);
-            var newKeycloakUserId = await httpClient.PerformAuthorizedRequestAsync(BearerTokenManager,
+            var requestMessage = new HttpRequestMessage(HttpMethod.Post, uri);// add the new code
+            requestMessage.Content = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
+            var newKeycloakUserId = await httpClient.PerformAuthorizedRequestAsync(requestMessage,
+                                                                                   BearerTokenManager,
                                                                                    keycloakEndpoint,
-                                                                                   InvokeHttpPostRequest(httpClient, uri, request),
                                                                                    HandleResponseMessage);
             if (newKeycloakUserId is not null)
             {
@@ -71,10 +73,12 @@ internal class KeycloakUserWriter : KeycloakBaseClient, IKeycloakUserWriter
         foreach (var user in users)
         {
             var uri = new Uri(endpoint.BaseUrl, $"{endpoint.Realm}/users/{user.Key}");
-            var json = user.Value.ToJson();
-            var updated = await httpClient.PerformAuthorizedRequestAsync(BearerTokenManager,
+            var json = user.Value.ToJson().ToJsonString();
+            var request = new HttpRequestMessage(HttpMethod.Put, uri);
+            request.Content = new StringContent(json, Encoding.UTF8, "application/json");
+            var updated = await httpClient.PerformAuthorizedRequestAsync(request,
+                                                                         BearerTokenManager,
                                                                          endpoint,
-                                                                         InvokeHttpPutRequest(httpClient, uri, json),
                                                                          HandleResponseMessage);
             if (updated)
                 updatedUsers++;
@@ -126,9 +130,10 @@ internal class KeycloakUserWriter : KeycloakBaseClient, IKeycloakUserWriter
         foreach (var userId in usersToDisable)
         {
             var uri = new Uri(endpoint.BaseUrl, $"{endpoint.Realm}/users/{userId}/logout");
-            var loggedOut = await httpClient.PerformAuthorizedRequestAsync(BearerTokenManager,
+            var request = new HttpRequestMessage(HttpMethod.Post, uri);
+            var loggedOut = await httpClient.PerformAuthorizedRequestAsync(request,
+                                                                           BearerTokenManager,
                                                                            endpoint,
-                                                                           InvokeHttpPostRequest(httpClient, uri),
                                                                            HandleResponseMessage);
             if (loggedOut)
                 loggedOutUsers++;
@@ -169,10 +174,11 @@ internal class KeycloakUserWriter : KeycloakBaseClient, IKeycloakUserWriter
         foreach (var (keycloakUserId, discordState) in users)
         {
             var uri = new Uri(keycloakEndpoint.BaseUrl, $"{keycloakEndpoint.Realm}/users/{keycloakUserId}/federated-identity/{FederatedIdentityRepresentation.DiscordIdentityProviderName}");
-            var (removed, statusCode, error) = await httpClient.PerformAuthorizedRequestAsync(BearerTokenManager,
-                                                                         keycloakEndpoint,
-                                                                         InvokeHttpDeleteRequest(httpClient, uri),
-                                                                         HandleResponseMessage);
+            var request = new HttpRequestMessage(HttpMethod.Delete, uri);
+            var (removed, statusCode, error) = await httpClient.PerformAuthorizedRequestAsync(request,
+                                                        BearerTokenManager,
+                                                        keycloakEndpoint,
+                                                        HandleResponseMessage);
             if (!removed)
             {
                 Logger.LogError("Failed to remove Discord identity provider for {User}: {StatusCode} {Error}",
@@ -185,10 +191,12 @@ internal class KeycloakUserWriter : KeycloakBaseClient, IKeycloakUserWriter
                 Logger.LogInformation("Removed the Discord identity provider for {User}", keycloakUserId);
                 var federatedIdentity = new FederatedIdentityRepresentation(discordState.DiscordUserId,
                                                                             discordState.Username);
-                (var added, statusCode, error) = await httpClient.PerformAuthorizedRequestAsync(BearerTokenManager,
-                                                                                                keycloakEndpoint,
-                                                                                                InvokeHttpPostRequest(httpClient, uri, federatedIdentity),
-                                                                                                HandleResponseMessage);
+                request = new HttpRequestMessage(HttpMethod.Post, uri);
+                request.Content = new StringContent(JsonSerializer.Serialize(federatedIdentity), Encoding.UTF8, "application/json");
+                (var added, statusCode, error) = await httpClient.PerformAuthorizedRequestAsync(request,
+                                                          BearerTokenManager,
+                                                          keycloakEndpoint,
+                                                          HandleResponseMessage);
                 if (added)
                 {
                     updated++;
