@@ -30,9 +30,9 @@ internal static class ProfileCardAssembler
         using var canvas = new SKCanvas(bitmap);
 
         canvas.DrawImage(backgroundImage, 0, 0);
-        canvas.DrawImage(avatarFrameImage, 0, 0);
         if (userImage != null)
-            canvas.DrawImage(userImage, 91, 96);
+            canvas.DrawImage(userImage, 68, 74);
+        canvas.DrawImage(avatarFrameImage, 0, 0);
         canvas.DrawImage(rankImage, 617, 76);
         WriteName(canvas, displayName);
         WriteGuildTag(canvas, guildTag);

@@ -299,9 +299,9 @@ public class ImageProvider : IImageProvider
         {
             await using var userImageStream = new MemoryStream(userImageBytes);
             userImage = SKImage.FromEncodedData(userImageStream);
-            // Resize to 246 x 246 px
+            // Resize to 275 x 275 px
             var bitmap = SKBitmap.FromImage(userImage);
-            bitmap = bitmap.Resize(new SKSizeI(246, 246), SKFilterQuality.High);
+            bitmap = bitmap.Resize(new SKSizeI(275, 275), SKFilterQuality.High);
             userImage = SKImage.FromBitmap(bitmap);
         }
 
