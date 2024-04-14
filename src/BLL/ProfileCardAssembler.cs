@@ -7,6 +7,8 @@ internal static class ProfileCardAssembler
     private static readonly SKTypeface _contentTypeface = SKTypeface.FromFamilyName("Marcellus");
     private static readonly SKFont _titleFont = new(_titleTypeface, size: 28f);
     private static readonly SKPaint _titlePaint = new(_titleFont) { Color = _textColor };
+    private static readonly SKFont _guildFont = new(_titleTypeface, size: 40f);
+    private static readonly SKPaint _guildPaint = new(_guildFont) { Color = _textColor };
     private static readonly SKFont _unitsAndRankFont = new(_contentTypeface, size: 22f);
     private static readonly SKPaint _unitsAndRankPaint = new(_unitsAndRankFont) { Color = _textColor };
     private static readonly SKFont _tableHeaderFont = new(_titleTypeface, size: 24f);
@@ -36,6 +38,7 @@ internal static class ProfileCardAssembler
         canvas.DrawImage(rankImage, 617, 76);
         WriteName(canvas, displayName);
         WriteGuildTag(canvas, guildTag);
+        WriteRankWithPercentageRange(canvas, profileData.SeasonalRankName, profileData.SeasonalRankPercentageRange);
         WriteUnitsAndRank(canvas, profileData);
         WritePlayStyles(canvas, hasPvpRole, hasArtisanRole, hasPveRole);
         WriteCharactersTitle(canvas);
@@ -55,21 +58,7 @@ internal static class ProfileCardAssembler
         };
 
         // Calculate name and name position
-        SKRect nameSize = new();
-        do
-        {
-            namePaint.MeasureText(displayName, ref nameSize);
-            if (nameSize.Width > maxNameLengthInPixel)
-            {
-                nameFont.Size--; // Reduce font size for drawing.
-                namePaint.TextSize--; // Reduce paint size for measuring.
-            }
-            else if (nameSize.Height > maxNameHeightInPixel)
-            {
-                nameFont.Size--; // Reduce font size for drawing.
-                namePaint.TextSize--; // Reduce paint size for measuring.
-            }
-        } while (nameSize.Width > maxNameLengthInPixel || nameSize.Height > maxNameHeightInPixel);
+        var nameSize = ShrinkFontAndPaintToFitSize(displayName, nameFont, namePaint, maxNameLengthInPixel, maxNameHeightInPixel);
 
         // Measure the tallest letter to get the vertical offset of the baseline.
         float verticalLetterSize = 0;
@@ -101,18 +90,40 @@ internal static class ProfileCardAssembler
     private static void WriteGuildTag(SKCanvas canvas,
                                       string guildTag)
     {
-        var guildFont = new SKFont(_titleTypeface, size: 40f);
-        var guildPaint = new SKPaint(guildFont)
-        {
-            Color = _textColor
-        };
         SKRect guildTagSize = new();
-        guildPaint.MeasureText(guildTag, ref guildTagSize);
+        _guildPaint.MeasureText(guildTag, ref guildTagSize);
         canvas.DrawText(guildTag,
                         682f - guildTagSize.Width / 2f,
-                        378f + guildTagSize.Height / 2f,
-                        guildFont,
-                        guildPaint);
+                        372f + guildTagSize.Height / 2f,
+                        _guildFont,
+                        _guildPaint);
+    }
+    
+    private static void WriteRankWithPercentageRange(SKCanvas canvas,
+                                      string rank,
+                                      string? percentageRange)
+    {
+        const float maxWidthInPixel = 172f;
+        const float maxHeightInPixel = 19f;
+        
+        var rankAndPercentageRangeFont = new SKFont(_contentTypeface, size: 18f);
+        var rankAndPercentageRangePaint = new SKPaint(rankAndPercentageRangeFont) { Color = _textColor };
+    
+        var sb = new StringBuilder(rank);
+        if (percentageRange is not null)
+            sb.Append($" ({percentageRange})");
+        var text = sb.ToString();
+        
+        var rankAndPercentageRangeSize = ShrinkFontAndPaintToFitSize(text,
+                                                                     rankAndPercentageRangeFont,
+                                                                     rankAndPercentageRangePaint,
+                                                                     maxWidthInPixel,
+                                                                     maxHeightInPixel);
+        canvas.DrawText(text,
+                        682f - rankAndPercentageRangeSize.Width / 2f,
+                        398f + rankAndPercentageRangeSize.Height / 2f,
+                        rankAndPercentageRangeFont,
+                        rankAndPercentageRangePaint);
     }
 
     private static void WriteUnitsAndRank(SKCanvas canvas,
@@ -190,27 +201,27 @@ internal static class ProfileCardAssembler
                         _tableHeaderFont,
                         _tableHeaderPaint);
         canvas.DrawText("Character",
-                        236f,
+                        165f,
                         tableHeaderVerticalOffset,
                         _tableHeaderFont,
                         _tableHeaderPaint);
         canvas.DrawText("Class",
-                        489f,
+                        347f,
                         tableHeaderVerticalOffset,
                         _tableHeaderFont,
                         _tableHeaderPaint);
         canvas.DrawText("Artisan",
-                        595f,
+                        485f,
                         tableHeaderVerticalOffset,
                         _tableHeaderFont,
                         _tableHeaderPaint);
         canvas.DrawText("Lv",
-                        718f,
+                        640f,
                         tableHeaderVerticalOffset,
                         _tableHeaderFont,
                         _tableHeaderPaint);
         canvas.DrawText("Artisan",
-                        790f,
+                        752f,
                         tableHeaderVerticalOffset,
                         _tableHeaderFont,
                         _tableHeaderPaint);
@@ -227,8 +238,8 @@ internal static class ProfileCardAssembler
     {
         const float verticalOffsetIncrement = 32f;
         const float levelCellWidth = 32f;
-        const float nameCellWidth = 381f;
-        const float artisanCellWidth = 139f;
+        const float nameCellWidth = 238f;
+        const float artisanCellWidth = 212f;
         
         var verticalCharacterOffset = 585f;
         foreach (var characterData in profileData.Characters.OrderBy(m => m.Order))
@@ -245,17 +256,17 @@ internal static class ProfileCardAssembler
                                                                 nameCellWidth,
                                                                 _tableContentPaint);
             canvas.DrawText(characterName.Text,
-                            95f + characterName.Offset,
+                            94f + characterName.Offset,
                             verticalCharacterOffset,
                             _tableContentFont,
                             _tableContentPaint);
             
             canvas.DrawImage(archetypeImages[characterData.PrimaryArchetype],
-                             479f,
+                             336f,
                              verticalCharacterOffset - 23f);
 
             canvas.DrawImage(archetypeImages[characterData.SecondaryArchetype],
-                             516f,
+                             373f,
                              verticalCharacterOffset - 23f);
             
             if (characterData.PrimaryProfession is not null && characterData.PrimaryProfessionLevel is not null)
@@ -264,7 +275,7 @@ internal static class ProfileCardAssembler
                                                                  artisanCellWidth,
                                                                  _tableContentPaint);
                 canvas.DrawText(profession.Text,
-                                563f + profession.Offset,
+                                415f + profession.Offset,
                                 verticalCharacterOffset,
                                 _tableContentFont,
                                 _tableContentPaint);
@@ -272,7 +283,7 @@ internal static class ProfileCardAssembler
                                                                       levelCellWidth,
                                                                       _tableContentPaint);
                 canvas.DrawText(professionLevel.Text,
-                                714f + professionLevel.Offset,
+                                636f + professionLevel.Offset,
                                 verticalCharacterOffset,
                                 _tableContentFont,
                                 _tableContentPaint);
@@ -284,7 +295,7 @@ internal static class ProfileCardAssembler
                                                                  artisanCellWidth,
                                                                  _tableContentPaint);
                 canvas.DrawText(profession.Text,
-                                758f + profession.Offset,
+                                682f + profession.Offset,
                                 verticalCharacterOffset,
                                 _tableContentFont,
                                 _tableContentPaint);
@@ -326,5 +337,30 @@ internal static class ProfileCardAssembler
             paint.MeasureText(shortenedText + "...", ref nameSize);
         }
         return (shortenedText + "...", padding);
+    }
+
+    private static SKRect ShrinkFontAndPaintToFitSize(string text,
+                                                      SKFont font,
+                                                      SKPaint paint,
+                                                      float maxWidthInPixel,
+                                                      float maxHeightInPixel)
+    {
+        SKRect size = new();
+        do
+        {
+            paint.MeasureText(text, ref size);
+            if (size.Width > maxWidthInPixel)
+            {
+                font.Size--; // Reduce font size for drawing.
+                paint.TextSize--; // Reduce paint size for measuring.
+            }
+            else if (size.Height > maxHeightInPixel)
+            {
+                font.Size--; // Reduce font size for drawing.
+                paint.TextSize--; // Reduce paint size for measuring.
+            }
+        } while (size.Width > maxWidthInPixel || size.Height > maxHeightInPixel);
+
+        return size;
     }
 }

@@ -3,4 +3,5 @@
 public record ProfileInfoResponse( decimal SeasonalTokens,
                                    long SeasonalRank,
                                    string SeasonalRankName,
+                                   string? SeasonalRankPercentageRange,
                                    ProfileCharacterData[] Characters);
