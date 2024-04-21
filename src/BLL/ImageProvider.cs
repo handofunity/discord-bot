@@ -269,17 +269,16 @@ public class ImageProvider : IImageProvider
         const int imageWidth = 1000;
         const int imageHeight = 750;
 
+        var escapedRankName = profileData.SeasonalRankName.ToLower().Replace(" ", "-");
+
         // Get current nickname
         var displayName = _discordAccess.GetCurrentDisplayName(userID);
 
-        // Load background image
-        var backgroundImage = GetImageFromResource("UnitsProfile_Background.png");
+        // Load rank-based background image
+        var backgroundImage = GetImageFromResource($"units-profiles.{escapedRankName}-background.png");
 
-        // Load avatar frame
-        var avatarFrameImage = GetImageFromResource("UnitsProfile_AvatarFrame.png");
-        
-        // Load rank image
-        var rankImage = GetImageFromResource($"ranks.{profileData.SeasonalRankName.ToLower().Replace(" ", "-")}.png");
+        // Load rank-based avatar frame
+        var avatarFrameImage = GetImageFromResource($"units-profiles.{escapedRankName}-frame.png");
         
         // Load archetype images
         var archetypeImages = new Dictionary<string, SKImage>();
@@ -315,7 +314,6 @@ public class ImageProvider : IImageProvider
                                                                         backgroundImage,
                                                                         avatarFrameImage,
                                                                         userImage,
-                                                                        rankImage,
                                                                         archetypeImages,
                                                                         profileData,
                                                                         guildTag,

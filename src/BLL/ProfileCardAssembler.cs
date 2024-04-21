@@ -21,7 +21,6 @@ internal static class ProfileCardAssembler
                                              SKImage backgroundImage,
                                              SKImage avatarFrameImage,
                                              SKImage? userImage,
-                                             SKImage rankImage,
                                              Dictionary<string, SKImage> archetypeImages,
                                              ProfileInfoResponse profileData,
                                              string guildTag,
@@ -35,7 +34,6 @@ internal static class ProfileCardAssembler
         if (userImage != null)
             canvas.DrawImage(userImage, 68, 74);
         canvas.DrawImage(avatarFrameImage, 0, 0);
-        canvas.DrawImage(rankImage, 617, 76);
         WriteName(canvas, displayName);
         WriteGuildTag(canvas, guildTag);
         WriteRankWithPercentageRange(canvas, profileData.SeasonalRankName, profileData.SeasonalRankPercentageRange);
