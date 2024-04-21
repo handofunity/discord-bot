@@ -275,10 +275,10 @@ public class ImageProvider : IImageProvider
         var displayName = _discordAccess.GetCurrentDisplayName(userID);
 
         // Load rank-based background image
-        var backgroundImage = GetImageFromResource($"units-profiles.{escapedRankName}-background.png");
+        var backgroundImage = GetImageFromResource($"units_profiles.{escapedRankName}-background.png");
 
         // Load rank-based avatar frame
-        var avatarFrameImage = GetImageFromResource($"units-profiles.{escapedRankName}-frame.png");
+        var avatarFrameImage = GetImageFromResource($"units_profiles.{escapedRankName}-frame.png");
         
         // Load archetype images
         var archetypeImages = new Dictionary<string, SKImage>();

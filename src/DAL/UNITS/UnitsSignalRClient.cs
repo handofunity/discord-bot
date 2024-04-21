@@ -7,7 +7,7 @@ public class UnitsSignalRClient : IUnitsSignalRClient
     private readonly IBearerTokenManager _bearerTokenManager;
     private readonly IUnitsBotClient _botClient;
     private readonly ILogger<UnitsSignalRClient> _logger;
-    private const string BotHubRoute = "/bot-hub";
+    private const string BotHubRoute = "bot-hub";
 
     private readonly Dictionary<Uri, HubConnection> _hubConnections;
     private readonly Dictionary<Uri, bool> _requiresTokenRefresh;
