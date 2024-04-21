@@ -984,11 +984,16 @@ public class DiscordAccess : IDiscordAccess
         return gu.DisplayName;
     }
 
-    string IDiscordAccess.GetChannelLocationAndName(DiscordChannelId discordChannelId)
+    string? IDiscordAccess.GetChannelLocationAndName(DiscordChannelId discordChannelId)
     {
         var g = GetGuild();
-        var channel = g.TextChannels.Single(m => m.Id == (ulong) discordChannelId);
-        return $"/{channel.Category.Name}/{channel.Name}";
+        var channel = g.TextChannels.SingleOrDefault(m => m.Id == (ulong) discordChannelId);
+        if (channel is not null)
+            return $"/{channel.Category.Name}/{channel.Name}";
+        
+        _logger.LogError("Failed to find channel with id {ChannelId}", discordChannelId);
+        return null;
+
     }
 
     async Task<(DiscordChannelId VoiceChannelId, string? Error)> IDiscordAccess.CreateVoiceChannelAsync(DiscordChannelId voiceChannelsCategoryId,
@@ -1317,37 +1322,51 @@ public class DiscordAccess : IDiscordAccess
         _logger.LogInformation("Guild '{GuildName}' is available", guild.Name);
         _ = Task.Run(async () =>
         {
-            if (!_userStore.IsInitialized)
+            try
             {
-                // Initialize user store only once
-                await guild.DownloadUsersAsync();
-                var allGuildUsers = guild.Users;
-                var mappedGuildUsers = allGuildUsers.Select(m => ((DiscordUserId) m.Id,
-                                                                  SocketRoleToRole(m.Roles),
-                                                                  ConcatRoleNames(m.Roles),
-                                                                  m.JoinedAt?.DateTime.ToUniversalTime() ?? User.DefaultJoinedDate))
-                                                    .ToArray();
-                await _userStore.Initialize(mappedGuildUsers);
-            }
+                if (!_userStore.IsInitialized)
+                {
+                    _logger.LogInformation("GuildAvailable: Initializing user store");
+                    // Initialize user store only once
+                    await guild.DownloadUsersAsync();
+                    var allGuildUsers = guild.Users;
+                    var mappedGuildUsers = allGuildUsers.Select(m => ((DiscordUserId) m.Id,
+                                                                      SocketRoleToRole(m.Roles),
+                                                                      ConcatRoleNames(m.Roles),
+                                                                      m.JoinedAt?.DateTime.ToUniversalTime() ?? User.DefaultJoinedDate))
+                                                        .ToArray();
+                    await _userStore.Initialize(mappedGuildUsers);
+                }
                 
-            if (_gameRoleProvider.Games.Count == 0)
-            {
-                // Load games only once
-                await _gameRoleProvider.LoadAvailableGames();
-            }
+                if (_gameRoleProvider.Games.Count == 0)
+                {
+                    // Load games only once
+                    _logger.LogInformation("GuildAvailable: Loading available games");
+                    await _gameRoleProvider.LoadAvailableGames();
+                }
 
-            // Ensure menu registry is initialized
-            _menuRegistry.Initialize();
+                // Ensure menu registry is initialized
+                _logger.LogInformation("GuildAvailable: Initializing menu registry");
+                _menuRegistry.Initialize();
             
-            // Ensure that static messages exist
-            await _staticMessageProvider.EnsureStaticMessagesExist();
+                // Ensure that static messages exist
+                _logger.LogInformation("GuildAvailable: Ensuring static messages exist");
+                await _staticMessageProvider.EnsureStaticMessagesExist();
 
-            // TODO: Register once per version/the commands change, not every time the bot boots
-            // Register interactions only once
-            var addedModules = (await _interactionService.AddModulesAsync(typeof(DiscordAccess).Assembly, _serviceProvider)).ToArray();
-            LogAddedModules(addedModules);
-            var registeredCommands = await _interactionService.RegisterCommandsToGuildAsync(guild.Id);
-            LogRegisteredCommands(registeredCommands);
+                // TODO: Register once per version/the commands change, not every time the bot boots
+                // Register interactions only once
+                _logger.LogInformation("GuildAvailable: Registering modules with interaction service");
+                var addedModules = (await _interactionService.AddModulesAsync(typeof(DiscordAccess).Assembly, _serviceProvider)).ToArray();
+                LogAddedModules(addedModules);
+                _logger.LogInformation("GuildAvailable: Registering commands to guild {GuildId}", guild.Id);
+                var registeredCommands = await _interactionService.RegisterCommandsToGuildAsync(guild.Id);
+                LogRegisteredCommands(registeredCommands);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
         }).ConfigureAwait(false);
 
         while (_pendingMessages.Count > 0)

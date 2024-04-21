@@ -204,8 +204,8 @@ public interface IDiscordAccess : IDiscordLogger
     /// Gets the name of the channel for the <paramref name="discordChannelId"/>.
     /// </summary>
     /// <param name="discordChannelId">The Id of the discord channel to get the name for.</param>
-    /// <returns>The name of the channel.</returns>
-    string GetChannelLocationAndName(DiscordChannelId discordChannelId);
+    /// <returns>The name of the channel, if found, otherwise <b>null</b>.</returns>
+    string? GetChannelLocationAndName(DiscordChannelId discordChannelId);
 
     /// <summary>
     /// Creates a temporary voice channel.

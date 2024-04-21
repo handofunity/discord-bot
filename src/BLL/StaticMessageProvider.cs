@@ -39,7 +39,7 @@ public class StaticMessageProvider : IStaticMessageProvider
         }
     }
 
-    private async Task LoadInfosAndRolesMenuMessages(IDictionary<DiscordChannelId, ExpectedChannelMessages> expectedChannelMessages)
+    private async Task LoadInfosAndRolesMenuMessages(IDictionary<DiscordChannelId, (string Context, ExpectedChannelMessages Messages)> expectedChannelMessages)
     {
         if (!_provideStaticMessages)
             return;
@@ -50,10 +50,11 @@ public class StaticMessageProvider : IStaticMessageProvider
             new(await _messageProvider.GetMessageAsync(Constants.MessageNames.GameInterestMenuMessage))
         };
         AddFriendOrGuestMenuComponents(l);
-        expectedChannelMessages[(DiscordChannelId)_dynamicConfiguration.DiscordMapping["InfoAndRolesChannelId"]] = new ExpectedChannelMessages(l);
+        expectedChannelMessages[(DiscordChannelId)_dynamicConfiguration.DiscordMapping["InfoAndRolesChannelId"]] =
+            ("Infos and roles", new ExpectedChannelMessages(l));
     }
 
-    private async Task LoadGamesRolesMenuMessages(IDictionary<DiscordChannelId, ExpectedChannelMessages> expectedChannelMessages)
+    private async Task LoadGamesRolesMenuMessages(IDictionary<DiscordChannelId, (string Context, ExpectedChannelMessages Messages)> expectedChannelMessages)
     {
         if (!_provideStaticMessages)
             return;
@@ -63,10 +64,11 @@ public class StaticMessageProvider : IStaticMessageProvider
             new(await _messageProvider.GetMessageAsync(Constants.MessageNames.GamesRolesMenuMessage))
         };
         AddGamesRolesMenuComponents(l);
-        expectedChannelMessages[(DiscordChannelId)_dynamicConfiguration.DiscordMapping["GamesRolesChannelId"]] = new ExpectedChannelMessages(l);
+        expectedChannelMessages[(DiscordChannelId)_dynamicConfiguration.DiscordMapping["GamesRolesChannelId"]] =
+            ("Game roles", new ExpectedChannelMessages(l));
     }
 
-    private async Task LoadAocRoleMenuMessages(IDictionary<DiscordChannelId, ExpectedChannelMessages> expectedChannelMessages)
+    private async Task LoadAocRoleMenuMessages(IDictionary<DiscordChannelId, (string Context, ExpectedChannelMessages Messages)> expectedChannelMessages)
     {
         if (!_provideStaticMessages)
             return;
@@ -80,10 +82,11 @@ public class StaticMessageProvider : IStaticMessageProvider
             new(await _messageProvider.GetMessageAsync(Constants.MessageNames.AocRolePreferenceMenuMessage))
         };
         AddAocRoleMenuComponents(l);
-        expectedChannelMessages[(DiscordChannelId)_dynamicConfiguration.DiscordMapping["AshesOfCreationRoleChannelId"]] = new ExpectedChannelMessages(l);
+        expectedChannelMessages[(DiscordChannelId)_dynamicConfiguration.DiscordMapping["AshesOfCreationRoleChannelId"]] =
+            ("Ashes of Creation roles", new ExpectedChannelMessages(l));
     }
 
-    private async Task LoadWowRoleMenuMessages(IDictionary<DiscordChannelId, ExpectedChannelMessages> expectedChannelMessages)
+    private async Task LoadWowRoleMenuMessages(IDictionary<DiscordChannelId, (string Context, ExpectedChannelMessages Messages)> expectedChannelMessages)
     {
         if (!_provideStaticMessages)
             return;
@@ -93,10 +96,11 @@ public class StaticMessageProvider : IStaticMessageProvider
             new(await _messageProvider.GetMessageAsync(Constants.MessageNames.WowRoleMenuMessage))
         };
         AddWowRoleMenuComponents(l);
-        expectedChannelMessages[(DiscordChannelId)_dynamicConfiguration.DiscordMapping["WorldOfWarcraftRoleChannelId"]] = new ExpectedChannelMessages(l);
+        expectedChannelMessages[(DiscordChannelId)_dynamicConfiguration.DiscordMapping["WorldOfWarcraftRoleChannelId"]] =
+            ("World of Warcraft Classic roles", new ExpectedChannelMessages(l));
     }
 
-    private async Task LoadWowRetailRoleMenuMessages(IDictionary<DiscordChannelId, ExpectedChannelMessages> expectedChannelMessages)
+    private async Task LoadWowRetailRoleMenuMessages(IDictionary<DiscordChannelId, (string Context, ExpectedChannelMessages Messages)> expectedChannelMessages)
     {
         if (!_provideStaticMessages)
             return;
@@ -106,10 +110,11 @@ public class StaticMessageProvider : IStaticMessageProvider
             new(await _messageProvider.GetMessageAsync(Constants.MessageNames.WowRetailPlayStyleMenuMessage))
         };
         AddWowRetailRoleMenuComponents(l);
-        expectedChannelMessages[(DiscordChannelId)_dynamicConfiguration.DiscordMapping["WorldOfWarcraftRetailRoleChannelId"]] = new ExpectedChannelMessages(l);
+        expectedChannelMessages[(DiscordChannelId)_dynamicConfiguration.DiscordMapping["WorldOfWarcraftRetailRoleChannelId"]] =
+            ("World of Warcraft Retail roles", new ExpectedChannelMessages(l));
     }
 
-    private async Task LoadLostArkRoleMenuMessages(IDictionary<DiscordChannelId, ExpectedChannelMessages> expectedChannelMessages)
+    private async Task LoadLostArkRoleMenuMessages(IDictionary<DiscordChannelId, (string Context, ExpectedChannelMessages Messages)> expectedChannelMessages)
     {
         if (!_provideStaticMessages)
             return;
@@ -119,10 +124,11 @@ public class StaticMessageProvider : IStaticMessageProvider
             new(await _messageProvider.GetMessageAsync(Constants.MessageNames.LostArkPlayStyleMenuMessage))
         };
         AddLostArkRoleMenuComponents(l);
-        expectedChannelMessages[(DiscordChannelId)_dynamicConfiguration.DiscordMapping["LostArkRoleChannelId"]] = new ExpectedChannelMessages(l);
+        expectedChannelMessages[(DiscordChannelId)_dynamicConfiguration.DiscordMapping["LostArkRoleChannelId"]] =
+            (("Lost Ark roles"), new ExpectedChannelMessages(l));
     }
 
-    private async Task LoadTnlRoleMenuMessages(IDictionary<DiscordChannelId, ExpectedChannelMessages> expectedChannelMessages)
+    private async Task LoadTnlRoleMenuMessages(IDictionary<DiscordChannelId, (string Context, ExpectedChannelMessages Messages)> expectedChannelMessages)
     {
         if (!_provideStaticMessages)
             return;
@@ -133,7 +139,8 @@ public class StaticMessageProvider : IStaticMessageProvider
             new(await _messageProvider.GetMessageAsync(Constants.MessageNames.TnlWeaponMenuMessage))
         };
         AddTnlRoleMenuComponents(l);
-        expectedChannelMessages[(DiscordChannelId)_dynamicConfiguration.DiscordMapping["ThroneAndLibertyRoleChannelId"]] = new ExpectedChannelMessages(l);
+        expectedChannelMessages[(DiscordChannelId)_dynamicConfiguration.DiscordMapping["ThroneAndLibertyRoleChannelId"]] =
+            ("Throne and Liberty roles", new ExpectedChannelMessages(l));
     }
 
     private async Task CreateMessagesInChannel(DiscordChannelId channelID,
@@ -255,10 +262,10 @@ public class StaticMessageProvider : IStaticMessageProvider
         Task.Run(async () =>
         {
             var gamesRolesChannelId = (DiscordChannelId)_dynamicConfiguration.DiscordMapping["GamesRolesChannelId"];
-            var expectedChannelMessages = new Dictionary<DiscordChannelId, ExpectedChannelMessages>();
+            var expectedChannelMessages = new Dictionary<DiscordChannelId, (string Context, ExpectedChannelMessages Messages)>();
             await LoadGamesRolesMenuMessages(expectedChannelMessages);
             var messages = expectedChannelMessages[gamesRolesChannelId];
-            await CreateMessagesInChannel(gamesRolesChannelId, messages);
+            await CreateMessagesInChannel(gamesRolesChannelId, messages.Messages);
         }).ConfigureAwait(false);
     }
 
@@ -267,10 +274,10 @@ public class StaticMessageProvider : IStaticMessageProvider
         Task.Run(async () =>
         {
             var infosAndRolesChannelId = (DiscordChannelId)_dynamicConfiguration.DiscordMapping["InfoAndRolesChannelId"];
-            var expectedChannelMessages = new Dictionary<DiscordChannelId, ExpectedChannelMessages>();
+            var expectedChannelMessages = new Dictionary<DiscordChannelId, (string Context, ExpectedChannelMessages Messages)>();
             await LoadInfosAndRolesMenuMessages(expectedChannelMessages);
             var messages = expectedChannelMessages[infosAndRolesChannelId];
-            await CreateMessagesInChannel(infosAndRolesChannelId, messages);
+            await CreateMessagesInChannel(infosAndRolesChannelId, messages.Messages);
         }).ConfigureAwait(false);
     }
 
@@ -283,7 +290,7 @@ public class StaticMessageProvider : IStaticMessageProvider
     async Task IStaticMessageProvider.EnsureStaticMessagesExist()
     {
         _logger.LogInformation("Ensuring that all static messages exist");
-        var expectedChannelMessages = new Dictionary<DiscordChannelId, ExpectedChannelMessages>();
+        var expectedChannelMessages = new Dictionary<DiscordChannelId, (string Context, ExpectedChannelMessages Messages)>();
         await LoadInfosAndRolesMenuMessages(expectedChannelMessages);
         await LoadGamesRolesMenuMessages(expectedChannelMessages);
         await LoadAocRoleMenuMessages(expectedChannelMessages);
@@ -296,26 +303,32 @@ public class StaticMessageProvider : IStaticMessageProvider
         foreach (var pair in expectedChannelMessages)
         {
             var channelLocationAndName = DiscordAccess.GetChannelLocationAndName(pair.Key);
+            if (channelLocationAndName is null)
+            {
+                await DiscordAccess.LogToDiscordAsync($"{DiscordAccess.GetLeadershipMention()} "
+                                                    + $"Failed to find text channel for '{pair.Value.Context}' (ChannelId: {pair.Key}).");
+                continue;
+            }
             _logger.LogInformation("Loading existing messages for channel '{Channel}' ...", channelLocationAndName);
             var existingMessages = await DiscordAccess.GetBotMessagesInChannelAsync(pair.Key);
-            if (existingMessages.Length != pair.Value.Messages.Length)
+            if (existingMessages.Length != pair.Value.Messages.Messages.Length)
             {
                 // If the count of messages or action components is different, we don't have to check every message/action component.
                 _logger.LogInformation("Messages in channel '{Channel}' are incomplete or too many ({ExistingMessages}/{ExpectedMessages})",
                                        channelLocationAndName,
                                        existingMessages.Length,
-                                       pair.Value.Messages.Length);
-                await CreateMessagesInChannel(pair.Key, pair.Value);
+                                       pair.Value.Messages.Messages.Length);
+                await CreateMessagesInChannel(pair.Key, pair.Value.Messages);
             }
             // If the count is the same, check if all messages are the same, in the correct order
-            else if (pair.Value.Messages.Where((t, i) => t.Content != existingMessages[i].Content).Any())
+            else if (pair.Value.Messages.Messages.Where((t, i) => t.Content != existingMessages[i].Content).Any())
             {
                 // If there is any message that is not at the same position and equal, we re-create all of them
                 _logger.LogInformation("Messages in channel '{Channel}' are in the wrong order or have the wrong content", channelLocationAndName);
-                await CreateMessagesInChannel(pair.Key, pair.Value);
+                await CreateMessagesInChannel(pair.Key, pair.Value.Messages);
             }
             // If the messages are OK, we need to check the action components and options for correctness.
-            else if (AreActionComponentsCorrect(existingMessages, pair.Value.Messages))
+            else if (AreActionComponentsCorrect(existingMessages, pair.Value.Messages.Messages))
             {
                 // If the count is the same, and all messages are the same, and the action components are correct, provide existing custom ids to dependent classes.
                 if (pair.Key == gamesRolesChannelId)
@@ -330,7 +343,7 @@ public class StaticMessageProvider : IStaticMessageProvider
                 // If the actions components or options are not correct, we need to re-create all of them.
                 _logger.LogInformation("Action components or options in channel '{Channel}' have the wrong count, are in the wrong order or have the wrong content",
                                        channelLocationAndName);
-                await CreateMessagesInChannel(pair.Key, pair.Value);
+                await CreateMessagesInChannel(pair.Key, pair.Value.Messages);
             }
         }
     }
