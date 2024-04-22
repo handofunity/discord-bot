@@ -128,21 +128,6 @@ public class StaticMessageProvider : IStaticMessageProvider
             (("Lost Ark roles"), new ExpectedChannelMessages(l));
     }
 
-    private async Task LoadTnlRoleMenuMessages(IDictionary<DiscordChannelId, (string Context, ExpectedChannelMessages Messages)> expectedChannelMessages)
-    {
-        if (!_provideStaticMessages)
-            return;
-
-        var l = new List<ExpectedChannelMessage>
-        {
-            new(await _messageProvider.GetMessageAsync(Constants.MessageNames.TnlRolePreferenceMenuMessage)),
-            new(await _messageProvider.GetMessageAsync(Constants.MessageNames.TnlWeaponMenuMessage))
-        };
-        AddTnlRoleMenuComponents(l);
-        expectedChannelMessages[(DiscordChannelId)_dynamicConfiguration.DiscordMapping["ThroneAndLibertyRoleChannelId"]] =
-            ("Throne and Liberty roles", new ExpectedChannelMessages(l));
-    }
-
     private async Task CreateMessagesInChannel(DiscordChannelId channelID,
                                                ExpectedChannelMessages messages)
     {
@@ -245,18 +230,6 @@ public class StaticMessageProvider : IStaticMessageProvider
         messages[0].Components.AddRange(_menuRegistry.GetSelectMenuComponents(Constants.LostArkPlayStyleMenu.CustomId));
     }
 
-    private void AddTnlRoleMenuComponents(List<ExpectedChannelMessage> messages)
-    {
-        if (messages.Count != 2)
-            throw new ArgumentException("Unexpected amount of messages received.", nameof(messages));
-
-        // Role preference menu
-        messages[0].Components.AddRange(_menuRegistry.GetSelectMenuComponents(Constants.TnlRolePreferenceMenu.CustomId));
-        
-        // Weapon menu
-        messages[1].Components.AddRange(_menuRegistry.GetSelectMenuComponents(Constants.TnlWeaponMenu.CustomId));
-    }
-
     private void ReCreateGameRoleMenuMessages()
     {
         Task.Run(async () =>
@@ -297,7 +270,6 @@ public class StaticMessageProvider : IStaticMessageProvider
         await LoadWowRoleMenuMessages(expectedChannelMessages);
         await LoadWowRetailRoleMenuMessages(expectedChannelMessages);
         await LoadLostArkRoleMenuMessages(expectedChannelMessages);
-        await LoadTnlRoleMenuMessages(expectedChannelMessages);
         
         var gamesRolesChannelId = (DiscordChannelId)_dynamicConfiguration.DiscordMapping["GamesRolesChannelId"];
         foreach (var pair in expectedChannelMessages)

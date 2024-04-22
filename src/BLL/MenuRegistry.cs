@@ -337,16 +337,6 @@ public class MenuRegistry : IMenuRegistry
                                                          "Select play styles ...",
                                                          Constants.LostArkPlayStyleMenu.GetOptions(),
                                                          true));
-        _selectMenus.Add(Constants.TnlRolePreferenceMenu.CustomId,
-                         CreatePrimaryGameRoleSelectMenu(Constants.TnlRolePreferenceMenu.CustomId,
-                                                         "Select preferred role ...",
-                                                         Constants.TnlRolePreferenceMenu.GetOptions(),
-                                                         true));
-        _selectMenus.Add(Constants.TnlWeaponMenu.CustomId,
-                         CreatePrimaryGameRoleSelectMenu(Constants.TnlWeaponMenu.CustomId,
-                                                         "Select weapons ...",
-                                                         Constants.TnlWeaponMenu.GetOptions(),
-                                                         true));
         
         AddGameInterestMenuOptions(_nonMemberRoleProvider);
         AddGameRolesMenuOptions();
