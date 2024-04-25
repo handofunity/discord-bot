@@ -113,19 +113,19 @@ internal static class ServiceCollectionExtensions
     {
         services.AddHangfire(config =>
         {
+            var options = new PostgreSqlStorageOptions
+            {
+                SchemaName = "hang_fire",
+                PrepareSchemaIfNecessary = true,
+                QueuePollInterval = TimeSpan.FromSeconds(15),
+                InvisibilityTimeout = TimeSpan.FromMinutes(5),
+                DistributedLockTimeout = TimeSpan.FromMinutes(2),
+                UseNativeDatabaseTransactions = true
+            };
             config.SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
                   .UseSimpleAssemblyNameTypeSerializer()
                   .UseRecommendedSerializerSettings()
-                  .UsePostgreSqlStorage(settings.ConnectionStringForHangFireDatabase,
-                                        new PostgreSqlStorageOptions
-                                        {
-                                            SchemaName = "hang_fire",
-                                            PrepareSchemaIfNecessary = true,
-                                            QueuePollInterval = TimeSpan.FromSeconds(15),
-                                            InvisibilityTimeout = TimeSpan.FromMinutes(5),
-                                            DistributedLockTimeout = TimeSpan.FromMinutes(2),
-                                            UseNativeDatabaseTransactions = true
-                                        });
+                  .UsePostgreSqlStorage(c => c.UseNpgsqlConnection(settings.ConnectionStringForHangFireDatabase), options);
         });
         services.AddHangfireServer();
         return services;

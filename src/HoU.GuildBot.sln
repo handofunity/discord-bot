@@ -18,9 +18,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Database", "db\Database.csproj", "{AAA790C6-C564-4522-A6C4-D0A279BBF31E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Database", "db\Database.csproj", "{AAA790C6-C564-4522-A6C4-D0A279BBF31E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Keycloak", "Keycloak\Keycloak.csproj", "{4B2251A5-55CD-4CB9-A893-3329EDA9304E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Keycloak", "Keycloak\Keycloak.csproj", "{4B2251A5-55CD-4CB9-A893-3329EDA9304E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

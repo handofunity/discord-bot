@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS base
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 RUN ln -s /lib/x86_64-linux-gnu/libdl.so.2 /lib/x86_64-linux-gnu/libdl.so \
   && apt update \
   && apt install -y libgdiplus \
@@ -12,8 +12,8 @@ RUN mkdir -p /usr/share/fonts/truetype/ \
   && rm ./Marcellus-Regular.ttf \
   && rm ./linlibertine_regular.ttf
 
-FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
-ARG CONFIGURATION
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["WebHost/WebHost.csproj", "WebHost/"]
 COPY ["Keycloak/Keycloak.csproj", "Keycloak/"]
@@ -21,20 +21,17 @@ COPY ["DAL/DAL.csproj", "DAL/"]
 COPY ["Shared/Shared.csproj", "Shared/"]
 COPY ["Core/Core.csproj", "Core/"]
 COPY ["BLL/BLL.csproj", "BLL/"]
-RUN dotnet restore "WebHost/WebHost.csproj"
+RUN dotnet restore "./WebHost/WebHost.csproj"
 COPY . .
 WORKDIR "/src/WebHost"
-RUN dotnet build "WebHost.csproj" -c $CONFIGURATION -o /app
+RUN dotnet build "./WebHost.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
-ARG CONFIGURATION
-RUN dotnet publish "WebHost.csproj" -c $CONFIGURATION -o /app
+ARG BUILD_CONFIGURATION=Release
+RUN dotnet publish "./WebHost.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
+USER app
 WORKDIR /app
-COPY --from=publish /app .
-
-RUN useradd -d /home/houguildbotuser -m -s /bin/bash houguildbotuser
-USER houguildbotuser
-
+COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "guildbot.dll"]

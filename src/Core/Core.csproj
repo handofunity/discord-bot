@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
-    <RootNamespace>HoU.GuildBot.Core</RootNamespace>
+    <TargetFramework>net8.0</TargetFramework>
     <AssemblyName>HoU.GuildBot.Core</AssemblyName>
+    <RootNamespace>HoU.GuildBot.Core</RootNamespace>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
