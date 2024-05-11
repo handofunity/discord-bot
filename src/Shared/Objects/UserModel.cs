@@ -14,6 +14,11 @@ public class UserModel
     public required string Username { get; init; }
 
     /// <summary>
+    /// Gets or sets the user's Discord global display name.
+    /// </summary>
+    public required string GlobalName { get; init; }
+
+    /// <summary>
     /// Gets or sets the user's server-specific Nickname.
     /// </summary>
     public required string? Nickname { get; init; }

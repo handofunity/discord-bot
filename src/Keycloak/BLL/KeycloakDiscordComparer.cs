@@ -81,14 +81,19 @@ internal class KeycloakDiscordComparer : IKeycloakDiscordComparer
                 continue;
             }
 
-            var keycloakNickname = matchedUser.KeycloakState.Attributes?.DiscordNickname?.FirstOrDefault();
-            if (matchedUser.DiscordState.Nickname != keycloakNickname)
+            if (matchedUser.DiscordState.Nickname != matchedUser.KeycloakState.LastName)
             {
                 result.Add(matchedUser);
                 continue;
             }
 
-            if (matchedUser.DiscordState.Username != matchedUser.KeycloakState.FirstName)
+            if (matchedUser.DiscordState.GlobalName != matchedUser.KeycloakState.FirstName)
+            {
+                result.Add(matchedUser);
+                continue;
+            }
+
+            if (matchedUser.DiscordState.Username.ToLower() != matchedUser.KeycloakState.Username?.ToLower())
             {
                 result.Add(matchedUser);
             }
@@ -172,7 +177,7 @@ internal class KeycloakDiscordComparer : IKeycloakDiscordComparer
                                              keycloakState.KeycloakToDiscordUserMapping,
                                              keycloakState.DisabledUserIds,
                                              keycloakState.AllKeycloakUsers);
-        
+
         // Compute diff to update users
         var matchedUsers = discordUsers
                           .Join<UserModel, UserRepresentation, DiscordUserId, (UserModel, UserRepresentation

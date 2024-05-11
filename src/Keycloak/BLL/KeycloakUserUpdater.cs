@@ -8,7 +8,7 @@ internal class KeycloakUserUpdater : IKeycloakUserUpdater
     {
         _keycloakUserWriter = keycloakUserWriter;
     }
-    
+
     async Task<(int EnabledUsers, int DisabledUsers, int LoggedOutUsers)> IKeycloakUserUpdater.UpdateUserActivationStateAsync(
         KeycloakEndpoint keycloakEndpoint,
         KeycloakDiscordDiff keycloakDiscordDiff)
@@ -18,7 +18,7 @@ internal class KeycloakUserUpdater : IKeycloakUserUpdater
         {
             enabledUsers = await _keycloakUserWriter.UnlockUsersAsync(keycloakEndpoint, keycloakDiscordDiff.UsersToEnable);
         }
-        
+
         var disabledUsers = 0;
         var loggedOutUsers = 0;
         // ReSharper disable once InvertIf

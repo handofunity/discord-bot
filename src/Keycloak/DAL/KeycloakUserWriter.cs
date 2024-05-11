@@ -150,15 +150,16 @@ internal class KeycloakUserWriter : KeycloakBaseClient, IKeycloakUserWriter
                                                                IEnumerable<(UserModel DiscordState, UserRepresentation KeycloakState)> users)
     {
         var usersUpdateRep = new Dictionary<KeycloakUserId, UserUpdateRepresentation>();
-        
+
         foreach (var user in users)
         {
             var updateRep = user.KeycloakState.AsUpdateRepresentation();
 
-            updateRep.FirstName = user.DiscordState.Username;
+            updateRep.Username = user.DiscordState.Username;
+            updateRep.FirstName = user.DiscordState.GlobalName;
+            updateRep.LastName = user.DiscordState.Nickname;
             updateRep.Attributes.SetDiscordAvatarId(user.DiscordState.AvatarId);
-            updateRep.Attributes.SetDiscordNickname(user.DiscordState.Nickname);
-            
+
             usersUpdateRep.Add(user.KeycloakState.KeycloakUserId, updateRep);
         }
 
@@ -213,7 +214,7 @@ internal class KeycloakUserWriter : KeycloakBaseClient, IKeycloakUserWriter
                 }
             }
         }
-        
+
         return updated;
 
         async Task<(bool Success, HttpStatusCode StatusCodes, string? Error)> HandleResponseMessage(HttpResponseMessage? responseMessage)

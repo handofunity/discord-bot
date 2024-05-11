@@ -26,7 +26,7 @@ public class DiscordAccess : IDiscordAccess
     private readonly IMessageProvider _messageProvider;
 
     private bool _guildAvailable;
-    
+
     static DiscordAccess()
     {
         _roleMapping = new Dictionary<string, Role>
@@ -93,7 +93,7 @@ public class DiscordAccess : IDiscordAccess
         _interactionService.SlashCommandExecuted -= InteractionService_SlashCommandExecuted;
         _interactionService.SlashCommandExecuted += InteractionService_SlashCommandExecuted;
         _pendingMessages = new Queue<string>();
-            
+
         _client.Log += LogClient;
         _interactionService.Log += LogInteractions;
     }
@@ -125,7 +125,7 @@ public class DiscordAccess : IDiscordAccess
         // If the message was received on a direct message channel, it's never spam
         if (userMessage.Channel is IPrivateChannel)
             return;
-            
+
         var checkResult = _spamGuard.CheckForSpam((DiscordUserId)userMessage.Author.Id,
                                                   (DiscordChannelId)userMessage.Channel.Id,
                                                   userMessage.Content,
@@ -239,7 +239,7 @@ public class DiscordAccess : IDiscordAccess
         var g = GetGuild();
         return g.GetUser((ulong)userId) ?? throw new InvalidOperationException("User not found.");
     }
-    
+
     private IRole GetRoleByName(string name)
     {
         return GetGuild().Roles.SingleOrDefault(m => m.Name == name)
@@ -432,7 +432,7 @@ public class DiscordAccess : IDiscordAccess
                                             .ToArray();
         if (invalidRoles.Length == 0)
             return;
-        
+
         var gu = GetGuildUserById(discordUserId);
         var leaderRole = GetRoleByName(Constants.RoleNames.LeaderRoleName);
         var officerRole = GetRoleByName(Constants.RoleNames.OfficerRoleName);
@@ -517,7 +517,7 @@ public class DiscordAccess : IDiscordAccess
     }
 
     private static bool IsOnline(IPresence gu) => gu.Status != UserStatus.Offline && gu.Status != UserStatus.Invisible;
-    
+
     private SocketGuildUser[] GetGuildMembersWithRoles(DiscordRoleId[]? roleIds,
                                                        DiscordRoleId[]? roleIdsToExclude)
     {
@@ -640,7 +640,7 @@ public class DiscordAccess : IDiscordAccess
                 return Task.CompletedTask;
             };
         }
-            
+
         try
         {
             _logger.LogInformation("Establishing initial Discord connection...");
@@ -990,7 +990,7 @@ public class DiscordAccess : IDiscordAccess
         var channel = g.TextChannels.SingleOrDefault(m => m.Id == (ulong) discordChannelId);
         if (channel is not null)
             return $"/{channel.Category.Name}/{channel.Name}";
-        
+
         _logger.LogError("Failed to find channel with id {ChannelId}", discordChannelId);
         return null;
 
@@ -1063,7 +1063,7 @@ public class DiscordAccess : IDiscordAccess
                 }
                 position++;
             }
-                
+
             await g.ReorderChannelsAsync(finalList);
         }
         catch (Exception e)
@@ -1097,7 +1097,8 @@ public class DiscordAccess : IDiscordAccess
             result.AddRange(users.Select(user => new UserModel
             {
                 DiscordUserId = (DiscordUserId)user.Id,
-                Username =  Format.UsernameAndDiscriminator(user, false),
+                Username = Format.UsernameAndDiscriminator(user, false),
+                GlobalName = user.GlobalName,
                 Nickname = user.Nickname,
                 AvatarId = user.DisplayAvatarId,
                 Roles = user.RoleIds.Select(m => (DiscordRoleId)m).ToArray(),
@@ -1337,7 +1338,7 @@ public class DiscordAccess : IDiscordAccess
                                                         .ToArray();
                     await _userStore.Initialize(mappedGuildUsers);
                 }
-                
+
                 if (_gameRoleProvider.Games.Count == 0)
                 {
                     // Load games only once
@@ -1348,7 +1349,7 @@ public class DiscordAccess : IDiscordAccess
                 // Ensure menu registry is initialized
                 _logger.LogInformation("GuildAvailable: Initializing menu registry");
                 _menuRegistry.Initialize();
-            
+
                 // Ensure that static messages exist
                 _logger.LogInformation("GuildAvailable: Ensuring static messages exist");
                 await _staticMessageProvider.EnsureStaticMessagesExist();
@@ -1520,10 +1521,10 @@ public class DiscordAccess : IDiscordAccess
             else
                 await component.FollowupAsync("No roles to revoke.",
                                               ephemeral: true);
-            
+
             return;
         }
-        
+
         var response = await _discordUserEventHandler
                           .HandleMessageComponentExecutedAsync((DiscordUserId)component.User.Id,
                                                                component.Data.CustomId,
@@ -1546,7 +1547,7 @@ public class DiscordAccess : IDiscordAccess
     private async Task Client_ModalSubmitted(SocketModal modal)
     {
         await modal.DeferAsync();
-        
+
         if (!modal.HasResponded)
         {
             await modal.FollowupAsync("No roles were removed or added.");
@@ -1585,7 +1586,7 @@ public class DiscordAccess : IDiscordAccess
                         throw new NotSupportedException();
                 }
             }
-            
+
             return result.ToImmutableArray();
         }
     }
@@ -1644,7 +1645,7 @@ public class DiscordAccess : IDiscordAccess
 
         // If the message is from this bot, or any other bot, we don't need to handle it
         if (userMessage.Author.Id == _client.CurrentUser.Id || userMessage.Author.IsBot) return;
-            
+
         // Only accept messages from users currently on the server
         if (!IsUserOnServer((DiscordUserId)message.Author.Id))
             return;

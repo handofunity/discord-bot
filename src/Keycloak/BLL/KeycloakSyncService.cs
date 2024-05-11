@@ -129,10 +129,10 @@ internal class KeycloakSyncService : IKeycloakSyncService
             // Get Discord users and roles
             var allDiscordUsers = await _discordAccess.GetAllUsersAsync();
             SanitizeDiscordUsersAndRoles(allDiscordUsers, keycloakState.ConfiguredKeycloakGroups);
-            
+
             // Get diff between Discord and Keycloak
             var diff = _keycloakDiscordComparer.GetDiff(keycloakState, allDiscordUsers);
-            
+
             _logger.LogInformation("Sending {@Diff} to Keycloak at {Address} ...",
                                    diff,
                                    keycloakEndpoint.BaseUrl);

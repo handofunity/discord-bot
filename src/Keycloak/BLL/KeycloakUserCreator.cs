@@ -3,15 +3,12 @@
 internal class KeycloakUserCreator : IKeycloakUserCreator
 {
     private readonly IKeycloakUserWriter _keycloakUserWriter;
-    private readonly IKeycloakUserReader _keycloakUserReader;
     private readonly ILogger<KeycloakUserCreator> _logger;
 
     public KeycloakUserCreator(IKeycloakUserWriter keycloakUserWriter,
-                               IKeycloakUserReader keycloakUserReader,
                                ILogger<KeycloakUserCreator> logger)
     {
         _keycloakUserWriter = keycloakUserWriter;
-        _keycloakUserReader = keycloakUserReader;
         _logger = logger;
     }
 
@@ -24,7 +21,7 @@ internal class KeycloakUserCreator : IKeycloakUserCreator
         var newUsers = await _keycloakUserWriter.CreateUsersAsync(keycloakEndpoint,
                                                                   keycloakDiscordDiff.UsersToAdd.Select(m => m.DiscordUser));
         _logger.LogInformation("{Count} new Keycloak users were created", newUsers.Count);
-        
+
         var rolesToAddToNewUsers = newUsers.Join(keycloakDiscordDiff.UsersToAdd,
                                                  kvp => kvp.Key,
                                                  tuple => tuple.DiscordUser.DiscordUserId,
@@ -38,7 +35,7 @@ internal class KeycloakUserCreator : IKeycloakUserCreator
         _logger.LogInformation("{Count} roles will be added to the new users", rolesToAddToNewUsers.Length);
         foreach (var newUser in rolesToAddToNewUsers)
             keycloakDiscordDiff.GroupsToAdd.Add(newUser.KeycloakUserId, newUser.KeycloakGroupIds);
-        
+
         return newUsers.Count;
     }
 }

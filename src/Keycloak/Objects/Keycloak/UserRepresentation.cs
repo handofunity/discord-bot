@@ -23,7 +23,7 @@ internal class UserRepresentation
 
     /// <remarks><b>Required</b> for creating a new user.</remarks>
     [JsonPropertyName("username")]
-    public string? Username { get; init; }
+    public string Username { get; init; }
 
     /// <remarks><b>Required</b> for creating a new user.</remarks>
     [JsonPropertyName("enabled")]
@@ -31,7 +31,11 @@ internal class UserRepresentation
 
     /// <remarks><b>Required</b> for creating a new user.</remarks>
     [JsonPropertyName("firstName")]
-    public string? FirstName { get; init; }
+    public string FirstName { get; init; }
+
+    /// <remarks><b>Optional</b> for creating a new user.</remarks>
+    [JsonPropertyName("lastName")]
+    public string? LastName { get; init; }
 
     /// <remarks><b>Required</b> for creating a new user.</remarks>
     [JsonPropertyName("federatedIdentities")]
@@ -54,11 +58,11 @@ internal class UserRepresentation
     {
         Username = userModel.Username.ToLower();
         Enabled = true;
-        FirstName = userModel.Username;
+        FirstName = userModel.GlobalName;
+        LastName = userModel.Nickname;
         AddFederatedIdentity(new FederatedIdentityRepresentation(userModel.DiscordUserId,
                                                                  userModel.Username));
         Attributes = new AttributeMap(userModel.AvatarId,
-                                      userModel.Nickname,
                                       null);
     }
 

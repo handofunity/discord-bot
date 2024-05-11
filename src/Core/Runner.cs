@@ -2,7 +2,7 @@
 
 public class Runner
 {
-    private static readonly Version _botVersion = new(12, 0, 0);
+    private static readonly Version _botVersion = new(12, 1, 0);
 
     private BackgroundJobServer? _backgroundJobServer;
     private ILogger<Runner>? _logger;
@@ -22,7 +22,7 @@ public class Runner
                     .AddDataAccessLayer()
                     .AddBusinessLogicLayer(environment, _botVersion)
                     .AddHangfireWithServer(settings);
-            
+
             var serviceProvider = services.BuildServiceProvider();
 
             _logger = serviceProvider.GetRequiredService<ILogger<Runner>>();
@@ -47,6 +47,7 @@ public class Runner
         finally
         {
             Log.CloseAndFlush();
+            Thread.Sleep(3_000);
         }
     }
 
