@@ -1,0 +1,29 @@
+services:
+  guildbot:
+    image: handofunity/guildbot:latest
+    container_name: guildbot
+    restart: unless-stopped
+    read_only: true
+    cap_drop:
+      - ALL
+    cap_add:
+      - SETFCAP
+    cpus: 1.0
+    cpu_shares: 256
+    mem_limit: '192m'
+    memswap_limit: '400m'
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 100
+    environment:
+      - COMPlus_EnableDiagnostics=0
+      - ConnectionStrings__HandOfUnityGuild=${CS_APP}
+      - ConnectionStrings__HangFire=${CS_HANGFIRE}
+      - Seq__serverUrl=${SEQ_URL}
+      - Seq__apiKey=${SEQ_API_KEY}
+      - Discord__botToken=${DISCORD_API_KEY}
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '10m'
+        max-file: '3'
