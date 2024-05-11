@@ -35,10 +35,6 @@ public static class RootSettingsLoader
         encodedSource = encodedSource.PadRight(encodedSource.Length + (4 - encodedSource.Length % 4) % 4, '=');
 
         var decodedBytes = Convert.FromBase64String(encodedSource);
-        var result = Encoding.UTF8.GetString(decodedBytes);
-
-        Console.Out.WriteLine($"Decoded connection string into: {result}");
-
-        return result;
+        return Encoding.UTF8.GetString(decodedBytes);
     }
 }

@@ -3,7 +3,6 @@ services:
     image: handofunity/guildbot:latest
     container_name: guildbot
     restart: unless-stopped
-    read_only: true
     cap_drop:
       - ALL
     cap_add:
