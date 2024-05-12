@@ -11,14 +11,14 @@ internal class KeycloakUserGroupAggregator : IKeycloakUserGroupAggregator
         _keycloakGroupReader = keycloakGroupReader;
         _keycloakUserReader = keycloakUserReader;
     }
-    
+
     async Task<KeycloakUserGroupAggregation?> IKeycloakUserGroupAggregator.AggregateCurrentStateAsync(KeycloakEndpoint keycloakEndpoint)
     {
         // Get Keycloak groups (aka roles in Discord)
         var configuredKeycloakGroups = await _keycloakGroupReader.GetConfiguredGroupsAsync(keycloakEndpoint);
         if (configuredKeycloakGroups is null)
             return null;
-        
+
         // Get all Keycloak users
         var keycloakUsers = await _keycloakUserReader.GetAllUsersAsync(keycloakEndpoint);
         if (keycloakUsers is null)
@@ -49,7 +49,7 @@ internal class KeycloakUserGroupAggregator : IKeycloakUserGroupAggregator
 
         var userMapping = keycloakUsers.Where(m => m.DiscordUserId != default)
                                        .ToDictionary(m => m.KeycloakUserId, m => m.DiscordUserId);
-            
+
         // Get currently disabled users
         var disabledUsers = keycloakUsers.Where(m => !m.Enabled).Select(m => m.KeycloakUserId).ToArray();
 

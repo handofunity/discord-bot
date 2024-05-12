@@ -65,7 +65,7 @@ internal static class ServiceCollectionExtensions
 
         return services;
     }
-    
+
     internal static IServiceCollection AddBusinessLogicLayer(this IServiceCollection services,
                                                              string environment,
                                                              Version botVersion)

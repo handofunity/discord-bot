@@ -10,7 +10,7 @@ public class BotEngine : IBotEngine
     private readonly IBotInformationProvider _botInformationProvider;
     private readonly IPrivacyProvider _privacyProvider;
     private bool _isFirstConnect;
-    
+
     public BotEngine(ILogger<BotEngine> logger,
                      IDynamicConfiguration dynamicConfiguration,
                      IDiscordAccess discordAccess,
@@ -69,13 +69,13 @@ public class BotEngine : IBotEngine
             }
         }).ConfigureAwait(false);
     }
-    
+
     async Task IBotEngine.Run(CancellationToken cancellationToken)
     {
         var cts = new CancellationTokenSource();
 
         _logger.LogInformation("Starting bot...");
-        
+
         // Create connection to Discord
         await Connect();
 
@@ -104,7 +104,7 @@ public class BotEngine : IBotEngine
         {
         }
     }
-    
+
     private async Task ConnectedHandler()
     {
         await _discordAccess.SetCurrentGameAsync("Hand of Unity");
@@ -131,7 +131,7 @@ public class BotEngine : IBotEngine
             RecurringJob.AddOrUpdate<IRoleRemover>("remove-basement-role", remover => remover.RemoveBasementRolesAsync(), "0 0-23 * * *");
             // Remove stale trial members every day at noon.
             RecurringJob.AddOrUpdate<IRoleRemover>("remove-stale-trial-members", remover => remover.RemoveStaleTrialMembersAsync(), "0 12 * * *");
-            
+
             EstablishUnitsSignalRConnections();
         }
 

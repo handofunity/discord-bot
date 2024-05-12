@@ -9,7 +9,7 @@ public class AshesOfCreationModule : InteractionModuleBase<SocketInteractionCont
     private const string UnitsPvpRoleIdKey = "UnitsPvpRoleId";
     private const string UnitsArtisanRoleIdKey = "UnitsArtisanRoleId";
     private const string UnitsPveRoleIdKey = "UnitsPveRoleId";
-    
+
     private readonly IImageProvider _imageProvider;
     private readonly IUnitsAccess _unitsAccess;
     private readonly IDynamicConfiguration _dynamicConfiguration;
@@ -42,7 +42,7 @@ public class AshesOfCreationModule : InteractionModuleBase<SocketInteractionCont
                 await FollowupAsync("No endpoint configured.");
                 return;
             }
-            
+
             var profileData = await _unitsAccess.GetProfileDataAsync(endpoint, userId);
             if (profileData is null)
             {
@@ -58,7 +58,7 @@ public class AshesOfCreationModule : InteractionModuleBase<SocketInteractionCont
                 guildTag = "HoU";
             else if (guildUser.RoleIds.Contains(fouRoleId))
                 guildTag = "FoU";
-            
+
             // Determine play style
             var pvpRoleId = _dynamicConfiguration.DiscordMapping[UnitsPvpRoleIdKey];
             var artisanRoleId = _dynamicConfiguration.DiscordMapping[UnitsArtisanRoleIdKey];

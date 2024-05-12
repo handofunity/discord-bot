@@ -8,7 +8,7 @@ internal interface IKeycloakUserReader
     /// <param name="endpoint">The data used to sync with Keycloak.</param>
     /// <returns>All current <see cref="UserRepresentation"/>s.</returns>
     Task<UserRepresentation[]?> GetAllUsersAsync(KeycloakEndpoint keycloakEndpoint);
-    
+
     /// <summary>
     /// Gets the <see cref="FederatedIdentityRepresentation"/> for the given <see cref="KeycloakUserId"/>.
     /// </summary>
@@ -17,7 +17,7 @@ internal interface IKeycloakUserReader
     /// <returns>The <see cref="FederatedIdentityRepresentation"/>, if available, otherwise <b>null</b>.</returns>
     Task<FederatedIdentityRepresentation?> GetFederatedIdentityAsync(KeycloakEndpoint endpoint,
                                                                      KeycloakUserId userId);
-    
+
     /// <summary>
     /// Queries Keycloak for all users that are flagged for deletion.
     /// </summary>
