@@ -18,6 +18,7 @@ public static class Program
             var host = BuildWebHost();
             await Console.Out.WriteLineAsync("Running web host ...");
             await host.RunAsync(ApplicationLifecycle.CancellationToken);
+            await Console.Out.WriteLineAsync("Exited web host.");
         }
         catch (Exception e)
         {
