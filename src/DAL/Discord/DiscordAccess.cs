@@ -1367,11 +1367,15 @@ public class DiscordAccess : IDiscordAccess
                 _logger.LogInformation("GuildAvailable: Ensuring static messages exist");
                 await _staticMessageProvider.EnsureStaticMessagesExist();
 
-                // TODO: Register once per version/the commands change, not every time the bot boots
-                // Register interactions only once
-                _logger.LogInformation("GuildAvailable: Registering modules with interaction service");
-                var addedModules = (await _interactionService.AddModulesAsync(typeof(DiscordAccess).Assembly, _serviceProvider)).ToArray();
-                LogAddedModules(addedModules);
+                if (_interactionService.Modules.Count == 0)
+                {
+                    // TODO: Register once per version/the commands change, not every time the bot boots
+                    // Register interactions only once
+                    _logger.LogInformation("GuildAvailable: Registering modules with interaction service");
+                    var addedModules = (await _interactionService.AddModulesAsync(typeof(DiscordAccess).Assembly, _serviceProvider)).ToArray();
+                    LogAddedModules(addedModules);
+                }
+
                 _logger.LogInformation("GuildAvailable: Registering commands to guild {GuildId}", guild.Id);
                 var registeredCommands = await _interactionService.RegisterCommandsToGuildAsync(guild.Id);
                 LogRegisteredCommands(registeredCommands);
