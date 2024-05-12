@@ -48,19 +48,19 @@ internal class KeycloakUserWriter : KeycloakBaseClient, IKeycloakUserWriter
 
         return result;
 
-        Task<KeycloakUserId?> HandleResponseMessage(HttpResponseMessage? responseMessage)
+        async Task<KeycloakUserId?> HandleResponseMessage(HttpResponseMessage? responseMessage)
         {
             if (responseMessage is null)
-                return Task.FromResult<KeycloakUserId?>(null);
+                return null;
 
             if (responseMessage.StatusCode == HttpStatusCode.Created)
                 // Format: https://DOMAIN/admin/realms/REALM/users/GUID
-                return Task.FromResult((KeycloakUserId?)Guid.Parse(responseMessage.Headers.Location!.Segments.Last()));
+                return (KeycloakUserId?)Guid.Parse(responseMessage.Headers.Location!.Segments.Last());
 
-            Logger.LogRequestError(uri.Host,
-                                   uri.PathAndQuery,
-                                   $"Creating Keycloak user failed: {responseMessage.StatusCode}");
-            return Task.FromResult<KeycloakUserId?>(null);
+            await Logger.LogRequestErrorAsync(uri.Host,
+                uri.PathAndQuery,
+                responseMessage);
+            return null;
         }
     }
 
