@@ -14,8 +14,10 @@ public static class ApplicationLifecycle
     /// <summary>
     /// Ends the application lifecycle and initializes the shutdown of the application.
     /// </summary>
-    public static void End()
+    /// <param name="source">Name of the calling source, for logging purposes.</param>
+    public static void End(string source)
     {
+        Console.Out.WriteLine($"[ApplicationLifecycle] End triggered from '{source}'.");
         _cts.Cancel();
     }
 }

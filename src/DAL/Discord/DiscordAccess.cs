@@ -295,7 +295,7 @@ public class DiscordAccess : IDiscordAccess
                     // Give the logger some time to log the message
                     await Task.Delay(TimeSpan.FromSeconds(10));
                     // Finally kill the process to start over
-                    ApplicationLifecycle.End();
+                    ApplicationLifecycle.End($"{nameof(DiscordAccess)}.{nameof(GatewayReconnectException)}");
                 }
             }).ConfigureAwait(false);
         }

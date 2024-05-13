@@ -23,7 +23,7 @@ public class DeveloperModule : InteractionModuleBase<SocketInteractionContext>
         _ = Task.Run(async () =>
         {
             await Task.Delay(TimeSpan.FromSeconds(10));
-            ApplicationLifecycle.End();
+            ApplicationLifecycle.End($"{nameof(DeveloperModule)}.{nameof(Restart)}");
         }).ConfigureAwait(false);
     }
 

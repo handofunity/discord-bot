@@ -14,18 +14,18 @@ public static class Program
         try
         {
             Startup.EnvironmentConfigured += Startup_EnvironmentConfigured;
-            await Console.Out.WriteLineAsync("Building web host ...");
+            await Console.Out.WriteLineAsync("[Program] Building web host ...");
             var host = BuildWebHost();
-            await Console.Out.WriteLineAsync("Running web host ...");
+            await Console.Out.WriteLineAsync("[Program] Running web host ...");
             await host.RunAsync(ApplicationLifecycle.CancellationToken);
-            await Console.Out.WriteLineAsync("Exited web host.");
         }
         catch (Exception e)
         {
-            await Console.Error.WriteLineAsync(e.ToString());
+            await Console.Error.WriteLineAsync("[Program] Exception: " + e.ToString());
             _runner.NotifyShutdown(e.ToString());
         }
 
+        await Console.Out.WriteLineAsync("[Program] Shutting down process.");
         _runner.NotifyShutdown("no reason specified");
         Environment.FailFast("Shutting down process due to lacking connection.");
     }

@@ -2,7 +2,7 @@
 
 public class Runner
 {
-    private static readonly Version _botVersion = new(12, 1, 2);
+    private static readonly Version _botVersion = new(12, 1, 5);
 
     private BackgroundJobServer? _backgroundJobServer;
     private ILogger<Runner>? _logger;
@@ -37,6 +37,7 @@ public class Runner
         }
         catch (Exception e)
         {
+            Console.Error.WriteLine("[Runner] Bot exception: " + e);
             Log.Fatal(e, "Error running bot");
 #if DEBUG
             if (System.Diagnostics.Debugger.IsAttached)
@@ -46,8 +47,10 @@ public class Runner
         }
         finally
         {
+            Console.Out.WriteLine("[Runner] Bot shutting down. Flushing logs ...");
             Log.CloseAndFlush();
             Thread.Sleep(3_000);
+            Console.Out.WriteLine("[Runner] Flushed logs.");
         }
     }
 

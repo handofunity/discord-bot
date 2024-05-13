@@ -157,7 +157,7 @@ public class BotEngine : IBotEngine
         // Give the logger some time to log the message
         await Task.Delay(TimeSpan.FromSeconds(5));
         // Finally kill the process to start over
-        ApplicationLifecycle.End();
+        ApplicationLifecycle.End($"{nameof(BotEngine)}.{nameof(DisconnectedHandler)}");
     }
 
     private void DynamicConfiguration_DataLoaded(object? sender, EventArgs e)
