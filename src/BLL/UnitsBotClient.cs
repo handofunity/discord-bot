@@ -153,7 +153,7 @@ public class UnitsBotClient : IUnitsBotClient
         await _discordAccess.SendUnitsNotificationAsync(embed);
     }
 
-    async Task IUnitsBotClient.ReceiveEventRescheduledMessageAsync(string baseAddress, 
+    async Task IUnitsBotClient.ReceiveEventRescheduledMessageAsync(string baseAddress,
                                                                    int appointmentId,
                                                                    string eventName,
                                                                    DateTime startTimeOld,
@@ -309,7 +309,7 @@ public class UnitsBotClient : IUnitsBotClient
     {
         if (voiceChannelIds == null)
             return;
-            
+
         foreach (var voiceChannelIdStr in voiceChannelIds)
         {
             if (!ulong.TryParse(voiceChannelIdStr, out var voiceChannelId))

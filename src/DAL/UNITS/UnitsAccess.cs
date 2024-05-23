@@ -1,24 +1,18 @@
-﻿using System.Reactive;
-using Microsoft.AspNetCore.Http;
-using Newtonsoft.Json;
-using UnitsEndpoint = HoU.GuildBot.Shared.Objects.UnitsEndpoint;
+﻿using UnitsEndpoint = HoU.GuildBot.Shared.Objects.UnitsEndpoint;
 
 namespace HoU.GuildBot.DAL.UNITS;
 
 public class UnitsAccess : IUnitsAccess
 {
     private readonly IBearerTokenManager _bearerTokenManager;
-    private readonly IHttpClientFactory _httpClientFactory;
     private readonly IDiscordSyncClient _discordSyncClient;
     private readonly ILogger<UnitsAccess> _logger;
 
     public UnitsAccess(IBearerTokenManager bearerTokenManager,
-                       IHttpClientFactory httpClientFactory,
                        IDiscordSyncClient discordSyncClient,
                        ILogger<UnitsAccess> logger)
     {
         _bearerTokenManager = bearerTokenManager ?? throw new ArgumentNullException(nameof(bearerTokenManager));
-        _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
         _discordSyncClient = discordSyncClient;
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
