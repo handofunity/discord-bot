@@ -71,7 +71,7 @@ public class BearerTokenManager : IBearerTokenManager
                 await _logger.LogRequestErrorAsync(authorizationEndpoint.AccessTokenBaseAddress, authorizationEndpoint.AccessTokenRoute, response);
                 return null;
             }
-            
+
             _lastBearerTokens[targetUrl] = tokenResponse.AccessToken;
             return tokenResponse.AccessToken;
         }

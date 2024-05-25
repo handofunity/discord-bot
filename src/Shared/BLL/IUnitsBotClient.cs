@@ -4,7 +4,7 @@ public interface IUnitsBotClient
 {
     // See UnitsSignalRClient.RegisterHandlers
     [UsedImplicitly]
-    Task ReceiveEventCreatedMessageAsync(string baseAddress,
+    Task ReceiveEventCreatedMessageAsync(Uri baseAddress,
                                          int appointmentId,
                                          string eventName,
                                          string author,
@@ -15,7 +15,7 @@ public interface IUnitsBotClient
 
     // See UnitsSignalRClient.RegisterHandlers
     [UsedImplicitly]
-    Task ReceiveEventRescheduledMessageAsync(string baseAddress, 
+    Task ReceiveEventRescheduledMessageAsync(Uri baseAddress,
                                              int appointmentId,
                                              string eventName,
                                              DateTime startTimeOld,
@@ -23,34 +23,34 @@ public interface IUnitsBotClient
                                              DateTime startTimeNew,
                                              DateTime endTimeNew,
                                              bool isAllDay,
-                                             DiscordUserId[] usersToNotify);
+                                             ulong[] usersToNotify);
 
     // See UnitsSignalRClient.RegisterHandlers
     [UsedImplicitly]
-    Task ReceiveEventCanceledMessageAsync(string baseAddress,
+    Task ReceiveEventCanceledMessageAsync(Uri baseAddress,
                                           string eventName,
                                           DateTime startTime,
                                           DateTime endTime,
                                           bool isAllDay,
-                                          DiscordUserId[] usersToNotify);
+                                          ulong[] usersToNotify);
 
     // See UnitsSignalRClient.RegisterHandlers
     [UsedImplicitly]
-    Task ReceiveEventAttendanceConfirmedMessageAsync(string baseAddress,
+    Task ReceiveEventAttendanceConfirmedMessageAsync(Uri baseAddress,
                                                      int appointmentId,
                                                      string eventName,
-                                                     DiscordUserId[] usersToNotify);
+                                                     ulong[] usersToNotify);
 
     // See UnitsSignalRClient.RegisterHandlers
     [UsedImplicitly]
-    Task ReceiveEventStartingSoonMessageAsync(string baseAddress,
+    Task ReceiveEventStartingSoonMessageAsync(Uri baseAddress,
                                               int appointmentId,
                                               DateTime startTime,
-                                              DiscordUserId[] usersToNotify);
+                                              ulong[] usersToNotify);
 
     // See UnitsSignalRClient.RegisterHandlers
     [UsedImplicitly]
-    Task ReceiveCreateEventVoiceChannelsMessageAsync(string baseAddress,
+    Task ReceiveCreateEventVoiceChannelsMessageAsync(Uri baseAddress,
                                                      int appointmentId,
                                                      bool createGeneralVoiceChannel,
                                                      byte maxAmountOfGroups,
@@ -62,7 +62,7 @@ public interface IUnitsBotClient
 
     // See UnitsSignalRClient.RegisterHandlers
     [UsedImplicitly]
-    Task ReceiveGetCurrentAttendeesMessageAsync(string baseAddress,
+    Task ReceiveGetCurrentAttendeesMessageAsync(Uri baseAddress,
                                                 int appointmentId,
                                                 int checkNumber,
                                                 string[] voiceChannelIds);

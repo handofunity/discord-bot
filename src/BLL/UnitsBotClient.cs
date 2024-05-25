@@ -31,7 +31,7 @@ public class UnitsBotClient : IUnitsBotClient
         };
     }
 
-    private static EmbedData GetEventEmbed(string baseAddress,
+    private static EmbedData GetEventEmbed(Uri baseAddress,
                                            string actionOrTitle,
                                            RGB color)
     {
@@ -47,13 +47,13 @@ public class UnitsBotClient : IUnitsBotClient
         };
     }
 
-    private static string GetIconUrl(string baseAddress) => $"{baseAddress}/images/logo.png";
+    private static string GetIconUrl(Uri baseAddress) => $"{baseAddress}images/logo.png";
 
-    private static string GetEventsUrl(string baseAddress) => $"{baseAddress}/events";
+    private static string GetEventsUrl(Uri baseAddress) => $"{baseAddress}events";
 
-    private static string GetEventUrl(string baseAddress,
+    private static string GetEventUrl(Uri baseAddress,
                                       int appointmentId) =>
-        $"{baseAddress}/events/{appointmentId}";
+        $"{baseAddress}events/{appointmentId}";
 
     private static void AddTimeField(List<EmbedField> fields,
                                      DateTime startTime,
@@ -116,7 +116,7 @@ public class UnitsBotClient : IUnitsBotClient
         fields.Add(new EmbedField("Links", $"[Convert time zone]({baseUrl}?{msgParam}&{isoParam}&{p1Param})", false));
     }
 
-    async Task IUnitsBotClient.ReceiveEventCreatedMessageAsync(string baseAddress,
+    async Task IUnitsBotClient.ReceiveEventCreatedMessageAsync(Uri baseAddress,
                                                                int appointmentId,
                                                                string eventName,
                                                                string author,
@@ -153,7 +153,7 @@ public class UnitsBotClient : IUnitsBotClient
         await _discordAccess.SendUnitsNotificationAsync(embed);
     }
 
-    async Task IUnitsBotClient.ReceiveEventRescheduledMessageAsync(string baseAddress,
+    async Task IUnitsBotClient.ReceiveEventRescheduledMessageAsync(Uri baseAddress,
                                                                    int appointmentId,
                                                                    string eventName,
                                                                    DateTime startTimeOld,
@@ -161,7 +161,7 @@ public class UnitsBotClient : IUnitsBotClient
                                                                    DateTime startTimeNew,
                                                                    DateTime endTimeNew,
                                                                    bool isAllDay,
-                                                                   DiscordUserId[] usersToNotify)
+                                                                   ulong[] usersToNotify)
     {
         var fields = new List<EmbedField>();
         AddTimeField(fields, startTimeOld, endTimeOld, isAllDay, " (Old)");
@@ -178,7 +178,7 @@ public class UnitsBotClient : IUnitsBotClient
 
         if (usersToNotify != null && usersToNotify.Any())
         {
-            await _discordAccess.SendUnitsNotificationAsync(embed, usersToNotify);
+            await _discordAccess.SendUnitsNotificationAsync(embed, usersToNotify.Select(m => (DiscordUserId)m).ToArray());
         }
         else
         {
@@ -186,12 +186,12 @@ public class UnitsBotClient : IUnitsBotClient
         }
     }
 
-    async Task IUnitsBotClient.ReceiveEventCanceledMessageAsync(string baseAddress,
+    async Task IUnitsBotClient.ReceiveEventCanceledMessageAsync(Uri baseAddress,
                                                                 string eventName,
                                                                 DateTime startTime,
                                                                 DateTime endTime,
                                                                 bool isAllDay,
-                                                                DiscordUserId[] usersToNotify)
+                                                                ulong[] usersToNotify)
     {
         var fields = new List<EmbedField>();
         AddTimeField(fields, startTime, endTime, isAllDay, null);
@@ -204,7 +204,7 @@ public class UnitsBotClient : IUnitsBotClient
 
         if (usersToNotify != null && usersToNotify.Any())
         {
-            await _discordAccess.SendUnitsNotificationAsync(embed, usersToNotify);
+            await _discordAccess.SendUnitsNotificationAsync(embed, usersToNotify.Select(m => (DiscordUserId)m).ToArray());
         }
         else
         {
@@ -212,10 +212,10 @@ public class UnitsBotClient : IUnitsBotClient
         }
     }
 
-    async Task IUnitsBotClient.ReceiveEventAttendanceConfirmedMessageAsync(string baseAddress,
+    async Task IUnitsBotClient.ReceiveEventAttendanceConfirmedMessageAsync(Uri baseAddress,
                                                                            int appointmentId,
                                                                            string eventName,
-                                                                           DiscordUserId[] usersToNotify)
+                                                                           ulong[] usersToNotify)
     {
         var embed = GetEventEmbed(baseAddress,
                                   eventName,
@@ -223,13 +223,13 @@ public class UnitsBotClient : IUnitsBotClient
         embed.Url = GetEventUrl(baseAddress, appointmentId);
         embed.Description = $"Your [event attendance]({embed.Url}) for the event '{eventName}' has been confirmed. " +
                             "Click to open the event in your browser.";
-        await _discordAccess.SendUnitsNotificationAsync(embed, usersToNotify);
+        await _discordAccess.SendUnitsNotificationAsync(embed, usersToNotify.Select(m => (DiscordUserId)m).ToArray());
     }
 
-    async Task IUnitsBotClient.ReceiveEventStartingSoonMessageAsync(string baseAddress,
+    async Task IUnitsBotClient.ReceiveEventStartingSoonMessageAsync(Uri baseAddress,
                                                                     int appointmentId,
                                                                     DateTime startTime,
-                                                                    DiscordUserId[] usersToNotify)
+                                                                    ulong[] usersToNotify)
     {
         var minutes = (int)Math.Ceiling((startTime - DateTime.UtcNow).TotalMinutes);
         var embed = GetEventEmbed(baseAddress,
@@ -241,7 +241,7 @@ public class UnitsBotClient : IUnitsBotClient
 
         if (usersToNotify != null && usersToNotify.Any())
         {
-            await _discordAccess.SendUnitsNotificationAsync(embed, usersToNotify);
+            await _discordAccess.SendUnitsNotificationAsync(embed, usersToNotify.Select(m => (DiscordUserId)m).ToArray());
         }
         else
         {
@@ -249,13 +249,13 @@ public class UnitsBotClient : IUnitsBotClient
         }
     }
 
-    async Task IUnitsBotClient.ReceiveCreateEventVoiceChannelsMessageAsync(string baseAddress,
+    async Task IUnitsBotClient.ReceiveCreateEventVoiceChannelsMessageAsync(Uri baseAddress,
                                                                            int appointmentId,
                                                                            bool createGeneralVoiceChannel,
                                                                            byte maxAmountOfGroups,
                                                                            byte? maxGroupSize)
     {
-        var unitsSyncData = _dynamicConfiguration.UnitsEndpoints.SingleOrDefault(m => m.BaseAddress.ToString() == baseAddress);
+        var unitsSyncData = _dynamicConfiguration.UnitsEndpoints.SingleOrDefault(m => m.BaseAddress == baseAddress);
         if (unitsSyncData == null)
         {
             _logger.LogError($"Cannot find matching sync-endpoint in {nameof(IDynamicConfiguration)}.{nameof(IDynamicConfiguration.UnitsEndpoints)} " +
@@ -329,7 +329,7 @@ public class UnitsBotClient : IUnitsBotClient
         }
     }
 
-    async Task IUnitsBotClient.ReceiveGetCurrentAttendeesMessageAsync(string baseAddress,
+    async Task IUnitsBotClient.ReceiveGetCurrentAttendeesMessageAsync(Uri baseAddress,
                                                                       int appointmentId,
                                                                       int checkNumber,
                                                                       string[] voiceChannelIds)
@@ -337,7 +337,7 @@ public class UnitsBotClient : IUnitsBotClient
         if (voiceChannelIds == null || voiceChannelIds.Length == 0)
             return;
 
-        var unitsSyncData = _dynamicConfiguration.UnitsEndpoints.SingleOrDefault(m => m.BaseAddress.ToString() == baseAddress);
+        var unitsSyncData = _dynamicConfiguration.UnitsEndpoints.SingleOrDefault(m => m.BaseAddress == baseAddress);
         if (unitsSyncData == null)
         {
             _logger.LogError($"Cannot find matching sync-endpoint in {nameof(IDynamicConfiguration)}.{nameof(IDynamicConfiguration.UnitsEndpoints)} " +

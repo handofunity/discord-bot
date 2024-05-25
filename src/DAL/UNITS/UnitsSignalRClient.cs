@@ -12,8 +12,7 @@ public class UnitsSignalRClient : IUnitsSignalRClient
     private readonly Dictionary<Uri, HubConnection> _hubConnections;
     private readonly Dictionary<Uri, bool> _requiresTokenRefresh;
 
-    public UnitsSignalRClient(IHttpClientFactory httpClientFactory,
-                              IBearerTokenManager bearerTokenManager,
+    public UnitsSignalRClient(IBearerTokenManager bearerTokenManager,
                               IUnitsBotClient botClient,
                               ILogger<UnitsSignalRClient> logger)
     {
@@ -38,7 +37,7 @@ public class UnitsSignalRClient : IUnitsSignalRClient
             var firstParameter = allParameters.FirstOrDefault();
             var withBaseAddress = firstParameter != null
                                && firstParameter.Name == "baseAddress"
-                               && firstParameter.ParameterType == typeof(string);
+                               && firstParameter.ParameterType == typeof(Uri);
             if (withBaseAddress)
             {
                 var actualParameterInfo = allParameters.Skip(1).ToArray();
@@ -153,7 +152,7 @@ public class UnitsSignalRClient : IUnitsSignalRClient
             try
             {
                 await connection.StartAsync();
-                    
+
                 if (connection.State == HubConnectionState.Connected)
                     _logger.LogInformation("Connected to UNITS at {BaseUrl}", unitsEndpoint.BaseAddress);
             }
