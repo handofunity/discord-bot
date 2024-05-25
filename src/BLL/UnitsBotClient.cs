@@ -1,4 +1,6 @@
-﻿namespace HoU.GuildBot.BLL;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace HoU.GuildBot.BLL;
 
 public class UnitsBotClient : IUnitsBotClient
 {
@@ -116,6 +118,18 @@ public class UnitsBotClient : IUnitsBotClient
         fields.Add(new EmbedField("Links", $"[Convert time zone]({baseUrl}?{msgParam}&{isoParam}&{p1Param})", false));
     }
 
+    private bool TryGetUnitsEndpoint(Uri baseAddress,
+                                     [NotNullWhen(true)] out UnitsEndpoint? unitsEndpoint)
+    {
+        unitsEndpoint = _dynamicConfiguration.UnitsEndpoints.SingleOrDefault(m => m.BaseAddress == baseAddress);
+        if (unitsEndpoint is not null)
+            return true;
+
+        _logger.LogError($"Cannot find matching {nameof(IDynamicConfiguration.UnitsEndpoints)} " +
+                             "for base address {BaseAddress}", baseAddress);
+        return false;
+    }
+
     async Task IUnitsBotClient.ReceiveEventCreatedMessageAsync(Uri baseAddress,
                                                                int appointmentId,
                                                                string eventName,
@@ -125,6 +139,9 @@ public class UnitsBotClient : IUnitsBotClient
                                                                bool isAllDay,
                                                                string cardUrl)
     {
+        if (!TryGetUnitsEndpoint(baseAddress, out var unitsEndpoint))
+            return;
+
         _logger.LogDebug("Received EventCreatedMessage for event \"{EventName}\" (Id: {AppointmentId})",
                          eventName,
                          appointmentId);
@@ -150,7 +167,7 @@ public class UnitsBotClient : IUnitsBotClient
             _logger.LogDebug("Image URL for event {AppointmentId} is null",
                              appointmentId);
         }
-        await _discordAccess.SendUnitsNotificationAsync(embed);
+        await _discordAccess.SendUnitsNotificationAsync(unitsEndpoint.UnitsEndpointId, embed);
     }
 
     async Task IUnitsBotClient.ReceiveEventRescheduledMessageAsync(Uri baseAddress,
@@ -163,6 +180,9 @@ public class UnitsBotClient : IUnitsBotClient
                                                                    bool isAllDay,
                                                                    ulong[] usersToNotify)
     {
+        if (!TryGetUnitsEndpoint(baseAddress, out var unitsEndpoint))
+            return;
+
         var fields = new List<EmbedField>();
         AddTimeField(fields, startTimeOld, endTimeOld, isAllDay, " (Old)");
         AddTimeField(fields, startTimeNew, endTimeNew, isAllDay, " (New)");
@@ -178,11 +198,11 @@ public class UnitsBotClient : IUnitsBotClient
 
         if (usersToNotify != null && usersToNotify.Any())
         {
-            await _discordAccess.SendUnitsNotificationAsync(embed, usersToNotify.Select(m => (DiscordUserId)m).ToArray());
+            await _discordAccess.SendUnitsNotificationAsync(unitsEndpoint.UnitsEndpointId, embed, usersToNotify.Select(m => (DiscordUserId)m).ToArray());
         }
         else
         {
-            await _discordAccess.SendUnitsNotificationAsync(embed);
+            await _discordAccess.SendUnitsNotificationAsync(unitsEndpoint.UnitsEndpointId, embed);
         }
     }
 
@@ -193,6 +213,9 @@ public class UnitsBotClient : IUnitsBotClient
                                                                 bool isAllDay,
                                                                 ulong[] usersToNotify)
     {
+        if (!TryGetUnitsEndpoint(baseAddress, out var unitsEndpoint))
+            return;
+
         var fields = new List<EmbedField>();
         AddTimeField(fields, startTime, endTime, isAllDay, null);
         var embed = GetEventEmbed(baseAddress,
@@ -204,11 +227,11 @@ public class UnitsBotClient : IUnitsBotClient
 
         if (usersToNotify != null && usersToNotify.Any())
         {
-            await _discordAccess.SendUnitsNotificationAsync(embed, usersToNotify.Select(m => (DiscordUserId)m).ToArray());
+            await _discordAccess.SendUnitsNotificationAsync(unitsEndpoint.UnitsEndpointId, embed, usersToNotify.Select(m => (DiscordUserId)m).ToArray());
         }
         else
         {
-            await _discordAccess.SendUnitsNotificationAsync(embed);
+            await _discordAccess.SendUnitsNotificationAsync(unitsEndpoint.UnitsEndpointId, embed);
         }
     }
 
@@ -217,13 +240,16 @@ public class UnitsBotClient : IUnitsBotClient
                                                                            string eventName,
                                                                            ulong[] usersToNotify)
     {
+        if (!TryGetUnitsEndpoint(baseAddress, out var unitsEndpoint))
+            return;
+
         var embed = GetEventEmbed(baseAddress,
                                   eventName,
                                   Colors.Green);
         embed.Url = GetEventUrl(baseAddress, appointmentId);
         embed.Description = $"Your [event attendance]({embed.Url}) for the event '{eventName}' has been confirmed. " +
                             "Click to open the event in your browser.";
-        await _discordAccess.SendUnitsNotificationAsync(embed, usersToNotify.Select(m => (DiscordUserId)m).ToArray());
+        await _discordAccess.SendUnitsNotificationAsync(unitsEndpoint.UnitsEndpointId, embed, usersToNotify.Select(m => (DiscordUserId)m).ToArray());
     }
 
     async Task IUnitsBotClient.ReceiveEventStartingSoonMessageAsync(Uri baseAddress,
@@ -231,6 +257,9 @@ public class UnitsBotClient : IUnitsBotClient
                                                                     DateTime startTime,
                                                                     ulong[] usersToNotify)
     {
+        if (!TryGetUnitsEndpoint(baseAddress, out var unitsEndpoint))
+            return;
+
         var minutes = (int)Math.Ceiling((startTime - DateTime.UtcNow).TotalMinutes);
         var embed = GetEventEmbed(baseAddress,
                                   "Event starting soon",
@@ -241,11 +270,11 @@ public class UnitsBotClient : IUnitsBotClient
 
         if (usersToNotify != null && usersToNotify.Any())
         {
-            await _discordAccess.SendUnitsNotificationAsync(embed, usersToNotify.Select(m => (DiscordUserId)m).ToArray());
+            await _discordAccess.SendUnitsNotificationAsync(unitsEndpoint.UnitsEndpointId, embed, usersToNotify.Select(m => (DiscordUserId)m).ToArray());
         }
         else
         {
-            await _discordAccess.SendUnitsNotificationAsync(embed);
+            await _discordAccess.SendUnitsNotificationAsync(unitsEndpoint.UnitsEndpointId, embed);
         }
     }
 
@@ -255,13 +284,8 @@ public class UnitsBotClient : IUnitsBotClient
                                                                            byte maxAmountOfGroups,
                                                                            byte? maxGroupSize)
     {
-        var unitsSyncData = _dynamicConfiguration.UnitsEndpoints.SingleOrDefault(m => m.BaseAddress == baseAddress);
-        if (unitsSyncData == null)
-        {
-            _logger.LogError($"Cannot find matching sync-endpoint in {nameof(IDynamicConfiguration)}.{nameof(IDynamicConfiguration.UnitsEndpoints)} " +
-                             "for base address {BaseAddress}", baseAddress);
+        if (!TryGetUnitsEndpoint(baseAddress, out var unitsEndpoint))
             return;
-        }
 
         var voiceChannels = new List<EventVoiceChannel>();
         if (createGeneralVoiceChannel)
@@ -300,7 +324,7 @@ public class UnitsBotClient : IUnitsBotClient
                                                       (DiscordChannelId)_dynamicConfiguration.DiscordMapping
                                                           ["UnitsEventVoiceChannelsPositionAboveChannelId"]);
 
-            await _unitsAccess.SendCreatedVoiceChannelsAsync(unitsSyncData,
+            await _unitsAccess.SendCreatedVoiceChannelsAsync(unitsEndpoint!,
                                                              new SyncCreatedVoiceChannelsRequest(appointmentId, voiceChannels));
         }
     }
@@ -337,13 +361,8 @@ public class UnitsBotClient : IUnitsBotClient
         if (voiceChannelIds == null || voiceChannelIds.Length == 0)
             return;
 
-        var unitsSyncData = _dynamicConfiguration.UnitsEndpoints.SingleOrDefault(m => m.BaseAddress == baseAddress);
-        if (unitsSyncData == null)
-        {
-            _logger.LogError($"Cannot find matching sync-endpoint in {nameof(IDynamicConfiguration)}.{nameof(IDynamicConfiguration.UnitsEndpoints)} " +
-                             "for base address {BaseAddress}", baseAddress);
+        if (!TryGetUnitsEndpoint(baseAddress, out var unitsEndpoint))
             return;
-        }
 
         var voiceChannelUsers = _discordAccess.GetUsersInVoiceChannels(voiceChannelIds);
         if (voiceChannelUsers.Any())
@@ -353,7 +372,7 @@ public class UnitsBotClient : IUnitsBotClient
                                                           voiceChannelUsers.Select(m => new VoiceChannelAttendees(m.Key,
                                                                                        m.Value))
                                                                            .ToList());
-            await _unitsAccess.SendCurrentAttendeesAsync(unitsSyncData,
+            await _unitsAccess.SendCurrentAttendeesAsync(unitsEndpoint!,
                                                          request);
         }
     }

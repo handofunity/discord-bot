@@ -1128,12 +1128,13 @@ public class DiscordAccess : IDiscordAccess
         return $"{leaderRole.Mention} {officerRole.Mention}";
     }
 
-    async Task IDiscordAccess.SendUnitsNotificationAsync(EmbedData embedData)
+    async Task IDiscordAccess.SendUnitsNotificationAsync(int unitsEndpointId,
+        EmbedData embedData)
     {
         try
         {
             var g = GetGuild();
-            var channel = g.GetTextChannel(_dynamicConfiguration.DiscordMapping["UnitsNotificationsChannelId"]);
+            var channel = g.GetTextChannel(_dynamicConfiguration.DiscordMapping[$"UnitsNotificationsChannelId___{unitsEndpointId}"]);
             var embed = embedData.ToEmbed();
             await channel.SendMessageAsync(null, false, embed);
         }
@@ -1143,13 +1144,14 @@ public class DiscordAccess : IDiscordAccess
         }
     }
 
-    public async Task SendUnitsNotificationAsync(EmbedData embedData,
-                                                 DiscordUserId[] usersToNotify)
+    public async Task SendUnitsNotificationAsync(int unitsEndpointId,
+        EmbedData embedData,
+        DiscordUserId[] usersToNotify)
     {
         try
         {
             var g = GetGuild();
-            var channel = g.GetTextChannel(_dynamicConfiguration.DiscordMapping["UnitsNotificationsChannelId"]);
+            var channel = g.GetTextChannel(_dynamicConfiguration.DiscordMapping[$"UnitsNotificationsChannelId___{unitsEndpointId}"]);
             var embed = embedData.ToEmbed();
             var notifications = new List<string>();
             var allMentions = new Queue<string>(usersToNotify.Select(m => m.ToMention() + " "));

@@ -256,17 +256,21 @@ public interface IDiscordAccess : IDiscordLogger
     /// <summary>
     /// Sends the <paramref name="embedData"/> as a notification in the UnitsNotificationsChannel.
     /// </summary>
+    /// <param name="unitsEndpoint">The Id of the <see cref="UnitsEndpoint"/> used to determine the channel the notification will be sent to.</param>
     /// <param name="embedData">The <see cref="EmbedData"/> to send.</param>
     /// <returns>An awaitable <see cref="Task"/>.</returns>
-    Task SendUnitsNotificationAsync(EmbedData embedData);
+    Task SendUnitsNotificationAsync(int unitsEndpointId,
+                                    EmbedData embedData);
 
     /// <summary>
     /// Sends the <paramref name="embedData"/> as a notification in the UnitsNotificationsChannel.
     /// </summary>
+    /// <param name="unitsEndpoint">The Id of the <see cref="UnitsEndpoint"/> used to determine the channel the notification will be sent to.</param>
     /// <param name="embedData">The <see cref="EmbedData"/> to send.</param>
     /// <param name="usersToNotify">The users to notify about the <paramref name="embedData"/>.</param>
     /// <returns>An awaitable <see cref="Task"/>.</returns>
-    Task SendUnitsNotificationAsync(EmbedData embedData,
+    Task SendUnitsNotificationAsync(int unitsEndpointId,
+                                    EmbedData embedData,
                                     DiscordUserId[] usersToNotify);
 
     /// <summary>

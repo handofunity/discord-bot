@@ -44,7 +44,8 @@ public class ConfigurationDatabaseAccess : IConfigurationDatabaseAccess
                                       .Include(m => m.KeycloakEndpoint)
                                       .AsNoTrackingWithIdentityResolution()
                                       .ToArrayAsync();
-        return dbEntries.Select(m => new UnitsEndpoint(new Uri(m.BaseAddress),
+        return dbEntries.Select(m => new UnitsEndpoint(m.UnitsEndpointId,
+                                                       new Uri(m.BaseAddress),
                                                        m.ConnectToRestApi,
                                                        m.ConnectToNotificationsHub,
                                                        Map(m.KeycloakEndpoint!)))

@@ -20,3 +20,8 @@ filterFile = "filter.rgf"
 
 [redgateCompare.postgres.options.ignores]
 ignoreNewlinesInTextObjects = "off"
+
+[environments.development]
+url = "jdbc:postgresql://localhost:5432/bot-development"
+schemas = [ "config", "hou" ]
+displayName = "Development database"
