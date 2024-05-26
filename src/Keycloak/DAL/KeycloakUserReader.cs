@@ -61,8 +61,7 @@ internal class KeycloakUserReader : KeycloakBaseClient, IKeycloakUserReader
                                                                        KeycloakEndpoint endpoint,
                                                                        DateOnly date)
     {
-        var dateFilter = $"&q={KnownAttributes.DeleteAfter}:{date:yyyy-MM-dd}";
-        var uri = new Uri(endpoint.BaseUrl, $"{endpoint.Realm}/users/?enabled=false{dateFilter}&briefRepresentation=true");
+        var uri = new Uri(endpoint.BaseUrl, $"{endpoint.Realm}/users/?enabled=false&briefRepresentation=false");
         var request = new HttpRequestMessage(HttpMethod.Get, uri);
 
         return await httpClient.PerformAuthorizedRequestAsync(request,
@@ -86,6 +85,10 @@ internal class KeycloakUserReader : KeycloakBaseClient, IKeycloakUserReader
             {
                 var idValue = user?["id"]?.GetValue<string?>();
                 if (idValue is null)
+                    continue;
+
+                var deleteAfterString = user?["attributes"]?["deleteAfter"]?.AsArray().FirstOrDefault()?.GetValue<string>() ?? string.Empty;
+                if (deleteAfterString is null || !DateOnly.TryParse(deleteAfterString, out var deleteAfter) || deleteAfter > date)
                     continue;
 
                 if (Guid.TryParse(idValue, out var id))
