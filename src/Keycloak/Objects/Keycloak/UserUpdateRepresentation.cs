@@ -20,9 +20,9 @@ internal class UserUpdateRepresentation
     internal UserUpdateRepresentation(UserRepresentation userRepresentation)
     {
         Enabled = userRepresentation.Enabled;
-        Username = userRepresentation.Username;
-        FirstName = userRepresentation.FirstName;
-        LastName = userRepresentation.LastName;
+        Username = userRepresentation.Username.SanitizeName(false);
+        FirstName = userRepresentation.FirstName.SanitizeName(true);
+        LastName = userRepresentation.LastName.SanitizeName(true);
         Attributes = userRepresentation.Attributes ?? AttributeMap.Empty();
     }
 

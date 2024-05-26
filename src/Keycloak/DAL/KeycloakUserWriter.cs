@@ -12,7 +12,8 @@ internal class KeycloakUserWriter : KeycloakBaseClient, IKeycloakUserWriter
     }
 
     private async Task<bool> HandleBooleanResponseMessage(HttpResponseMessage? responseMessage,
-        string request)
+        string request,
+        string requestContent)
     {
         if (responseMessage is { StatusCode: HttpStatusCode.NoContent })
             return true;
@@ -20,7 +21,7 @@ internal class KeycloakUserWriter : KeycloakBaseClient, IKeycloakUserWriter
         try
         {
             var responseContent = await responseMessage!.Content.ReadAsStringAsync();
-            Logger.LogError("Failed to {Request}: {Reason}", request, responseContent);
+            Logger.LogError("Failed to perform {Request}:\r\n\r\n{Reason}\r\n\r\n{RequestContent}", request, responseContent, requestContent);
         }
         catch (Exception e)
         {
@@ -97,7 +98,7 @@ internal class KeycloakUserWriter : KeycloakBaseClient, IKeycloakUserWriter
             var updated = await httpClient.PerformAuthorizedRequestAsync(request,
                                                                          BearerTokenManager,
                                                                          endpoint,
-                                                                         msg => HandleBooleanResponseMessage(msg, nameof(UpdateUserAsync)));
+                                                                         msg => HandleBooleanResponseMessage(msg, nameof(UpdateUserAsync), json));
             if (updated)
                 updatedUsers++;
         }
@@ -149,7 +150,7 @@ internal class KeycloakUserWriter : KeycloakBaseClient, IKeycloakUserWriter
             var loggedOut = await httpClient.PerformAuthorizedRequestAsync(request,
                                                                            BearerTokenManager,
                                                                            endpoint,
-                                                                           msg => HandleBooleanResponseMessage(msg, nameof(LogoutUsersAsync)));
+                                                                           msg => HandleBooleanResponseMessage(msg, nameof(LogoutUsersAsync), string.Empty));
             if (loggedOut)
                 loggedOutUsers++;
         }

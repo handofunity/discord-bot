@@ -1097,33 +1097,15 @@ public class DiscordAccess : IDiscordAccess
             result.AddRange(users.Select(user => new UserModel
             {
                 DiscordUserId = (DiscordUserId)user.Id,
-                Username = Sanitize(Format.UsernameAndDiscriminator(user, false))!,
-                GlobalName = Sanitize(user.GlobalName)!,
-                Nickname = Sanitize(user.Nickname),
+                Username = Format.UsernameAndDiscriminator(user, false).SanitizeName(false),
+                GlobalName = user.GlobalName.SanitizeName(true),
+                Nickname = user.Nickname.SanitizeName(true),
                 AvatarId = user.DisplayAvatarId,
                 Roles = user.RoleIds.Select(m => (DiscordRoleId)m).ToArray(),
             }));
         }
 
         return result.ToArray();
-
-        static string? Sanitize(string? name)
-        {
-            if (name is null)
-                return null;
-            return name.Replace("~", "")
-                .Replace("#", "")
-                .Replace("?", "")
-                .Replace("(", "")
-                .Replace(")", "")
-                .Replace("[", "")
-                .Replace("]", "")
-                .Replace("{", "")
-                .Replace("}", "")
-                .Replace("/", "")
-                .Replace("  ", " ")
-                .Trim();
-        }
     }
 
     string IDiscordAccess.GetLeadershipMention()
