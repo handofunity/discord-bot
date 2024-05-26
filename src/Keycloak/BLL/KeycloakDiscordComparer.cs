@@ -180,8 +180,7 @@ internal class KeycloakDiscordComparer : IKeycloakDiscordComparer
 
         // Compute diff to update users
         var matchedUsers = discordUsers
-                          .Join<UserModel, UserRepresentation, DiscordUserId, (UserModel, UserRepresentation
-                               )>(keycloakState.AllKeycloakUsers,
+                          .Join(keycloakState.AllKeycloakUsers,
                                   discordUser => discordUser.DiscordUserId,
                                   userRep => userRep.DiscordUserId,
                                   (discordUser,
