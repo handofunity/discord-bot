@@ -1112,9 +1112,14 @@ public class DiscordAccess : IDiscordAccess
             if (name is null)
                 return null;
             return name.Replace("~", "")
+                .Replace("#", "")
                 .Replace("?", "")
                 .Replace("(", "")
                 .Replace(")", "")
+                .Replace("[", "")
+                .Replace("]", "")
+                .Replace("{", "")
+                .Replace("}", "")
                 .Replace("/", "")
                 .Replace("  ", " ")
                 .Trim();
