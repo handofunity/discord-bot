@@ -11,6 +11,24 @@ internal class KeycloakUserWriter : KeycloakBaseClient, IKeycloakUserWriter
     {
     }
 
+    private async Task<bool> HandleBooleanResponseMessage(HttpResponseMessage? responseMessage,
+        string request)
+    {
+        if (responseMessage is { StatusCode: HttpStatusCode.NoContent })
+            return true;
+
+        try
+        {
+            var responseContent = await responseMessage!.Content.ReadAsStringAsync();
+            Logger.LogError("Failed to {Request}: {Reason}", request, responseContent);
+        }
+        catch (Exception e)
+        {
+            Logger.LogError(e, "Failed to read reponse for {Request}", request);
+        }
+        return false;
+    }
+
     private async Task<Dictionary<DiscordUserId,KeycloakUserId>> CreateDiscordUsersAsync(HttpClient httpClient,
                                                                                          KeycloakEndpoint keycloakEndpoint,
                                                                                          IEnumerable<UserModel> users)
@@ -79,15 +97,12 @@ internal class KeycloakUserWriter : KeycloakBaseClient, IKeycloakUserWriter
             var updated = await httpClient.PerformAuthorizedRequestAsync(request,
                                                                          BearerTokenManager,
                                                                          endpoint,
-                                                                         HandleResponseMessage);
+                                                                         msg => HandleBooleanResponseMessage(msg, nameof(UpdateUserAsync)));
             if (updated)
                 updatedUsers++;
         }
 
         return updatedUsers;
-
-        Task<bool> HandleResponseMessage(HttpResponseMessage? responseMessage) =>
-            Task.FromResult(responseMessage is { StatusCode: HttpStatusCode.NoContent });
     }
 
     private async Task<int> DisableUsersAsync(HttpClient httpClient,
@@ -134,15 +149,12 @@ internal class KeycloakUserWriter : KeycloakBaseClient, IKeycloakUserWriter
             var loggedOut = await httpClient.PerformAuthorizedRequestAsync(request,
                                                                            BearerTokenManager,
                                                                            endpoint,
-                                                                           HandleResponseMessage);
+                                                                           msg => HandleBooleanResponseMessage(msg, nameof(LogoutUsersAsync)));
             if (loggedOut)
                 loggedOutUsers++;
         }
 
         return loggedOutUsers;
-
-        Task<bool> HandleResponseMessage(HttpResponseMessage? responseMessage) =>
-            Task.FromResult(responseMessage is { StatusCode: HttpStatusCode.NoContent });
     }
 
     private async Task<int> UpdateDifferentUserPropertiesAsync(HttpClient httpClient,
@@ -151,16 +163,16 @@ internal class KeycloakUserWriter : KeycloakBaseClient, IKeycloakUserWriter
     {
         var usersUpdateRep = new Dictionary<KeycloakUserId, UserUpdateRepresentation>();
 
-        foreach (var user in users)
+        foreach (var (DiscordState, KeycloakState) in users)
         {
-            var updateRep = user.KeycloakState.AsUpdateRepresentation();
+            var updateRep = KeycloakState.AsUpdateRepresentation();
 
-            updateRep.Username = user.DiscordState.Username;
-            updateRep.FirstName = user.DiscordState.GlobalName;
-            updateRep.LastName = user.DiscordState.Nickname;
-            updateRep.Attributes.SetDiscordAvatarId(user.DiscordState.AvatarId);
+            updateRep.Username = DiscordState.Username;
+            updateRep.FirstName = DiscordState.GlobalName;
+            updateRep.LastName = DiscordState.Nickname;
+            updateRep.Attributes.SetDiscordAvatarId(DiscordState.AvatarId);
 
-            usersUpdateRep.Add(user.KeycloakState.KeycloakUserId, updateRep);
+            usersUpdateRep.Add(KeycloakState.KeycloakUserId, updateRep);
         }
 
         return await UpdateUserAsync(httpClient, keycloakEndpoint, usersUpdateRep);
