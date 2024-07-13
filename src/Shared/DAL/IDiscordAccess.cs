@@ -41,7 +41,7 @@ public interface IDiscordAccess : IDiscordLogger
     /// </summary>
     /// <param name="userIds">The user Ids to get the names for.</param>
     /// <returns>A mapping from a userId to a display name.</returns>
-    Dictionary<DiscordUserId, string> GetUserNames(IEnumerable<DiscordUserId> userIds);
+    Dictionary<DiscordUserId, string> GetUserDisplayNames(IEnumerable<DiscordUserId> userIds);
 
     /// <summary>
     /// Sets the non-member related <paramref name="targetRole"/> for the given <paramref name="userId"/>.

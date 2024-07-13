@@ -6,7 +6,7 @@ public class UserInfoProvider : IUserInfoProvider
     private readonly IUserStore _userStore;
     private readonly IDiscordAccess _discordAccess;
     private readonly IDatabaseAccess _databaseAccess;
-    
+
     public UserInfoProvider(IUserStore userStore,
                             IDiscordAccess discordAccess,
                             IDatabaseAccess databaseAccess)
@@ -15,15 +15,15 @@ public class UserInfoProvider : IUserInfoProvider
         _discordAccess = discordAccess;
         _databaseAccess = databaseAccess;
     }
-    
+
     private EmbedData CreateEmbedDataForWhoIs(User user)
     {
-        var userName = _discordAccess.GetUserNames(new[] { user.DiscordUserId })[user.DiscordUserId];
+        var displayName = _discordAccess.GetUserDisplayNames([user.DiscordUserId])[user.DiscordUserId];
         var avatarId = _discordAccess.GetAvatarId(user.DiscordUserId);
         return new EmbedData
         {
             Color = Colors.LightGreen,
-            Title = $"\"Who is\" information about {userName}",
+            Title = $"\"Who is\" information about {displayName}",
             Fields = new[]
             {
                 new EmbedField("DiscordUserId", user.DiscordUserId, true),
@@ -44,7 +44,7 @@ public class UserInfoProvider : IUserInfoProvider
             Description = "No user found matching the given ID."
         };
     }
-    
+
     async Task<string[]> IUserInfoProvider.GetLastSeenInfo()
     {
         var ids = _userStore.GetUsers(m => m.IsGuildMember).Select(m => m.DiscordUserId).ToArray();
@@ -52,14 +52,14 @@ public class UserInfoProvider : IUserInfoProvider
         var data = new List<(DiscordUserId UserID, string Username, bool IsOnline, DateTime? LastSeen)>(ids.Length);
 
         // Fetch all user names
-        var usernames = _discordAccess.GetUserNames(ids);
+        var userDisplayNames = _discordAccess.GetUserDisplayNames(ids);
 
         // Fetch data for online members
         foreach (var userID in ids)
         {
             var isOnline = _discordAccess.IsUserOnline(userID);
             if (isOnline)
-                data.Add((userID, usernames[userID], true, null));
+                data.Add((userID, userDisplayNames[userID], true, null));
         }
 
         // Fetch data for offline members
@@ -76,7 +76,7 @@ public class UserInfoProvider : IUserInfoProvider
         foreach (var (userId, lastSeen) in lastSeenData)
         {
             var user = missingUsers.Single(m => m.InternalUserId == userId);
-            data.Add((user.DiscordUserId, usernames[user.DiscordUserId], false, lastSeen ?? (DateTime?)noInfoFallback));
+            data.Add((user.DiscordUserId, userDisplayNames[user.DiscordUserId], false, lastSeen ?? (DateTime?)noInfoFallback));
         }
 
         // Format

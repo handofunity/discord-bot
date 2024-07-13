@@ -6,7 +6,7 @@ public class VacationProvider : IVacationProvider
     private readonly IUserStore _userStore;
     private readonly IDatabaseAccess _databaseAccess;
     private readonly IDiscordAccess _discordAccess;
-        
+
     public VacationProvider(IUserStore userStore,
                             IDatabaseAccess databaseAccess,
                             IDiscordAccess discordAccess)
@@ -15,12 +15,12 @@ public class VacationProvider : IVacationProvider
         _databaseAccess = databaseAccess;
         _discordAccess = discordAccess;
     }
-        
+
     private string FormatVacations((DiscordUserId UserID, DateTime Start, DateTime End, string? Note)[] vacations)
     {
-        var names = _discordAccess.GetUserNames(vacations.Select(m => m.UserID).Distinct());
+        var userDisplayNames = _discordAccess.GetUserDisplayNames(vacations.Select(m => m.UserID).Distinct());
         var orderedVacations =
-            names.Join(vacations,
+            userDisplayNames.Join(vacations,
                        mapping => mapping.Key,
                        vacation => vacation.UserID,
                        (mapping, vacation) => new {UserName = mapping.Value, vacation.Start, vacation.End, vacation.Note})
@@ -31,7 +31,7 @@ public class VacationProvider : IVacationProvider
                                                             m.OrderBy(v => v.Start).Select(v =>
                                                                                                $"{v.Start:yyyy-MM-dd} - {v.End:yyyy-MM-dd}{(string.IsNullOrWhiteSpace(v.Note) ? string.Empty : $" ({v.Note})")}"))));
     }
-        
+
     async Task<string> IVacationProvider.AddVacation(DiscordUserId userID, DateTime start, DateTime end, string? note)
     {
         // Check start and end

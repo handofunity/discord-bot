@@ -683,7 +683,7 @@ public class DiscordAccess : IDiscordAccess
         return IsOnline(gu);
     }
 
-    Dictionary<DiscordUserId, string> IDiscordAccess.GetUserNames(IEnumerable<DiscordUserId> userIds) => userIds.Select(GetGuildUserById).ToDictionary(gu => (DiscordUserId)gu.Id, gu => gu.Username);
+    Dictionary<DiscordUserId, string> IDiscordAccess.GetUserDisplayNames(IEnumerable<DiscordUserId> userIds) => userIds.Select(GetGuildUserById).ToDictionary(gu => (DiscordUserId)gu.Id, gu => gu.DisplayName);
 
     async Task<bool> IDiscordAccess.TryAddNonMemberRoleAsync(DiscordUserId userId,
                                                         Role targetRole)

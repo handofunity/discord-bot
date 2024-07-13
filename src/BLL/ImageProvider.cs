@@ -343,7 +343,7 @@ public class ImageProvider : IImageProvider
         var foregroundImage = GetImageFromResource($"units_leaderboards.{foregroundReference}LeaderboardForeground.png");
 
         // Load Discord display names
-        var usernames = _discordAccess.GetUserNames(leaderboardData.LeaderboardPositions.Select(m => (DiscordUserId)m.DiscordUserId));
+        var userDisplayNames = _discordAccess.GetUserDisplayNames(leaderboardData.LeaderboardPositions.Select(m => (DiscordUserId)m.DiscordUserId));
 
         // Create image
         return CreateImage(imageWidth,
@@ -354,7 +354,7 @@ public class ImageProvider : IImageProvider
                                                                         backgroundImage,
                                                                         foregroundImage,
                                                                         leaderboardData,
-                                                                        usernames);
+                                                                        userDisplayNames);
                            });
     }
 

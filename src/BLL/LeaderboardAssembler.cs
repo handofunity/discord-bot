@@ -14,7 +14,7 @@ internal static class LeaderboardAssembler
                                              SKImage backgroundImage,
                                              SKImage foregroundImage,
                                              DiscordLeaderboardResponse leaderboardData,
-                                             Dictionary<DiscordUserId, string> usernames)
+                                             Dictionary<DiscordUserId, string> userDisplayNames)
     {
         using var canvas = new SKCanvas(bitmap);
 
@@ -22,7 +22,7 @@ internal static class LeaderboardAssembler
         canvas.DrawImage(foregroundImage, 0, 0);
         if (leaderboardData.Season is not null)
             WriteSeasonName(canvas, leaderboardData.Season);
-        WriteLeaderboardPositions(canvas, leaderboardData.LeaderboardPositions, usernames);
+        WriteLeaderboardPositions(canvas, leaderboardData.LeaderboardPositions, userDisplayNames);
     }
 
     private static void WriteSeasonName(SKCanvas canvas,
@@ -37,7 +37,7 @@ internal static class LeaderboardAssembler
 
     private static void WriteLeaderboardPositions(SKCanvas canvas,
                                                   List<DiscordLeaderboardPositionModel> leaderboardPositions,
-                                                  Dictionary<DiscordUserId, string> usernames)
+                                                  Dictionary<DiscordUserId, string> userDisplayNames)
     {
         const float horizontalOffsetIncrement = 485f;
         const float horizontalNameOffset = 45f;
@@ -63,15 +63,15 @@ internal static class LeaderboardAssembler
                 verticalOffset += verticalOffsetIncrement;
             }
 
-            var username = usernames[(DiscordUserId)position.DiscordUserId];
-            if (username.Length > 22)
-                username = username[..22];
+            var displayName = userDisplayNames[(DiscordUserId)position.DiscordUserId];
+            if (displayName.Length > 22)
+                displayName = displayName[..22];
             canvas.DrawText(position.Rank.ToString("D2"),
                             horizontalOffset,
                             verticalOffset,
                             _userFont,
                             _userPaint);
-            canvas.DrawText(username,
+            canvas.DrawText(displayName,
                             horizontalOffset + horizontalNameOffset,
                             verticalOffset,
                             _userFont,
