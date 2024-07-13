@@ -61,7 +61,13 @@ internal static class ServiceCollectionExtensions
                      var httpClientFactory = provider.GetRequiredService<IHttpClientFactory>();
                      var httpClient = httpClientFactory.CreateClient("units");
                      return new DiscordSyncClient(httpClient);
-                 });
+                 })
+                .AddTransient<IDiscordUserClient, DiscordUserClient>(provider =>
+                {
+                    var httpClientFactory = provider.GetRequiredService<IHttpClientFactory>();
+                    var httpClient = httpClientFactory.CreateClient("units");
+                    return new DiscordUserClient(httpClient);
+                });
 
         return services;
     }

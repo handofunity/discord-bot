@@ -2,32 +2,23 @@
 
 namespace HoU.GuildBot.DAL.UNITS;
 
-public class UnitsAccess : IUnitsAccess
+public class UnitsAccess(IBearerTokenManager _bearerTokenManager,
+                         IDiscordSyncClient _discordSyncClient,
+                         IDiscordUserClient _discordUserClient,
+                         ILogger<UnitsAccess> _logger)
+    : IUnitsAccess
 {
-    private readonly IBearerTokenManager _bearerTokenManager;
-    private readonly IDiscordSyncClient _discordSyncClient;
-    private readonly ILogger<UnitsAccess> _logger;
-
-    public UnitsAccess(IBearerTokenManager bearerTokenManager,
-                       IDiscordSyncClient discordSyncClient,
-                       ILogger<UnitsAccess> logger)
+    private void Use(IUnitsBaseClient client, UnitsEndpoint unitsEndpoint)
     {
-        _bearerTokenManager = bearerTokenManager ?? throw new ArgumentNullException(nameof(bearerTokenManager));
-        _discordSyncClient = discordSyncClient;
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
-
-    private void Use(UnitsEndpoint unitsEndpoint)
-    {
-        _discordSyncClient.BaseUrl = unitsEndpoint.BaseAddress.ToString();
-        _discordSyncClient.AuthorizationEndpoint = unitsEndpoint.KeycloakEndpoint;
-        _discordSyncClient.BearerTokenManager = _bearerTokenManager;
+        client.BaseUrl = unitsEndpoint.BaseAddress.ToString();
+        client.AuthorizationEndpoint = unitsEndpoint.KeycloakEndpoint;
+        client.BearerTokenManager = _bearerTokenManager;
     }
 
     async Task IUnitsAccess.SendCreatedVoiceChannelsAsync(UnitsEndpoint unitsEndpoint,
                                                           SyncCreatedVoiceChannelsRequest createdVoiceChannelsRequest)
     {
-        Use(unitsEndpoint);
+        Use(_discordSyncClient, unitsEndpoint);
 
         try
         {
@@ -42,6 +33,7 @@ public class UnitsAccess : IUnitsAccess
     async Task IUnitsAccess.SendCurrentAttendeesAsync(UnitsEndpoint unitsEndpoint,
                                                       SyncCurrentAttendeesRequest currentAttendeesRequest)
     {
+        Use(_discordSyncClient, unitsEndpoint);
         try
         {
             await _discordSyncClient.PushCurrentAttendeesAsync(currentAttendeesRequest);
@@ -55,10 +47,10 @@ public class UnitsAccess : IUnitsAccess
     async Task<ProfileInfoResponse?> IUnitsAccess.GetProfileDataAsync(UnitsEndpoint unitsEndpoint,
                                                                       DiscordUserId discordUserId)
     {
-        Use(unitsEndpoint);
+        Use(_discordUserClient, unitsEndpoint);
         try
         {
-            var response = await _discordSyncClient.GetUserProfileAsync((ulong)discordUserId);
+            var response = await _discordUserClient.GetUserProfileAsync((ulong)discordUserId);
             return response.Result;
         }
         catch (SwaggerException e)
@@ -66,6 +58,40 @@ public class UnitsAccess : IUnitsAccess
             _logger.LogError(e,
                              "Failed to get user profile of {DiscordUserId} from UNITS at {UnitsEndpoint}",
                              discordUserId,
+                             unitsEndpoint.BaseAddress);
+            return null;
+        }
+    }
+
+    async Task<DiscordLeaderboardResponse?> IUnitsAccess.GetHeritageLeaderboardAsync(UnitsEndpoint unitsEndpoint)
+    {
+        Use(_discordUserClient, unitsEndpoint);
+        try
+        {
+            var response = await _discordUserClient.GetHeritageLeaderboardAsync();
+            return response.Result;
+        }
+        catch (SwaggerException e)
+        {
+            _logger.LogError(e,
+                             "Failed to get heritage leaderboard from UNITS at {UnitsEndpoint}",
+                             unitsEndpoint.BaseAddress);
+            return null;
+        }
+    }
+
+    async Task<DiscordLeaderboardResponse?> IUnitsAccess.GetCurrentSeasonLeaderboardAsync(UnitsEndpoint unitsEndpoint)
+    {
+        Use(_discordUserClient, unitsEndpoint);
+        try
+        {
+            var response = await _discordUserClient.GetCurrentSeasonLeaderboardAsync();
+            return response.Result;
+        }
+        catch (SwaggerException e)
+        {
+            _logger.LogError(e,
+                             "Failed to get current season leaderboard from UNITS at {UnitsEndpoint}",
                              unitsEndpoint.BaseAddress);
             return null;
         }

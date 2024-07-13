@@ -9,7 +9,7 @@ public interface IImageProvider
     Stream CreateAocRaceDistributionImage();
 
     Stream CreateAocGuildPreferenceDistributionImage();
-    
+
     Stream LoadLaunchRosterImage();
 
     Task<Stream> CreateProfileCardImage(DiscordUserId userID,
@@ -20,17 +20,19 @@ public interface IImageProvider
                                         bool hasArtisanRole,
                                         bool hasPveRole);
 
+    Stream CreateLeaderboardTable(DiscordLeaderboardResponse leaderboardData);
+
     Stream LoadClassListImage();
 
     Stream LoadArtisanProfessionsImage();
 
     Stream CreateLostArkPlayStyleDistributionImage();
-    
+
     Stream CreateWowRetailPlayStyleDistributionImage();
-    
+
     Stream CreateAocRolePreferenceDistributionImage();
-    
+
     Stream CreateTnlRolePreferenceDistributionImage();
-    
+
     Stream CreateTnlWeaponDistributionImage();
 }

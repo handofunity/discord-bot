@@ -25,7 +25,21 @@ public interface IUnitsAccess
     /// </summary>
     /// <param name="unitsEndpoint">The <see cref="UnitsEndpoint"/> to query.</param>
     /// <param name="discordUserId">The <see cref="DiscordUserId"/> to retrieve the data for.</param>
-    /// <returns>The profile data of the Discord user, if you found.</returns>
+    /// <returns>The profile data of the Discord user, if found, otherwise <b>null</b>..</returns>
     Task<ProfileInfoResponse?> GetProfileDataAsync(UnitsEndpoint unitsEndpoint,
                                                    DiscordUserId discordUserId);
+
+    /// <summary>
+    /// Retrieves the leaderboard for the heritage ranking.
+    /// </summary>
+    /// <param name="unitsEndpoint">The <see cref="UnitsEndpoint"/> to query.</param>
+    /// <returns>The leaderboard data.</returns>
+    Task<DiscordLeaderboardResponse?> GetHeritageLeaderboardAsync(UnitsEndpoint unitsEndpoint);
+
+    /// <summary>
+    /// Retrieves the leaderboard for the current season ranking.
+    /// </summary>
+    /// <param name="unitsEndpoint">The <see cref="UnitsEndpoint"/> to query.</param>
+    /// <returns>The leaderboard data.</returns>
+    Task<DiscordLeaderboardResponse?> GetCurrentSeasonLeaderboardAsync(UnitsEndpoint unitsEndpoint);
 }

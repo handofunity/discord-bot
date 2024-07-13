@@ -63,7 +63,7 @@ public class ImageProvider : IImageProvider
                             where rd.Key.EndsWith(ric)
                             select new { RoleName = ric, Count = rd.Value })
            .ToDictionary(m => m.RoleName, m => m.Count);
-            
+
         // Load background and foreground image
         var backgroundImage = GetImageFromResource(barChartDrawingData.BackgroundImageName);
         var foregroundImage = GetImageFromResource(barChartDrawingData.ForegroundImageName);
@@ -279,7 +279,7 @@ public class ImageProvider : IImageProvider
 
         // Load rank-based avatar frame
         var avatarFrameImage = GetImageFromResource($"units_profiles.{escapedRankName}-frame.png");
-        
+
         // Load archetype images
         var archetypeImages = new Dictionary<string, SKImage>();
         foreach (var character in profileData.Characters)
@@ -328,6 +328,34 @@ public class ImageProvider : IImageProvider
             var archetypeImage = GetImageFromResource($"archetypes.{archetypeName.ToLower()}.png");
             skImages.Add(archetypeName, archetypeImage);
         }
+    }
+
+    Stream IImageProvider.CreateLeaderboardTable(DiscordLeaderboardResponse leaderboardData)
+    {
+        const int imageWidth = 1000;
+        const int imageHeight = 600;
+
+        // Load background image
+        var backgroundImage = GetImageFromResource($"units_leaderboards.LeaderboardBackground.png");
+
+        // Load foreground based on seasonal/heritage data
+        var foregroundReference = leaderboardData.Season is null ? "Heritage" : "Seasonal";
+        var foregroundImage = GetImageFromResource($"units_leaderboards.{foregroundReference}LeaderboardForeground.png");
+
+        // Load Discord display names
+        var usernames = _discordAccess.GetUserNames(leaderboardData.LeaderboardPositions.Select(m => (DiscordUserId)m.DiscordUserId));
+
+        // Create image
+        return CreateImage(imageWidth,
+                           imageHeight,
+                           bitmap =>
+                           {
+                               LeaderboardAssembler.AssembleLeaderboard(bitmap,
+                                                                        backgroundImage,
+                                                                        foregroundImage,
+                                                                        leaderboardData,
+                                                                        usernames);
+                           });
     }
 
     Stream IImageProvider.LoadClassListImage()
