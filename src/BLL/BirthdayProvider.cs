@@ -31,7 +31,7 @@ public class BirthdayProvider : IBirthdayProvider
         var birthdaySet = await _databaseAccess.SetBirthdayAsync(user!, parsedDate);
         if (!birthdaySet)
             return ":warning: Failed to set birthday.";
-        
+
         _logger.LogInformation("Birthday was set by {User}", userId);
         return ":white_check_mark: Birthday set successfully.";
     }
@@ -43,7 +43,7 @@ public class BirthdayProvider : IBirthdayProvider
         var birthdayDeleted = await _databaseAccess.DeleteUserBirthdayAsync(user!);
         if (!birthdayDeleted)
             return ":warning: Failed to delete birthday.";
-        
+
         _logger.LogInformation("Birthday was deleted by {User}", userId);
         return ":white_check_mark: Birthday deleted successfully.";
     }

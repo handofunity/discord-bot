@@ -15,7 +15,7 @@ internal static class ProfileCardAssembler
     private static readonly SKPaint _tableHeaderPaint = new(_tableHeaderFont) { Color = _textColor };
     private static readonly SKFont _tableContentFont = new(_contentTypeface, size: 20f);
     private static readonly SKPaint _tableContentPaint = new(_tableContentFont) { Color = _textColor };
-    
+
     internal static void AssembleProfileCard(SKBitmap bitmap,
                                              string displayName,
                                              SKImage backgroundImage,
@@ -96,22 +96,22 @@ internal static class ProfileCardAssembler
                         _guildFont,
                         _guildPaint);
     }
-    
+
     private static void WriteRankWithPercentageRange(SKCanvas canvas,
                                       string rank,
                                       string? percentageRange)
     {
         const float maxWidthInPixel = 172f;
         const float maxHeightInPixel = 19f;
-        
+
         var rankAndPercentageRangeFont = new SKFont(_contentTypeface, size: 18f);
         var rankAndPercentageRangePaint = new SKPaint(rankAndPercentageRangeFont) { Color = _textColor };
-    
+
         var sb = new StringBuilder(rank);
         if (percentageRange is not null)
             sb.Append($" ({percentageRange})");
         var text = sb.ToString();
-        
+
         var rankAndPercentageRangeSize = ShrinkFontAndPaintToFitSize(text,
                                                                      rankAndPercentageRangeFont,
                                                                      rankAndPercentageRangePaint,
@@ -158,7 +158,7 @@ internal static class ProfileCardAssembler
         const float verticalOffset = 487f;
         const float firstSectionOffset = 415f;
         const float playStylesMaxWidth = 534f;
-        
+
         var playStyles = 0;
         if (hasPvpRole)
             playStyles++;
@@ -166,7 +166,7 @@ internal static class ProfileCardAssembler
             playStyles++;
         if (hasPveRole)
             playStyles++;
-        
+
         // Depending on the amount of play styles, split the max width into equal sections.
         // For each section, center the corresponding text and write it.
         var sectionWidth = playStylesMaxWidth / playStyles;
@@ -238,7 +238,7 @@ internal static class ProfileCardAssembler
         const float levelCellWidth = 32f;
         const float nameCellWidth = 238f;
         const float artisanCellWidth = 212f;
-        
+
         var verticalCharacterOffset = 585f;
         foreach (var characterData in profileData.Characters.OrderBy(m => m.Order))
         {
@@ -258,7 +258,7 @@ internal static class ProfileCardAssembler
                             verticalCharacterOffset,
                             _tableContentFont,
                             _tableContentPaint);
-            
+
             canvas.DrawImage(archetypeImages[characterData.PrimaryArchetype],
                              336f,
                              verticalCharacterOffset - 23f);
@@ -266,7 +266,7 @@ internal static class ProfileCardAssembler
             canvas.DrawImage(archetypeImages[characterData.SecondaryArchetype],
                              373f,
                              verticalCharacterOffset - 23f);
-            
+
             if (characterData.PrimaryProfession is not null && characterData.PrimaryProfessionLevel is not null)
             {
                 var profession = GetTextAndOffsetForCenteredText(characterData.PrimaryProfession,
@@ -319,14 +319,14 @@ internal static class ProfileCardAssembler
         const float padding = 2f;
         SKRect nameSize = new();
         paint.MeasureText(text, ref nameSize);
-        
+
         // If actual width fits in maxWidth minus padding on both sides, get the left offset.
         if (nameSize.Width <= maxWidth - 2 * padding)
         {
             var offset = (maxWidth - nameSize.Width) / 2f;
             return (text, offset);
         }
-        
+
         // If actual width does not fit, shorten text until it fits.
         var shortenedText = text;
         while (nameSize.Width > maxWidth - 2 * padding)
