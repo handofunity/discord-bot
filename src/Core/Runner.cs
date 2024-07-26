@@ -2,7 +2,7 @@
 
 public class Runner
 {
-    private static readonly Version _botVersion = new(12, 3, 0);
+    private static readonly Version _botVersion = new(12, 4, 0);
 
     private BackgroundJobServer? _backgroundJobServer;
     private ILogger<Runner>? _logger;
@@ -15,7 +15,7 @@ public class Runner
         {
             // Prepare IoC
             IServiceCollection services = new ServiceCollection();
-
+            services.AddSingleton(TimeProvider.System);
             services.AddSingleton(settings)
                     .AddLogging(settings.CompleteConfiguration)
                     .AddKeycloak()

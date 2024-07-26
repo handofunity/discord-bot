@@ -2,24 +2,13 @@
 
 namespace HoU.GuildBot.BLL;
 
-public class UnitsBotClient : IUnitsBotClient
+public class UnitsBotClient(IDiscordAccess _discordAccess,
+                            IUnitsAccess _unitsAccess,
+                            IDynamicConfiguration _dynamicConfiguration,
+                            TimeProvider _timeProvider,
+                            ILogger<UnitsBotClient> _logger)
+    : IUnitsBotClient
 {
-    private readonly IDiscordAccess _discordAccess;
-    private readonly IUnitsAccess _unitsAccess;
-    private readonly IDynamicConfiguration _dynamicConfiguration;
-    private readonly ILogger<UnitsBotClient> _logger;
-
-    public UnitsBotClient(IDiscordAccess discordAccess,
-                          IUnitsAccess unitsAccess,
-                          IDynamicConfiguration dynamicConfiguration,
-                          ILogger<UnitsBotClient> logger)
-    {
-        _discordAccess = discordAccess ?? throw new ArgumentNullException(nameof(discordAccess));
-        _unitsAccess = unitsAccess ?? throw new ArgumentNullException(nameof(unitsAccess));
-        _dynamicConfiguration = dynamicConfiguration ?? throw new ArgumentNullException(nameof(dynamicConfiguration));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
-
     private static string GetDayOfMonthSuffix(int day)
     {
         if (day is >= 11 and <= 13)
@@ -58,27 +47,29 @@ public class UnitsBotClient : IUnitsBotClient
         $"{baseAddress}events/{appointmentId}";
 
     private static void AddTimeField(List<EmbedField> fields,
-                                     DateTime startTime,
-                                     DateTime endTime,
+                                     DateTimeOffset startTime,
+                                     DateTimeOffset endTime,
                                      bool isAllDay,
                                      string? fieldTitlePostfix)
     {
+        var startTimeUtc = startTime.ToUniversalTime();
+        var endTimeUtc = endTime.ToUniversalTime();
         // Time
-        var duration = isAllDay ? endTime.Date.AddDays(1) - startTime.Date : endTime - startTime;
-        var startTimeUnix = startTime - DateTime.UnixEpoch;
-        var endTimeUnix = endTime - DateTime.UnixEpoch;
+        var duration = isAllDay ? endTimeUtc.Date.AddDays(1) - startTimeUtc.Date : endTimeUtc - startTimeUtc;
+        var startTimeUnix = startTimeUtc - DateTime.UnixEpoch;
+        var endTimeUnix = endTimeUtc - DateTime.UnixEpoch;
         if (isAllDay)
         {
-            var communityTimeString = new StringBuilder(startTime.ToString("ddd MMM dd"));
-            communityTimeString.Append(GetDayOfMonthSuffix(startTime.Day) + ", ");
-            communityTimeString.Append(startTime.ToString("yyyy"));
+            var communityTimeString = new StringBuilder(startTimeUtc.ToString("ddd MMM dd"));
+            communityTimeString.Append(GetDayOfMonthSuffix(startTimeUtc.Day) + ", ");
+            communityTimeString.Append(startTimeUtc.ToString("yyyy"));
             var localTimeString = new StringBuilder($"<t:{startTimeUnix.TotalSeconds}:D>");
             if (duration.Days > 1)
             {
                 communityTimeString.Append(" - ");
-                communityTimeString.Append(endTime.ToString("ddd MMM dd"));
-                communityTimeString.Append(GetDayOfMonthSuffix(endTime.Day) + ", ");
-                communityTimeString.Append(endTime.ToString("yyyy"));
+                communityTimeString.Append(endTimeUtc.ToString("ddd MMM dd"));
+                communityTimeString.Append(GetDayOfMonthSuffix(endTimeUtc.Day) + ", ");
+                communityTimeString.Append(endTimeUtc.ToString("yyyy"));
                 localTimeString.Append(" - ");
                 localTimeString.Append($"<t:{endTimeUnix.TotalSeconds}:D>");
             }
@@ -88,13 +79,13 @@ public class UnitsBotClient : IUnitsBotClient
         }
         else
         {
-            var communityTimeString = new StringBuilder(startTime.ToString("ddd MMM dd"));
-            communityTimeString.Append(GetDayOfMonthSuffix(startTime.Day) + ", ");
-            communityTimeString.Append(startTime.ToString("yyyy"));
+            var communityTimeString = new StringBuilder(startTimeUtc.ToString("ddd MMM dd"));
+            communityTimeString.Append(GetDayOfMonthSuffix(startTimeUtc.Day) + ", ");
+            communityTimeString.Append(startTimeUtc.ToString("yyyy"));
             communityTimeString.Append(" ⋅ ");
-            communityTimeString.Append(startTime.ToString("h tt"));
+            communityTimeString.Append(startTimeUtc.ToString("h tt"));
             communityTimeString.Append(" - ");
-            communityTimeString.Append(endTime.ToString("h tt"));
+            communityTimeString.Append(endTimeUtc.ToString("h tt"));
             communityTimeString.Append(" UTC");
             var localTimeString = $"<t:{startTimeUnix.TotalSeconds}:F> - <t:{endTimeUnix.TotalSeconds}:t>";
             fields.Add(new EmbedField("Community Time" + fieldTitlePostfix, communityTimeString.ToString(), false));
@@ -104,15 +95,15 @@ public class UnitsBotClient : IUnitsBotClient
 
     private static void AddLinksField(List<EmbedField> fields,
                                       string eventName,
-                                      DateTime startTime)
+                                      DateTimeOffset startTime)
     {
-
+        var utcStartTime = startTime.ToUniversalTime();
         // Links to converted time zone
         const string baseUrl = "https://www.timeanddate.com/worldclock/fixedtime.html";
         // msg = title URL encoded
         var msgParam = $"msg={Uri.EscapeDataString(eventName)}";
         // iso = ISO UTC time
-        var isoParam = $"iso={startTime:yyyyMMdd}T{startTime:HHmmss}";
+        var isoParam = $"iso={utcStartTime:yyyyMMdd}T{utcStartTime:HHmmss}";
         // p1=1440 --> UTC time zone as base time
         var p1Param = "p1=1440";
         fields.Add(new EmbedField("Links", $"[Convert time zone]({baseUrl}?{msgParam}&{isoParam}&{p1Param})", false));
@@ -134,8 +125,8 @@ public class UnitsBotClient : IUnitsBotClient
                                                                int appointmentId,
                                                                string eventName,
                                                                string author,
-                                                               DateTime startTime,
-                                                               DateTime endTime,
+                                                               DateTimeOffset startTime,
+                                                               DateTimeOffset endTime,
                                                                bool isAllDay,
                                                                string cardUrl)
     {
@@ -173,10 +164,10 @@ public class UnitsBotClient : IUnitsBotClient
     async Task IUnitsBotClient.ReceiveEventRescheduledMessageAsync(Uri baseAddress,
                                                                    int appointmentId,
                                                                    string eventName,
-                                                                   DateTime startTimeOld,
-                                                                   DateTime endTimeOld,
-                                                                   DateTime startTimeNew,
-                                                                   DateTime endTimeNew,
+                                                                   DateTimeOffset startTimeOld,
+                                                                   DateTimeOffset endTimeOld,
+                                                                   DateTimeOffset startTimeNew,
+                                                                   DateTimeOffset endTimeNew,
                                                                    bool isAllDay,
                                                                    ulong[] usersToNotify)
     {
@@ -208,8 +199,8 @@ public class UnitsBotClient : IUnitsBotClient
 
     async Task IUnitsBotClient.ReceiveEventCanceledMessageAsync(Uri baseAddress,
                                                                 string eventName,
-                                                                DateTime startTime,
-                                                                DateTime endTime,
+                                                                DateTimeOffset startTime,
+                                                                DateTimeOffset endTime,
                                                                 bool isAllDay,
                                                                 ulong[] usersToNotify)
     {
@@ -254,13 +245,13 @@ public class UnitsBotClient : IUnitsBotClient
 
     async Task IUnitsBotClient.ReceiveEventStartingSoonMessageAsync(Uri baseAddress,
                                                                     int appointmentId,
-                                                                    DateTime startTime,
+                                                                    DateTimeOffset startTime,
                                                                     ulong[] usersToNotify)
     {
         if (!TryGetUnitsEndpoint(baseAddress, out var unitsEndpoint))
             return;
 
-        var minutes = (int)Math.Ceiling((startTime - DateTime.UtcNow).TotalMinutes);
+        var minutes = (int)Math.Ceiling((startTime - _timeProvider.GetUtcNow()).TotalMinutes);
         var embed = GetEventEmbed(baseAddress,
                                   "Event starting soon",
                                   Colors.LightOrange);

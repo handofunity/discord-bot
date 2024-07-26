@@ -8,8 +8,8 @@ public interface IUnitsBotClient
                                          int appointmentId,
                                          string eventName,
                                          string author,
-                                         DateTime startTime,
-                                         DateTime endTime,
+                                         DateTimeOffset startTime,
+                                         DateTimeOffset endTime,
                                          bool isAllDay,
                                          [CanBeNull] string cardUrl);
 
@@ -18,10 +18,10 @@ public interface IUnitsBotClient
     Task ReceiveEventRescheduledMessageAsync(Uri baseAddress,
                                              int appointmentId,
                                              string eventName,
-                                             DateTime startTimeOld,
-                                             DateTime endTimeOld,
-                                             DateTime startTimeNew,
-                                             DateTime endTimeNew,
+                                             DateTimeOffset startTimeOld,
+                                             DateTimeOffset endTimeOld,
+                                             DateTimeOffset startTimeNew,
+                                             DateTimeOffset endTimeNew,
                                              bool isAllDay,
                                              ulong[] usersToNotify);
 
@@ -29,8 +29,8 @@ public interface IUnitsBotClient
     [UsedImplicitly]
     Task ReceiveEventCanceledMessageAsync(Uri baseAddress,
                                           string eventName,
-                                          DateTime startTime,
-                                          DateTime endTime,
+                                          DateTimeOffset startTime,
+                                          DateTimeOffset endTime,
                                           bool isAllDay,
                                           ulong[] usersToNotify);
 
@@ -45,7 +45,7 @@ public interface IUnitsBotClient
     [UsedImplicitly]
     Task ReceiveEventStartingSoonMessageAsync(Uri baseAddress,
                                               int appointmentId,
-                                              DateTime startTime,
+                                              DateTimeOffset startTime,
                                               ulong[] usersToNotify);
 
     // See UnitsSignalRClient.RegisterHandlers
