@@ -1,4 +1,5 @@
-﻿using ButtonComponent = Discord.ButtonComponent;
+﻿using System.Diagnostics;
+using ButtonComponent = Discord.ButtonComponent;
 using SelectMenuComponent = HoU.GuildBot.Shared.Objects.SelectMenuComponent;
 using User = HoU.GuildBot.Shared.Objects.User;
 
@@ -584,6 +585,45 @@ public class DiscordAccess : IDiscordAccess
         }
     }
 
+    private static List<string> SplitMentionsIntoMessages(DiscordUserId[] usersToNotify)
+    {
+        var notifications = new List<string>();
+        var allMentions = new Queue<string>(usersToNotify.Select(m => m.ToMention() + " "));
+        var totalLength = allMentions.Sum(m => m.Length);
+        var totalMessagesRequired = (int)Math.Ceiling(totalLength / 1500d);
+        if (totalMessagesRequired == 1)
+        {
+            notifications.Add(string.Join(string.Empty, allMentions));
+        }
+        else
+        {
+            string? addToNext = null;
+            for (var i = 0; i < totalMessagesRequired; i++)
+            {
+                var sb = new StringBuilder();
+                if (addToNext != null)
+                {
+                    sb.Append(addToNext);
+                    addToNext = null;
+                }
+
+                while (allMentions.TryDequeue(out var nextMention))
+                {
+                    if (sb.Length + nextMention.Length > 1500)
+                    {
+                        addToNext = nextMention;
+                        break;
+                    }
+
+                    sb.Append(nextMention);
+                }
+                notifications.Add(sb.ToString());
+            }
+        }
+
+        return notifications;
+    }
+
     bool IDiscordAccess.IsConnected => _client.ConnectionState == ConnectionState.Connected;
 
     bool IDiscordAccess.IsGuildAvailable => _guildAvailable;
@@ -1115,15 +1155,64 @@ public class DiscordAccess : IDiscordAccess
         return $"{leaderRole.Mention} {officerRole.Mention}";
     }
 
-    async Task IDiscordAccess.SendUnitsNotificationAsync(int unitsEndpointId,
+    async Task IDiscordAccess.ArchiveThreadAsync(DiscordChannelId threadId)
+    {
+        try
+        {
+            var g = GetGuild();
+            var threadChannel = g.GetThreadChannel((ulong)threadId);
+            if (threadChannel is not null && !threadChannel.IsArchived)
+                await threadChannel.ModifyAsync(m => m.Archived = true);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Failed to archive thread");
+        }
+    }
+
+    async Task<DiscordChannelId?> IDiscordAccess.SendUnitsNotificationAsync(int unitsEndpointId,
+        string threadName,
         EmbedData embedData)
     {
         try
         {
             var g = GetGuild();
-            var channel = g.GetTextChannel(_dynamicConfiguration.DiscordMapping[$"UnitsNotificationsChannelId___{unitsEndpointId}"]);
+            var textChannelId = _dynamicConfiguration.DiscordMapping[$"UnitsNotificationsChannelId___{unitsEndpointId}"];
+            var textChannel = g.GetTextChannel(textChannelId);
+            if (textChannel is null)
+            {
+                _logger.LogError("Unable to find text channel {TextChannelId} for UNITS endpoint {EndpointId}",
+                    textChannelId,
+                    unitsEndpointId);
+                return null;
+            }
             var embed = embedData.ToEmbed();
-            await channel.SendMessageAsync(null, false, embed);
+            var message = await textChannel.SendMessageAsync(null, false, embed);
+            var thread = await textChannel.CreateThreadAsync(threadName, autoArchiveDuration: ThreadArchiveDuration.ThreeDays, message: message);
+            return (DiscordChannelId)thread.Id;
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Failed to send UNITS notification");
+            return null;
+        }
+    }
+
+    async Task IDiscordAccess.SendUnitsNotificationAsync(DiscordChannelId threadId,
+        EmbedData embedData)
+    {
+        try
+        {
+            var g = GetGuild();
+            var threadChannel = g.GetThreadChannel((ulong)threadId);
+            if (threadChannel is null)
+            {
+                _logger.LogError("Unable to find thread channel {ThreadId}",
+                    threadId);
+                return;
+            }
+            var embed = embedData.ToEmbed();
+            var message = await threadChannel.SendMessageAsync(null, false, embed);
         }
         catch (Exception e)
         {
@@ -1131,55 +1220,72 @@ public class DiscordAccess : IDiscordAccess
         }
     }
 
-    public async Task SendUnitsNotificationAsync(int unitsEndpointId,
+    async Task<DiscordChannelId?> IDiscordAccess.SendUnitsNotificationAsync(int unitsEndpointId,
+        string threadName,
         EmbedData embedData,
         DiscordUserId[] usersToNotify)
     {
         try
         {
             var g = GetGuild();
-            var channel = g.GetTextChannel(_dynamicConfiguration.DiscordMapping[$"UnitsNotificationsChannelId___{unitsEndpointId}"]);
+            var textChannelId = _dynamicConfiguration.DiscordMapping[$"UnitsNotificationsChannelId___{unitsEndpointId}"];
+            var textChannel = g.GetTextChannel(textChannelId);
+            if (textChannel is null)
+            {
+                _logger.LogError("Unable to find text channel {TextChannelId} for UNITS endpoint {EndpointId}",
+                    textChannelId,
+                    unitsEndpointId);
+                return null;
+            }
             var embed = embedData.ToEmbed();
-            var notifications = new List<string>();
-            var allMentions = new Queue<string>(usersToNotify.Select(m => m.ToMention() + " "));
-            var totalLength = allMentions.Sum(m => m.Length);
-            var totalMessagesRequired = (int)Math.Ceiling(totalLength / 1500d);
-            if (totalMessagesRequired == 1)
-            {
-                notifications.Add(string.Join(string.Empty, allMentions));
-            }
-            else
-            {
-                string? addToNext = null;
-                for (var i = 0; i < totalMessagesRequired; i++)
-                {
-                    var sb = new StringBuilder();
-                    if (addToNext != null)
-                    {
-                        sb.Append(addToNext);
-                        addToNext = null;
-                    }
+            var notifications = SplitMentionsIntoMessages(usersToNotify);
 
-                    while (allMentions.TryDequeue(out var nextMention))
-                    {
-                        if (sb.Length + nextMention.Length > 1500)
-                        {
-                            addToNext = nextMention;
-                            break;
-                        }
+            var initialMessage = await textChannel.SendMessageAsync(notifications[0], false, embed);
+            var thread = await textChannel.CreateThreadAsync(threadName, autoArchiveDuration: ThreadArchiveDuration.ThreeDays, message: initialMessage);
 
-                        sb.Append(nextMention);
-                    }
-                    notifications.Add(sb.ToString());
-                }
-            }
-            await channel.SendMessageAsync(notifications[0], false, embed);
             if (notifications.Count > 1)
             {
                 foreach (var notification in notifications.Skip(1))
                 {
                     await Task.Delay(500);
-                    await channel.SendMessageAsync(notification, false, embed);
+                    await thread.SendMessageAsync(notification, false, embed);
+                }
+            }
+
+            return (DiscordChannelId)thread.Id;
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Failed to send UNITS notification with mentions");
+            return null;
+        }
+    }
+
+    async Task IDiscordAccess.SendUnitsNotificationAsync(DiscordChannelId threadId,
+        EmbedData embedData,
+        DiscordUserId[] usersToNotify)
+    {
+        try
+        {
+            var g = GetGuild();
+            var threadChannel = g.GetThreadChannel((ulong)threadId);
+            if (threadChannel is null)
+            {
+                _logger.LogError("Unable to find thread channel {ThreadId}",
+                    threadId);
+                return;
+            }
+            var embed = embedData.ToEmbed();
+            var notifications = SplitMentionsIntoMessages(usersToNotify);
+
+            var initialMessage = await threadChannel.SendMessageAsync(notifications[0], false, embed);
+
+            if (notifications.Count > 1)
+            {
+                foreach (var notification in notifications.Skip(1))
+                {
+                    await Task.Delay(500);
+                    await threadChannel.SendMessageAsync(notification, false, embed);
                 }
             }
         }
@@ -1250,6 +1356,14 @@ public class DiscordAccess : IDiscordAccess
         var gu = GetGuildUserById(userId);
         var roleIds = gu.Roles.Where(m => !m.IsEveryone).Select(m => m.Id);
         await gu.RemoveRolesAsync(roleIds);
+    }
+
+    async Task IDiscordAccess.DebugAsync()
+    {
+#if DEBUG
+        var guild = GetGuild();
+        Debugger.Break();
+#endif
     }
 
     async Task IDiscordLogger.LogToDiscordAsync(string message)

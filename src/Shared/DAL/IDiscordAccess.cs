@@ -253,25 +253,51 @@ public interface IDiscordAccess : IDiscordLogger
     /// <returns>A mention for Leaders and Officers.</returns>
     string GetLeadershipMention();
 
+    Task ArchiveThreadAsync(DiscordChannelId threadId);
+
     /// <summary>
-    /// Sends the <paramref name="embedData"/> as a notification in the UnitsNotificationsChannel.
+    /// Sends the <paramref name="embedData"/> as a notification in the UnitsNotificationsChannel and creates a thread for the notification.
     /// </summary>
     /// <param name="unitsEndpoint">The Id of the <see cref="UnitsEndpoint"/> used to determine the channel the notification will be sent to.</param>
+    /// <param name="threadName">The name of the thread to create.</param>
+    /// <param name="embedData">The <see cref="EmbedData"/> to send.</param>
+    /// <returns>The Id of the created thread, or <b>null</b>, if the creation fails.</returns>
+    Task<DiscordChannelId?> SendUnitsNotificationAsync(int unitsEndpointId,
+        string threadName,
+        EmbedData embedData);
+
+    /// <summary>
+    /// Sends the <paramref name="embedData"/> as a notification in the given thread.
+    /// </summary>
+    /// <param name="threadId">The Id of the Discord thread channel the notification will be sent to.</param>
     /// <param name="embedData">The <see cref="EmbedData"/> to send.</param>
     /// <returns>An awaitable <see cref="Task"/>.</returns>
-    Task SendUnitsNotificationAsync(int unitsEndpointId,
+    Task SendUnitsNotificationAsync(DiscordChannelId threadId,
                                     EmbedData embedData);
+
+    /// <summary>
+    /// Sends the <paramref name="embedData"/> as a notification in the UnitsNotificationsChannel and creates a thread for the notification.
+    /// </summary>
+    /// <param name="unitsEndpoint">The Id of the <see cref="UnitsEndpoint"/> used to determine the channel the notification will be sent to.</param>
+    /// <param name="threadName">The name of the thread to create.</param>
+    /// <param name="embedData">The <see cref="EmbedData"/> to send.</param>
+    /// <param name="usersToNotify">The users to notify about the <paramref name="embedData"/>.</param>
+    /// <returns>The Id of the created thread, or <b>null</b>, if the creation fails.</returns>
+    Task<DiscordChannelId?> SendUnitsNotificationAsync(int unitsEndpointId,
+        string threadName,
+        EmbedData embedData,
+        DiscordUserId[] usersToNotify);
 
     /// <summary>
     /// Sends the <paramref name="embedData"/> as a notification in the UnitsNotificationsChannel.
     /// </summary>
-    /// <param name="unitsEndpoint">The Id of the <see cref="UnitsEndpoint"/> used to determine the channel the notification will be sent to.</param>
+    /// <param name="threadId">The Id of the Discord thread channel the notification will be sent to.</param>
     /// <param name="embedData">The <see cref="EmbedData"/> to send.</param>
     /// <param name="usersToNotify">The users to notify about the <paramref name="embedData"/>.</param>
     /// <returns>An awaitable <see cref="Task"/>.</returns>
-    Task SendUnitsNotificationAsync(int unitsEndpointId,
-                                    EmbedData embedData,
-                                    DiscordUserId[] usersToNotify);
+    Task SendUnitsNotificationAsync(DiscordChannelId threadId,
+        EmbedData embedData,
+        DiscordUserId[] usersToNotify);
 
     /// <summary>
     /// Gets all users in the given <paramref name="voiceChannelIds"/>.
@@ -312,4 +338,6 @@ public interface IDiscordAccess : IDiscordLogger
     /// <param name="discordUserId">The Id of the user to remove all roles from.</param>
     /// <returns>An awaitable <see cref="Task"/>.</returns>
     Task RevokeAllRolesAsync(DiscordUserId discordUserId);
+
+    Task DebugAsync();
 }

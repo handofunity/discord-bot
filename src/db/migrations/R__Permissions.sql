@@ -32,6 +32,8 @@ BEGIN
     THEN
         RAISE EXCEPTION 'Missing role --> hang_fire_user';
     ELSE
+        CREATE SCHEMA IF NOT EXISTS hang_fire;
+
         RAISE INFO 'Revoking existing permissions for hang_fire_user ...';
         REVOKE ALL ON ALL TABLES IN SCHEMA hang_fire FROM hang_fire_user;
 

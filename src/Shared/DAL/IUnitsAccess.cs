@@ -3,6 +3,17 @@
 public interface IUnitsAccess
 {
     /// <summary>
+    /// Sends the <paramref name="threadId"/> for the <paramref name="appointmentId"/> to the UNIT system.
+    /// </summary>
+    /// <param name="unitsEndpoint">The data used to sync with the UNIT system.</param>
+    /// <param name="appointmentId">The Id of the appointment the thread was created for.</param>
+    /// <param name="threadId">The Id of the created thread.</param>
+    /// <returns>An awaitable <see cref="Task"/>.</returns>
+    Task SendCreatedThreadIdAsync(UnitsEndpoint unitsEndpoint,
+        int appointmentId,
+        DiscordChannelId threadId);
+
+    /// <summary>
     /// Sends the <paramref name="createdVoiceChannelsRequest"/> to the UNIT system.
     /// </summary>
     /// <param name="unitsEndpoint">The data used to sync with the UNIT system.</param>

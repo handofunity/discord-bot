@@ -33,5 +33,5 @@ Write-Host "Starting pg_restore ..." -ForegroundColor Cyan
              --dbname=$databaseName `
              --username=$username `
              $backupFilePath
-             
+
 Write-Host "Completed pg_restore of file ""$backupFilePath"" to local database ""$databaseName""." -ForegroundColor Cyan

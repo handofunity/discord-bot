@@ -36,6 +36,7 @@ Write-Host "Starting pg_dump ..." -ForegroundColor Cyan
           --schema=hou `
           --schema=config `
           --exclude-table="config.units_endpoint" `
+          --exclude-table="config.keycloak_endpoint" `
           --exclude-table="config.flyway_schema_history" `
           --format=tar `
           --host=$hostAddress `

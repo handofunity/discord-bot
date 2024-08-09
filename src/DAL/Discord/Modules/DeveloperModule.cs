@@ -2,18 +2,11 @@
 
 [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 [Group("dev", "Administrative commands.")]
-public class DeveloperModule : InteractionModuleBase<SocketInteractionContext>
+public class DeveloperModule(IKeycloakSyncService _keycloakSyncService,
+                             IDiscordAccess _discordAccess,
+                             ILogger<DeveloperModule> _logger)
+    : InteractionModuleBase<SocketInteractionContext>
 {
-    private readonly IKeycloakSyncService _keycloakSyncService;
-    private readonly ILogger<DeveloperModule> _logger;
-
-    public DeveloperModule(IKeycloakSyncService keycloakSyncService,
-                           ILogger<DeveloperModule> logger)
-    {
-        _keycloakSyncService = keycloakSyncService;
-        _logger = logger;
-    }
-
     [SlashCommand("restart", "Restarts the bot instance.", runMode: RunMode.Async)]
     [AllowedRoles(Role.Developer)]
     public async Task Restart()
@@ -35,5 +28,16 @@ public class DeveloperModule : InteractionModuleBase<SocketInteractionContext>
         await _keycloakSyncService.SyncAllUsersAsync();
         await _keycloakSyncService.DeleteFlaggedUsersAsync();
         await FollowupAsync("Synchronization finished.");
+    }
+
+    [SlashCommand("debug", "Debug", runMode: RunMode.Async)]
+    [AllowedRoles(Role.Developer)]
+    public async Task DebugAsync()
+    {
+        await DeferAsync();
+#if DEBUG
+        await _discordAccess.DebugAsync();
+#endif
+        await FollowupAsync("Done.");
     }
 }

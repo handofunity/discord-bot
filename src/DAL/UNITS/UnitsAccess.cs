@@ -15,6 +15,22 @@ public class UnitsAccess(IBearerTokenManager _bearerTokenManager,
         client.BearerTokenManager = _bearerTokenManager;
     }
 
+    async Task IUnitsAccess.SendCreatedThreadIdAsync(UnitsEndpoint unitsEndpoint, int appointmentId, DiscordChannelId threadId)
+    {
+        Use(_discordSyncClient, unitsEndpoint);
+
+        try
+        {
+            await _discordSyncClient.PushCreatedThreadIdAsync(appointmentId, (ulong)threadId);
+        }
+        catch (SwaggerException e)
+        {
+            _logger.LogError(e, "Failed to send created thread id {ThreadId} for {AppointmentId}",
+                threadId,
+                appointmentId);
+        }
+    }
+
     async Task IUnitsAccess.SendCreatedVoiceChannelsAsync(UnitsEndpoint unitsEndpoint,
                                                           SyncCreatedVoiceChannelsRequest createdVoiceChannelsRequest)
     {
