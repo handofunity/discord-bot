@@ -108,7 +108,6 @@ internal static class ServiceCollectionExtensions
            .AddTransient<ITimeInformationProvider, TimeInformationProvider>()
            .AddTransient<IScheduledReminderProvider, ScheduledReminderProvider>()
             // Triggered as scheduled HangFire job
-           .AddTransient<UnityHubSyncService>()
            .AddTransient<ReminderService>();
 
         return services;
