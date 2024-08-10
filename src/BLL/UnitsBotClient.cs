@@ -56,8 +56,8 @@ public class UnitsBotClient(IDiscordAccess _discordAccess,
         var endTimeUtc = endTime.ToUniversalTime();
         // Time
         var duration = isAllDay ? endTimeUtc.Date.AddDays(1) - startTimeUtc.Date : endTimeUtc - startTimeUtc;
-        var startTimeUnix = startTimeUtc - DateTime.UnixEpoch;
-        var endTimeUnix = endTimeUtc - DateTime.UnixEpoch;
+        var startTimeUnix = startTimeUtc - DateTimeOffset.UnixEpoch;
+        var endTimeUnix = endTimeUtc - DateTimeOffset.UnixEpoch;
         if (isAllDay)
         {
             var communityTimeString = new StringBuilder(startTimeUtc.ToString("ddd MMM dd"));
@@ -105,20 +105,24 @@ public class UnitsBotClient(IDiscordAccess _discordAccess,
         return false;
     }
 
-    private static DiscordUserId[] ToDiscordUserIds(IEnumerable<ulong> userIds) =>
-        userIds.Distinct().Select(m => (DiscordUserId)m).ToArray();
+    private static DiscordUserId[] ToDiscordUserIds(ulong[]? userIds)
+    {
+        if (userIds is null)
+            return [];
+        return userIds.Distinct().Select(m => (DiscordUserId)m).ToArray();
+    }
 
     private async Task<DiscordChannelId?> SendUnitsNotificationAsync(UnitsEndpoint unitsEndpoint,
         string threadName,
         EmbedData embed,
-        ulong[]? usersToNotify = null)
+        DiscordUserId[]? usersToNotify = null)
     {
         if (usersToNotify is not null && usersToNotify.Length > 0)
         {
             return await _discordAccess.SendUnitsNotificationAsync(unitsEndpoint.UnitsEndpointId,
                 threadName,
                 embed,
-                ToDiscordUserIds(usersToNotify));
+                usersToNotify);
         }
         else
         {
@@ -129,19 +133,19 @@ public class UnitsBotClient(IDiscordAccess _discordAccess,
     }
 
     private async Task SendUnitsNotificationAsync(DiscordChannelId threadId,
-        EmbedData embed,
-        ulong[]? usersToNotify = null)
+        string message,
+        DiscordUserId[]? usersToNotify = null)
     {
         if (usersToNotify is not null && usersToNotify.Length > 0)
         {
             await _discordAccess.SendUnitsNotificationAsync(threadId,
-                embed,
-                ToDiscordUserIds(usersToNotify));
+                message,
+                usersToNotify);
         }
         else
         {
             await _discordAccess.SendUnitsNotificationAsync(threadId,
-                embed);
+                message);
         }
     }
 
@@ -166,8 +170,8 @@ public class UnitsBotClient(IDiscordAccess _discordAccess,
                                   eventName,
                                   Colors.BrightBlue);
         embed.Url = GetEventUrl(baseAddress, appointmentId);
-        embed.Description = $"A [new event]({embed.Url}) was created in UNITS. " +
-                            "Click to open the event in your browser.";
+        embed.Description = "A new event was created in UNITS. " +
+                            $"[Click here to open the event in your browser]({embed.Url}).";
         embed.Fields = [.. fields];
         embed.FooterText = $"Created by {author}";
         if (cardUrl != null)
@@ -195,7 +199,7 @@ public class UnitsBotClient(IDiscordAccess _discordAccess,
         DateTimeOffset startTimeNew,
         DateTimeOffset endTimeNew,
         bool isAllDay,
-        ulong originalThreadId,
+        ulong? originalThreadId,
         ulong[] usersToNotify)
     {
         if (!TryGetUnitsEndpoint(baseAddress, out var unitsEndpoint))
@@ -208,50 +212,44 @@ public class UnitsBotClient(IDiscordAccess _discordAccess,
                                   eventName,
                                   Colors.Orange);
         embed.Url = GetEventUrl(baseAddress, appointmentId);
-        embed.Description = $"An existing event was [rescheduled to a new occurence]({embed.Url}). " +
+        embed.Description = "An existing event was rescheduled to a new occurence. " +
                             "If you're being mentioned, you've signed up to the old occurence. " +
-                            "Click to open the new event occurence in your browser and to sign-up again!";
+                           $"[Please open the new event occurence in your browser]({embed.Url}) and to sign-up again!";
         embed.Fields = [.. fields];
         embed.FooterText = $"Rescheduled by {author}";
 
-        await _discordAccess.ArchiveThreadAsync((DiscordChannelId)originalThreadId);
-        var threadId = await SendUnitsNotificationAsync(unitsEndpoint, eventName, embed, usersToNotify);
+        if (originalThreadId is not null)
+            await _discordAccess.ArchiveThreadAsync((DiscordChannelId)originalThreadId.Value);
+        var userIds = ToDiscordUserIds(usersToNotify);
+        var threadId = await SendUnitsNotificationAsync(unitsEndpoint, eventName, embed, userIds);
         if (threadId is not null)
+        {
+            await _discordAccess.TryAddUsersToThreadAsync(threadId.Value, userIds);
             await _unitsAccess.SendCreatedThreadIdAsync(unitsEndpoint, appointmentId, threadId.Value);
+        }
     }
 
-    async Task IUnitsBotClient.ReceiveEventCanceledMessageAsync(Uri baseAddress,
-        string eventName,
-        DateTimeOffset startTime,
-        DateTimeOffset endTime,
-        bool isAllDay,
-        ulong threadId,
+    async Task IUnitsBotClient.ReceiveEventCanceledMessageAsync(ulong threadId,
         ulong[] usersToNotify)
     {
-        var fields = new List<EmbedField>();
-        AddTimeField(fields, startTime, endTime, isAllDay, null);
-        var embed = GetEventEmbed(baseAddress,
-                                  eventName,
-                                  Colors.Red);
-        embed.Description = "This event was canceled in UNITS. " +
-                            "If you're being mentioned, you've signed up to the canceled event.";
-        embed.Fields = [.. fields];
-        await SendUnitsNotificationAsync((DiscordChannelId)threadId, embed, usersToNotify);
+        const string message = "This event was canceled in UNITS. " +
+            "If you're being mentioned, you've signed up to the canceled event.";
+        var userIds = ToDiscordUserIds(usersToNotify);
+        await SendUnitsNotificationAsync((DiscordChannelId)threadId, message, userIds);
     }
 
     async Task IUnitsBotClient.ReceiveEventAttendanceConfirmedMessageAsync(Uri baseAddress,
         int appointmentId,
-        string eventName,
         ulong threadId,
         ulong[] usersToNotify)
     {
-        var embed = GetEventEmbed(baseAddress,
-                                  eventName,
-                                  Colors.Green);
-        embed.Url = GetEventUrl(baseAddress, appointmentId);
-        embed.Description = $"Your [event attendance]({embed.Url}) for the event '{eventName}' has been confirmed. " +
-                            "Click to open the event in your browser.";
-        await SendUnitsNotificationAsync((DiscordChannelId)threadId, embed, usersToNotify);
+        var discordThreadId = (DiscordChannelId)threadId;
+        var url = GetEventUrl(baseAddress, appointmentId);
+        var message = "Your event attendance has been confirmed. " +
+            $"[Please open the event in your browser]({url}) to **check your assigned group (or benched state)**.";
+        var userIds = ToDiscordUserIds(usersToNotify);
+        await SendUnitsNotificationAsync(discordThreadId, message, userIds);
+        await _discordAccess.TryAddUsersToThreadAsync(discordThreadId, userIds);
     }
 
     async Task IUnitsBotClient.ReceiveEventStartingSoonMessageAsync(Uri baseAddress,
@@ -260,15 +258,12 @@ public class UnitsBotClient(IDiscordAccess _discordAccess,
         ulong threadId,
         ulong[] usersToNotify)
     {
-        var minutes = (int)Math.Ceiling((startTime - _timeProvider.GetUtcNow()).TotalMinutes);
-        var embed = GetEventEmbed(baseAddress,
-                                  "Event starting soon",
-                                  Colors.LightOrange);
-        embed.Url = GetEventUrl(baseAddress, appointmentId);
-        embed.Description = $"Your [event]({embed.Url}) is starting in {minutes} minutes. " +
-                            "Click to open the event in your browser.";
-
-        await SendUnitsNotificationAsync((DiscordChannelId)threadId, embed, usersToNotify);
+        var url = GetEventUrl(baseAddress, appointmentId);
+        var relativeStartTime = (startTime - DateTimeOffset.UnixEpoch).TotalSeconds;
+        var message = $"Your event is starting <t:{relativeStartTime}:R>. " +
+            $"[Open the event in your browser]({url}).";
+        var userIds = ToDiscordUserIds(usersToNotify);
+        await SendUnitsNotificationAsync((DiscordChannelId)threadId, message, userIds);
     }
 
     async Task IUnitsBotClient.ReceiveCreateEventVoiceChannelsMessageAsync(Uri baseAddress,

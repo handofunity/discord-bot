@@ -270,10 +270,10 @@ public interface IDiscordAccess : IDiscordLogger
     /// Sends the <paramref name="embedData"/> as a notification in the given thread.
     /// </summary>
     /// <param name="threadId">The Id of the Discord thread channel the notification will be sent to.</param>
-    /// <param name="embedData">The <see cref="EmbedData"/> to send.</param>
+    /// <param name="message">The message to send.</param>
     /// <returns>An awaitable <see cref="Task"/>.</returns>
     Task SendUnitsNotificationAsync(DiscordChannelId threadId,
-                                    EmbedData embedData);
+                                    string message);
 
     /// <summary>
     /// Sends the <paramref name="embedData"/> as a notification in the UnitsNotificationsChannel and creates a thread for the notification.
@@ -292,11 +292,11 @@ public interface IDiscordAccess : IDiscordLogger
     /// Sends the <paramref name="embedData"/> as a notification in the UnitsNotificationsChannel.
     /// </summary>
     /// <param name="threadId">The Id of the Discord thread channel the notification will be sent to.</param>
-    /// <param name="embedData">The <see cref="EmbedData"/> to send.</param>
+    /// <param name="message">The message to send.</param>
     /// <param name="usersToNotify">The users to notify about the <paramref name="embedData"/>.</param>
     /// <returns>An awaitable <see cref="Task"/>.</returns>
     Task SendUnitsNotificationAsync(DiscordChannelId threadId,
-        EmbedData embedData,
+        string message,
         DiscordUserId[] usersToNotify);
 
     /// <summary>
@@ -338,6 +338,14 @@ public interface IDiscordAccess : IDiscordLogger
     /// <param name="discordUserId">The Id of the user to remove all roles from.</param>
     /// <returns>An awaitable <see cref="Task"/>.</returns>
     Task RevokeAllRolesAsync(DiscordUserId discordUserId);
+
+    /// <summary>
+    /// Tries to add the <paramref name="userIds"/> to the given thread.
+    /// </summary>
+    /// <param name="threadId">The Id of the thread to add the <paramref name="userIds"/> to.</param>
+    /// <param name="userIds">The user Ids to add.</param>
+    /// <returns>An awaitable <see cref="Task"/>.</returns>
+    Task TryAddUsersToThreadAsync(DiscordChannelId threadId, DiscordUserId[] userIds);
 
     Task DebugAsync();
 }

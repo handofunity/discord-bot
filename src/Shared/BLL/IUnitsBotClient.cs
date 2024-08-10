@@ -24,24 +24,18 @@ public interface IUnitsBotClient
         DateTimeOffset startTimeNew,
         DateTimeOffset endTimeNew,
         bool isAllDay,
-        ulong originalThreadId,
+        ulong? originalThreadId,
         ulong[] usersToNotify);
 
     // See UnitsSignalRClient.RegisterHandlers
     [UsedImplicitly]
-    Task ReceiveEventCanceledMessageAsync(Uri baseAddress,
-        string eventName,
-        DateTimeOffset startTime,
-        DateTimeOffset endTime,
-        bool isAllDay,
-        ulong threadId,
+    Task ReceiveEventCanceledMessageAsync(ulong threadId,
         ulong[] usersToNotify);
 
     // See UnitsSignalRClient.RegisterHandlers
     [UsedImplicitly]
     Task ReceiveEventAttendanceConfirmedMessageAsync(Uri baseAddress,
         int appointmentId,
-        string eventName,
         ulong threadId,
         ulong[] usersToNotify);
 

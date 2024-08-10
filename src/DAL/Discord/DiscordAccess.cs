@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using Discord;
+using System.Diagnostics;
 using ButtonComponent = Discord.ButtonComponent;
 using SelectMenuComponent = HoU.GuildBot.Shared.Objects.SelectMenuComponent;
 using User = HoU.GuildBot.Shared.Objects.User;
@@ -585,12 +586,14 @@ public class DiscordAccess : IDiscordAccess
         }
     }
 
-    private static List<string> SplitMentionsIntoMessages(DiscordUserId[] usersToNotify)
+    private static List<string> SplitMentionsIntoMessages(int baseMessageLength,
+        DiscordUserId[] usersToNotify)
     {
+        decimal freeSpaceBaseAfterMessage = 2000 - Math.Max(baseMessageLength + 1, 500);
         var notifications = new List<string>();
         var allMentions = new Queue<string>(usersToNotify.Select(m => m.ToMention() + " "));
         var totalLength = allMentions.Sum(m => m.Length);
-        var totalMessagesRequired = (int)Math.Ceiling(totalLength / 1500d);
+        var totalMessagesRequired = (int)Math.Ceiling(totalLength / freeSpaceBaseAfterMessage);
         if (totalMessagesRequired == 1)
         {
             notifications.Add(string.Join(string.Empty, allMentions));
@@ -609,7 +612,7 @@ public class DiscordAccess : IDiscordAccess
 
                 while (allMentions.TryDequeue(out var nextMention))
                 {
-                    if (sb.Length + nextMention.Length > 1500)
+                    if (sb.Length + nextMention.Length > freeSpaceBaseAfterMessage)
                     {
                         addToNext = nextMention;
                         break;
@@ -1199,7 +1202,7 @@ public class DiscordAccess : IDiscordAccess
     }
 
     async Task IDiscordAccess.SendUnitsNotificationAsync(DiscordChannelId threadId,
-        EmbedData embedData)
+        string message)
     {
         try
         {
@@ -1211,8 +1214,7 @@ public class DiscordAccess : IDiscordAccess
                     threadId);
                 return;
             }
-            var embed = embedData.ToEmbed();
-            var message = await threadChannel.SendMessageAsync(null, false, embed);
+            await threadChannel.SendMessageAsync(message);
         }
         catch (Exception e)
         {
@@ -1238,18 +1240,15 @@ public class DiscordAccess : IDiscordAccess
                 return null;
             }
             var embed = embedData.ToEmbed();
-            var notifications = SplitMentionsIntoMessages(usersToNotify);
+            var notifications = SplitMentionsIntoMessages(0, usersToNotify);
 
-            var initialMessage = await textChannel.SendMessageAsync(notifications[0], false, embed);
+            var initialMessage = await textChannel.SendMessageAsync(null, false, embed);
             var thread = await textChannel.CreateThreadAsync(threadName, autoArchiveDuration: ThreadArchiveDuration.ThreeDays, message: initialMessage);
 
-            if (notifications.Count > 1)
+            foreach (var notification in notifications)
             {
-                foreach (var notification in notifications.Skip(1))
-                {
-                    await Task.Delay(500);
-                    await thread.SendMessageAsync(notification, false, embed);
-                }
+                await Task.Delay(500);
+                await thread.SendMessageAsync(notification);
             }
 
             return (DiscordChannelId)thread.Id;
@@ -1262,7 +1261,7 @@ public class DiscordAccess : IDiscordAccess
     }
 
     async Task IDiscordAccess.SendUnitsNotificationAsync(DiscordChannelId threadId,
-        EmbedData embedData,
+        string message,
         DiscordUserId[] usersToNotify)
     {
         try
@@ -1275,17 +1274,16 @@ public class DiscordAccess : IDiscordAccess
                     threadId);
                 return;
             }
-            var embed = embedData.ToEmbed();
-            var notifications = SplitMentionsIntoMessages(usersToNotify);
+            var notifications = SplitMentionsIntoMessages(message.Length, usersToNotify);
 
-            var initialMessage = await threadChannel.SendMessageAsync(notifications[0], false, embed);
+            var initialMessage = await threadChannel.SendMessageAsync(message + " " + notifications[0]);
 
             if (notifications.Count > 1)
             {
                 foreach (var notification in notifications.Skip(1))
                 {
                     await Task.Delay(500);
-                    await threadChannel.SendMessageAsync(notification, false, embed);
+                    await threadChannel.SendMessageAsync(message + " " + notification);
                 }
             }
         }
@@ -1364,6 +1362,37 @@ public class DiscordAccess : IDiscordAccess
         var guild = GetGuild();
         Debugger.Break();
 #endif
+    }
+
+    async Task IDiscordAccess.TryAddUsersToThreadAsync(DiscordChannelId threadId, DiscordUserId[] userIds)
+    {
+        try
+        {
+            var g = GetGuild();
+            var threadChannel = g.GetThreadChannel((ulong)threadId);
+            if (threadChannel is null)
+            {
+                _logger.LogError("Unable to find thread channel {ThreadId}",
+                    threadId);
+                return;
+            }
+
+            var users = await threadChannel.GetUsersAsync();
+            foreach (var discordUserId in userIds)
+            {
+                var userId = (ulong)discordUserId;
+                if (users.Any(m => m.Id == userId))
+                    continue;
+
+                var gu = g.GetUser(userId);
+                if (gu is not null)
+                    await threadChannel.AddUserAsync(gu);
+            }
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Failed to add users to thread {ThreadId}", threadId);
+        }
     }
 
     async Task IDiscordLogger.LogToDiscordAsync(string message)
