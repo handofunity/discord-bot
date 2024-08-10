@@ -199,6 +199,7 @@ public class UnitsBotClient(IDiscordAccess _discordAccess,
         DateTimeOffset startTimeNew,
         DateTimeOffset endTimeNew,
         bool isAllDay,
+        string? cardUrl,
         ulong? originalThreadId,
         ulong[] usersToNotify)
     {
@@ -217,6 +218,17 @@ public class UnitsBotClient(IDiscordAccess _discordAccess,
                            $"[Please open the new event occurence in your browser]({embed.Url}) and to sign-up again!";
         embed.Fields = [.. fields];
         embed.FooterText = $"Rescheduled by {author}";
+        if (cardUrl != null)
+        {
+            var imageUrl = $"{baseAddress}/{cardUrl}";
+            _logger.LogDebug("Setting image URL of embed to: {ImageUrl}", imageUrl);
+            embed.ImageUrl = imageUrl;
+        }
+        else
+        {
+            _logger.LogDebug("Image URL for event {AppointmentId} is null",
+                             appointmentId);
+        }
 
         if (originalThreadId is not null)
             await _discordAccess.ArchiveThreadAsync((DiscordChannelId)originalThreadId.Value);

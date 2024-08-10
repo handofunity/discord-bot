@@ -24,6 +24,7 @@ public interface IUnitsBotClient
         DateTimeOffset startTimeNew,
         DateTimeOffset endTimeNew,
         bool isAllDay,
+        string? cardUrl,
         ulong? originalThreadId,
         ulong[] usersToNotify);
 
