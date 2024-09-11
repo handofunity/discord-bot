@@ -83,9 +83,9 @@ public class UnitsBotClient(IDiscordAccess _discordAccess,
             communityTimeString.Append(GetDayOfMonthSuffix(startTimeUtc.Day) + ", ");
             communityTimeString.Append(startTimeUtc.ToString("yyyy"));
             communityTimeString.Append(" ⋅ ");
-            communityTimeString.Append(startTimeUtc.ToString("h tt"));
+            communityTimeString.Append(startTimeUtc.ToString("h:mm tt"));
             communityTimeString.Append(" - ");
-            communityTimeString.Append(endTimeUtc.ToString("h tt"));
+            communityTimeString.Append(endTimeUtc.ToString("h:mm tt"));
             communityTimeString.Append(" UTC");
             var localTimeString = $"<t:{startTimeUnix.TotalSeconds}:F> - <t:{endTimeUnix.TotalSeconds}:t>";
             fields.Add(new EmbedField("Community Time" + fieldTitlePostfix, communityTimeString.ToString(), false));
