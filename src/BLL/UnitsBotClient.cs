@@ -299,8 +299,8 @@ public class UnitsBotClient(IDiscordAccess _discordAccess,
         {
             var (voiceChannelId, error) =
                 await _discordAccess.CreateVoiceChannelAsync((DiscordChannelId)_dynamicConfiguration.DiscordMapping["VoiceChannelCategoryId"],
-                                                        eventVoiceChannel.DisplayName,
-                                                        eventVoiceChannel.MaxUsersInChannel);
+                    eventVoiceChannel.DisplayName,
+                    eventVoiceChannel.MaxUsersInChannel);
             if (error != null)
             {
                 failedVoiceChannels.Add(eventVoiceChannel);
@@ -370,7 +370,7 @@ public class UnitsBotClient(IDiscordAccess _discordAccess,
             var request = new SyncCurrentAttendeesRequest(appointmentId,
                                                           checkNumber,
                                                           voiceChannelUsers.Select(m => new VoiceChannelAttendees(m.Key,
-                                                                                       m.Value))
+                                                                                        m.Value.ConvertAll(l => (ulong)l)))
                                                                            .ToList());
             await _unitsAccess.SendCurrentAttendeesAsync(unitsEndpoint!,
                                                          request);

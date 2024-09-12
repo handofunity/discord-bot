@@ -4,10 +4,10 @@ public class VoiceChannelAttendees
 {
     public string DiscordVoiceChannelId { get; }
 
-    public List<DiscordUserId> DiscordUserIds { get; }
+    public List<ulong> DiscordUserIds { get; }
 
     public VoiceChannelAttendees(string discordVoiceChannelId,
-                                 List<DiscordUserId> discordUserIds)
+                                 List<ulong> discordUserIds)
     {
         DiscordVoiceChannelId = discordVoiceChannelId;
         DiscordUserIds = discordUserIds;

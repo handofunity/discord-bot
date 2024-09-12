@@ -1303,7 +1303,7 @@ public class DiscordAccess : IDiscordAccess
                 continue;
 
             var voiceChannel = g.GetVoiceChannel(voiceChannelId);
-            var userIds = voiceChannel.Users
+            var userIds = voiceChannel.ConnectedUsers
                                       .Select(m => (DiscordUserId) m.Id)
                                       .ToList();
             if (userIds.Any())
