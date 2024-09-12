@@ -21,7 +21,7 @@ public class EventVoiceChannel
     public EventVoiceChannel(int appointmentId)
     {
         GroupNumber = 0;
-        DisplayName = $"UNITS {appointmentId}: General";
+        DisplayName = $"General (UNITS #{appointmentId})";
         MaxUsersInChannel = 0;
     }
 
@@ -30,7 +30,7 @@ public class EventVoiceChannel
                              byte maxUsersInChannel)
     {
         GroupNumber = groupNumber;
-        DisplayName = $"UNITS {appointmentId}: Group {groupNumber} ({GetGroupEmoji(groupNumber)})";
+        DisplayName = $"#{groupNumber} | Group {GetGroupEmoji(groupNumber)} (UNITS #{appointmentId})";
         MaxUsersInChannel = maxUsersInChannel;
     }
 
