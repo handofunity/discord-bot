@@ -1040,10 +1040,17 @@ public class DiscordAccess : IDiscordAccess
     }
 
     async Task<(DiscordChannelId VoiceChannelId, string? Error)> IDiscordAccess.CreateVoiceChannelAsync(DiscordChannelId voiceChannelsCategoryId,
-                                                                                                   string name,
-                                                                                                   int maxUsers)
+        string name,
+        int maxUsers)
     {
         var g = GetGuild();
+        var rolePermissionOverrides = _dynamicConfiguration.DiscordMapping
+            .Where(m => m.Key.StartsWith("UnitsVoiceChannels_DeniedRoleId_"))
+            .Select(m => new Overwrite(m.Value, PermissionTarget.Role, new OverwritePermissions(
+                connect: PermValue.Deny,
+                speak: PermValue.Deny)))
+            .ToArray();
+
         try
         {
             if (g.VoiceChannels.Any(m => m.Name == name))
@@ -1054,6 +1061,7 @@ public class DiscordAccess : IDiscordAccess
                                                                {
                                                                    properties.UserLimit = maxUsers;
                                                                    properties.CategoryId = (ulong)voiceChannelsCategoryId;
+                                                                   properties.PermissionOverwrites = new Optional<IEnumerable<Overwrite>>(rolePermissionOverrides);
                                                                });
             return ((DiscordChannelId)voiceChannel.Id, null);
         }
