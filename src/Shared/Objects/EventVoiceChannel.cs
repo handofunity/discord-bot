@@ -47,7 +47,7 @@ public class EventVoiceChannel
             7 => "\uD83E\uDD8A Fox",
             8 => "\uD83E\uDD98 Kangaroo",
             9 => "\uD83D\uDC2C Dolphin",
-            10 => "\uD83E\uDEBF Goose",
+            10 => "\uD83E\uDDA2 Swan",
             11 => "\uD83E\uDD81 Lion",
             12 => "\uD83E\uDD80 Crab",
             13 => "\uD83E\uDD8B Butterfly",
