@@ -1,4 +1,5 @@
-﻿using Game = HoU.GuildBot.DAL.Database.Model.Game;
+﻿using Npgsql;
+using Game = HoU.GuildBot.DAL.Database.Model.Game;
 using User = HoU.GuildBot.Shared.Objects.User;
 
 namespace HoU.GuildBot.DAL.Database;
@@ -15,7 +16,15 @@ public class DatabaseAccess : IDatabaseAccess
     {
         _logger = logger;
         var builder = new DbContextOptionsBuilder<HandOfUnityContext>();
-        builder.UseNpgsql(rootSettings.ConnectionStringForOwnDatabase);
+        builder.UseNpgsql(rootSettings.ConnectionStringForOwnDatabase, pgServerOptions =>
+        {
+            pgServerOptions.CommandTimeout(30);
+            pgServerOptions.EnableRetryOnFailure(5, TimeSpan.FromSeconds(20),
+                [
+                    PostgresErrorCodes.TooManyConnections
+                ]);
+            pgServerOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+        });
         _trackingContextOptions = builder.Options;
         builder.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
         _noTrackingContextOptions = builder.Options;
@@ -272,7 +281,7 @@ public class DatabaseAccess : IDatabaseAccess
             await entities.SaveChangesAsync();
             return;
         }
-        
+
         // Create new user info
         entities.UserInfo.Add(new UserInfo { UserId = (int)user.InternalUserId, PromotedToTrialMemberDate = user.PromotedToTrialMemberDate });
         await entities.SaveChangesAsync();
@@ -410,7 +419,7 @@ public class DatabaseAccess : IDatabaseAccess
         }
         catch (Exception e)
         {
-            _logger.LogError(e, 
+            _logger.LogError(e,
                              "Failed to delete birthday for user {InternalUserId}",
                              user.InternalUserId);
             return false;
