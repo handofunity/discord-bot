@@ -1,7 +1,19 @@
-﻿namespace HoU.GuildBot.Core;
+﻿using Polly;
+using Polly.Contrib.WaitAndRetry;
+using Polly.Extensions.Http;
+
+namespace HoU.GuildBot.Core;
 
 internal static class ServiceCollectionExtensions
 {
+    private static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
+    {
+        var delay = Backoff.DecorrelatedJitterBackoffV2(medianFirstRetryDelay: TimeSpan.FromSeconds(1), retryCount: 5);
+        return HttpPolicyExtensions
+            .HandleTransientHttpError()
+            .WaitAndRetryAsync(delay);
+    }
+
     internal static IServiceCollection AddLogging(this IServiceCollection services,
                                                   IConfiguration completeConfiguration)
     {
@@ -13,10 +25,10 @@ internal static class ServiceCollectionExtensions
                                  .WriteTo.Seq(seqServerUrl, apiKey: seqApiKey)
                                  .Enrich.WithExceptionDetails(new DestructuringOptionsBuilder()
                                                              .WithDefaultDestructurers()
-                                                             .WithDestructurers(new IExceptionDestructurer[]
-                                                              {
+                                                             .WithDestructurers(
+                                                              [
                                                                   new DbUpdateExceptionDestructurer()
-                                                              }));
+                                                              ]));
 
 #if DEBUG
         loggerConfiguration.WriteTo.Debug();
@@ -34,40 +46,41 @@ internal static class ServiceCollectionExtensions
     internal static IServiceCollection AddDataAccessLayer(this IServiceCollection services)
     {
         services.AddHttpClient("units")
-                .ConfigureHttpClient(client =>
-                 {
-                     client.DefaultRequestHeaders.Accept.Clear();
-                     client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                 })
-                .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
-                 {
+            .AddPolicyHandler(GetRetryPolicy())
+            .ConfigureHttpClient(client =>
+                {
+                    client.DefaultRequestHeaders.Accept.Clear();
+                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                })
+            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+                {
 #if DEBUG
-                     ServerCertificateCustomValidationCallback = (_,
-                                                                  _,
-                                                                  _,
-                                                                  _) => true
+                    ServerCertificateCustomValidationCallback = (_,
+                                                                _,
+                                                                _,
+                                                                _) => true
 #endif
-                 });
+                });
 
         services.AddSingleton<IConfigurationDatabaseAccess, ConfigurationDatabaseAccess>()
-                .AddSingleton<IDatabaseAccess, DatabaseAccess>()
-                .AddSingleton<IDiscordAccess, DiscordAccess>()
-                .AddSingleton<IDiscordLogger>(provider => provider.GetRequiredService<IDiscordAccess>())
-                .AddSingleton<IWebAccess, WebAccess>()
-                .AddSingleton<IUnitsAccess, UnitsAccess>()
-                .AddSingleton<IUnitsSignalRClient, UnitsSignalRClient>()
-                .AddTransient<IDiscordSyncClient, DiscordSyncClient>(provider =>
-                 {
-                     var httpClientFactory = provider.GetRequiredService<IHttpClientFactory>();
-                     var httpClient = httpClientFactory.CreateClient("units");
-                     return new DiscordSyncClient(httpClient);
-                 })
-                .AddTransient<IDiscordUserClient, DiscordUserClient>(provider =>
+            .AddSingleton<IDatabaseAccess, DatabaseAccess>()
+            .AddSingleton<IDiscordAccess, DiscordAccess>()
+            .AddSingleton<IDiscordLogger>(provider => provider.GetRequiredService<IDiscordAccess>())
+            .AddSingleton<IWebAccess, WebAccess>()
+            .AddSingleton<IUnitsAccess, UnitsAccess>()
+            .AddSingleton<IUnitsSignalRClient, UnitsSignalRClient>()
+            .AddTransient<IDiscordSyncClient, DiscordSyncClient>(provider =>
                 {
                     var httpClientFactory = provider.GetRequiredService<IHttpClientFactory>();
                     var httpClient = httpClientFactory.CreateClient("units");
-                    return new DiscordUserClient(httpClient);
-                });
+                    return new DiscordSyncClient(httpClient);
+                })
+            .AddTransient<IDiscordUserClient, DiscordUserClient>(provider =>
+            {
+                var httpClientFactory = provider.GetRequiredService<IHttpClientFactory>();
+                var httpClient = httpClientFactory.CreateClient("units");
+                return new DiscordUserClient(httpClient);
+            });
 
         return services;
     }
