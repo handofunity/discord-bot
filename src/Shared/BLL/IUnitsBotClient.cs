@@ -46,7 +46,8 @@ public interface IUnitsBotClient
         int appointmentId,
         DateTimeOffset startTime,
         ulong threadId,
-        ulong[] usersToNotify);
+        ulong[] usersToNotify,
+        ulong? generalVoiceChannelId);
 
     // See UnitsSignalRClient.RegisterHandlers
     [UsedImplicitly]

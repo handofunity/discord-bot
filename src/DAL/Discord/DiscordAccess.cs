@@ -1280,7 +1280,8 @@ public class DiscordAccess : IDiscordAccess
 
     async Task IDiscordAccess.SendUnitsNotificationAsync(DiscordChannelId threadId,
         string message,
-        string[] mentions)
+        string[] mentions,
+        DiscordChannelId? linkToChannelId)
     {
         try
         {
@@ -1292,6 +1293,11 @@ public class DiscordAccess : IDiscordAccess
                     threadId);
                 return;
             }
+
+            string? linkToChannel = null;
+            if (linkToChannelId is not null)
+                linkToChannel = $"https://discord.com/channels/{g.Id}/{linkToChannelId}";
+
             var notifications = SplitMentionsIntoMessages(message.Length, mentions);
 
             var initialMessage = await threadChannel.SendMessageAsync(message + " " + notifications[0]);
@@ -1303,6 +1309,12 @@ public class DiscordAccess : IDiscordAccess
                     await Task.Delay(500);
                     await threadChannel.SendMessageAsync(message + " " + notification);
                 }
+            }
+
+            if (linkToChannel is not null)
+            {
+                await Task.Delay(500);
+                await threadChannel.SendMessageAsync(linkToChannel);
             }
         }
         catch (Exception e)
@@ -1770,7 +1782,7 @@ public class DiscordAccess : IDiscordAccess
         }
     }
 
-    private async Task Client_UserVoiceStateUpdated(SocketUser socketUser,
+    private Task Client_UserVoiceStateUpdated(SocketUser socketUser,
         SocketVoiceState oldState,
         SocketVoiceState newState)
     {
@@ -1779,7 +1791,7 @@ public class DiscordAccess : IDiscordAccess
         var newChannelId = newState.VoiceChannel?.Id;
         // No change in the channel.
         if (oldChannelId == newChannelId)
-            return;
+            return Task.CompletedTask;
 
         // If the new channel Id is set, add or update the channel Id.
         if (newChannelId is not null)
@@ -1790,24 +1802,18 @@ public class DiscordAccess : IDiscordAccess
             _logger.LogTrace("Set voice channel Id for user {UserId} to {ChannelId}",
                 userId,
                 newChannelId.Value);
-            return;
+            return Task.CompletedTask;
         }
 
         // If the old channel Id is set, remove the user from the connection list.
         if (oldChannelId is not null)
         {
             if (_userVoiceChannelConnections.TryRemove(userId, out _))
-            {
                 _logger.LogTrace("Removed voice channel Id for user {UserId}",
                     userId);
-            }
-            else
-            {
-                var roleId = (DiscordRoleId)_dynamicConfiguration.DiscordMapping["DeveloperRoleId"];
-                var developerMention = roleId.ToMention();
-                await LogToDiscordInternal($"{developerMention} Failed to remove voice state for user {((DiscordUserId)userId).ToMention()}");
-            }
         }
+
+        return Task.CompletedTask;
     }
 
     private static async Task InteractionService_SlashCommandExecuted(SlashCommandInfo commandInfo,

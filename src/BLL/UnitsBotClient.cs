@@ -142,13 +142,15 @@ public class UnitsBotClient(IDiscordAccess _discordAccess,
 
     private async Task SendUnitsNotificationAsync(DiscordChannelId threadId,
         string message,
-        string[]? mentions = null)
+        string[]? mentions = null,
+        DiscordChannelId? linkToChannelId = null)
     {
         if (mentions is not null && mentions.Length > 0)
         {
             await _discordAccess.SendUnitsNotificationAsync(threadId,
                 message,
-                mentions);
+                mentions,
+                linkToChannelId);
         }
         else
         {
@@ -281,13 +283,19 @@ public class UnitsBotClient(IDiscordAccess _discordAccess,
         int appointmentId,
         DateTimeOffset startTime,
         ulong threadId,
-        ulong[] usersToNotify)
+        ulong[] usersToNotify,
+        ulong? generalVoiceChannelId)
     {
         var url = GetEventUrl(baseAddress, appointmentId);
         var message = $"Your event is starting {GetDiscordTimeString(startTime, "R")}. " +
             $"[Open the event in your browser]({url}).";
         var userIds = ToDiscordUserIds(usersToNotify);
-        await SendUnitsNotificationAsync((DiscordChannelId)threadId, message, userIds.ToMentions());
+        await SendUnitsNotificationAsync((DiscordChannelId)threadId,
+            message,
+            userIds.ToMentions(),
+            generalVoiceChannelId is null
+                ? null
+                : (DiscordChannelId)generalVoiceChannelId.Value);
     }
 
     async Task IUnitsBotClient.ReceiveCreateEventVoiceChannelsMessageAsync(Uri baseAddress,

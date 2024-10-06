@@ -296,10 +296,12 @@ public interface IDiscordAccess : IDiscordLogger
     /// <param name="threadId">The Id of the Discord thread channel the notification will be sent to.</param>
     /// <param name="message">The message to send.</param>
     /// <param name="mentions">The mentions for users or roles to notify about the <paramref name="embedData"/>.</param>
+    /// <param name="linkToChannelId">The optional Id of a channel to link to.</param>
     /// <returns>An awaitable <see cref="Task"/>.</returns>
     Task SendUnitsNotificationAsync(DiscordChannelId threadId,
         string message,
-        string[] mentions);
+        string[] mentions,
+        DiscordChannelId? linkToChannelId);
 
     /// <summary>
     /// Gets all users in the given <paramref name="voiceChannelIds"/>.
