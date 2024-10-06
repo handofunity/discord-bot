@@ -46,6 +46,14 @@ public class UnitsBotClient(IDiscordAccess _discordAccess,
                                       int appointmentId) =>
         $"{baseAddress}events/{appointmentId}";
 
+    private static string GetDiscordTimeString(DateTimeOffset dateTimeOffset,
+        string format)
+    {
+        var unixTime = dateTimeOffset - DateTimeOffset.UnixEpoch;
+        var unixSeconds = (uint)Math.Floor(unixTime.TotalSeconds);
+        return $"<t:{unixSeconds}:{format}>";
+    }
+
     private static void AddTimeField(List<EmbedField> fields,
                                      DateTimeOffset startTime,
                                      DateTimeOffset endTime,
@@ -56,14 +64,12 @@ public class UnitsBotClient(IDiscordAccess _discordAccess,
         var endTimeUtc = endTime.ToUniversalTime();
         // Time
         var duration = isAllDay ? endTimeUtc.Date.AddDays(1) - startTimeUtc.Date : endTimeUtc - startTimeUtc;
-        var startTimeUnix = startTimeUtc - DateTimeOffset.UnixEpoch;
-        var endTimeUnix = endTimeUtc - DateTimeOffset.UnixEpoch;
         if (isAllDay)
         {
             var communityTimeString = new StringBuilder(startTimeUtc.ToString("ddd MMM dd"));
             communityTimeString.Append(GetDayOfMonthSuffix(startTimeUtc.Day) + ", ");
             communityTimeString.Append(startTimeUtc.ToString("yyyy"));
-            var localTimeString = new StringBuilder($"<t:{startTimeUnix.TotalSeconds}:D>");
+            var localTimeString = new StringBuilder(GetDiscordTimeString(startTimeUtc, "D"));
             if (duration.Days > 1)
             {
                 communityTimeString.Append(" - ");
@@ -71,7 +77,7 @@ public class UnitsBotClient(IDiscordAccess _discordAccess,
                 communityTimeString.Append(GetDayOfMonthSuffix(endTimeUtc.Day) + ", ");
                 communityTimeString.Append(endTimeUtc.ToString("yyyy"));
                 localTimeString.Append(" - ");
-                localTimeString.Append($"<t:{endTimeUnix.TotalSeconds}:D>");
+                localTimeString.Append(GetDiscordTimeString(endTimeUtc, "D"));
             }
 
             fields.Add(new EmbedField("Community Time" + fieldTitlePostfix, communityTimeString.ToString(), false));
@@ -87,7 +93,7 @@ public class UnitsBotClient(IDiscordAccess _discordAccess,
             communityTimeString.Append(" - ");
             communityTimeString.Append(endTimeUtc.ToString("h:mm tt"));
             communityTimeString.Append(" UTC");
-            var localTimeString = $"<t:{startTimeUnix.TotalSeconds}:F> - <t:{endTimeUnix.TotalSeconds}:t>";
+            var localTimeString = $"{GetDiscordTimeString(startTimeUtc, "F")} - {GetDiscordTimeString(endTimeUtc, "t")}";
             fields.Add(new EmbedField("Community Time" + fieldTitlePostfix, communityTimeString.ToString(), false));
             fields.Add(new EmbedField("Local Time" + fieldTitlePostfix, localTimeString.ToString(), false));
         }
@@ -271,8 +277,7 @@ public class UnitsBotClient(IDiscordAccess _discordAccess,
         ulong[] usersToNotify)
     {
         var url = GetEventUrl(baseAddress, appointmentId);
-        var relativeStartTime = (startTime - DateTimeOffset.UnixEpoch).TotalSeconds;
-        var message = $"Your event is starting <t:{relativeStartTime}:R>. " +
+        var message = $"Your event is starting {GetDiscordTimeString(startTime, "R")}. " +
             $"[Open the event in your browser]({url}).";
         var userIds = ToDiscordUserIds(usersToNotify);
         await SendUnitsNotificationAsync((DiscordChannelId)threadId, message, userIds);
