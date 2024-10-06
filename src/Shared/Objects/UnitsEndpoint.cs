@@ -4,4 +4,5 @@ public record UnitsEndpoint(int UnitsEndpointId,
                             Uri BaseAddress,
                             bool ConnectToRestApi,
                             bool ConnectToNotificationHub,
-                            KeycloakEndpoint KeycloakEndpoint);
+                            KeycloakEndpoint KeycloakEndpoint,
+                            DiscordRoleId? NewEventPingDiscordRoleId);

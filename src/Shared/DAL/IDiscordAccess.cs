@@ -278,26 +278,28 @@ public interface IDiscordAccess : IDiscordLogger
     /// <summary>
     /// Sends the <paramref name="embedData"/> as a notification in the UnitsNotificationsChannel and creates a thread for the notification.
     /// </summary>
-    /// <param name="unitsEndpoint">The Id of the <see cref="UnitsEndpoint"/> used to determine the channel the notification will be sent to.</param>
+    /// <param name="unitsEndpointId">The Id of the <see cref="UnitsEndpoint"/> used to determine the channel the notification will be sent to.</param>
     /// <param name="threadName">The name of the thread to create.</param>
     /// <param name="embedData">The <see cref="EmbedData"/> to send.</param>
-    /// <param name="usersToNotify">The users to notify about the <paramref name="embedData"/>.</param>
+    /// <param name="mentions">The mentions for users or roles to notify about the <paramref name="embedData"/>.</param>
+    /// <param name="mentionInThread">If <b>true</b>, the <paramref name="mentions"/> will be posted in the created thread, otherwise on the root message.</param>
     /// <returns>The Id of the created thread, or <b>null</b>, if the creation fails.</returns>
     Task<DiscordChannelId?> SendUnitsNotificationAsync(int unitsEndpointId,
         string threadName,
         EmbedData embedData,
-        DiscordUserId[] usersToNotify);
+        string[] mentions,
+        bool mentionInThread);
 
     /// <summary>
     /// Sends the <paramref name="embedData"/> as a notification in the UnitsNotificationsChannel.
     /// </summary>
     /// <param name="threadId">The Id of the Discord thread channel the notification will be sent to.</param>
     /// <param name="message">The message to send.</param>
-    /// <param name="usersToNotify">The users to notify about the <paramref name="embedData"/>.</param>
+    /// <param name="mentions">The mentions for users or roles to notify about the <paramref name="embedData"/>.</param>
     /// <returns>An awaitable <see cref="Task"/>.</returns>
     Task SendUnitsNotificationAsync(DiscordChannelId threadId,
         string message,
-        DiscordUserId[] usersToNotify);
+        string[] mentions);
 
     /// <summary>
     /// Gets all users in the given <paramref name="voiceChannelIds"/>.

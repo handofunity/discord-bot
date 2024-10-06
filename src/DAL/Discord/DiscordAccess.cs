@@ -588,11 +588,11 @@ public class DiscordAccess : IDiscordAccess
     }
 
     private static List<string> SplitMentionsIntoMessages(int baseMessageLength,
-        DiscordUserId[] usersToNotify)
+        string[] mentions)
     {
         decimal freeSpaceBaseAfterMessage = 2000 - Math.Max(baseMessageLength + 1, 500);
         var notifications = new List<string>();
-        var allMentions = new Queue<string>(usersToNotify.Select(m => m.ToMention() + " "));
+        var allMentions = new Queue<string>(mentions.Select(m => m + " "));
         var totalLength = allMentions.Sum(m => m.Length);
         var totalMessagesRequired = (int)Math.Ceiling(totalLength / freeSpaceBaseAfterMessage);
         if (totalMessagesRequired == 1)
@@ -1236,7 +1236,8 @@ public class DiscordAccess : IDiscordAccess
     async Task<DiscordChannelId?> IDiscordAccess.SendUnitsNotificationAsync(int unitsEndpointId,
         string threadName,
         EmbedData embedData,
-        DiscordUserId[] usersToNotify)
+        string[] mentions,
+        bool mentionInThread)
     {
         try
         {
@@ -1251,9 +1252,15 @@ public class DiscordAccess : IDiscordAccess
                 return null;
             }
             var embed = embedData.ToEmbed();
-            var notifications = SplitMentionsIntoMessages(0, usersToNotify);
+            var notifications = SplitMentionsIntoMessages(0, mentions);
 
-            var initialMessage = await textChannel.SendMessageAsync(null, false, embed);
+            string? initialText = null;
+            if (mentionInThread == false && notifications.Count == 1)
+            {
+                initialText = notifications[0];
+                notifications.Clear();
+            }
+            var initialMessage = await textChannel.SendMessageAsync(initialText, false, embed);
             var thread = await textChannel.CreateThreadAsync(threadName, autoArchiveDuration: ThreadArchiveDuration.ThreeDays, message: initialMessage);
 
             foreach (var notification in notifications)
@@ -1273,7 +1280,7 @@ public class DiscordAccess : IDiscordAccess
 
     async Task IDiscordAccess.SendUnitsNotificationAsync(DiscordChannelId threadId,
         string message,
-        DiscordUserId[] usersToNotify)
+        string[] mentions)
     {
         try
         {
@@ -1285,7 +1292,7 @@ public class DiscordAccess : IDiscordAccess
                     threadId);
                 return;
             }
-            var notifications = SplitMentionsIntoMessages(message.Length, usersToNotify);
+            var notifications = SplitMentionsIntoMessages(message.Length, mentions);
 
             var initialMessage = await threadChannel.SendMessageAsync(message + " " + notifications[0]);
 
@@ -1798,7 +1805,7 @@ public class DiscordAccess : IDiscordAccess
             {
                 var roleId = (DiscordRoleId)_dynamicConfiguration.DiscordMapping["DeveloperRoleId"];
                 var developerMention = roleId.ToMention();
-                await LogToDiscordInternal($"{developerMention} Failed to remove voice state for user {((DiscordRoleId)userId).ToMention()}");
+                await LogToDiscordInternal($"{developerMention} Failed to remove voice state for user {((DiscordUserId)userId).ToMention()}");
             }
         }
     }

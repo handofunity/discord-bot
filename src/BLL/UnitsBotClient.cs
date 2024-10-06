@@ -121,14 +121,16 @@ public class UnitsBotClient(IDiscordAccess _discordAccess,
     private async Task<DiscordChannelId?> SendUnitsNotificationAsync(UnitsEndpoint unitsEndpoint,
         string threadName,
         EmbedData embed,
-        DiscordUserId[]? usersToNotify = null)
+        string[]? mentions,
+        bool mentionInThread)
     {
-        if (usersToNotify is not null && usersToNotify.Length > 0)
+        if (mentions is not null && mentions.Length > 0)
         {
             return await _discordAccess.SendUnitsNotificationAsync(unitsEndpoint.UnitsEndpointId,
                 threadName,
                 embed,
-                usersToNotify);
+                mentions,
+                mentionInThread);
         }
         else
         {
@@ -140,13 +142,13 @@ public class UnitsBotClient(IDiscordAccess _discordAccess,
 
     private async Task SendUnitsNotificationAsync(DiscordChannelId threadId,
         string message,
-        DiscordUserId[]? usersToNotify = null)
+        string[]? mentions = null)
     {
-        if (usersToNotify is not null && usersToNotify.Length > 0)
+        if (mentions is not null && mentions.Length > 0)
         {
             await _discordAccess.SendUnitsNotificationAsync(threadId,
                 message,
-                usersToNotify);
+                mentions);
         }
         else
         {
@@ -191,7 +193,12 @@ public class UnitsBotClient(IDiscordAccess _discordAccess,
             _logger.LogDebug("Image URL for event {AppointmentId} is null",
                              appointmentId);
         }
-        var threadId = await SendUnitsNotificationAsync(unitsEndpoint, eventName, embed);
+
+        var mentions = new List<string>(1);
+        var newEventMention = unitsEndpoint.NewEventPingDiscordRoleId?.ToMention();
+        if (newEventMention is not null)
+            mentions.Add(newEventMention);
+        var threadId = await SendUnitsNotificationAsync(unitsEndpoint, eventName, embed, [.. mentions], false);
         if (threadId is not null)
             await _unitsAccess.SendCreatedThreadIdAsync(unitsEndpoint, appointmentId, threadId.Value);
     }
@@ -239,7 +246,7 @@ public class UnitsBotClient(IDiscordAccess _discordAccess,
         if (originalThreadId is not null)
             await _discordAccess.ArchiveThreadAsync((DiscordChannelId)originalThreadId.Value);
         var userIds = ToDiscordUserIds(usersToNotify);
-        var threadId = await SendUnitsNotificationAsync(unitsEndpoint, eventName, embed, userIds);
+        var threadId = await SendUnitsNotificationAsync(unitsEndpoint, eventName, embed, userIds.ToMentions(), true);
         if (threadId is not null)
         {
             await _discordAccess.TryAddUsersToThreadAsync(threadId.Value, userIds);
@@ -253,7 +260,7 @@ public class UnitsBotClient(IDiscordAccess _discordAccess,
         const string message = "This event was canceled in UNITS. " +
             "If you're being mentioned, you've signed up to the canceled event.";
         var userIds = ToDiscordUserIds(usersToNotify);
-        await SendUnitsNotificationAsync((DiscordChannelId)threadId, message, userIds);
+        await SendUnitsNotificationAsync((DiscordChannelId)threadId, message, userIds.ToMentions());
     }
 
     async Task IUnitsBotClient.ReceiveEventAttendanceConfirmedMessageAsync(Uri baseAddress,
@@ -266,7 +273,7 @@ public class UnitsBotClient(IDiscordAccess _discordAccess,
         var message = "Your event attendance has been confirmed. " +
             $"[Please open the event in your browser]({url}) to **check your assigned group (or benched state)**.";
         var userIds = ToDiscordUserIds(usersToNotify);
-        await SendUnitsNotificationAsync(discordThreadId, message, userIds);
+        await SendUnitsNotificationAsync(discordThreadId, message, userIds.ToMentions());
         await _discordAccess.TryAddUsersToThreadAsync(discordThreadId, userIds);
     }
 
@@ -280,7 +287,7 @@ public class UnitsBotClient(IDiscordAccess _discordAccess,
         var message = $"Your event is starting {GetDiscordTimeString(startTime, "R")}. " +
             $"[Open the event in your browser]({url}).";
         var userIds = ToDiscordUserIds(usersToNotify);
-        await SendUnitsNotificationAsync((DiscordChannelId)threadId, message, userIds);
+        await SendUnitsNotificationAsync((DiscordChannelId)threadId, message, userIds.ToMentions());
     }
 
     async Task IUnitsBotClient.ReceiveCreateEventVoiceChannelsMessageAsync(Uri baseAddress,

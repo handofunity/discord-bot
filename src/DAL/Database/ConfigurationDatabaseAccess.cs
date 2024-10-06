@@ -45,11 +45,14 @@ public class ConfigurationDatabaseAccess : IConfigurationDatabaseAccess
                                       .AsNoTrackingWithIdentityResolution()
                                       .ToArrayAsync();
         return dbEntries.Select(m => new UnitsEndpoint(m.UnitsEndpointId,
-                                                       new Uri(m.BaseAddress),
-                                                       m.ConnectToRestApi,
-                                                       m.ConnectToNotificationsHub,
-                                                       Map(m.KeycloakEndpoint!)))
-                        .ToArray();
+                new Uri(m.BaseAddress),
+                m.ConnectToRestApi,
+                m.ConnectToNotificationsHub,
+                Map(m.KeycloakEndpoint!),
+                m.NewEventPingDiscordRoleId is null
+                    ? null
+                    : (DiscordRoleId)(ulong)m.NewEventPingDiscordRoleId))
+            .ToArray();
     }
 
     async Task<KeycloakEndpoint[]> IConfigurationDatabaseAccess.GetAllKeycloakEndpointsAsync()
