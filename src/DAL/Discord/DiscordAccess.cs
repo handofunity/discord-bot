@@ -1,4 +1,4 @@
-﻿using Discord;
+﻿using System.Collections.Concurrent;
 using System.Diagnostics;
 using ButtonComponent = Discord.ButtonComponent;
 using SelectMenuComponent = HoU.GuildBot.Shared.Objects.SelectMenuComponent;
@@ -26,6 +26,7 @@ public class DiscordAccess : IDiscordAccess
     private readonly InteractionService _interactionService;
     private readonly Queue<string> _pendingMessages;
     private readonly IMessageProvider _messageProvider;
+    private readonly ConcurrentDictionary<ulong, ulong> _userVoiceChannelConnections = [];
 
     private bool _guildAvailable;
 
@@ -654,6 +655,7 @@ public class DiscordAccess : IDiscordAccess
                         _client.SelectMenuExecuted += Client_SelectMenuExecuted;
                         _client.MessageReceived += Client_MessageReceived;
                         _client.ModalSubmitted += Client_ModalSubmitted;
+                        _client.UserVoiceStateUpdated += Client_UserVoiceStateUpdated;
                     }
                     catch (Exception e)
                     {
@@ -677,6 +679,7 @@ public class DiscordAccess : IDiscordAccess
                     _client.ButtonExecuted -= Client_ButtonExecuted;
                     _client.SelectMenuExecuted -= Client_SelectMenuExecuted;
                     _client.ModalSubmitted -= Client_ModalSubmitted;
+                    _client.UserVoiceStateUpdated -= Client_UserVoiceStateUpdated;
                     await disconnectedHandler();
                 }).ConfigureAwait(false);
                 // Return immediately
@@ -1305,17 +1308,29 @@ public class DiscordAccess : IDiscordAccess
     {
         var g = GetGuild();
         var result = new Dictionary<string, List<DiscordUserId>>();
+        var allBotTrackedUserIds = _userVoiceChannelConnections
+            .GroupBy(m => m.Value)
+            .Where(m => voiceChannelIds.Contains(m.Key.ToString()))
+            .ToDictionary(m => m.Key, m => m.Select(kvp => (DiscordUserId)kvp.Key).ToArray());
         foreach (var voiceChannelIdStr in voiceChannelIds)
         {
             if (!ulong.TryParse(voiceChannelIdStr, out var voiceChannelId))
                 continue;
 
             var voiceChannel = g.GetVoiceChannel(voiceChannelId);
-            var userIds = voiceChannel.ConnectedUsers
-                                      .Select(m => (DiscordUserId) m.Id)
-                                      .ToList();
-            if (userIds.Any())
-                result.Add(voiceChannelIdStr, userIds);
+            var discordNetTrackedUserIds = voiceChannel.ConnectedUsers
+                .Select(m => (DiscordUserId) m.Id)
+                .ToList();
+            if (allBotTrackedUserIds.TryGetValue(voiceChannelId, out var botTrackedUserIds)
+             && botTrackedUserIds.Length > 0)
+            {
+                discordNetTrackedUserIds = discordNetTrackedUserIds
+                    .Union(botTrackedUserIds)
+                    .ToList();
+            }
+
+            if (discordNetTrackedUserIds.Count > 0)
+                result.Add(voiceChannelIdStr, discordNetTrackedUserIds);
         }
 
         return result;
@@ -1745,6 +1760,46 @@ public class DiscordAccess : IDiscordAccess
             }
 
             return result.ToImmutableArray();
+        }
+    }
+
+    private async Task Client_UserVoiceStateUpdated(SocketUser socketUser,
+        SocketVoiceState oldState,
+        SocketVoiceState newState)
+    {
+        var userId = socketUser.Id;
+        var oldChannelId = oldState.VoiceChannel?.Id;
+        var newChannelId = newState.VoiceChannel?.Id;
+        // No change in the channel.
+        if (oldChannelId == newChannelId)
+            return;
+
+        // If the new channel Id is set, add or update the channel Id.
+        if (newChannelId is not null)
+        {
+            _userVoiceChannelConnections.AddOrUpdate(userId,
+                newChannelId.Value,
+                (key, value) => newChannelId.Value);
+            _logger.LogTrace("Set voice channel Id for user {UserId} to {ChannelId}",
+                userId,
+                newChannelId.Value);
+            return;
+        }
+
+        // If the old channel Id is set, remove the user from the connection list.
+        if (oldChannelId is not null)
+        {
+            if (_userVoiceChannelConnections.TryRemove(userId, out _))
+            {
+                _logger.LogTrace("Removed voice channel Id for user {UserId}",
+                    userId);
+            }
+            else
+            {
+                var roleId = (DiscordRoleId)_dynamicConfiguration.DiscordMapping["DeveloperRoleId"];
+                var developerMention = roleId.ToMention();
+                await LogToDiscordInternal($"{developerMention} Failed to remove voice state for user {((DiscordRoleId)userId).ToMention()}");
+            }
         }
     }
 

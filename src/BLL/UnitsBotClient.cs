@@ -365,15 +365,28 @@ public class UnitsBotClient(IDiscordAccess _discordAccess,
             return;
 
         var voiceChannelUsers = _discordAccess.GetUsersInVoiceChannels(voiceChannelIds);
-        if (voiceChannelUsers.Any())
+        if (voiceChannelUsers.Count == 0)
         {
-            var request = new SyncCurrentAttendeesRequest(appointmentId,
-                                                          checkNumber,
-                                                          voiceChannelUsers.Select(m => new VoiceChannelAttendees(m.Key,
-                                                                                        m.Value.ConvertAll(l => (ulong)l)))
-                                                                           .ToList());
-            await _unitsAccess.SendCurrentAttendeesAsync(unitsEndpoint!,
-                                                         request);
+            _logger.LogInformation("Couldn't find any voice channel attendees for appointment {AppointmentId} and check {CheckNumber}",
+                appointmentId,
+                checkNumber);
+            return;
         }
+
+        var request = new SyncCurrentAttendeesRequest(appointmentId,
+            checkNumber,
+            voiceChannelUsers
+                .Select(m => new VoiceChannelAttendees(
+                    m.Key,
+                    m.Value.ConvertAll(l => (ulong)l)))
+                .ToList());
+
+        _logger.LogInformation("Sending current voice channel attendees for appointment {AppointmentId} and check {CheckNumber}: {@Attendees}",
+            appointmentId,
+            checkNumber,
+            request);
+
+        await _unitsAccess.SendCurrentAttendeesAsync(unitsEndpoint!,
+            request);
     }
 }
