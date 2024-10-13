@@ -378,6 +378,11 @@ public class UnitsBotClient(IDiscordAccess _discordAccess,
         int checkNumber,
         string[] voiceChannelIds)
     {
+        _logger.LogDebug("Received GetCurrentAttendeesMessage for event {AppointmentId} and check {CheckNumber} with voice channels {@VoiceChannelIds}",
+            appointmentId,
+            checkNumber,
+            voiceChannelIds);
+
         if (voiceChannelIds == null || voiceChannelIds.Length == 0)
             return;
 
