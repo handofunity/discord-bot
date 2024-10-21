@@ -24,7 +24,7 @@ public class VacationModule : InteractionModuleBase<SocketInteractionContext>
     }
 
     [SlashCommand("list", "Lists all current and upcoming vacations, or for a specific date.")]
-    [AllowedRoles(Role.Leader | Role.Officer)]
+    [AllowedRoles(Role.Leader | Role.Officer | Role.Coordinator)]
     public async Task ListAllVacationsAsync([Summary(description: "Format: yyyy-MM-dd")] DateTime? dateFilter = null)
     {
         if (dateFilter == null)
@@ -40,7 +40,7 @@ public class VacationModule : InteractionModuleBase<SocketInteractionContext>
     }
 
     [SlashCommand("list-today", "Lists all vacations for today.")]
-    [AllowedRoles(Role.Leader | Role.Officer)]
+    [AllowedRoles(Role.Leader | Role.Officer | Role.Coordinator)]
     public async Task ListVacationsForTodayAsync()
     {
         var response = await _vacationProvider.GetVacations(DateTime.Today);
@@ -48,7 +48,7 @@ public class VacationModule : InteractionModuleBase<SocketInteractionContext>
     }
 
     [SlashCommand("list-tomorrow", "Lists all vacations for tomorrow.")]
-    [AllowedRoles(Role.Leader | Role.Officer)]
+    [AllowedRoles(Role.Leader | Role.Officer | Role.Coordinator)]
     public async Task ListVacationsForTomorrowAsync()
     {
         var response = await _vacationProvider.GetVacations(DateTime.Today.AddDays(1));
@@ -56,7 +56,7 @@ public class VacationModule : InteractionModuleBase<SocketInteractionContext>
     }
 
     [SlashCommand("list-user", "Lists all current and upcoming vacations for a specific user.")]
-    [AllowedRoles(Role.Leader | Role.Officer)]
+    [AllowedRoles(Role.Leader | Role.Officer | Role.Coordinator)]
     public async Task ListVacationsForUserAsync(IUser user)
     {
         var response = await _vacationProvider.GetVacations((DiscordUserId)user.Id);
