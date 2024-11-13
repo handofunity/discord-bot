@@ -42,7 +42,8 @@ public class DiscordAccess : IDiscordAccess
             {"Member", Role.Member},
             {"Trial Member", Role.TrialMember},
             {"Guest", Role.Guest},
-            {"Friend of Member", Role.FriendOfMember}
+            {"Friend of Member", Role.FriendOfMember},
+            {"TnL - Friend", Role.TnlFriend}
         };
     }
 
@@ -246,7 +247,7 @@ public class DiscordAccess : IDiscordAccess
     private IRole GetRoleByName(string name)
     {
         return GetGuild().Roles.SingleOrDefault(m => m.Name == name)
-            ?? throw new InvalidOperationException("Role not found.");
+            ?? throw new InvalidOperationException($"Role '{name}' not found.");
     }
 
     private static LogLevel ToLogLevel(LogSeverity severity) =>
@@ -732,7 +733,7 @@ public class DiscordAccess : IDiscordAccess
     Dictionary<DiscordUserId, string> IDiscordAccess.GetUserDisplayNames(IEnumerable<DiscordUserId> userIds) => userIds.Select(GetGuildUserById).ToDictionary(gu => (DiscordUserId)gu.Id, gu => gu.DisplayName);
 
     async Task<bool> IDiscordAccess.TryAddNonMemberRoleAsync(DiscordUserId userId,
-                                                        Role targetRole)
+        Role targetRole)
     {
         var roleDisplayName = _roleMapping.Single(m => m.Value == targetRole).Key;
         var role = GetRoleByName(roleDisplayName);

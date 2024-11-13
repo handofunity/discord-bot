@@ -8,7 +8,7 @@ public class DiscordUserEventHandler : IDiscordUserEventHandler
     private readonly IDatabaseAccess _databaseAccess;
     private readonly IMenuRegistry _menuRegistry;
     private IDiscordAccess? _discordAccess;
-        
+
     public DiscordUserEventHandler(IUserStore userStore,
                                    IPrivacyProvider privacyProvider,
                                    IDynamicConfiguration dynamicConfiguration,
@@ -21,7 +21,7 @@ public class DiscordUserEventHandler : IDiscordUserEventHandler
         _databaseAccess = databaseAccess;
         _menuRegistry = menuRegistry;
     }
-        
+
     IDiscordAccess IDiscordUserEventHandler.DiscordAccess
     {
         set => _discordAccess = value;
@@ -39,7 +39,7 @@ public class DiscordUserEventHandler : IDiscordUserEventHandler
                 user.JoinedDate = joinedDate;
                 await _databaseAccess.UpdateUserInformationAsync(new []{ user });
             }
-            
+
             var infosAndRolesChannelId = (DiscordChannelId)_dynamicConfiguration.DiscordMapping["InfoAndRolesChannelId"];
             var messageContent = $"Welcome {userID.ToMention()}! Please use the two menus above to assign yourself roles "
                                + "regarding your relationship to the guild and your game interests.";
@@ -70,7 +70,8 @@ public class DiscordUserEventHandler : IDiscordUserEventHandler
                 var mentionPrefix = string.Empty;
                 if (user.Roles != Role.NoRole
                  && user.Roles != Role.Guest
-                 && user.Roles != Role.FriendOfMember)
+                 && user.Roles != Role.FriendOfMember
+                 && user.Roles != Role.TnlFriend)
                 {
                     var leaderMention = discordAccess.GetRoleMention(Constants.RoleNames.LeaderRoleName);
                     var officerMention = discordAccess.GetRoleMention(Constants.RoleNames.OfficerRoleName);
@@ -121,11 +122,11 @@ public class DiscordUserEventHandler : IDiscordUserEventHandler
         {
             return new UserRolesChangedResult();
         }
-        
+
         // Persist promotion date in memory and database
         user.PromotedToTrialMemberDate = DateOnly.FromDateTime(DateTime.Today);
         await _databaseAccess.UpdateUserInfoPromotionToTrialMemberDateAsync(user);
-            
+
         // Return result for announcement and logging the promotion
         var description = $"Congratulations {user.Mention}, you've been promoted to the rank **{promotedTo}**. Welcome aboard!";
         var a = new EmbedData
@@ -181,7 +182,7 @@ public class DiscordUserEventHandler : IDiscordUserEventHandler
     {
         if (_menuRegistry.IsModalMenu(response.CustomId, out var modalCallback))
             return await modalCallback!(response);
-        
+
         // CustomId is unknown.
         return null;
     }

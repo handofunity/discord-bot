@@ -31,7 +31,7 @@ public enum Role
     /// <summary>
     /// Any user who is a guild member may use these commands.
     /// </summary>
-    AnyGuildMember = Leader | Officer | Coordinator | Member | TrialMember,
+    AnyGuildMember = Leader | Officer | Coordinator | Member | TrialMember | TnlFriend,
     /// <summary>
     /// Not a guild member, but a <see cref="Guest"/> role.
     /// </summary>
@@ -39,5 +39,9 @@ public enum Role
     /// <summary>
     /// Not a guild member, but a <see cref="FriendOfMember"/> role.
     /// </summary>
-    FriendOfMember = 128
+    FriendOfMember = 128,
+    /// <summary>
+    /// Not a guild member, but a <see cref="TnlFriend"/> role.
+    /// </summary>
+    TnlFriend = 256
 }

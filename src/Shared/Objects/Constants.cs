@@ -39,6 +39,8 @@ public static class Constants
 
     public static class FriendOrGuestMenu
     {
+        public const string TnlFriendCustomId = "6F2CAD3E-25A0-4DF4-B7E3-9192D5122BAB";
+        public const string TnlFriendDisplayName = "TnL - Friend";
         public const string FriendOfMemberCustomId = "f32eeb72-3c37-4ef7-bff2-8c95b04d790e";
         public const string FriendofMemberDisplayName = "Friend of Member";
         public const string GuestCustomId = "63ce7730-02ab-47a2-833a-f77886e3289e";
@@ -173,7 +175,7 @@ public static class Constants
                 {"dps", "DPS"}
             };
     }
-    
+
     public static class WowRetailPlayStyleMenu
     {
         public const string CustomId = "1f9ef663-d535-4824-9573-efee37e5b71e";

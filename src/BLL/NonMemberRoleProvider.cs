@@ -16,6 +16,7 @@ public class NonMemberRoleProvider : INonMemberRoleProvider
     private static Role MapCustomIdToStaticRole(string customId) =>
         customId switch
         {
+            Constants.FriendOrGuestMenu.TnlFriendCustomId => Role.TnlFriend,
             Constants.FriendOrGuestMenu.FriendOfMemberCustomId => Role.FriendOfMember,
             Constants.FriendOrGuestMenu.GuestCustomId => Role.Guest,
             Constants.GameInterestMenu.CustomId => Role.NoRole,
@@ -48,7 +49,7 @@ public class NonMemberRoleProvider : INonMemberRoleProvider
 
         if (roleToggleMode != RoleToggleMode.Dynamic)
             return "Failed to toggle static role.";
-        
+
         return await ToggleStaticRolesAsync(userId, staticRole, user!);
     }
 
@@ -62,7 +63,7 @@ public class NonMemberRoleProvider : INonMemberRoleProvider
 
         var sb = new StringBuilder();
         var logSb = new StringBuilder();
-        
+
         switch (roleToggleMode)
         {
             case RoleToggleMode.Assign:
@@ -112,7 +113,8 @@ public class NonMemberRoleProvider : INonMemberRoleProvider
                                                       User user)
     {
         var revoke = user.Roles.HasFlag(Role.Guest) && staticRole == Role.Guest
-                  || user.Roles.HasFlag(Role.FriendOfMember) && staticRole == Role.FriendOfMember;
+                  || user.Roles.HasFlag(Role.FriendOfMember) && staticRole == Role.FriendOfMember
+                  || user.Roles.HasFlag(Role.TnlFriend) && staticRole == Role.TnlFriend;
 
         if (revoke)
         {

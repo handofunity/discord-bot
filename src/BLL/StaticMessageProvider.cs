@@ -12,7 +12,7 @@ public class StaticMessageProvider : IStaticMessageProvider
     private readonly bool _provideStaticMessages;
 
     private IDiscordAccess? _discordAccess;
-        
+
     public StaticMessageProvider(IMessageProvider messageProvider,
                                  IGameRoleProvider gameRoleProvider,
                                  IBotInformationProvider botInformationProvider,
@@ -58,7 +58,7 @@ public class StaticMessageProvider : IStaticMessageProvider
     {
         if (!_provideStaticMessages)
             return;
-        
+
         var l = new List<ExpectedChannelMessage>
         {
             new(await _messageProvider.GetMessageAsync(Constants.MessageNames.GamesRolesMenuMessage))
@@ -165,10 +165,11 @@ public class StaticMessageProvider : IStaticMessageProvider
     {
         if (messages.Count != 2)
             throw new ArgumentException("Unexpected amount of messages received.", nameof(messages));
-        
+
         // Friend or Guest menu
         messages[0].Components.Add(_menuRegistry.GetButtonMenuComponent(Constants.FriendOrGuestMenu.GuestCustomId));
         messages[0].Components.Add(_menuRegistry.GetButtonMenuComponent(Constants.FriendOrGuestMenu.FriendOfMemberCustomId));
+        messages[0].Components.Add(_menuRegistry.GetButtonMenuComponent(Constants.FriendOrGuestMenu.TnlFriendCustomId));
 
         // Game interest menu
         messages[1].Components.AddRange(_menuRegistry.GetSelectMenuComponents(Constants.GameInterestMenu.CustomId));
@@ -178,7 +179,7 @@ public class StaticMessageProvider : IStaticMessageProvider
     {
         if (messages.Count != 1)
             throw new ArgumentException("Unexpected amount of messages received.", nameof(messages));
-        
+
         messages[0].Components.AddRange(_menuRegistry.GetSelectMenuComponents(Constants.GameRoleMenu.CustomId));
     }
 
@@ -189,7 +190,7 @@ public class StaticMessageProvider : IStaticMessageProvider
 
         // Class menu
         messages[0].Components.AddRange(_menuRegistry.GetSelectMenuComponents(Constants.AocArchetypeMenu.CustomId));
-        
+
         // Play style menu
         messages[1].Components.AddRange(_menuRegistry.GetSelectMenuComponents(Constants.AocPlayStyleMenu.CustomId));
 
@@ -198,7 +199,7 @@ public class StaticMessageProvider : IStaticMessageProvider
 
         // Guild preference menu
         messages[3].Components.AddRange(_menuRegistry.GetSelectMenuComponents(Constants.AocGuildPreferenceMenu.CustomId));
-        
+
         // Role preference menu
         messages[4].Components.AddRange(_menuRegistry.GetSelectMenuComponents(Constants.AocRolePreferenceMenu.CustomId));
     }
@@ -270,7 +271,7 @@ public class StaticMessageProvider : IStaticMessageProvider
         await LoadWowRoleMenuMessages(expectedChannelMessages);
         await LoadWowRetailRoleMenuMessages(expectedChannelMessages);
         await LoadLostArkRoleMenuMessages(expectedChannelMessages);
-        
+
         var gamesRolesChannelId = (DiscordChannelId)_dynamicConfiguration.DiscordMapping["GamesRolesChannelId"];
         foreach (var pair in expectedChannelMessages)
         {
