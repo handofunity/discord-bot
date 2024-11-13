@@ -316,11 +316,6 @@ public class MenuRegistry : IMenuRegistry
                                                          "Select races ...",
                                                          Constants.AocRaceMenu.GetOptions(),
                                                          true));
-        _selectMenus.Add(Constants.AocGuildPreferenceMenu.CustomId,
-                         CreatePrimaryGameRoleSelectMenu(Constants.AocGuildPreferenceMenu.CustomId,
-                                                         "Select preferred in-game guild ...",
-                                                         Constants.AocGuildPreferenceMenu.GetOptions(),
-                                                         false));
         _selectMenus.Add(Constants.AocRolePreferenceMenu.CustomId,
                          CreatePrimaryGameRoleSelectMenu(Constants.AocRolePreferenceMenu.CustomId,
                                                          "Select preferred role ...",

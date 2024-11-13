@@ -78,7 +78,6 @@ public class StaticMessageProvider : IStaticMessageProvider
             new(await _messageProvider.GetMessageAsync(Constants.MessageNames.AocClassMenuMessage)),
             new(await _messageProvider.GetMessageAsync(Constants.MessageNames.AocPlayStyleMenuMessage)),
             new(await _messageProvider.GetMessageAsync(Constants.MessageNames.AocRaceMenuMessage)),
-            new(await _messageProvider.GetMessageAsync(Constants.MessageNames.AocGuildPreferenceMenuMessage)),
             new(await _messageProvider.GetMessageAsync(Constants.MessageNames.AocRolePreferenceMenuMessage))
         };
         AddAocRoleMenuComponents(l);
@@ -185,7 +184,7 @@ public class StaticMessageProvider : IStaticMessageProvider
 
     private void AddAocRoleMenuComponents(List<ExpectedChannelMessage> messages)
     {
-        if (messages.Count != 5)
+        if (messages.Count != 4)
             throw new ArgumentException("Unexpected amount of messages received.", nameof(messages));
 
         // Class menu
@@ -197,11 +196,8 @@ public class StaticMessageProvider : IStaticMessageProvider
         // Race menu
         messages[2].Components.AddRange(_menuRegistry.GetSelectMenuComponents(Constants.AocRaceMenu.CustomId));
 
-        // Guild preference menu
-        messages[3].Components.AddRange(_menuRegistry.GetSelectMenuComponents(Constants.AocGuildPreferenceMenu.CustomId));
-
         // Role preference menu
-        messages[4].Components.AddRange(_menuRegistry.GetSelectMenuComponents(Constants.AocRolePreferenceMenu.CustomId));
+        messages[3].Components.AddRange(_menuRegistry.GetSelectMenuComponents(Constants.AocRolePreferenceMenu.CustomId));
     }
 
     private void AddWowRoleMenuComponents(List<ExpectedChannelMessage> messages)
