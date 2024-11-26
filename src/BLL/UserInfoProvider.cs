@@ -18,7 +18,8 @@ public class UserInfoProvider : IUserInfoProvider
 
     private EmbedData CreateEmbedDataForWhoIs(User user)
     {
-        var displayName = _discordAccess.GetUserDisplayNames([user.DiscordUserId])[user.DiscordUserId];
+        var displayName = _discordAccess.GetUserDisplayName(user.DiscordUserId)
+            ?? user.DiscordUserId.ToString();
         var avatarId = _discordAccess.GetAvatarId(user.DiscordUserId);
         return new EmbedData
         {
@@ -58,8 +59,8 @@ public class UserInfoProvider : IUserInfoProvider
         foreach (var userID in ids)
         {
             var isOnline = _discordAccess.IsUserOnline(userID);
-            if (isOnline)
-                data.Add((userID, userDisplayNames[userID], true, null));
+            if (isOnline && userDisplayNames.TryGetValue(userID, out var name))
+                data.Add((userID, name, true, null));
         }
 
         // Fetch data for offline members
@@ -76,7 +77,8 @@ public class UserInfoProvider : IUserInfoProvider
         foreach (var (userId, lastSeen) in lastSeenData)
         {
             var user = missingUsers.Single(m => m.InternalUserId == userId);
-            data.Add((user.DiscordUserId, userDisplayNames[user.DiscordUserId], false, lastSeen ?? (DateTime?)noInfoFallback));
+            if (userDisplayNames.TryGetValue(user.DiscordUserId, out var name))
+                data.Add((user.DiscordUserId, name, false, lastSeen ?? (DateTime?)noInfoFallback));
         }
 
         // Format

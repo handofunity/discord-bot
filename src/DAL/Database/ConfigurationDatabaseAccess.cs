@@ -51,7 +51,8 @@ public class ConfigurationDatabaseAccess : IConfigurationDatabaseAccess
                 Map(m.KeycloakEndpoint!),
                 m.NewEventPingDiscordRoleId is null
                     ? null
-                    : (DiscordRoleId)(ulong)m.NewEventPingDiscordRoleId))
+                    : (DiscordRoleId)(ulong)m.NewEventPingDiscordRoleId,
+                m.Chapter))
             .ToArray();
     }
 

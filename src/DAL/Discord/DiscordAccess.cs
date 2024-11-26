@@ -244,6 +244,13 @@ public class DiscordAccess : IDiscordAccess
         return g.GetUser((ulong)userId) ?? throw new InvalidOperationException("User not found.");
     }
 
+    private bool TryGetGuildUserById(DiscordUserId userId, out SocketGuildUser? user)
+    {
+        var g = GetGuild();
+        user = g.GetUser((ulong)userId);
+        return user is not null;
+    }
+
     private IRole GetRoleByName(string name)
     {
         return GetGuild().Roles.SingleOrDefault(m => m.Name == name)
@@ -730,7 +737,23 @@ public class DiscordAccess : IDiscordAccess
         return IsOnline(gu);
     }
 
-    Dictionary<DiscordUserId, string> IDiscordAccess.GetUserDisplayNames(IEnumerable<DiscordUserId> userIds) => userIds.Select(GetGuildUserById).ToDictionary(gu => (DiscordUserId)gu.Id, gu => gu.DisplayName);
+    string? IDiscordAccess.GetUserDisplayName(DiscordUserId userId)
+    {
+        return TryGetGuildUserById(userId, out var user)
+            ? user!.DisplayName
+            : null;
+    }
+
+    Dictionary<DiscordUserId, string> IDiscordAccess.GetUserDisplayNames(IEnumerable<DiscordUserId> userIds)
+    {
+        var result = new Dictionary<DiscordUserId, string>();
+        foreach (var userId in userIds)
+        {
+            if (TryGetGuildUserById(userId, out var user))
+                result[userId] = user!.DisplayName;
+        }
+        return result;
+    }
 
     async Task<bool> IDiscordAccess.TryAddNonMemberRoleAsync(DiscordUserId userId,
         Role targetRole)

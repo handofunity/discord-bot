@@ -5,4 +5,5 @@ public record UnitsEndpoint(int UnitsEndpointId,
                             bool ConnectToRestApi,
                             bool ConnectToNotificationHub,
                             KeycloakEndpoint KeycloakEndpoint,
-                            DiscordRoleId? NewEventPingDiscordRoleId);
+                            DiscordRoleId? NewEventPingDiscordRoleId,
+                            string Chapter);

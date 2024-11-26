@@ -11,6 +11,7 @@ namespace HoU.GuildBot.DAL.Database.Model
         public bool ConnectToNotificationsHub { get; set; }
         public int KeycloakEndpointId { get; set; }
         public decimal? NewEventPingDiscordRoleId { get; set; }
+        public string Chapter { get; set; } = null!;
 
         public virtual KeycloakEndpoint? KeycloakEndpoint { get; set; } = null!;
     }

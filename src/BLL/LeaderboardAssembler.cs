@@ -63,7 +63,9 @@ internal static class LeaderboardAssembler
                 verticalOffset += verticalOffsetIncrement;
             }
 
-            var displayName = userDisplayNames[(DiscordUserId)position.DiscordUserId];
+            var displayName = userDisplayNames.TryGetValue((DiscordUserId)position.DiscordUserId, out var foundName)
+                ? foundName
+                : "N/A";
             if (displayName.Length > 22)
                 displayName = displayName[..22];
             canvas.DrawText(position.Rank.ToString("D2"),

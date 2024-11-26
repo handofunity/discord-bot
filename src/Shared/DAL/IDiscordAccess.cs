@@ -37,6 +37,13 @@ public interface IDiscordAccess : IDiscordLogger
     bool IsUserOnline(DiscordUserId userId);
 
     /// <summary>
+    /// Gets the user name for the given <paramref name="userId"/>.
+    /// </summary>
+    /// <param name="userId">The user Id to get the name for.</param>
+    /// <returns>The display name of the user if found, otherwise <b>null</b>.</returns>
+    string? GetUserDisplayName(DiscordUserId userId);
+
+    /// <summary>
     /// Gets the user names for the given <paramref name="userIds"/>.
     /// </summary>
     /// <param name="userIds">The user Ids to get the names for.</param>

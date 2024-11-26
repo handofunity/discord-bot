@@ -9,7 +9,7 @@ public interface IDynamicConfiguration
     event EventHandler<EventArgs> DataLoaded;
 
     UnitsEndpoint[] UnitsEndpoints { get; }
-    
+
     KeycloakEndpoint[] KeycloakEndpoints { get; }
 
     DesiredTimeZone[] DesiredTimeZones { get; }

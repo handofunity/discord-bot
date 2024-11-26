@@ -4,6 +4,7 @@
 [Group("aoc", "Ashes of Creation related commands.")]
 public class AshesOfCreationModule : InteractionModuleBase<SocketInteractionContext>
 {
+    private const string ModuleChapter = "aoc";
     private const string UnitsHouGuildRoleIdKey = "UnitsHouGuildRoleId";
     private const string UnitsFouGuildRoleIdKey = "UnitsFouGuildRoleId";
     private const string UnitsPvpRoleIdKey = "UnitsPvpRoleId";
@@ -36,7 +37,8 @@ public class AshesOfCreationModule : InteractionModuleBase<SocketInteractionCont
 
         try
         {
-            var endpoint = _dynamicConfiguration.UnitsEndpoints.FirstOrDefault(m => m.ConnectToRestApi);
+            var endpoint = _dynamicConfiguration.UnitsEndpoints.FirstOrDefault(m => m.ConnectToRestApi
+                && m.Chapter == ModuleChapter);
             if (endpoint is null)
             {
                 await FollowupAsync("No endpoint configured.");
@@ -92,7 +94,8 @@ public class AshesOfCreationModule : InteractionModuleBase<SocketInteractionCont
 
         try
         {
-            var endpoint = _dynamicConfiguration.UnitsEndpoints.FirstOrDefault(m => m.ConnectToRestApi);
+            var endpoint = _dynamicConfiguration.UnitsEndpoints.FirstOrDefault(m => m.ConnectToRestApi
+                && m.Chapter == ModuleChapter);
             if (endpoint is null)
             {
                 await FollowupAsync("No endpoint configured.");

@@ -254,6 +254,9 @@ namespace HoU.GuildBot.DAL.Database.Model
                 entity.HasIndex(e => e.BaseAddress, "uq_base_address")
                     .IsUnique();
 
+                entity.HasIndex(e => e.Chapter, "uq_chapter")
+                    .IsUnique();
+
                 entity.Property(e => e.UnitsEndpointId)
                     .HasColumnName("units_endpoint_id")
                     .UseIdentityAlwaysColumn();
@@ -261,6 +264,10 @@ namespace HoU.GuildBot.DAL.Database.Model
                 entity.Property(e => e.BaseAddress)
                     .HasMaxLength(256)
                     .HasColumnName("base_address");
+
+                entity.Property(e => e.Chapter)
+                    .HasMaxLength(32)
+                    .HasColumnName("chapter");
 
                 entity.Property(e => e.ConnectToNotificationsHub).HasColumnName("connect_to_notifications_hub");
 
