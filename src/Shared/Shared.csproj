@@ -14,6 +14,7 @@
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Vogen" Version="5.0.6" />
   </ItemGroup>
 
   <ItemGroup>
@@ -23,32 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="StrongTypes\StrongTypeGenerator.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-	    <LastGenOutput>StrongTypeGenerator.cs</LastGenOutput>
-    </None>
-    <None Update="StrongTypes\InternalUserID.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>StrongTypeGenerator.tt</DependentUpon>
-    </None>
-    <None Update="StrongTypes\DiscordUserID.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>StrongTypeGenerator.tt</DependentUpon>
-    </None>
-  </ItemGroup>
-
-  <ItemGroup>
     <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="StrongTypes\StrongTypeGenerator.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>StrongTypeGenerator.tt</DependentUpon>
-    </Compile>
   </ItemGroup>
 
 </Project>

@@ -13,8 +13,8 @@ internal class UserRepresentation
         {
             _userId = value;
             KeycloakUserId = _userId is not null && Guid.TryParse(UserId, out var userIdGuid)
-                                 ? (KeycloakUserId)userIdGuid
-                                 : default;
+                ? (KeycloakUserId)userIdGuid
+                : KeycloakUserId.Unknown;
         }
     }
 
@@ -70,7 +70,7 @@ internal class UserRepresentation
     {
         _federatedIdentities!.Add(federatedIdentityRepresentation);
         var federatedIdentity = _federatedIdentities!.FirstOrDefault();
-        DiscordUserId = federatedIdentity?.DiscordUserId ?? default;
+        DiscordUserId = federatedIdentity?.DiscordUserId ?? DiscordUserId.Unknown;
     }
 
     internal UserUpdateRepresentation AsUpdateRepresentation() => new(this);

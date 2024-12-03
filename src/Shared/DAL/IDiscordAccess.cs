@@ -215,31 +215,31 @@ public interface IDiscordAccess : IDiscordLogger
     string? GetChannelLocationAndName(DiscordChannelId discordChannelId);
 
     /// <summary>
+    /// Creates a temporary category channel.
+    /// </summary>
+    /// <param name="afterDiscordCategoryChannelId">The Id of the category after which to put the temporary category.</param>
+    /// <param name="name">The name of the category.</param>
+    /// <returns>The Id of the created category channel, or an error while creating it.</returns>
+    Task<(DiscordCategoryChannelId CategoryChannelId, string? Error)> CreateCategoryChannelAsync(DiscordCategoryChannelId afterCategoryChannelId,
+        string name);
+
+    /// <summary>
     /// Creates a temporary voice channel.
     /// </summary>
     /// <param name="voiceChannelsCategoryId">The Id of the category where the voice channel should be placed.</param>
     /// <param name="name">The name of the voice channel.</param>
     /// <param name="maxUsers">The maximum number of users allowed into the voice channel.</param>
     /// <returns>The Id of the created channel, or an error while creating it.</returns>
-    Task<(DiscordChannelId VoiceChannelId, string? Error)> CreateVoiceChannelAsync(DiscordChannelId voiceChannelsCategoryId,
-                                                                                   string name,
-                                                                                   int maxUsers);
+    Task<(DiscordChannelId VoiceChannelId, string? Error)> CreateVoiceChannelAsync(DiscordCategoryChannelId voiceChannelsCategoryId,
+        string name,
+        int maxUsers);
 
     /// <summary>
-    /// Reorders the <paramref name="channelIds"/> to be in order above the <paramref name="positionAboveChannelId"/>.
+    /// Deletes the category channel.
     /// </summary>
-    /// <param name="channelIds">The Ids of the channels to reorder.</param>
-    /// <param name="positionAboveChannelId">The Id of the channel to place the <paramref name="channelIds"/> above.</param>
+    /// <param name="categoryChannelId">The Id of the category channel to delete.</param>
     /// <returns>An awaitable <see cref="Task"/>.</returns>
-    Task ReorderChannelsAsync(DiscordChannelId[] channelIds,
-                              DiscordChannelId positionAboveChannelId);
-
-    /// <summary>
-    /// Deletes the voice channel.
-    /// </summary>
-    /// <param name="voiceChannelId">The Id of the voice channel to delete.</param>
-    /// <returns>An awaitable <see cref="Task"/>.</returns>
-    Task DeleteVoiceChannelAsync(DiscordChannelId voiceChannelId);
+    Task DeleteCategoryChannelAsync(DiscordCategoryChannelId categoryChannelId);
 
     /// <summary>
     /// Gets the Id of the avatar for the <paramref name="userId"/>, if the user has any avatar set.
@@ -311,11 +311,20 @@ public interface IDiscordAccess : IDiscordLogger
         DiscordChannelId? linkToChannelId);
 
     /// <summary>
-    /// Gets all users in the given <paramref name="voiceChannelIds"/>.
+    /// Gets all users in all voice channels under the given <paramref name="categoryChannelId"/>.
     /// </summary>
-    /// <param name="voiceChannelIds">The Ids of the voice channels to check.</param>
-    /// <returns>A dictionary containing the voice channel id as key, and the users in that channel as value.</returns>
-    Dictionary<string, List<DiscordUserId>> GetUsersInVoiceChannels(string[] voiceChannelIds);
+    /// <param name="categoryChannelid">The Id of the category channel to check.</param>
+    /// <returns>A list of distinct user ids in the voice channels of the category.</returns>
+    List<DiscordUserId> GetUsersInVoiceChannels(DiscordCategoryChannelId categoryChannelId);
+
+    /// <summary>
+    /// Tries to find a channel by its <paramref name="childChannelName"/> under the <paramref name="parentCategoryChannelId"/>.
+    /// </summary>
+    /// <param name="parentCategoryChannelId">The Id of the category to search in.</param>
+    /// <param name="childChannelName">The name of the channel to find.</param>
+    /// <returns>The Id of the found channel, otherwise <b>null</b>.</returns>
+    DiscordChannelId? TryFindChannelInCategory(DiscordCategoryChannelId parentCategoryChannelId,
+        string childChannelName);
 
     /// <summary>
     /// Gets all the <see cref="DiscordUserId"/>s of people having the <paramref name="roleId"/>.

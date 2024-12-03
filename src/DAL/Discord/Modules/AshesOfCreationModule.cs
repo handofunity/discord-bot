@@ -38,7 +38,7 @@ public class AshesOfCreationModule : InteractionModuleBase<SocketInteractionCont
         try
         {
             var endpoint = _dynamicConfiguration.UnitsEndpoints.FirstOrDefault(m => m.ConnectToRestApi
-                && m.Chapter == ModuleChapter);
+                && m.Chapter.Equals(ModuleChapter, StringComparison.InvariantCultureIgnoreCase));
             if (endpoint is null)
             {
                 await FollowupAsync("No endpoint configured.");
@@ -95,7 +95,7 @@ public class AshesOfCreationModule : InteractionModuleBase<SocketInteractionCont
         try
         {
             var endpoint = _dynamicConfiguration.UnitsEndpoints.FirstOrDefault(m => m.ConnectToRestApi
-                && m.Chapter == ModuleChapter);
+                && m.Chapter.Equals(ModuleChapter, StringComparison.InvariantCultureIgnoreCase));
             if (endpoint is null)
             {
                 await FollowupAsync("No endpoint configured.");

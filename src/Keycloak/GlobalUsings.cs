@@ -16,7 +16,7 @@ global using HoU.GuildBot.Shared.BLL;
 global using HoU.GuildBot.Shared.DAL;
 global using HoU.GuildBot.Shared.Extensions;
 global using HoU.GuildBot.Shared.Objects;
-global using HoU.GuildBot.Shared.StrongTypes;
+global using HoU.GuildBot.Shared.ValueObjects;
 global using JetBrains.Annotations;
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Logging;

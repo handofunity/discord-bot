@@ -280,12 +280,11 @@ public class GameRoleProvider : IGameRoleProvider
         DiscordAccess.EnsureDisplayNamesAreSet(game.AvailableRoles);
 
         var selectedAndValidRoleIds = selectedMenuValues.Select(selectedMenuValue => _dynamicConfiguration.DiscordMapping
-                                                                                    .TryGetValue($"{customId}___{selectedMenuValue}",
-                                                                                         out var roleId)
-                                                                                     ? (DiscordRoleId)roleId
-                                                                                     : default)
-                                                        .Where(m => m != default && game.AvailableRoles.Any(r => r.DiscordRoleId == m))
-                                                        .ToArray();
+                .TryGetValue($"{customId}___{selectedMenuValue}", out var roleId)
+                    ? (DiscordRoleId)roleId
+                    : DiscordRoleId.Unknown)
+            .Where(m => m != DiscordRoleId.Unknown && game.AvailableRoles.Any(r => r.DiscordRoleId == m))
+            .ToArray();
         var currentUserRoleIds = DiscordAccess.GetUserRoles(userId);
 
         switch (roleToggleMode)
@@ -314,7 +313,7 @@ public class GameRoleProvider : IGameRoleProvider
                                       ? $"Successfully revoked the role **{roleDisplayName}**."
                                       : $"Failed to revoke the role **{roleDisplayName}**.");
                 }
-                break;   
+                break;
             }
             default:
                 throw new ArgumentOutOfRangeException(nameof(roleToggleMode), roleToggleMode, null);

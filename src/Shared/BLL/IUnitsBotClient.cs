@@ -47,7 +47,7 @@ public interface IUnitsBotClient
         DateTimeOffset startTime,
         ulong threadId,
         ulong[] usersToNotify,
-        ulong? generalVoiceChannelId);
+        ulong categoryChannelId);
 
     // See UnitsSignalRClient.RegisterHandlers
     [UsedImplicitly]
@@ -59,12 +59,12 @@ public interface IUnitsBotClient
 
     // See UnitsSignalRClient.RegisterHandlers
     [UsedImplicitly]
-    Task ReceiveDeleteEventVoiceChannelsMessageAsync(string[] voiceChannelIds);
+    Task ReceiveDeleteEventCategoryChannelMessageAsync(ulong categoryChannelId);
 
     // See UnitsSignalRClient.RegisterHandlers
     [UsedImplicitly]
     Task ReceiveGetCurrentAttendeesMessageAsync(Uri baseAddress,
         int appointmentId,
         int checkNumber,
-        string[] voiceChannelIds);
+        ulong categoryChannelId);
 }

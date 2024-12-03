@@ -27,7 +27,7 @@ global using HoU.GuildBot.Shared.Enums;
 global using HoU.GuildBot.Shared.Exceptions;
 global using HoU.GuildBot.Shared.Extensions;
 global using HoU.GuildBot.Shared.Objects;
-global using HoU.GuildBot.Shared.StrongTypes;
+global using HoU.GuildBot.Shared.ValueObjects;
 global using JetBrains.Annotations;
 global using Microsoft.AspNetCore.Authentication.OAuth;
 global using Microsoft.AspNetCore.Mvc;

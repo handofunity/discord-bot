@@ -3,6 +3,8 @@
 [DebuggerDisplay(nameof(DisplayName))]
 public class EventVoiceChannel
 {
+    public const string GeneralVoiceChannelName = "General";
+
     [JsonProperty]
     public byte GroupNumber { get; }
 
@@ -16,21 +18,20 @@ public class EventVoiceChannel
     public DiscordChannelId DiscordVoiceChannelIdValue { get; set; }
 
     [JsonProperty]
-    public string DiscordVoiceChannelId => DiscordVoiceChannelIdValue.ToString();
+    public ulong DiscordVoiceChannelId => (ulong)DiscordVoiceChannelIdValue;
 
-    public EventVoiceChannel(int appointmentId)
+    public EventVoiceChannel()
     {
         GroupNumber = 0;
-        DisplayName = $"General (UNITS #{appointmentId})";
+        DisplayName = GeneralVoiceChannelName;
         MaxUsersInChannel = 0;
     }
 
-    public EventVoiceChannel(int appointmentId,
-                             byte groupNumber,
+    public EventVoiceChannel(byte groupNumber,
                              byte maxUsersInChannel)
     {
         GroupNumber = groupNumber;
-        DisplayName = $"#{groupNumber} | Group {GetGroupEmoji(groupNumber)} (UNITS #{appointmentId})";
+        DisplayName = $"#{groupNumber} | Group {GetGroupEmoji(groupNumber)}";
         MaxUsersInChannel = maxUsersInChannel;
     }
 

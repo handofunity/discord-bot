@@ -6,14 +6,14 @@ public class SyncCurrentAttendeesRequest
 
     public int CheckNumber { get; }
 
-    public List<VoiceChannelAttendees> VoiceChannels { get; }
+    public List<ulong> UserIds { get; }
 
     public SyncCurrentAttendeesRequest(int appointmentId,
                                        int checkNumber,
-                                       List<VoiceChannelAttendees> voiceChannels)
+                                       List<ulong> userIds)
     {
         AppointmentId = appointmentId;
         CheckNumber = checkNumber;
-        VoiceChannels = voiceChannels;
+        UserIds = userIds;
     }
 }

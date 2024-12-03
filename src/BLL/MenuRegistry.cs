@@ -414,28 +414,30 @@ public class MenuRegistry : IMenuRegistry
             // Map available options to valid game roles.
             var primaryGameDiscordRoleId = (DiscordRoleId)_dynamicConfiguration.DiscordMapping[primaryGameRoleIdConfigurationKey!];
             var game = _gameRoleProvider.Games.Single(m => m.PrimaryGameDiscordRoleId == primaryGameDiscordRoleId);
-            availableOptions = selectMenu.Options.Select<KeyValuePair<string, string>,
-                                              (DiscordRoleId RoleId, string MenuValue, string MenuDisplayName)>(option =>
-                                              _dynamicConfiguration
-                                                 .DiscordMapping
-                                                 .TryGetValue($"{customId}___{option.Key}",
-                                                              out var roleId)
-                                                  ? ((DiscordRoleId)roleId, option.Key, option.Value)
-                                                  : default)
-                                         .Where(m => m != default && game.AvailableRoles.Any(r => r.DiscordRoleId == m.RoleId))
-                                         .ToArray();
+            availableOptions = selectMenu.Options
+                .Select<KeyValuePair<string, string>,
+                    (DiscordRoleId RoleId, string MenuValue, string MenuDisplayName)>(option =>
+                    _dynamicConfiguration
+                        .DiscordMapping
+                        .TryGetValue($"{customId}___{option.Key}",
+                                    out var roleId)
+                        ? ((DiscordRoleId)roleId, option.Key, option.Value)
+                        : (DiscordRoleId.Unknown, string.Empty, string.Empty))
+                .Where(m => m.RoleId != DiscordRoleId.Unknown
+                    && game.AvailableRoles.Any(r => r.DiscordRoleId == m.RoleId))
+                .ToArray();
         }
         else
         {
             // Use all available options.
             availableOptions = selectMenu.Options
-                                         .Select(m => (ulong.TryParse(m.Key, out var ulongRoleId)
-                                                           ? (DiscordRoleId)ulongRoleId
-                                                           : default,
-                                                       m.Key,
-                                                       m.Value))
-                                         .Where(m => m.Item1 != default)
-                                         .ToArray();
+                .Select(m => (ulong.TryParse(m.Key, out var ulongRoleId)
+                                ? (DiscordRoleId)ulongRoleId
+                                : DiscordRoleId.Unknown,
+                            m.Key,
+                            m.Value))
+                .Where(m => m.Item1 != DiscordRoleId.Unknown)
+                .ToArray();
         }
 
         // Filter for roles that are valid for the customId and the user currently has.

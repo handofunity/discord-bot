@@ -4,12 +4,16 @@ public class SyncCreatedVoiceChannelsRequest
 {
     public int AppointmentId { get; }
 
+    public ulong DiscordCategoryChannelId { get; }
+
     public List<EventVoiceChannel> CreatedVoiceChannels { get; }
 
     public SyncCreatedVoiceChannelsRequest(int appointmentId,
-                                           List<EventVoiceChannel> createdVoiceChannels)
+        DiscordCategoryChannelId discordCategoryChannelId,
+        List<EventVoiceChannel> createdVoiceChannels)
     {
         AppointmentId = appointmentId;
-        CreatedVoiceChannels = createdVoiceChannels ?? throw new ArgumentNullException(nameof(createdVoiceChannels));
+        DiscordCategoryChannelId = (ulong)discordCategoryChannelId;
+        CreatedVoiceChannels = createdVoiceChannels;
     }
 }

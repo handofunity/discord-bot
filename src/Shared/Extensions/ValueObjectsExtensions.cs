@@ -2,7 +2,7 @@
 
 namespace HoU.GuildBot.Shared.Extensions;
 
-public static class StrongTypesExtensions
+public static class ValueObjectsExtensions
 {
     /// <summary>
     /// Converts the <paramref name="userId"/> into the mention syntax.

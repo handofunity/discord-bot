@@ -5,7 +5,6 @@ namespace HoU.GuildBot.BLL;
 public class UnitsBotClient(IDiscordAccess _discordAccess,
                             IUnitsAccess _unitsAccess,
                             IDynamicConfiguration _dynamicConfiguration,
-                            TimeProvider _timeProvider,
                             ILogger<UnitsBotClient> _logger)
     : IUnitsBotClient
 {
@@ -284,18 +283,19 @@ public class UnitsBotClient(IDiscordAccess _discordAccess,
         DateTimeOffset startTime,
         ulong threadId,
         ulong[] usersToNotify,
-        ulong? generalVoiceChannelId)
+        ulong categoryChannelId)
     {
         var url = GetEventUrl(baseAddress, appointmentId);
         var message = $"Your event is starting {GetDiscordTimeString(startTime, "R")}. " +
             $"[Open the event in your browser]({url}).";
         var userIds = ToDiscordUserIds(usersToNotify);
+        var generalVoiceChannel = _discordAccess.TryFindChannelInCategory(
+            (DiscordCategoryChannelId)categoryChannelId,
+            EventVoiceChannel.GeneralVoiceChannelName);
         await SendUnitsNotificationAsync((DiscordChannelId)threadId,
             message,
             userIds.ToMentions(),
-            generalVoiceChannelId is null
-                ? null
-                : (DiscordChannelId)generalVoiceChannelId.Value);
+            generalVoiceChannel);
     }
 
     async Task IUnitsBotClient.ReceiveCreateEventVoiceChannelsMessageAsync(Uri baseAddress,
@@ -307,26 +307,37 @@ public class UnitsBotClient(IDiscordAccess _discordAccess,
         if (!TryGetUnitsEndpoint(baseAddress, out var unitsEndpoint))
             return;
 
+        var (categoryChannelId, error) = await _discordAccess.CreateCategoryChannelAsync(
+            (DiscordCategoryChannelId)_dynamicConfiguration.DiscordMapping["VoiceChannelCategoryId"],
+            $"UNITS #{appointmentId} ({unitsEndpoint.Chapter})");
+        if (error is not null)
+        {
+            _logger.LogError("Failed to create category channel for event '{AppointmentId}: {Error}'",
+                appointmentId,
+                error);
+            return;
+        }
+
         var voiceChannels = new List<EventVoiceChannel>();
         if (createGeneralVoiceChannel)
-            voiceChannels.Add(new EventVoiceChannel(appointmentId));
+            voiceChannels.Add(new EventVoiceChannel());
         if (maxAmountOfGroups > 0 && maxGroupSize != null)
             for (byte groupNumber = 1; groupNumber <= maxAmountOfGroups; groupNumber++)
-                voiceChannels.Add(new EventVoiceChannel(appointmentId, groupNumber, maxGroupSize.Value));
+                voiceChannels.Add(new EventVoiceChannel(groupNumber, maxGroupSize.Value));
 
         var failedVoiceChannels = new List<EventVoiceChannel>();
         foreach (var eventVoiceChannel in voiceChannels)
         {
-            var (voiceChannelId, error) =
-                await _discordAccess.CreateVoiceChannelAsync((DiscordChannelId)_dynamicConfiguration.DiscordMapping["VoiceChannelCategoryId"],
+            (DiscordChannelId voiceChannelId, error) =
+                await _discordAccess.CreateVoiceChannelAsync(categoryChannelId,
                     eventVoiceChannel.DisplayName,
                     eventVoiceChannel.MaxUsersInChannel);
-            if (error != null)
+            if (error is not null)
             {
                 failedVoiceChannels.Add(eventVoiceChannel);
                 _logger.LogWarning("Failed to create voice channel for event '{AppointmentId}: {Error}'",
-                                   appointmentId,
-                                   error);
+                    appointmentId,
+                    error);
             }
             else
             {
@@ -338,58 +349,41 @@ public class UnitsBotClient(IDiscordAccess _discordAccess,
         foreach (var eventVoiceChannel in failedVoiceChannels)
             voiceChannels.Remove(eventVoiceChannel);
 
-        if (voiceChannels.Any())
-        {
-            await _discordAccess.ReorderChannelsAsync(voiceChannels.Select(m => m.DiscordVoiceChannelIdValue).ToArray(),
-                                                      (DiscordChannelId)_dynamicConfiguration.DiscordMapping
-                                                          ["UnitsEventVoiceChannelsPositionAboveChannelId"]);
-
-            await _unitsAccess.SendCreatedVoiceChannelsAsync(unitsEndpoint!,
-                                                             new SyncCreatedVoiceChannelsRequest(appointmentId, voiceChannels));
-        }
+        await _unitsAccess.SendCreatedVoiceChannelsAsync(unitsEndpoint!,
+            new SyncCreatedVoiceChannelsRequest(appointmentId,
+                categoryChannelId,
+                voiceChannels));
     }
 
-    async Task IUnitsBotClient.ReceiveDeleteEventVoiceChannelsMessageAsync(string[] voiceChannelIds)
+    async Task IUnitsBotClient.ReceiveDeleteEventCategoryChannelMessageAsync(ulong categoryChannelId)
     {
-        if (voiceChannelIds == null)
-            return;
-
-        foreach (var voiceChannelIdStr in voiceChannelIds)
+        try
         {
-            if (!ulong.TryParse(voiceChannelIdStr, out var voiceChannelId))
-                continue;
-
-            try
-            {
-                await _discordAccess.DeleteVoiceChannelAsync((DiscordChannelId)voiceChannelId);
-                _logger.LogInformation("Deleted voice channel {VoiceChannelId}", voiceChannelId);
-            }
-            catch (Exception e)
-            {
-                _logger.LogWarning(e,
-                                   "Failed to delete voice channel {VoiceChannelId}",
-                                   voiceChannelId);
-            }
+            await _discordAccess.DeleteCategoryChannelAsync((DiscordCategoryChannelId)categoryChannelId);
+            _logger.LogInformation("Deleted category channel {CategoryChannelId}", categoryChannelId.ToString());
+        }
+        catch (Exception e)
+        {
+            _logger.LogWarning(e,
+                "Failed to delete category channel {CategoryChannelId}",
+                categoryChannelId.ToString());
         }
     }
 
     async Task IUnitsBotClient.ReceiveGetCurrentAttendeesMessageAsync(Uri baseAddress,
         int appointmentId,
         int checkNumber,
-        string[] voiceChannelIds)
+        ulong categoryChannelId)
     {
-        _logger.LogDebug("Received GetCurrentAttendeesMessage for event {AppointmentId} and check {CheckNumber} with voice channels {@VoiceChannelIds}",
+        _logger.LogDebug("Received GetCurrentAttendeesMessage for event {AppointmentId} and check {CheckNumber} with category channel {CategoryChannelId}",
             appointmentId,
             checkNumber,
-            voiceChannelIds);
-
-        if (voiceChannelIds == null || voiceChannelIds.Length == 0)
-            return;
+            categoryChannelId.ToString());
 
         if (!TryGetUnitsEndpoint(baseAddress, out var unitsEndpoint))
             return;
 
-        var voiceChannelUsers = _discordAccess.GetUsersInVoiceChannels(voiceChannelIds);
+        var voiceChannelUsers = _discordAccess.GetUsersInVoiceChannels((DiscordCategoryChannelId)categoryChannelId);
         if (voiceChannelUsers.Count == 0)
         {
             _logger.LogInformation("Couldn't find any voice channel attendees for appointment {AppointmentId} and check {CheckNumber}",
@@ -400,11 +394,7 @@ public class UnitsBotClient(IDiscordAccess _discordAccess,
 
         var request = new SyncCurrentAttendeesRequest(appointmentId,
             checkNumber,
-            voiceChannelUsers
-                .Select(m => new VoiceChannelAttendees(
-                    m.Key,
-                    m.Value.ConvertAll(l => (ulong)l)))
-                .ToList());
+            voiceChannelUsers.ConvertAll(m => (ulong)m));
 
         _logger.LogInformation("Sending current voice channel attendees for appointment {AppointmentId} and check {CheckNumber}: {@Attendees}",
             appointmentId,

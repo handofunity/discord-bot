@@ -1066,9 +1066,9 @@ public class DiscordAccess : IDiscordAccess
 
     }
 
-    async Task<(DiscordChannelId VoiceChannelId, string? Error)> IDiscordAccess.CreateVoiceChannelAsync(DiscordChannelId voiceChannelsCategoryId,
-        string name,
-        int maxUsers)
+    async Task<(DiscordCategoryChannelId CategoryChannelId, string? Error)> IDiscordAccess.CreateCategoryChannelAsync(
+        DiscordCategoryChannelId afterCategoryChannelId,
+        string name)
     {
         var g = GetGuild();
         var rolePermissionOverrides = _dynamicConfiguration.DiscordMapping
@@ -1080,16 +1080,42 @@ public class DiscordAccess : IDiscordAccess
 
         try
         {
+            if (g.CategoryChannels.Any(m => m.Name == name))
+                return ((DiscordCategoryChannelId)0, "Category channel with same name already exists.");
+
+            var previousPosition = g.GetCategoryChannel((ulong)afterCategoryChannelId)?.Position;
+            var categoryChannel = await g.CreateCategoryChannelAsync(name,
+                properties =>
+                {
+                    if (previousPosition is not null)
+                        properties.Position = previousPosition.Value + 1;
+                    properties.PermissionOverwrites = new Optional<IEnumerable<Overwrite>>(rolePermissionOverrides);
+                });
+            return ((DiscordCategoryChannelId)categoryChannel.Id, null);
+        }
+        catch (Exception e)
+        {
+            return ((DiscordCategoryChannelId)0, e.Message);
+        }
+    }
+
+    async Task<(DiscordChannelId VoiceChannelId, string? Error)> IDiscordAccess.CreateVoiceChannelAsync(DiscordCategoryChannelId voiceChannelsCategoryId,
+        string name,
+        int maxUsers)
+    {
+        var g = GetGuild();
+
+        try
+        {
             if (g.VoiceChannels.Any(m => m.Name == name))
                 return ((DiscordChannelId)0, "Voice channel with same name already exists.");
 
             var voiceChannel = await g.CreateVoiceChannelAsync(name,
-                                                               properties =>
-                                                               {
-                                                                   properties.UserLimit = maxUsers;
-                                                                   properties.CategoryId = (ulong)voiceChannelsCategoryId;
-                                                                   properties.PermissionOverwrites = new Optional<IEnumerable<Overwrite>>(rolePermissionOverrides);
-                                                               });
+                properties =>
+                {
+                    properties.UserLimit = maxUsers;
+                    properties.CategoryId = (ulong)voiceChannelsCategoryId;
+                });
             return ((DiscordChannelId)voiceChannel.Id, null);
         }
         catch (Exception e)
@@ -1098,66 +1124,14 @@ public class DiscordAccess : IDiscordAccess
         }
     }
 
-    async Task IDiscordAccess.ReorderChannelsAsync(DiscordChannelId[] channelIds,
-                                                   DiscordChannelId positionAboveChannelId)
+    async Task IDiscordAccess.DeleteCategoryChannelAsync(DiscordCategoryChannelId categoryChannelId)
     {
         var g = GetGuild();
-        try
-        {
-            var baseChannel = g.GetChannel((ulong)positionAboveChannelId) as INestedChannel;
-            if (baseChannel?.CategoryId == null)
-            {
-                _logger.LogWarning("Trying to reorder channels, " +
-                                   "but the given base channel ({ChannelId}) to position the channels above is not a nested channel",
-                                   positionAboveChannelId);
-                return;
-            }
-
-            if (channelIds.Length == 0)
-                return;
-
-            var finalList = new List<ReorderChannelProperties>();
-            var baseChannelCategory = g.GetCategoryChannel(baseChannel.CategoryId.Value);
-            var channelsInCategory = baseChannelCategory.Channels
-                                                        .Where(m => !channelIds.Contains((DiscordChannelId)m.Id))
-                                                        .OrderBy(m => m.Position)
-                                                        .ToArray();
-
-            var position = 1;
-            foreach (var channel in channelsInCategory)
-            {
-                if ((DiscordChannelId)channel.Id == positionAboveChannelId)
-                {
-                    foreach (var channelId in channelIds)
-                    {
-                        finalList.Add(new ReorderChannelProperties((ulong)channelId, position));
-                        position++;
-                    }
-                    finalList.Add(new ReorderChannelProperties(channel.Id, position));
-                }
-                else
-                {
-                    finalList.Add(new ReorderChannelProperties(channel.Id, position));
-                }
-                position++;
-            }
-
-            await g.ReorderChannelsAsync(finalList);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Failed to reorder channels");
-        }
-    }
-
-    async Task IDiscordAccess.DeleteVoiceChannelAsync(DiscordChannelId voiceChannelId)
-    {
-        var g = GetGuild();
-        var voiceChannel = g.GetVoiceChannel((ulong)voiceChannelId);
-        if (voiceChannel == null)
+        var categoryChannel = g.GetCategoryChannel((ulong)categoryChannelId);
+        if (categoryChannel == null)
             return;
 
-        await voiceChannel.DeleteAsync();
+        await categoryChannel.DeleteAsync();
     }
 
     string IDiscordAccess.GetAvatarId(DiscordUserId userId)
@@ -1347,19 +1321,25 @@ public class DiscordAccess : IDiscordAccess
         }
     }
 
-    Dictionary<string, List<DiscordUserId>> IDiscordAccess.GetUsersInVoiceChannels(string[] voiceChannelIds)
+    List<DiscordUserId> IDiscordAccess.GetUsersInVoiceChannels(DiscordCategoryChannelId categoryChannelId)
     {
         var g = GetGuild();
-        var result = new Dictionary<string, List<DiscordUserId>>();
+        var categoryChannel = g.GetCategoryChannel((ulong)categoryChannelId);
+        if (categoryChannel is null)
+            return [];
+
+        var childChannelIds = categoryChannel.Channels
+            .Select(m => m.Id)
+            .Distinct()
+            .ToArray();
+
+        var result = new List<DiscordUserId>();
         var allBotTrackedUserIds = _userVoiceChannelConnections
             .GroupBy(m => m.Value)
-            .Where(m => voiceChannelIds.Contains(m.Key.ToString()))
+            .Where(m => childChannelIds.Contains(m.Key))
             .ToDictionary(m => m.Key, m => m.Select(kvp => (DiscordUserId)kvp.Key).ToArray());
-        foreach (var voiceChannelIdStr in voiceChannelIds)
+        foreach (var voiceChannelId in childChannelIds)
         {
-            if (!ulong.TryParse(voiceChannelIdStr, out var voiceChannelId))
-                continue;
-
             var voiceChannel = g.GetVoiceChannel(voiceChannelId);
             var discordNetTrackedUserIds = voiceChannel.ConnectedUsers
                 .Select(m => (DiscordUserId) m.Id)
@@ -1373,10 +1353,23 @@ public class DiscordAccess : IDiscordAccess
             }
 
             if (discordNetTrackedUserIds.Count > 0)
-                result.Add(voiceChannelIdStr, discordNetTrackedUserIds);
+                result.AddRange(discordNetTrackedUserIds);
         }
 
-        return result;
+        return result.Distinct().ToList();
+    }
+
+    DiscordChannelId? IDiscordAccess.TryFindChannelInCategory(DiscordCategoryChannelId parentCategoryChannelId, string childChannelName)
+    {
+        var g = GetGuild();
+        var categoryChannel = g.GetCategoryChannel((ulong)parentCategoryChannelId);
+        if (categoryChannel == null)
+            return null;
+
+        var matchingChannel = categoryChannel.Channels.FirstOrDefault(m => m.Name == childChannelName);
+        return matchingChannel is null
+            ? null
+            : (DiscordChannelId)matchingChannel.Id;
     }
 
     List<DiscordUserId> IDiscordAccess.GetUsersIdsInRole(DiscordRoleId roleId)
