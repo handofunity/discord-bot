@@ -1107,9 +1107,6 @@ public class DiscordAccess : IDiscordAccess
 
         try
         {
-            if (g.VoiceChannels.Any(m => m.Name == name))
-                return ((DiscordChannelId)0, "Voice channel with same name already exists.");
-
             var voiceChannel = await g.CreateVoiceChannelAsync(name,
                 properties =>
                 {
