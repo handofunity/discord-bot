@@ -1128,7 +1128,32 @@ public class DiscordAccess : IDiscordAccess
         if (categoryChannel == null)
             return;
 
-        await categoryChannel.DeleteAsync();
+        foreach (var childChannel in categoryChannel.Channels)
+        {
+            var channelName = $"{categoryChannel.Name} / {childChannel.Name}";
+            try
+            {
+                await childChannel.DeleteAsync();
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e,
+                    "Failed to delete channel {ChannelName}",
+                    channelName);
+            }
+        }
+
+        var categoryChannelName = categoryChannel.Name;
+        try
+        {
+            await categoryChannel.DeleteAsync();
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e,
+                "Failed to delete category channel {ChannelName}",
+                categoryChannelName);
+        }
     }
 
     string IDiscordAccess.GetAvatarId(DiscordUserId userId)
