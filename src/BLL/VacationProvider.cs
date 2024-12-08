@@ -46,7 +46,7 @@ public class VacationProvider : IVacationProvider
             return "Failed to add vacation. User couldn't be identified.";
         var vacationAdded = await _databaseAccess.AddVacationAsync(user!, start, end, note?.Trim());
         return vacationAdded
-                   ? "Vacation added successfully."
+                   ? $"Vacation added successfully: `{start:yyyy-MM-dd} - {end:yyyy-MM-dd}`"
                    : "Failed to add vacation. Vacation collides with an existing vacation.";
     }
 
