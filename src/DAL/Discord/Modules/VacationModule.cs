@@ -28,7 +28,7 @@ public class VacationModule : InteractionModuleBase<SocketInteractionContext>
                                        [Summary(description: "Format: yyyy-MM-dd")] string? endDate = null,
                                        [Summary(description: "Optional note that you want to leave for the leadership.")] string? note = null)
     {
-        await DeferAsync();
+        await DeferAsync(ephemeral: true);
 
         endDate ??= startDate;
         var startDateValue = await TryParseDateAsync(startDate);
@@ -93,7 +93,7 @@ public class VacationModule : InteractionModuleBase<SocketInteractionContext>
     [AllowedRoles(Role.AnyGuildMember)]
     public async Task ListUserVacationsAsync()
     {
-        await DeferAsync();
+        await DeferAsync(ephemeral: true);
         var response = await _vacationProvider.GetVacations((DiscordUserId)Context.User.Id);
         await FollowupAsync(response, ephemeral: true);
     }
@@ -103,7 +103,7 @@ public class VacationModule : InteractionModuleBase<SocketInteractionContext>
     public async Task DeleteVacationAsync([Summary(description: "Format: yyyy-MM-dd")] string startDate,
                                           [Summary(description: "Format: yyyy-MM-dd")] string? endDate = null)
     {
-        await DeferAsync();
+        await DeferAsync(ephemeral: true);
 
         endDate ??= startDate;
         var startDateValue = await TryParseDateAsync(startDate);
