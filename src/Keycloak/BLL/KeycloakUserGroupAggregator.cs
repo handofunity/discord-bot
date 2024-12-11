@@ -47,8 +47,7 @@ internal class KeycloakUserGroupAggregator : IKeycloakUserGroupAggregator
             keycloakUser.AddFederatedIdentity(federatedIdentity);
         }
 
-        var userMapping = keycloakUsers.Where(m => m.DiscordUserId != DiscordUserId.Unknown)
-            .ToDictionary(m => m.KeycloakUserId, m => m.DiscordUserId);
+        var userMapping = keycloakUsers.ToDictionary(m => m.KeycloakUserId, m => m.DiscordUserId);
 
         // Get currently disabled users
         var disabledUsers = keycloakUsers.Where(m => !m.Enabled).Select(m => m.KeycloakUserId).ToArray();

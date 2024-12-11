@@ -50,7 +50,8 @@ internal class UserRepresentation
     [JsonConstructor]
     public UserRepresentation()
     {
-        _federatedIdentities = new List<FederatedIdentityRepresentation>();
+        _federatedIdentities = [];
+        DiscordUserId = DiscordUserId.Unknown;
     }
 
     public UserRepresentation(UserModel userModel)

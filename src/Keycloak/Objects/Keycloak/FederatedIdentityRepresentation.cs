@@ -23,9 +23,9 @@ internal class FederatedIdentityRepresentation
     [JsonConstructor]
     public FederatedIdentityRepresentation()
     {
-        
+
     }
-    
+
     public FederatedIdentityRepresentation(DiscordUserId userId,
                                            string username)
     {

@@ -14,7 +14,7 @@ internal class KeycloakDiscordComparer : IKeycloakDiscordComparer
                                         .ToArray();
         return keycloakGroupIds.Any()
                    ? keycloakGroupIds
-                   : new[] { configuredKeycloakGroups.FallbackGroupId };
+                   : [configuredKeycloakGroups.FallbackGroupId];
     }
 
     private static (UserModel DiscordUser, KeycloakGroupId[] KeycloakGroupIds)[] GetUsersToAdd(UserModel[] discordUsers,
@@ -36,15 +36,26 @@ internal class KeycloakDiscordComparer : IKeycloakDiscordComparer
                                                           IEnumerable<KeycloakUserId> disabledUserIds,
                                                           IEnumerable<UserRepresentation> keycloakUsers)
     {
-        var obsoleteDiscordUserIds = discordUserIdsInKeycloak.Except(discordUserIds).ToArray();
-        return obsoleteDiscordUserIds.Select(obsoleteDiscordUserId => userMapping.Single(m => m.Value == obsoleteDiscordUserId).Key)
-                                     .Except(disabledUserIds)
-                                     .Join(keycloakUsers,
-                                           id => id,
-                                           userRep => userRep.KeycloakUserId,
-                                           (_,
-                                            userRep) => userRep)
-                                     .ToArray();
+        var obsoleteDiscordUserIds = discordUserIdsInKeycloak
+            .Where(m => m != DiscordUserId.Unknown)
+            .Except(discordUserIds)
+            .ToArray();
+        var userIdsToDisable = obsoleteDiscordUserIds
+            .Select(obsoleteDiscordUserId => userMapping.Single(m => m.Value == obsoleteDiscordUserId).Key)
+            .Except(disabledUserIds)
+            .ToList();
+
+        userIdsToDisable.AddRange(userMapping.Where(m => m.Value == DiscordUserId.Unknown)
+            .Select(m => m.Key));
+        userIdsToDisable = userIdsToDisable.Distinct().ToList();
+
+        return userIdsToDisable.Join(keycloakUsers,
+                id => id,
+                userRep => userRep.KeycloakUserId,
+                (_,
+                userRep) => userRep)
+            .Where(m => m.Enabled)
+            .ToArray();
     }
 
     private static UserRepresentation[] GetUsersToEnable(IEnumerable<DiscordUserId> discordUserIds,

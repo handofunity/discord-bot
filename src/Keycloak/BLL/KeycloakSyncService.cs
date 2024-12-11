@@ -111,6 +111,8 @@ internal class KeycloakSyncService : IKeycloakSyncService
     public async Task SyncAllUsersAsync()
     {
         await SemaphoreSlim.WaitAsync();
+        var utcNow = DateTime.UtcNow;
+        var notificationRequired = utcNow is { Hour: 15, Minute: < 15 };
         try
         {
             if (_dynamicConfiguration.KeycloakEndpoints.Length == 0)
@@ -146,8 +148,6 @@ internal class KeycloakSyncService : IKeycloakSyncService
                 _logger.LogInformation("Sent {@Result} to Keycloak at {Address}",
                                        result,
                                        keycloakEndpoint.BaseUrl);
-                var utcNow = DateTime.UtcNow;
-                var notificationRequired = utcNow is { Hour: 15, Minute: < 15 };
                 var hasChanges = result.AddedUsers > 0
                               || result.DisabledUsers > 0
                               || result.LoggedOutUsers > 0
@@ -177,6 +177,14 @@ internal class KeycloakSyncService : IKeycloakSyncService
                     sb.AppendLine($"Removed {result.RemovedGroupMemberships} users from groups.");
 
                 await _discordAccess.LogToDiscordAsync(sb.ToString());
+            }
+        }
+        catch
+        {
+            if (notificationRequired)
+            {
+                var roleId = (DiscordRoleId)_dynamicConfiguration.DiscordMapping["DeveloperRoleId"];
+                await _discordAccess.LogToDiscordAsync($"{roleId.ToMention()}: Keycloak sync failed with exception.");
             }
         }
         finally
