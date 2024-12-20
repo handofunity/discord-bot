@@ -28,7 +28,7 @@ public class AshesOfCreationModule : InteractionModuleBase<SocketInteractionCont
     }
 
     [SlashCommand("profile", "Shows the profile image for the given or current user.", runMode: RunMode.Async)]
-    [AllowedRoles(Role.Developer)] // TODO: Change to any guild member
+    [AllowedRoles(Role.AnyGuildMember)]
     public async Task GetProfileCardAsync(IGuildUser? guildUser = null)
     {
         await DeferAsync();
@@ -87,7 +87,7 @@ public class AshesOfCreationModule : InteractionModuleBase<SocketInteractionCont
     }
 
     [SlashCommand("leaderboard", "Shows the leaderboard for the current season or the heritag ranking.", runMode: RunMode.Async)]
-    [AllowedRoles(Role.Developer)] // TODO: Change to any guild member
+    [AllowedRoles(Role.AnyGuildMember)]
     public async Task GetLeaderboardTableAsync([Summary(description: "Which leaderboard to show")] LeadboardType leadboardType)
     {
         await DeferAsync();
