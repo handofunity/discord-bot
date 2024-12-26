@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using Discord;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using ButtonComponent = Discord.ButtonComponent;
 using SelectMenuComponent = HoU.GuildBot.Shared.Objects.SelectMenuComponent;
@@ -1222,7 +1223,11 @@ public class DiscordAccess : IDiscordAccess
             }
             var embed = embedData.ToEmbed();
             var message = await textChannel.SendMessageAsync(null, false, embed);
-            var thread = await textChannel.CreateThreadAsync(threadName, autoArchiveDuration: ThreadArchiveDuration.ThreeDays, message: message);
+            var channelType = textChannel.GetChannelType();
+            var threadType = channelType == ChannelType.News
+                ? ThreadType.NewsThread
+                : ThreadType.PublicThread;
+            var thread = await textChannel.CreateThreadAsync(threadName, threadType, autoArchiveDuration: ThreadArchiveDuration.ThreeDays, message: message);
             return (DiscordChannelId)thread.Id;
         }
         catch (Exception e)
@@ -1281,7 +1286,11 @@ public class DiscordAccess : IDiscordAccess
                 notifications.Clear();
             }
             var initialMessage = await textChannel.SendMessageAsync(initialText, false, embed);
-            var thread = await textChannel.CreateThreadAsync(threadName, autoArchiveDuration: ThreadArchiveDuration.ThreeDays, message: initialMessage);
+            var channelType = textChannel.GetChannelType();
+            var threadType = channelType == ChannelType.News
+                ? ThreadType.NewsThread
+                : ThreadType.PublicThread;
+            var thread = await textChannel.CreateThreadAsync(threadName, threadType, autoArchiveDuration: ThreadArchiveDuration.ThreeDays, message: initialMessage);
 
             foreach (var notification in notifications)
             {

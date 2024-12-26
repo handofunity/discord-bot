@@ -2,7 +2,7 @@
 
 public class Runner
 {
-    private static readonly Version _botVersion = new(12, 11, 5);
+    private static readonly Version _botVersion = new(12, 11, 6);
 
     private BackgroundJobServer? _backgroundJobServer;
     private ILogger<Runner>? _logger;
