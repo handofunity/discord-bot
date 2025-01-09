@@ -1206,13 +1206,14 @@ public class DiscordAccess : IDiscordAccess
     }
 
     async Task<DiscordChannelId?> IDiscordAccess.SendUnitsNotificationAsync(int unitsEndpointId,
+        UnitsContext context,
         string threadName,
         EmbedData embedData)
     {
         try
         {
             var g = GetGuild();
-            var textChannelId = _dynamicConfiguration.DiscordMapping[$"UnitsNotificationsChannelId___{unitsEndpointId}"];
+            var textChannelId = _dynamicConfiguration.DiscordMapping[$"UnitsNotificationsChannelId___{context}___{unitsEndpointId}"];
             var textChannel = g.GetTextChannel(textChannelId);
             if (textChannel is null)
             {
@@ -1259,6 +1260,7 @@ public class DiscordAccess : IDiscordAccess
     }
 
     async Task<DiscordChannelId?> IDiscordAccess.SendUnitsNotificationAsync(int unitsEndpointId,
+        UnitsContext context,
         string threadName,
         EmbedData embedData,
         string[] mentions,
@@ -1267,7 +1269,7 @@ public class DiscordAccess : IDiscordAccess
         try
         {
             var g = GetGuild();
-            var textChannelId = _dynamicConfiguration.DiscordMapping[$"UnitsNotificationsChannelId___{unitsEndpointId}"];
+            var textChannelId = _dynamicConfiguration.DiscordMapping[$"UnitsNotificationsChannelId___{context}___{unitsEndpointId}"];
             var textChannel = g.GetTextChannel(textChannelId);
             if (textChannel is null)
             {

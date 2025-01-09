@@ -37,6 +37,22 @@ public class UnitsBotClient(IDiscordAccess _discordAccess,
         };
     }
 
+    private static EmbedData GetRequisitionOrderEmbed(Uri baseAddress,
+        string actionOrTitle,
+        RGB color)
+    {
+        var iconUrl = GetIconUrl(baseAddress);
+        return new EmbedData
+        {
+            Author = "UNITS: Exchange",
+            AuthorUrl = GetExchangeUrl(baseAddress),
+            AuthorIconUrl = iconUrl,
+            ThumbnailUrl = iconUrl,
+            Title = $":shopping_cart: {actionOrTitle}",
+            Color = color
+        };
+    }
+
     private static string GetIconUrl(Uri baseAddress) => $"{baseAddress}images/logo.png";
 
     private static string GetEventsUrl(Uri baseAddress) => $"{baseAddress}events";
@@ -44,6 +60,12 @@ public class UnitsBotClient(IDiscordAccess _discordAccess,
     private static string GetEventUrl(Uri baseAddress,
                                       int appointmentId) =>
         $"{baseAddress}events/{appointmentId}";
+
+    private static string GetExchangeUrl(Uri baseAddress) => $"{baseAddress}exchange";
+
+    private static string GetRequisitionOrderUrl(Uri baseAddress,
+            int requisitionOrderId) =>
+        $"{baseAddress}requisition-orders/{requisitionOrderId}";
 
     private static string GetDiscordTimeString(DateTimeOffset dateTimeOffset,
         string format)
@@ -118,6 +140,7 @@ public class UnitsBotClient(IDiscordAccess _discordAccess,
     }
 
     private async Task<DiscordChannelId?> SendUnitsNotificationAsync(UnitsEndpoint unitsEndpoint,
+        UnitsContext context,
         string threadName,
         EmbedData embed,
         string[]? mentions,
@@ -126,6 +149,7 @@ public class UnitsBotClient(IDiscordAccess _discordAccess,
         if (mentions is not null && mentions.Length > 0)
         {
             return await _discordAccess.SendUnitsNotificationAsync(unitsEndpoint.UnitsEndpointId,
+                context,
                 threadName,
                 embed,
                 mentions,
@@ -134,6 +158,7 @@ public class UnitsBotClient(IDiscordAccess _discordAccess,
         else
         {
             return await _discordAccess.SendUnitsNotificationAsync(unitsEndpoint.UnitsEndpointId,
+                context,
                 threadName,
                 embed);
         }
@@ -199,7 +224,7 @@ public class UnitsBotClient(IDiscordAccess _discordAccess,
         var newEventMention = unitsEndpoint.NewEventPingDiscordRoleId?.ToMention();
         if (newEventMention is not null)
             mentions.Add(newEventMention);
-        var threadId = await SendUnitsNotificationAsync(unitsEndpoint, eventName, embed, [.. mentions], false);
+        var threadId = await SendUnitsNotificationAsync(unitsEndpoint, UnitsContext.Events, eventName, embed, [.. mentions], false);
         if (threadId is not null)
             await _unitsAccess.SendCreatedThreadIdAsync(unitsEndpoint, appointmentId, threadId.Value);
     }
@@ -247,7 +272,7 @@ public class UnitsBotClient(IDiscordAccess _discordAccess,
         if (originalThreadId is not null)
             await _discordAccess.ArchiveThreadAsync((DiscordChannelId)originalThreadId.Value);
         var userIds = ToDiscordUserIds(usersToNotify);
-        var threadId = await SendUnitsNotificationAsync(unitsEndpoint, eventName, embed, userIds.ToMentions(), true);
+        var threadId = await SendUnitsNotificationAsync(unitsEndpoint, UnitsContext.Events, eventName, embed, userIds.ToMentions(), true);
         if (threadId is not null)
         {
             await _discordAccess.TryAddUsersToThreadAsync(threadId.Value, userIds);
@@ -403,5 +428,40 @@ public class UnitsBotClient(IDiscordAccess _discordAccess,
 
         await _unitsAccess.SendCurrentAttendeesAsync(unitsEndpoint!,
             request);
+    }
+
+    async Task IUnitsBotClient.ReceiveRequisitionOrderCreatedMessageAsync(Uri baseAddress,
+        int requisitionOrderId,
+        string purpose,
+        string creator,
+        string importance,
+        DateTimeOffset dueTime)
+    {
+        if (!TryGetUnitsEndpoint(baseAddress, out var unitsEndpoint))
+            return;
+
+        _logger.LogDebug("Received RequisitionOrderCreatedMessage for requisition order \"{Purpose}\" (Id: {RequisitionOrderId})",
+            purpose,
+            requisitionOrderId);
+        var fields = new List<EmbedField>
+        {
+            new EmbedField("Due Time", GetDiscordTimeString(dueTime, "R"), false)
+        };
+        var embed = GetRequisitionOrderEmbed(baseAddress,
+            purpose,
+            Colors.BrightBlue);
+        embed.Url = GetRequisitionOrderUrl(baseAddress, requisitionOrderId);
+        embed.Description = "A new requisition order was created in UNITS. " +
+                            $"[Click here to open the requisition order in your browser]({embed.Url}).";
+        embed.Fields = [.. fields];
+        embed.FooterText = $"Created by {creator}";
+
+        var mentions = new List<string>(1);
+        var newRequisitionOrderMention = unitsEndpoint.NewRequisitionOrderPingDiscordRoleId?.ToMention();
+        if (newRequisitionOrderMention is not null)
+            mentions.Add(newRequisitionOrderMention);
+        var threadId = await SendUnitsNotificationAsync(unitsEndpoint, UnitsContext.Exchange, purpose, embed, [.. mentions], false);
+        if (threadId is not null)
+            await _unitsAccess.SendCreatedThreadIdForRequisitionOrderAsync(unitsEndpoint, requisitionOrderId, threadId.Value);
     }
 }

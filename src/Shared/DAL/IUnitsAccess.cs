@@ -14,6 +14,17 @@ public interface IUnitsAccess
         DiscordChannelId threadId);
 
     /// <summary>
+    /// Sends the <paramref name="threadId"/> for the <paramref name="requisitionOrderId"/> to the UNIT system.
+    /// </summary>
+    /// <param name="unitsEndpoint">The data used to sync with the UNIT system.</param>
+    /// <param name="requisitionOrderId">The Id of the requisition order the thread was created for.</param>
+    /// <param name="threadId">The Id of the created thread.</param>
+    /// <returns>An awaitable <see cref="Task"/>.</returns>
+    Task SendCreatedThreadIdForRequisitionOrderAsync(UnitsEndpoint unitsEndpoint,
+        int requisitionOrderId,
+        DiscordChannelId threadId);
+
+    /// <summary>
     /// Sends the <paramref name="createdVoiceChannelsRequest"/> to the UNIT system.
     /// </summary>
     /// <param name="unitsEndpoint">The data used to sync with the UNIT system.</param>

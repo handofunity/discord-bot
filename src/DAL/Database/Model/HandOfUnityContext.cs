@@ -279,6 +279,10 @@ namespace HoU.GuildBot.DAL.Database.Model
                     .HasPrecision(20)
                     .HasColumnName("new_event_ping_discord_role_id");
 
+                entity.Property(e => e.NewRequisitionOrderPingDiscordRoleId)
+                    .HasPrecision(20)
+                    .HasColumnName("new_requisition_order_ping_discord_role_id");
+
                 entity.HasOne(d => d.KeycloakEndpoint)
                     .WithMany(p => p.UnitsEndpoint)
                     .HasForeignKey(d => d.KeycloakEndpointId)

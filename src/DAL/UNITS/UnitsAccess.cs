@@ -21,13 +21,33 @@ public class UnitsAccess(IBearerTokenManager _bearerTokenManager,
 
         try
         {
-            await _discordSyncClient.PushCreatedThreadIdAsync(appointmentId, (ulong)threadId);
+            await _discordSyncClient.PushCreatedThreadIdAsync(appointmentId,
+                (ulong)threadId);
         }
         catch (SwaggerException e)
         {
             _logger.LogError(e, "Failed to send created thread id {ThreadId} for {AppointmentId}",
                 threadId,
                 appointmentId);
+        }
+    }
+
+    async Task IUnitsAccess.SendCreatedThreadIdForRequisitionOrderAsync(UnitsEndpoint unitsEndpoint,
+        int requisitionOrderId,
+        DiscordChannelId threadId)
+    {
+        Use(_discordSyncClient, unitsEndpoint);
+
+        try
+        {
+            await _discordSyncClient.PushCreatedThreadIdForRequisitionOrderAsync(requisitionOrderId,
+                (ulong)threadId);
+        }
+        catch (SwaggerException e)
+        {
+            _logger.LogError(e, "Failed to send created thread id {ThreadId} for {RequisitionOrderId}",
+                threadId,
+                requisitionOrderId);
         }
     }
 

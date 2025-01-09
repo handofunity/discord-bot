@@ -52,6 +52,9 @@ public class ConfigurationDatabaseAccess : IConfigurationDatabaseAccess
                 m.NewEventPingDiscordRoleId is null
                     ? null
                     : (DiscordRoleId)(ulong)m.NewEventPingDiscordRoleId,
+                m.NewRequisitionOrderPingDiscordRoleId is null
+                    ? null
+                    : (DiscordRoleId)(ulong)m.NewRequisitionOrderPingDiscordRoleId,
                 m.Chapter))
             .ToArray();
     }

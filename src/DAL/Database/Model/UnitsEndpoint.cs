@@ -12,6 +12,7 @@ namespace HoU.GuildBot.DAL.Database.Model
         public int KeycloakEndpointId { get; set; }
         public decimal? NewEventPingDiscordRoleId { get; set; }
         public string Chapter { get; set; } = null!;
+        public decimal? NewRequisitionOrderPingDiscordRoleId { get; set; }
 
         public virtual KeycloakEndpoint? KeycloakEndpoint { get; set; } = null!;
     }

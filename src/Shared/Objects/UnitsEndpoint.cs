@@ -6,4 +6,5 @@ public record UnitsEndpoint(int UnitsEndpointId,
                             bool ConnectToNotificationHub,
                             KeycloakEndpoint KeycloakEndpoint,
                             DiscordRoleId? NewEventPingDiscordRoleId,
+                            DiscordRoleId? NewRequisitionOrderPingDiscordRoleId,
                             string Chapter);

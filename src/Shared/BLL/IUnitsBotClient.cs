@@ -67,4 +67,11 @@ public interface IUnitsBotClient
         int appointmentId,
         int checkNumber,
         ulong categoryChannelId);
+
+    Task ReceiveRequisitionOrderCreatedMessageAsync(Uri baseAddress,
+        int requisitionOrderId,
+        string purpose,
+        string creator,
+        string importance,
+        DateTimeOffset dueTime);
 }
