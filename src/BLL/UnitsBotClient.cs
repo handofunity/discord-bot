@@ -464,4 +464,28 @@ public class UnitsBotClient(IDiscordAccess _discordAccess,
         if (threadId is not null)
             await _unitsAccess.SendCreatedThreadIdForRequisitionOrderAsync(unitsEndpoint, requisitionOrderId, threadId.Value);
     }
+
+    async Task IUnitsBotClient.ReceiveRequisitionOrderClosedMessageAsync(Uri baseAddress,
+        int requisitionOrderId,
+        ulong threadId,
+        bool newDeliveriesRejected,
+        bool acceptedDeliveriesRejected,
+        ulong[] usersToNotify)
+    {
+        if (!TryGetUnitsEndpoint(baseAddress, out var unitsEndpoint))
+            return;
+
+        var url = GetRequisitionOrderUrl(baseAddress, requisitionOrderId);
+        var message = new StringBuilder("This requisition order has been closed.");
+        if (usersToNotify.Length > 0)
+            message.Append($" [Please open the requisition order in your browser]({url}) to **check the status of your deliveries**.");
+        if (newDeliveriesRejected)
+            message.Append("\r\n**__New__ deliveries have been rejected.**");
+        if (acceptedDeliveriesRejected)
+            message.Append("\r\n**__Accepted__ deliveries have been rejected.**");
+        var userIds = ToDiscordUserIds(usersToNotify);
+        await SendUnitsNotificationAsync((DiscordChannelId)threadId,
+            message.ToString(),
+            userIds.ToMentions());
+    }
 }

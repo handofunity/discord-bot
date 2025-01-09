@@ -74,4 +74,11 @@ public interface IUnitsBotClient
         string creator,
         string importance,
         DateTimeOffset dueTime);
+
+    Task ReceiveRequisitionOrderClosedMessageAsync(Uri baseAddress,
+        int requisitionOrderId,
+        ulong threadId,
+        bool newDeliveriesRejected,
+        bool acceptedDeliveriesRejected,
+        ulong[] usersToNotify);
 }
