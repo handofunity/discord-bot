@@ -81,4 +81,9 @@ public interface IUnitsBotClient
         bool newDeliveriesRejected,
         bool acceptedDeliveriesRejected,
         ulong[] usersToNotify);
+
+    Task ReceiveDeliveryCreatedMessageAsync(Uri baseAddress,
+        int requisitionOrderId,
+        ulong threadId,
+        string deliverer);
 }

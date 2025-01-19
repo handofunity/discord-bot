@@ -488,4 +488,18 @@ public class UnitsBotClient(IDiscordAccess _discordAccess,
             message.ToString(),
             userIds.ToMentions());
     }
+
+    async Task IUnitsBotClient.ReceiveDeliveryCreatedMessageAsync(Uri baseAddress,
+        int requisitionOrderId,
+        ulong threadId,
+        string deliverer)
+    {
+        if (!TryGetUnitsEndpoint(baseAddress, out var unitsEndpoint))
+            return;
+
+        var url = GetRequisitionOrderUrl(baseAddress, requisitionOrderId);
+        var message = $"A [new delivery]({url}) has been created by {deliverer}.";
+        await SendUnitsNotificationAsync((DiscordChannelId)threadId,
+            message);
+    }
 }
