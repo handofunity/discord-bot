@@ -67,6 +67,11 @@ public class UnitsBotClient(IDiscordAccess _discordAccess,
             int requisitionOrderId) =>
         $"{baseAddress}requisition-orders/{requisitionOrderId}";
 
+    private static string GetRequisitionOrderUrl(Uri baseAddress,
+            int requisitionOrderId,
+            long deliveryId) =>
+        $"{baseAddress}requisition-orders/{requisitionOrderId}/deliveries/{deliveryId}";
+
     private static string GetDiscordTimeString(DateTimeOffset dateTimeOffset,
         string format)
     {
@@ -499,6 +504,36 @@ public class UnitsBotClient(IDiscordAccess _discordAccess,
 
         var url = GetRequisitionOrderUrl(baseAddress, requisitionOrderId);
         var message = $"A [new delivery]({url}) has been created by {deliverer}.";
+        await SendUnitsNotificationAsync((DiscordChannelId)threadId,
+            message);
+    }
+
+    async Task IUnitsBotClient.ReceiveDeliveryAcceptedMessageAsync(Uri baseAddress,
+        int requisitionOrderId,
+        long deliveryId,
+        ulong threadId,
+        ulong userToNotify)
+    {
+        if (!TryGetUnitsEndpoint(baseAddress, out var unitsEndpoint))
+            return;
+
+        var url = GetRequisitionOrderUrl(baseAddress, requisitionOrderId, deliveryId);
+        var message = $"{((DiscordUserId)userToNotify).ToMention()} Your [delivery]({url}) was **accepted**.";
+        await SendUnitsNotificationAsync((DiscordChannelId)threadId,
+            message);
+    }
+
+    async Task IUnitsBotClient.ReceiveDeliveryRejectedMessageAsync(Uri baseAddress,
+        int requisitionOrderId,
+        long deliveryId,
+        ulong threadId,
+        ulong userToNotify)
+    {
+        if (!TryGetUnitsEndpoint(baseAddress, out var unitsEndpoint))
+            return;
+
+        var url = GetRequisitionOrderUrl(baseAddress, requisitionOrderId, deliveryId);
+        var message = $"{((DiscordUserId)userToNotify).ToMention()} Your [delivery]({url}) was **rejected**.";
         await SendUnitsNotificationAsync((DiscordChannelId)threadId,
             message);
     }

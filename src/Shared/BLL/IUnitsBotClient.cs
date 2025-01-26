@@ -86,4 +86,16 @@ public interface IUnitsBotClient
         int requisitionOrderId,
         ulong threadId,
         string deliverer);
+
+    Task ReceiveDeliveryAcceptedMessageAsync(Uri baseAddress,
+        int requisitionOrderId,
+        long deliveryId,
+        ulong threadId,
+        ulong userToNotify);
+
+    Task ReceiveDeliveryRejectedMessageAsync(Uri baseAddress,
+        int requisitionOrderId,
+        long deliveryId,
+        ulong threadId,
+        ulong userToNotify);
 }
