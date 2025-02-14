@@ -120,8 +120,9 @@ internal static class ServiceCollectionExtensions
            .AddTransient<IImageProvider, ImageProvider>()
            .AddTransient<ITimeInformationProvider, TimeInformationProvider>()
            .AddTransient<IScheduledReminderProvider, ScheduledReminderProvider>()
-            // Triggered as scheduled HangFire job
-           .AddTransient<ReminderService>();
+            // Triggered as scheduled or background HangFire job
+           .AddTransient<ReminderService>()
+           .AddTransient<BackgroundTasks>();
 
         return services;
     }

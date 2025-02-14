@@ -1129,25 +1129,35 @@ public class DiscordAccess : IDiscordAccess
         if (categoryChannel == null)
             return;
 
+        var categoryChannelName = categoryChannel.Name;
+
+        _logger.LogInformation("Found {Count} child channels for category channel {CategoryChannelName}",
+            categoryChannel.Channels.Count,
+            categoryChannelName);
         foreach (var childChannel in categoryChannel.Channels)
         {
             var channelName = $"{categoryChannel.Name} / {childChannel.Name}";
             try
             {
                 await childChannel.DeleteAsync();
+                _logger.LogInformation("Deleted channel {ChannelName} of {CategoryChannelName}",
+                    channelName,
+                    categoryChannelName);
             }
             catch (Exception e)
             {
                 _logger.LogError(e,
-                    "Failed to delete channel {ChannelName}",
-                    channelName);
+                    "Failed to delete channel {ChannelName} of {CategoryChannelName}",
+                    channelName,
+                    categoryChannelName);
             }
+            await Task.Delay(500);
         }
-
-        var categoryChannelName = categoryChannel.Name;
         try
         {
             await categoryChannel.DeleteAsync();
+            _logger.LogInformation("Deleted category channel {CategoryChannelName}",
+                categoryChannelName);
         }
         catch (Exception e)
         {

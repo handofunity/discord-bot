@@ -5,6 +5,7 @@ namespace HoU.GuildBot.BLL;
 public class UnitsBotClient(IDiscordAccess _discordAccess,
                             IUnitsAccess _unitsAccess,
                             IDynamicConfiguration _dynamicConfiguration,
+                            IBackgroundJobClient _backgroundJobClient,
                             ILogger<UnitsBotClient> _logger)
     : IUnitsBotClient
 {
@@ -385,19 +386,10 @@ public class UnitsBotClient(IDiscordAccess _discordAccess,
                 voiceChannels));
     }
 
-    async Task IUnitsBotClient.ReceiveDeleteEventCategoryChannelMessageAsync(ulong categoryChannelId)
+    Task IUnitsBotClient.ReceiveDeleteEventCategoryChannelMessageAsync(ulong categoryChannelId)
     {
-        try
-        {
-            await _discordAccess.DeleteCategoryChannelAsync((DiscordCategoryChannelId)categoryChannelId);
-            _logger.LogInformation("Deleted category channel {CategoryChannelId}", categoryChannelId.ToString());
-        }
-        catch (Exception e)
-        {
-            _logger.LogWarning(e,
-                "Failed to delete category channel {CategoryChannelId}",
-                categoryChannelId.ToString());
-        }
+        _backgroundJobClient.Enqueue<BackgroundTasks>(m => m.DeleteCategoryChannelAsync(categoryChannelId));
+        return Task.CompletedTask;
     }
 
     async Task IUnitsBotClient.ReceiveGetCurrentAttendeesMessageAsync(Uri baseAddress,
