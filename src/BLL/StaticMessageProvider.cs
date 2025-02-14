@@ -168,7 +168,6 @@ public class StaticMessageProvider : IStaticMessageProvider
         // Friend or Guest menu
         messages[0].Components.Add(_menuRegistry.GetButtonMenuComponent(Constants.FriendOrGuestMenu.GuestCustomId));
         messages[0].Components.Add(_menuRegistry.GetButtonMenuComponent(Constants.FriendOrGuestMenu.FriendOfMemberCustomId));
-        messages[0].Components.Add(_menuRegistry.GetButtonMenuComponent(Constants.FriendOrGuestMenu.TnlFriendCustomId));
 
         // Game interest menu
         messages[1].Components.AddRange(_menuRegistry.GetSelectMenuComponents(Constants.GameInterestMenu.CustomId));

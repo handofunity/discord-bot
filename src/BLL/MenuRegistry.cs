@@ -292,14 +292,6 @@ public class MenuRegistry : IMenuRegistry
                         customId,
                         [],
                         RoleToggleMode.Dynamic)));
-        _buttonMenus.Add(Constants.FriendOrGuestMenu.TnlFriendCustomId,
-            new ButtonMenu(Constants.FriendOrGuestMenu.TnlFriendCustomId,
-                Constants.FriendOrGuestMenu.TnlFriendDisplayName,
-                async (userId, customId) =>
-                    await _nonMemberRoleProvider.ToggleNonMemberRoleAsync(userId,
-                        customId,
-                        [],
-                        RoleToggleMode.Dynamic)));
 
         _selectMenus.Add(Constants.AocArchetypeMenu.CustomId,
                          CreatePrimaryGameRoleSelectMenu(Constants.AocArchetypeMenu.CustomId,

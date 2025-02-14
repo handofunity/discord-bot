@@ -16,7 +16,6 @@ public class NonMemberRoleProvider : INonMemberRoleProvider
     private static Role MapCustomIdToStaticRole(string customId) =>
         customId switch
         {
-            Constants.FriendOrGuestMenu.TnlFriendCustomId => Role.TnlFriend,
             Constants.FriendOrGuestMenu.FriendOfMemberCustomId => Role.FriendOfMember,
             Constants.FriendOrGuestMenu.GuestCustomId => Role.Guest,
             Constants.GameInterestMenu.CustomId => Role.NoRole,
