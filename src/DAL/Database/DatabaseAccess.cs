@@ -456,26 +456,32 @@ public class DatabaseAccess : IDatabaseAccess
         var decDiscordRoleId = (decimal)primaryGameDiscordRoleId;
 
         await using var context = GetDbContext(true);
-        await using var transaction = await context.Database.BeginTransactionAsync();
-
-        var matchingGame = await context.Game
-                                        .SingleOrDefaultAsync(m => m.PrimaryGameDiscordRoleId == decDiscordRoleId);
-        if (matchingGame != null)
-            return (false, "A game with the same Discord role Id already exists.");
-
-        context.Game.Add(new Game
+        var strategy = context.Database.CreateExecutionStrategy();
+        return await strategy.ExecuteInTransactionAsync<(bool, string?)>(async (ct) =>
         {
-            PrimaryGameDiscordRoleId = decDiscordRoleId,
-            IncludeInGamesMenu = true,
-            IncludeInGuildMembersStatistic = false,
-            ModifiedByUserId = (int)userId,
-            ModifiedAtTimestamp = DateTime.UtcNow
+            var matchingGame = await context.Game
+                .SingleOrDefaultAsync(m => m.PrimaryGameDiscordRoleId == decDiscordRoleId,
+                    ct);
+            if (matchingGame != null)
+                return (false, "A game with the same Discord role Id already exists.");
+
+            context.Game.Add(new Game
+            {
+                PrimaryGameDiscordRoleId = decDiscordRoleId,
+                IncludeInGamesMenu = true,
+                IncludeInGuildMembersStatistic = false,
+                ModifiedByUserId = (int)userId,
+                ModifiedAtTimestamp = DateTime.UtcNow
+            });
+
+            await context.SaveChangesAsync(ct);
+
+            return (true, null);
+        }, async (ct) =>
+        {
+            return await context.Game
+                .AnyAsync(m => m.PrimaryGameDiscordRoleId == decDiscordRoleId, ct);
         });
-
-        await context.SaveChangesAsync();
-        await transaction.CommitAsync();
-
-        return (true, null);
     }
 
     async Task<(bool Success, string? Error)> IDatabaseAccess.TryUpdateGameAsync(InternalUserId userId,
@@ -485,102 +491,128 @@ public class DatabaseAccess : IDatabaseAccess
         var shortGameId = (short)internalGameId;
 
         await using var context = GetDbContext(true);
-        await using var transaction = await context.Database.BeginTransactionAsync();
+        var strategy = context.Database.CreateExecutionStrategy();
+        return await strategy.ExecuteInTransactionAsync<(bool, string?)>(async (ct) =>
+        {
+            var matchingGame = await context.Game.SingleOrDefaultAsync(m => m.GameId == shortGameId,
+                ct);
+            if (matchingGame == null)
+                return (false, $"Game with the GameId {internalGameId} couldn't be found.");
 
-        var matchingGame = await context.Game.SingleOrDefaultAsync(m => m.GameId == shortGameId);
-        if (matchingGame == null)
-            return (false, $"Game with the GameId {internalGameId} couldn't be found.");
+            matchingGame.IncludeInGuildMembersStatistic = updated.IncludeInGuildMembersStatistic;
+            matchingGame.IncludeInGamesMenu = updated.IncludeInGamesMenu;
+            matchingGame.GameInterestRoleId = updated.GameInterestRoleId == null
+                                                  ? null
+                                                  : (ulong)updated.GameInterestRoleId;
+            matchingGame.ModifiedByUserId = (int)userId;
+            matchingGame.ModifiedAtTimestamp = DateTime.UtcNow;
 
-        matchingGame.IncludeInGuildMembersStatistic = updated.IncludeInGuildMembersStatistic;
-        matchingGame.IncludeInGamesMenu = updated.IncludeInGamesMenu;
-        matchingGame.GameInterestRoleId = updated.GameInterestRoleId == null
-                                              ? null
-                                              : (ulong)updated.GameInterestRoleId;
-        matchingGame.ModifiedByUserId = (int)userId;
-        matchingGame.ModifiedAtTimestamp = DateTime.UtcNow;
+            await context.SaveChangesAsync(ct);
 
-        await context.SaveChangesAsync();
-        await transaction.CommitAsync();
-
-        return (true, null);
+            return (true, null);
+        }, (ct) =>
+        {
+            return Task.FromResult(false);
+        });
     }
 
     async Task<(bool Success, string? Error)> IDatabaseAccess.TryRemoveGameAsync(InternalGameId internalGameId)
     {
-        await using var context = GetDbContext(true);
-        await using var transaction = await context.Database.BeginTransactionAsync();
-
         var shortGameId = (short)internalGameId;
-        var matchingGame = await context.Game
-                                        .Include(m => m.GameRole)
-                                        .SingleOrDefaultAsync(m => m.GameId == shortGameId);
-        if (matchingGame == null)
-            return (false, $"Game with the GameId {shortGameId} couldn't be found.");
-
-        if (matchingGame.GameRole.Any())
+        await using var context = GetDbContext(true);
+        var strategy = context.Database.CreateExecutionStrategy();
+        return await strategy.ExecuteInTransactionAsync<(bool, string?)>(async (ct) =>
         {
-            context.GameRole.RemoveRange(matchingGame.GameRole);
-            await context.SaveChangesAsync();
-        }
+            var matchingGame = await context.Game
+                .Include(m => m.GameRole)
+                .SingleOrDefaultAsync(m => m.GameId == shortGameId, ct);
+            if (matchingGame == null)
+                return (false, $"Game with the GameId {shortGameId} couldn't be found.");
 
-        context.Game.Remove(matchingGame);
+            if (matchingGame.GameRole.Count > 0)
+            {
+                context.GameRole.RemoveRange(matchingGame.GameRole);
+                await context.SaveChangesAsync(ct);
+            }
 
-        await context.SaveChangesAsync();
-        await transaction.CommitAsync();
+            context.Game.Remove(matchingGame);
 
-        return (true, null);
+            await context.SaveChangesAsync(ct);
+
+            return (true, null);
+        }, async (ct) =>
+        {
+            var found = await context.Game
+                .AnyAsync(m => m.GameId == shortGameId,
+                    ct);
+            return !found;
+        });
     }
 
     async Task<(bool Success, string? Error)> IDatabaseAccess.TryAddGameRoleAsync(InternalUserId userId,
-                                                                                  InternalGameId internalGameId,
-                                                                                  DiscordRoleId discordRoleId)
+        InternalGameId internalGameId,
+        DiscordRoleId discordRoleId)
     {
-        await using var context = GetDbContext(true);
-        await using var transaction = await context.Database.BeginTransactionAsync();
-
         var decDiscordRoleId = (decimal)discordRoleId;
         var shortGameId = (short)internalGameId;
-        var matchingGameInDb =
-            await context.GameRole.SingleOrDefaultAsync(m => m.DiscordRoleId == decDiscordRoleId);
-        if (matchingGameInDb != null)
-            return (false, matchingGameInDb.GameId == shortGameId
-                               ? "The DiscordRoleId is already is use for this game."
-                               : "The DiscordRoleId is already in use for another game.");
-
-        var matchingGameRoleName =
-            await context.GameRole.AnyAsync(m => m.GameId == shortGameId && m.DiscordRoleId == decDiscordRoleId);
-        if (matchingGameRoleName)
-            return (false, "A role with the same name is already assigned to the game.");
-
-        context.GameRole.Add(new GameRole
+        await using var context = GetDbContext(true);
+        var strategy = context.Database.CreateExecutionStrategy();
+        return await strategy.ExecuteInTransactionAsync<(bool, string?)>(async (ct) =>
         {
-            GameId = shortGameId,
-            DiscordRoleId = decDiscordRoleId,
-            ModifiedByUserId = (int)userId,
-            ModifiedAtTimestamp = DateTime.UtcNow
+            var matchingGameInDb =
+                await context.GameRole.SingleOrDefaultAsync(m => m.DiscordRoleId == decDiscordRoleId,
+                    ct);
+            if (matchingGameInDb != null)
+                return (false, matchingGameInDb.GameId == shortGameId
+                    ? "The DiscordRoleId is already is use for this game."
+                    : "The DiscordRoleId is already in use for another game.");
+
+            var matchingGameRoleName =
+                await context.GameRole.AnyAsync(m => m.GameId == shortGameId && m.DiscordRoleId == decDiscordRoleId,
+                    ct);
+            if (matchingGameRoleName)
+                return (false, "A role with the same name is already assigned to the game.");
+
+            context.GameRole.Add(new GameRole
+            {
+                GameId = shortGameId,
+                DiscordRoleId = decDiscordRoleId,
+                ModifiedByUserId = (int)userId,
+                ModifiedAtTimestamp = DateTime.UtcNow
+            });
+
+            await context.SaveChangesAsync(ct);
+
+            return (true, null);
+        }, async (ct) =>
+        {
+            return await context.GameRole
+                .AnyAsync(m => m.DiscordRoleId == decDiscordRoleId && m.GameId == shortGameId, ct);
         });
-
-        await context.SaveChangesAsync();
-        await transaction.CommitAsync();
-
-        return (true, null);
     }
 
     async Task<(bool Success, string? Error)> IDatabaseAccess.TryRemoveGameRoleAsync(InternalGameRoleId gameRoleId)
     {
         await using var context = GetDbContext(true);
-        await using var transaction = await context.Database.BeginTransactionAsync();
+        var strategy = context.Database.CreateExecutionStrategy();
+        return await strategy.ExecuteInTransactionAsync<(bool, string?)>(async (ct) =>
+        {
+            var gameRole = await context.GameRole.SingleOrDefaultAsync(m => m.GameRoleId == (short)gameRoleId,
+                ct);
+            if (gameRole == null)
+                return (false, "Couldn't find game role by Id.");
 
-        var gameRole = await context.GameRole.SingleOrDefaultAsync(m => m.GameRoleId == (short)gameRoleId);
-        if (gameRole == null)
-            return (false, "Couldn't find game role by Id.");
+            context.GameRole.Remove(gameRole);
 
-        context.GameRole.Remove(gameRole);
+            await context.SaveChangesAsync(ct);
 
-        await context.SaveChangesAsync();
-        await transaction.CommitAsync();
-
-        return (true, null);
+            return (true, null);
+        }, async (ct) =>
+        {
+            var found = await context.GameRole
+                .AnyAsync(m => m.GameRoleId == (short)gameRoleId, ct);
+            return !found;
+        });
     }
 
     async Task<InternalUserId[]> IDatabaseAccess.GetUsersWithBirthdayAsync(short month,

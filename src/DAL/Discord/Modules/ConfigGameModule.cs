@@ -26,8 +26,9 @@ public partial class ConfigModule
         [AllowedRoles(Role.Developer | Role.Leader | Role.Officer)]
         public async Task ListAllGamesAsync()
         {
+            await DeferAsync();
             var embedData = _gameRoleProvider.GetGameInfoAsEmbedData(null);
-            await RespondAsync($"Found {embedData.Count} game(s):");
+            await FollowupAsync($"Found {embedData.Count} game(s):");
             await embedData.PerformBulkOperation(async data =>
             {
                 var embed = data.ToEmbed();
@@ -39,15 +40,16 @@ public partial class ConfigModule
         [AllowedRoles(Role.Developer | Role.Leader | Role.Officer)]
         public async Task GetGameAsync(string searchFilter)
         {
+            await DeferAsync();
             // Search for games
             var embedData = _gameRoleProvider.GetGameInfoAsEmbedData(searchFilter);
             if (embedData.Count == 0)
             {
-                await RespondAsync($"Couldn't find any game matching '{searchFilter}'.");
+                await FollowupAsync($"Couldn't find any game matching '{searchFilter}'.");
             }
             else
             {
-                await RespondAsync($"Found {embedData.Count} game(s) matching '{searchFilter}':");
+                await FollowupAsync($"Found {embedData.Count} game(s) matching '{searchFilter}':");
                 await embedData.PerformBulkOperation(async data =>
                 {
                     // Display result
@@ -61,9 +63,10 @@ public partial class ConfigModule
         [AllowedRoles(Role.Developer | Role.Leader | Role.Officer)]
         public async Task AddGameAsync(IRole game)
         {
+            await DeferAsync();
             if (!_userStore.TryGetUser((DiscordUserId)Context.User.Id, out var user))
             {
-                await RespondAsync("Couldn't find you in the user store. Game was not added.");
+                await FollowupAsync("Couldn't find you in the user store. Game was not added.");
                 return;
             }
 
@@ -78,16 +81,17 @@ public partial class ConfigModule
                 await _discordAccess.LogToDiscordAsync($"{Context.User.Username} added the game **{addedGame.DisplayName} ({game.Mention})**.");
             }
 
-            await RespondAsync(message);
+            await FollowupAsync(message);
         }
 
         [SlashCommand("inc-games-menu", "Sets if the game shall be included in the games menu.")]
         [AllowedRoles(Role.Developer | Role.Leader | Role.Officer)]
         public async Task IncludeGameInGamesMenuAsync(IRole game, bool include)
         {
+            await DeferAsync();
             if (!_userStore.TryGetUser((DiscordUserId)Context.User.Id, out var user))
             {
-                await RespondAsync("Couldn't find you in the user store. Game was not edited.");
+                await FollowupAsync("Couldn't find you in the user store. Game was not edited.");
                 return;
             }
 
@@ -109,16 +113,17 @@ public partial class ConfigModule
                                                 + $"**{updatedGame.DisplayName}** ({game.Mention}) to **{include}**.");
             }
 
-            await RespondAsync(message);
+            await FollowupAsync(message);
         }
 
         [SlashCommand("inc-statistic", "Sets if the game shall be included in the guild member statistic.")]
         [AllowedRoles(Role.Developer | Role.Leader | Role.Officer)]
         public async Task IncludeGameInGuildMemberStatisticAsync(IRole game, bool include)
         {
+            await DeferAsync();
             if (!_userStore.TryGetUser((DiscordUserId)Context.User.Id, out var user))
             {
-                await RespondAsync("Couldn't find you in the user store. Game was not edited.");
+                await FollowupAsync("Couldn't find you in the user store. Game was not edited.");
                 return;
             }
 
@@ -140,16 +145,17 @@ public partial class ConfigModule
                                                 + $"**{updatedGame.DisplayName}** to **{include}**.");
             }
 
-            await RespondAsync(message);
+            await FollowupAsync(message);
         }
 
         [SlashCommand("set-interest-role", "Sets the role that should be used if non-members have interest to play the game.")]
         [AllowedRoles(Role.Developer | Role.Leader | Role.Officer)]
         public async Task SetGameInterestRoleAsync(IRole game, IRole? interestRole = null)
         {
+            await DeferAsync();
             if (!_userStore.TryGetUser((DiscordUserId)Context.User.Id, out var user))
             {
-                await RespondAsync("Couldn't find you in the user store. Game was not edited.");
+                await FollowupAsync("Couldn't find you in the user store. Game was not edited.");
                 return;
             }
 
@@ -182,13 +188,14 @@ public partial class ConfigModule
                 }
             }
 
-            await RespondAsync(message);
+            await FollowupAsync(message);
         }
 
         [SlashCommand("remove", "Removes an existing game, if it exist.")]
         [AllowedRoles(Role.Developer | Role.Leader)]
         public async Task RemoveGameAsync(IRole game)
         {
+            await DeferAsync();
             // Remove
             var (success, message, removedGame) = await _gameRoleProvider.RemoveGameAsync((DiscordRoleId)game.Id);
             if (success && removedGame != null)
@@ -200,16 +207,17 @@ public partial class ConfigModule
                 await _discordAccess.LogToDiscordAsync($"{Context.User.Username} removed the game **{removedGame.DisplayName}** ({game.Mention}).");
             }
 
-            await RespondAsync(message);
+            await FollowupAsync(message);
         }
 
         [SlashCommand("add-role", "Adds a new game role, if it doesn't already exist.")]
         [AllowedRoles(Role.Developer | Role.Leader | Role.Officer)]
         public async Task AddGameRoleAsync(IRole game, IRole roleToAdd)
         {
+            await DeferAsync();
             if (!_userStore.TryGetUser((DiscordUserId)Context.User.Id, out var user))
             {
-                await RespondAsync("Couldn't find you in the user store. Game role was not added.");
+                await FollowupAsync("Couldn't find you in the user store. Game role was not added.");
                 return;
             }
 
@@ -227,13 +235,14 @@ public partial class ConfigModule
                 await _discordAccess.LogToDiscordAsync($"{Context.User.Username} added the role **{addedGameRole.DisplayName}** ({roleToAdd.Mention}) to the game **{game.Mention}**.");
             }
 
-            await RespondAsync(message);
+            await FollowupAsync(message);
         }
 
         [SlashCommand("remove-role", "Removes an existing game role, if it is currently configured for the game.")]
         [AllowedRoles(Role.Developer | Role.Leader)]
         public async Task RemoveGameRoleAsync(IRole role)
         {
+            await DeferAsync();
             // Remove
             var (success, message, removedGameRole) = await _gameRoleProvider.RemoveGameRoleAsync((DiscordRoleId)role.Id);
             if (success && removedGameRole != null)
@@ -245,7 +254,7 @@ public partial class ConfigModule
                 await _discordAccess.LogToDiscordAsync($"{Context.User.Username} removed the role **{removedGameRole.DisplayName}** ({role.Mention}).");
             }
 
-            await RespondAsync(message);
+            await FollowupAsync(message);
         }
     }
 }

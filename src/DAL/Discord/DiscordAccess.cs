@@ -915,14 +915,15 @@ public class DiscordAccess : IDiscordAccess
                             customIds[n.Key] = n.Value;
                         break;
                     case ComponentType.Button:
-                        customIds.Add(messageComponent.CustomId, new Dictionary<string, string>
-                        {
-                            {nameof(Shared.Objects.ButtonComponent.Label), ((ButtonComponent)messageComponent).Label}
-                        });
+                        if (messageComponent is ButtonComponent buttonComponent)
+                            customIds.Add(buttonComponent.CustomId, new Dictionary<string, string>
+                            {
+                                {nameof(Shared.Objects.ButtonComponent.Label), buttonComponent.Label}
+                            });
                         break;
                     case ComponentType.SelectMenu:
                         if (messageComponent is global::Discord.SelectMenuComponent selectMenuComponent)
-                            customIds.Add(messageComponent.CustomId, selectMenuComponent.Options.ToDictionary(m => m.Value, m => m.Label));
+                            customIds.Add(selectMenuComponent.CustomId, selectMenuComponent.Options.ToDictionary(m => m.Value, m => m.Label));
                         break;
                     default:
                         throw new ArgumentOutOfRangeException(nameof(messageComponent), "Unknown component type.");

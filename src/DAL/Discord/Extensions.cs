@@ -61,13 +61,13 @@ public static class Extensions
         if (!md.ActionComponents.Any())
             return builder.Build();
         
-        var rows = new Dictionary<int, List<IMessageComponent>>();
+        var rows = new Dictionary<int, List<IMessageComponentBuilder>>();
         foreach (var actionComponent in md.ActionComponents)
         {
-            if (!rows.TryGetValue(actionComponent.ActionRowNumber, out var messageComponents))
+            if (!rows.TryGetValue(actionComponent.ActionRowNumber, out var messageComponentBuilders))
             {
-                messageComponents = new List<IMessageComponent>();
-                rows[actionComponent.ActionRowNumber] = messageComponents;
+                messageComponentBuilders = new List<IMessageComponentBuilder>();
+                rows[actionComponent.ActionRowNumber] = messageComponentBuilders;
             }
             
             switch (actionComponent)
@@ -78,7 +78,7 @@ public static class Extensions
                                        .WithCustomId(button.CustomId)
                                        .WithLabel(button.Label)
                                        .WithStyle((ButtonStyle)button.Style);
-                    messageComponents.Add(buttonBuilder.Build());
+                    messageComponentBuilders.Add(buttonBuilder);
                     break;
                 }
                 case SelectMenuComponent selectMenu:
@@ -91,7 +91,7 @@ public static class Extensions
                     foreach (var (optionKey, label) in selectMenu.Options)
                         menuBuilder.AddOption(label, optionKey);
 
-                    messageComponents.Add(menuBuilder.Build());
+                    messageComponentBuilders.Add(menuBuilder);
                     break;
                 }
             }
