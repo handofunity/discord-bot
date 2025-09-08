@@ -27,6 +27,9 @@ public class RoleRemover : IRoleRemover
 
     async Task IRoleRemover.RemoveBasementRolesAsync()
     {
+#if DEBUG
+        return;
+#endif
         var basementRoleId = (DiscordRoleId)_dynamicConfiguration.DiscordMapping["BasementRoleId"];
 
         // If there are any users from the last check, free them this round.
@@ -55,6 +58,9 @@ public class RoleRemover : IRoleRemover
 
     async Task IRoleRemover.RemoveStaleTrialMembersAsync()
     {
+#if DEBUG
+        return;
+#endif
         var trialMemberRoleId = (DiscordRoleId)_dynamicConfiguration.DiscordMapping[TrialMemberRoleIdKey];
         var trialMemberIds = _discordAccess.GetUsersIdsInRole(trialMemberRoleId);
         var today = DateOnly.FromDateTime(DateTime.Today);

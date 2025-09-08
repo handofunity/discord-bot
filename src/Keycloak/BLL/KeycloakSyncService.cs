@@ -110,6 +110,10 @@ internal class KeycloakSyncService : IKeycloakSyncService
     // Do NOT implement this as explicit implementation, as it cannot be triggered by hangfire then!
     public async Task SyncAllUsersAsync()
     {
+#if DEBUG
+        return;
+#endif
+
         await SemaphoreSlim.WaitAsync();
         var utcNow = DateTime.UtcNow;
         var notificationRequired = utcNow is { Hour: 15, Minute: < 15 };
@@ -196,6 +200,10 @@ internal class KeycloakSyncService : IKeycloakSyncService
     // Do NOT implement this as explicit implementation, as it cannot be triggered by hangfire then!
     public async Task DeleteFlaggedUsersAsync()
     {
+#if DEBUG
+        return;
+#endif
+
         if (_dynamicConfiguration.KeycloakEndpoints.Length == 0)
         {
             _logger.LogWarning("No Keycloak access configured");

@@ -21,6 +21,9 @@ public class BirthdayService
 
     public async Task ApplyRoleAsync()
     {
+#if DEBUG
+        return;
+#endif
         var birthdayRoleId = (DiscordRoleId)_dynamicConfiguration.DiscordMapping[BirthdayRoleIdKey];
         var birthdayUsers = await _birthdayProvider.GetBirthdaysAsync(DateOnly.FromDateTime(DateTime.UtcNow));
         var userIdsWithAppliedRole = new List<DiscordUserId>(birthdayUsers.Length);
@@ -53,6 +56,9 @@ public class BirthdayService
 
     public async Task RevokeRoleAsync()
     {
+#if DEBUG
+        return;
+#endif
         var birthdayRoleId = (DiscordRoleId)_dynamicConfiguration.DiscordMapping[BirthdayRoleIdKey];
         var birthdayUsers = await _birthdayProvider.GetBirthdaysAsync(DateOnly.FromDateTime(DateTime.UtcNow));
         foreach (var userId in birthdayUsers)
