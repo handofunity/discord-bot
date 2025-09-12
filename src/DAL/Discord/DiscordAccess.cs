@@ -1,5 +1,4 @@
-﻿using Discord;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Diagnostics;
 using ButtonComponent = Discord.ButtonComponent;
 using SelectMenuComponent = HoU.GuildBot.Shared.Objects.SelectMenuComponent;
@@ -44,7 +43,8 @@ public class DiscordAccess : IDiscordAccess
             {"Trial Member", Role.TrialMember},
             {"Guest", Role.Guest},
             {"Friend of Member", Role.FriendOfMember},
-            {"TnL - Friend", Role.TnlFriend}
+            {"TnL - Friend", Role.TnlFriend},
+            {"Ashes of Creation Management", Role.AocManagement}
         };
     }
 
@@ -594,47 +594,6 @@ public class DiscordAccess : IDiscordAccess
                 await Task.Delay(500);
             }
         }
-    }
-
-    private static List<string> SplitMentionsIntoMessages(int baseMessageLength,
-        string[] mentions)
-    {
-        decimal freeSpaceBaseAfterMessage = 2000 - Math.Max(baseMessageLength + 1, 500);
-        var notifications = new List<string>();
-        var allMentions = new Queue<string>(mentions.Select(m => m + " "));
-        var totalLength = allMentions.Sum(m => m.Length);
-        var totalMessagesRequired = (int)Math.Ceiling(totalLength / freeSpaceBaseAfterMessage);
-        if (totalMessagesRequired == 1)
-        {
-            notifications.Add(string.Join(string.Empty, allMentions));
-        }
-        else
-        {
-            string? addToNext = null;
-            for (var i = 0; i < totalMessagesRequired; i++)
-            {
-                var sb = new StringBuilder();
-                if (addToNext != null)
-                {
-                    sb.Append(addToNext);
-                    addToNext = null;
-                }
-
-                while (allMentions.TryDequeue(out var nextMention))
-                {
-                    if (sb.Length + nextMention.Length > freeSpaceBaseAfterMessage)
-                    {
-                        addToNext = nextMention;
-                        break;
-                    }
-
-                    sb.Append(nextMention);
-                }
-                notifications.Add(sb.ToString());
-            }
-        }
-
-        return notifications;
     }
 
     bool IDiscordAccess.IsConnected => _client.ConnectionState == ConnectionState.Connected;
@@ -1290,7 +1249,7 @@ public class DiscordAccess : IDiscordAccess
                 return null;
             }
             var embed = embedData.ToEmbed();
-            var notifications = SplitMentionsIntoMessages(0, mentions);
+            var notifications = mentions.SplitLongMessageWithList(0);
 
             string? initialText = null;
             if (mentionInThread == false && notifications.Count == 1)
@@ -1340,7 +1299,7 @@ public class DiscordAccess : IDiscordAccess
             if (linkToChannelId is not null)
                 linkToChannel = $"https://discord.com/channels/{g.Id}/{linkToChannelId}";
 
-            var notifications = SplitMentionsIntoMessages(message.Length, mentions);
+            var notifications = mentions.SplitLongMessageWithList(message.Length);
 
             var initialMessage = await threadChannel.SendMessageAsync(message + " " + notifications[0]);
 

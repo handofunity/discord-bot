@@ -15,16 +15,19 @@ public class AshesOfCreationModule : InteractionModuleBase<SocketInteractionCont
     private readonly IUnitsAccess _unitsAccess;
     private readonly IDynamicConfiguration _dynamicConfiguration;
     private readonly ILogger<AshesOfCreationModule> _logger;
+    private readonly IDatabaseAccess _databaseAccess;
 
     public AshesOfCreationModule(IImageProvider imageProvider,
                                  IUnitsAccess unitsAccess,
                                  IDynamicConfiguration dynamicConfiguration,
-                                 ILogger<AshesOfCreationModule> logger)
+                                 ILogger<AshesOfCreationModule> logger,
+                                 IDatabaseAccess databaseAccess)
     {
         _imageProvider = imageProvider;
         _unitsAccess = unitsAccess;
         _dynamicConfiguration = dynamicConfiguration;
         _logger = logger;
+        _databaseAccess = databaseAccess;
     }
 
     [SlashCommand("profile", "Shows the profile image for the given or current user.", runMode: RunMode.Async)]
@@ -206,6 +209,94 @@ public class AshesOfCreationModule : InteractionModuleBase<SocketInteractionCont
         {
             _logger.LogError(e, "Failed to create {ChartType} chart", chartType);
             await FollowupAsync("Failed to create chart.");
+        }
+    }
+
+    [SlashCommand("units-auction-sync", "Creates the commands to sync UNITS to the Auction bot.", runMode: RunMode.Async)]
+    [AllowedRoles(Role.AocManagement)]
+    public async Task GetUnitsToAuctionBotSyncCommandsAsync()
+    {
+        await DeferAsync();
+        try
+        {
+            var endpoint = _dynamicConfiguration.UnitsEndpoints.FirstOrDefault(m => m.ConnectToRestApi
+                && m.Chapter.Equals(ModuleChapter, StringComparison.InvariantCultureIgnoreCase));
+            if (endpoint is null)
+            {
+                await FollowupAsync("No endpoint configured.");
+                return;
+            }
+
+            var storedHeritageTokens = await _databaseAccess.GetLastHeritageTokensAsync();
+            var newHeritageTokens = await _unitsAccess.GetHeritageTokensAsync(endpoint);
+            if (newHeritageTokens is null)
+            {
+                await FollowupAsync("Failed to fetch heritage tokens from UNITS.");
+                return;
+            }
+
+            var diff = new Dictionary<DiscordUserId, long>();
+            foreach (var (userId, newTokenCount) in newHeritageTokens)
+            {
+                storedHeritageTokens.TryGetValue(userId, out var oldTokenCount);
+                var difference = newTokenCount - oldTokenCount;
+                if (difference != 0)
+                    diff[userId] = difference;
+            }
+
+            var negativeDiff = diff.Where(m => m.Value < 0).ToList();
+            var positiveGroupedDiff = diff.Where(m => m.Value > 0)
+                .GroupBy(m => m.Value)
+                .OrderByDescending(m => m.Key)
+                .ToDictionary(m => m.Key,
+                    m => m.Select(kvp => kvp.Key).ToArray());
+
+            if (negativeDiff.Count == 0 && positiveGroupedDiff.Count == 0)
+            {
+                await FollowupAsync("No changes detected between stored and UNITS heritage tokens.");
+                return;
+            }
+
+            var messages = new List<string>();
+            var negativeMessages = new List<string>();
+            foreach (var negativeEntry in negativeDiff)
+            {
+                negativeMessages.Add($"/remove-money amount:{negativeEntry.Value} user:{negativeEntry.Key.ToMention()} \n");
+            }
+            var negativeSplit = negativeMessages.SplitLongMessageWithList(17);
+            foreach (var negativePat in negativeSplit)
+            {
+                messages.Add($"```plaintext\n{negativePat}```");
+            }
+
+            foreach (var positiveEntry in positiveGroupedDiff)
+            {
+                var items = positiveEntry.Value.Select(m => m.ToMention()).ToArray();
+                var prefix = $"```plaintext\n/bulk add-money amount:{positiveEntry.Key} users:";
+                var suffix = "\n```";
+                var split = items.SplitLongMessageWithList(prefix.Length + suffix.Length);
+                foreach (var part in split)
+                {
+                    messages.Add($"{prefix}{part}{suffix}");
+                }
+            }
+
+            await FollowupAsync($"Use the following commands to sync heritage tokens from UNITS to the Auction bot. " +
+                $"Please include any trailing whitespaces per line. Otherwise the last user will be dropped.");
+
+            foreach (var message in messages)
+            {
+                await Task.Delay(500); // Small delay to avoid rate limits
+                await FollowupAsync(message);
+            }
+
+            // Only save if we send the response successfully
+            await _databaseAccess.PersistHeritageTokensAsync(newHeritageTokens);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Failed to create UNITS to Auction bot sync commands");
+            await FollowupAsync("Failed to create commands. Do NOT execute of the commands generated!");
         }
     }
 

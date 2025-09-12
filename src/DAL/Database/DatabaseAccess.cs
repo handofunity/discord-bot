@@ -627,4 +627,38 @@ public class DatabaseAccess : IDatabaseAccess
               .Select(m => (InternalUserId)m)
               .ToArray();
     }
+
+    async Task<Dictionary<DiscordUserId, long>> IDatabaseAccess.GetLastHeritageTokensAsync()
+    {
+        await using var context = GetDbContext(true);
+        return await context.AuctionBotSync
+            .ToDictionaryAsync(m => (DiscordUserId)(ulong)m.DiscordUserId,
+                m => m.HeritageTokens);
+    }
+
+    async Task IDatabaseAccess.PersistHeritageTokensAsync(Dictionary<DiscordUserId, long> heritageTokens)
+    {
+        await using var context = GetDbContext(true);
+        var existingEntries = await context.AuctionBotSync.ToArrayAsync();
+        foreach (var (discordUserId, tokens) in heritageTokens)
+        {
+            var decDiscordUserId = (decimal)discordUserId;
+            var existingEntry = existingEntries.SingleOrDefault(m => m.DiscordUserId == decDiscordUserId);
+            if (existingEntry != null)
+            {
+                existingEntry.HeritageTokens = tokens;
+                existingEntry.LastChange = DateTime.UtcNow;
+            }
+            else
+            {
+                context.AuctionBotSync.Add(new AuctionBotSync
+                {
+                    DiscordUserId = decDiscordUserId,
+                    HeritageTokens = tokens,
+                    LastChange = DateTime.UtcNow
+                });
+            }
+        }
+        await context.SaveChangesAsync();
+    }
 }

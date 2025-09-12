@@ -16,6 +16,7 @@ BEGIN
         GRANT SELECT, INSERT, UPDATE, DELETE ON hou.user_info TO hou_guildbot;
         GRANT SELECT, INSERT, UPDATE, DELETE ON hou.user_birthday TO hou_guildbot;
         GRANT SELECT, INSERT, DELETE ON hou.vacation TO hou_guildbot;
+        GRANT SELECT, INSERT, UPDATE ON hou.auction_bot_sync TO hou_guildbot;
         GRANT SELECT, INSERT, UPDATE, DELETE ON config.game TO hou_guildbot;
         GRANT SELECT, INSERT, UPDATE, DELETE ON config.game_role TO hou_guildbot;
         GRANT SELECT, INSERT, UPDATE ON config.scheduled_reminder TO hou_guildbot;

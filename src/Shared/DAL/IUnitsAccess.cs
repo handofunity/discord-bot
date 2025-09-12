@@ -64,4 +64,11 @@ public interface IUnitsAccess
     /// <param name="unitsEndpoint">The <see cref="UnitsEndpoint"/> to query.</param>
     /// <returns>The leaderboard data.</returns>
     Task<DiscordLeaderboardResponse?> GetCurrentSeasonLeaderboardAsync(UnitsEndpoint unitsEndpoint);
+
+    /// <summary>
+    /// Retrieves the heritage tokens for all users.
+    /// </summary>
+    /// <param name="unitsEndpoint">The <see cref="UnitsEndpoint"/> to query.</param>
+    /// <returns>A dictionary mapping Discord user IDs to their heritage token counts.</returns>
+    Task<Dictionary<DiscordUserId, long>?> GetHeritageTokensAsync(UnitsEndpoint unitsEndpoint);
 }

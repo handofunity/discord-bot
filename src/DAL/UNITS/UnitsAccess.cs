@@ -132,4 +132,36 @@ public class UnitsAccess(IBearerTokenManager _bearerTokenManager,
             return null;
         }
     }
+
+    async Task<Dictionary<DiscordUserId, long>?> IUnitsAccess.GetHeritageTokensAsync(UnitsEndpoint unitsEndpoint)
+    {
+        Use(_discordSyncClient, unitsEndpoint);
+        try
+        {
+            var response = await _discordSyncClient.GetHeritageTokensAsync();
+            if (response.Result is null)
+                return null;
+
+            return response.Result
+                .Select(m =>
+                {
+                    var isValid = ulong.TryParse(m.DiscordUserId, out var discordUserId);
+                    return new
+                    {
+                        DiscordUserId = isValid ? discordUserId : 0,
+                        m.HeritageTokens
+                    };
+                })
+                .Where(m => m.DiscordUserId != 0)
+                .ToDictionary(m => (DiscordUserId)m.DiscordUserId,
+                    m => m.HeritageTokens);
+        }
+        catch (SwaggerException e)
+        {
+            _logger.LogError(e,
+                "Failed to get heritage tokens from UNITS at {UnitsEndpoint}",
+                unitsEndpoint.BaseAddress);
+            return null;
+        }
+    }
 }

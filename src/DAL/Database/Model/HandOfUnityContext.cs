@@ -7,6 +7,7 @@ namespace HoU.GuildBot.DAL.Database.Model
 {
     public partial class HandOfUnityContext : DbContext
     {
+        public virtual DbSet<AuctionBotSync> AuctionBotSync { get; set; } = null!;
         public virtual DbSet<DesiredTimeZone> DesiredTimeZone { get; set; } = null!;
         public virtual DbSet<DiscordMapping> DiscordMapping { get; set; } = null!;
         public virtual DbSet<Game> Game { get; set; } = null!;
@@ -28,6 +29,22 @@ namespace HoU.GuildBot.DAL.Database.Model
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<AuctionBotSync>(entity =>
+            {
+                entity.HasKey(e => e.DiscordUserId)
+                    .HasName("auction_bot_sync_pkey");
+
+                entity.ToTable("auction_bot_sync", "hou");
+
+                entity.Property(e => e.DiscordUserId)
+                    .HasPrecision(20)
+                    .HasColumnName("discord_user_id");
+
+                entity.Property(e => e.HeritageTokens).HasColumnName("heritage_tokens");
+
+                entity.Property(e => e.LastChange).HasColumnName("last_change");
+            });
+
             modelBuilder.Entity<DesiredTimeZone>(entity =>
             {
                 entity.HasKey(e => e.DesiredTimeZoneKey)

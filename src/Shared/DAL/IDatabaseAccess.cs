@@ -206,4 +206,16 @@ public interface IDatabaseAccess
     /// <returns>An array with the <see cref="InternalUserId"/> of all matching users.</returns>
     Task<InternalUserId[]> GetUsersWithBirthdayAsync(short month,
                                                      short day);
+
+    /// <summary>
+    /// Gets the last heritage tokens for all users.
+    /// </summary>
+    /// <returns>The dictionary containing the user Ids and their heritage tokens.</returns>
+    Task<Dictionary<DiscordUserId, long>> GetLastHeritageTokensAsync();
+
+    /// <summary>
+    /// Persists the heritage tokens for all users.
+    /// </summary>
+    /// <param name="heritageTokens">The dictionary containing the user Ids and their heritage tokens.</param>
+    Task PersistHeritageTokensAsync(Dictionary<DiscordUserId, long> heritageTokens);
 }

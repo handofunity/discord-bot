@@ -43,5 +43,9 @@ public enum Role
     /// <summary>
     /// Not a guild member, but a <see cref="TnlFriend"/> role.
     /// </summary>
-    TnlFriend = 256
+    TnlFriend = 256,
+    /// <summary>
+    /// Only users with the role <see cref="AocManagement"/> may use these commands.
+    /// </summary>
+    AocManagement = 512
 }

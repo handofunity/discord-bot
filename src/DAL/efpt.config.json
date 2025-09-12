@@ -55,6 +55,10 @@
          "ObjectType": 0
       },
       {
+         "Name": "hou.auction_bot_sync",
+         "ObjectType": 0
+      },
+      {
          "Name": "hou.user",
          "ObjectType": 0
       },
@@ -84,6 +88,7 @@
    "UseHandleBars": true,
    "UseHierarchyId": false,
    "UseInflector": false,
+   "UseInternalAccessModifiersForSprocsAndFunctions": false,
    "UseLegacyPluralizer": false,
    "UseManyToManyEntity": false,
    "UseNoDefaultConstructor": false,
