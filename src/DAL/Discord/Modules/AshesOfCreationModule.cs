@@ -261,7 +261,7 @@ public class AshesOfCreationModule : InteractionModuleBase<SocketInteractionCont
             var negativeMessages = new List<string>();
             foreach (var negativeEntry in negativeDiff)
             {
-                negativeMessages.Add($"/remove-money amount:{negativeEntry.Value} user:{negativeEntry.Key.ToMention()} \n");
+                negativeMessages.Add($"/remove-money amount:{Math.Abs(negativeEntry.Value)} user:{negativeEntry.Key.ToMention()} \n");
             }
             var negativeSplit = negativeMessages.SplitLongMessageWithList(17);
             foreach (var negativePat in negativeSplit)
