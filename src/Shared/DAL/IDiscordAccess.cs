@@ -235,11 +235,13 @@ public interface IDiscordAccess : IDiscordLogger
         int maxUsers);
 
     /// <summary>
-    /// Deletes the category channel.
+    /// Tries to delete the category channel and child channels, if they are empty.
     /// </summary>
     /// <param name="categoryChannelId">The Id of the category channel to delete.</param>
-    /// <returns>An awaitable <see cref="Task"/>.</returns>
-    Task DeleteCategoryChannelAsync(DiscordCategoryChannelId categoryChannelId);
+    /// <param name="forceDelete">If <strong>true</strong>, the category channel and all child channels will be deleted, even if they are not empty.</param>
+    /// <returns><strong>True</strong>, if the category channel and all child channels were deleted, otherwise <strong>false</strong>.</returns>
+    Task<bool> DeleteCategoryChannelAsync(DiscordCategoryChannelId categoryChannelId,
+        bool forceDelete);
 
     /// <summary>
     /// Gets the Id of the avatar for the <paramref name="userId"/>, if the user has any avatar set.

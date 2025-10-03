@@ -388,7 +388,13 @@ public class UnitsBotClient(IDiscordAccess _discordAccess,
 
     Task IUnitsBotClient.ReceiveDeleteEventCategoryChannelMessageAsync(ulong categoryChannelId)
     {
-        _backgroundJobClient.Enqueue<BackgroundTasks>(m => m.DeleteCategoryChannelAsync(categoryChannelId));
+        var gracePeriod = TimeProvider.System.GetUtcNow().AddHours(1);
+        _logger.LogDebug("Received DeleteEventCategoryChannelMessage for category channel {CategoryChannelId}, " +
+            "triggering deletion now with grace period until {GracePeriod}",
+            categoryChannelId.ToString(),
+            gracePeriod);
+
+        _backgroundJobClient.Enqueue<BackgroundTasks>(m => m.DeleteCategoryChannelAsync(categoryChannelId, gracePeriod));
         return Task.CompletedTask;
     }
 

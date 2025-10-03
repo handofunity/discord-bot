@@ -1082,15 +1082,17 @@ public class DiscordAccess : IDiscordAccess
         }
     }
 
-    async Task IDiscordAccess.DeleteCategoryChannelAsync(DiscordCategoryChannelId categoryChannelId)
+    async Task<bool> IDiscordAccess.DeleteCategoryChannelAsync(DiscordCategoryChannelId categoryChannelId,
+        bool forceDelete)
     {
         var g = GetGuild();
         var categoryChannel = g.GetCategoryChannel((ulong)categoryChannelId);
         if (categoryChannel == null)
-            return;
+            return true; // Already deleted.
 
         var categoryChannelName = categoryChannel.Name;
 
+        var skippedDeletion = false;
         _logger.LogInformation("Found {Count} child channels for category channel {CategoryChannelName}",
             categoryChannel.Channels.Count,
             categoryChannelName);
@@ -1099,6 +1101,18 @@ public class DiscordAccess : IDiscordAccess
             var channelName = $"{categoryChannel.Name} / {childChannel.Name}";
             try
             {
+                if (!forceDelete)
+                {
+                    if (childChannel is SocketVoiceChannel voiceChannel
+                        && voiceChannel.ConnectedUsers.Count > 0)
+                    {
+                        _logger.LogInformation("Skipping deletion of channel {ChannelName} of {CategoryChannelName} because it has active users",
+                            channelName,
+                            categoryChannelName);
+                        skippedDeletion = true;
+                        continue;
+                    }
+                }
                 await childChannel.DeleteAsync();
                 _logger.LogInformation("Deleted channel {ChannelName} of {CategoryChannelName}",
                     channelName,
@@ -1113,11 +1127,16 @@ public class DiscordAccess : IDiscordAccess
             }
             await Task.Delay(500);
         }
+
+        if (skippedDeletion)
+            return false;
+
         try
         {
             await categoryChannel.DeleteAsync();
             _logger.LogInformation("Deleted category channel {CategoryChannelName}",
                 categoryChannelName);
+            return true;
         }
         catch (Exception e)
         {
