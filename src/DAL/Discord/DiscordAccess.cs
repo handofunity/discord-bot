@@ -1143,6 +1143,7 @@ public class DiscordAccess : IDiscordAccess
             _logger.LogError(e,
                 "Failed to delete category channel {ChannelName}",
                 categoryChannelName);
+            return false;
         }
     }
 
