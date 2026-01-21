@@ -17,7 +17,6 @@ public static class Constants
 
     public static class MessageNames
     {
-        public const string AocClassMenuMessage = "AocClassMenu";
         public const string AocPlayStyleMenuMessage = "AocPlayStyleMenu";
         public const string AocRaceMenuMessage = "AocRaceMenu";
         public const string AocRolePreferenceMenuMessage = "AocRolePreferenceMenu";
@@ -62,7 +61,6 @@ public static class Constants
         {
             _mapping = new Dictionary<string, string>
             {
-                {AocArchetypeMenu.CustomId, "AshesOfCreationPrimaryGameDiscordRoleId"},
                 {AocPlayStyleMenu.CustomId, "AshesOfCreationPrimaryGameDiscordRoleId"},
                 {AocRaceMenu.CustomId, "AshesOfCreationPrimaryGameDiscordRoleId"},
                 {AocRolePreferenceMenu.CustomId, "AshesOfCreationPrimaryGameDiscordRoleId"},
@@ -82,24 +80,6 @@ public static class Constants
         public static bool IsMappedToPrimaryGameRoleIdConfigurationKey(string customId,
                                                                        out string? primaryGameRoleIdConfigurationKey) =>
             _mapping.TryGetValue(customId, out primaryGameRoleIdConfigurationKey);
-    }
-
-    public static class AocArchetypeMenu
-    {
-        public const string CustomId = "52766d05-c4a4-4bf7-9462-62c842932c9a";
-
-        public static IDictionary<string, string> GetOptions() =>
-            new Dictionary<string, string>
-            {
-                {"bard", "Bard"},
-                {"cleric", "Cleric"},
-                {"fighter", "Fighter"},
-                {"mage", "Mage"},
-                {"ranger", "Ranger"},
-                {"rogue", "Rogue"},
-                {"summoner", "Summoner"},
-                {"tank", "Tank"}
-            };
     }
 
     public static class AocPlayStyleMenu

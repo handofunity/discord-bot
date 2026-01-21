@@ -293,11 +293,6 @@ public class MenuRegistry : IMenuRegistry
                         [],
                         RoleToggleMode.Dynamic)));
 
-        _selectMenus.Add(Constants.AocArchetypeMenu.CustomId,
-                         CreatePrimaryGameRoleSelectMenu(Constants.AocArchetypeMenu.CustomId,
-                                                         "Select archetypes ...",
-                                                         Constants.AocArchetypeMenu.GetOptions(),
-                                                         true));
         _selectMenus.Add(Constants.AocPlayStyleMenu.CustomId,
                          CreatePrimaryGameRoleSelectMenu(Constants.AocPlayStyleMenu.CustomId,
                                                          "Select play styles ...",
