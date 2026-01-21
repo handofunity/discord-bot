@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
 RUN ln -s /lib/x86_64-linux-gnu/libdl.so.2 /lib/x86_64-linux-gnu/libdl.so \
   && apt update \
   && apt install -y libgdiplus \
@@ -12,7 +12,7 @@ RUN mkdir -p /usr/share/fonts/truetype/ \
   && rm ./Marcellus-Regular.ttf \
   && rm ./linlibertine_regular.ttf
 
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["WebHost/WebHost.csproj", "WebHost/"]
