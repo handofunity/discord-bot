@@ -93,7 +93,7 @@ public interface IDiscordAccess : IDiscordLogger
     /// <param name="roleId">The Id of the role to assign to the user.</param>
     /// <returns>True, if the role was assigned, otherwise false.</returns>
     Task<bool> TryAssignRoleAsync(DiscordUserId userId,
-                                  DiscordRoleId roleId);
+        DiscordRoleId roleId);
 
     /// <summary>
     /// Revokes the <paramref name="roleId"/> from the given <paramref name="userId"/>.
@@ -101,8 +101,8 @@ public interface IDiscordAccess : IDiscordLogger
     /// <param name="userId">The user Id.</param>
     /// <param name="roleId">The Id of the role to revoke from the user.</param>
     /// <returns>True, if the role was revoked, otherwise false.</returns>
-    Task<bool> TryRevokeGameRoleAsync(DiscordUserId userId,
-                                      DiscordRoleId roleId);
+    Task<bool> TryRevokeRoleAsync(DiscordUserId userId,
+        DiscordRoleId roleId);
 
     /// <summary>
     /// Checks if the bot can manage roles for a specific <paramref name="userId"/>, depending on the guilds role configuration.

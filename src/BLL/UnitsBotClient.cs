@@ -9,6 +9,8 @@ public class UnitsBotClient(IDiscordAccess _discordAccess,
                             ILogger<UnitsBotClient> _logger)
     : IUnitsBotClient
 {
+    private const int RoleOperationDelayMs = 200;
+
     private static string GetDayOfMonthSuffix(int day)
     {
         if (day is >= 11 and <= 13)
@@ -534,5 +536,44 @@ public class UnitsBotClient(IDiscordAccess _discordAccess,
         var message = $"{((DiscordUserId)userToNotify).ToMention()} Your [delivery]({url}) was **rejected**.";
         await SendUnitsNotificationAsync((DiscordChannelId)threadId,
             message);
+    }
+
+    async Task IUnitsBotClient.ReceiveUpdateDiscordRolesByCharacterClassesMessageAsync(Uri baseAddress,
+        ulong discordUserId,
+        string[] userClasses)
+    {
+        if (!TryGetUnitsEndpoint(baseAddress, out var unitsEndpoint))
+            return;
+
+        var userId = (DiscordUserId)discordUserId;
+        if (!_discordAccess.CanManageRolesForUser(userId))
+            return;
+
+        Dictionary<string, ulong> mapping = _dynamicConfiguration.DiscordMapping
+            .Where(m => m.Key.StartsWith($"Units__{unitsEndpoint.UnitsEndpointId}__ClassRole__"))
+            .ToDictionary();
+        DiscordRoleId[] relevantRoles = [.. mapping.Values.Select(v => (DiscordRoleId)v)];
+        DiscordRoleId[] targetRoles = [.. mapping.Join(userClasses,
+                r => r.Key,
+                c => $"Units__{unitsEndpoint.UnitsEndpointId}__ClassRole__{c}",
+                (r, c) => (DiscordRoleId)r.Value)];
+
+        DiscordRoleId[] currentRoles = _discordAccess.GetUserRoles(userId) ?? [];
+        DiscordRoleId[] missingRoles = [.. targetRoles.Except(currentRoles)];
+        DiscordRoleId[] rolesToRemove = [.. currentRoles
+            .Intersect(relevantRoles)
+            .Except(targetRoles)];
+
+        foreach (var missingRole in missingRoles)
+        {
+            await _discordAccess.TryAssignRoleAsync(userId, missingRole);
+            await Task.Delay(RoleOperationDelayMs);
+        }
+
+        foreach (var roleToRemove in rolesToRemove)
+        {
+            await _discordAccess.TryRevokeRoleAsync(userId, roleToRemove);
+            await Task.Delay(RoleOperationDelayMs);
+        }
     }
 }

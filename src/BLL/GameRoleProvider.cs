@@ -308,7 +308,7 @@ public class GameRoleProvider : IGameRoleProvider
                 foreach (var discordRoleId in rolesToRemove)
                 {
                     var roleDisplayName = game.AvailableRoles.Single(r => r.DiscordRoleId == discordRoleId).DisplayName;
-                    var success = await DiscordAccess.TryRevokeGameRoleAsync(userId, discordRoleId);
+                    var success = await DiscordAccess.TryRevokeRoleAsync(userId, discordRoleId);
                     sb.AppendLine(success
                                       ? $"Successfully revoked the role **{roleDisplayName}**."
                                       : $"Failed to revoke the role **{roleDisplayName}**.");
@@ -359,7 +359,7 @@ public class GameRoleProvider : IGameRoleProvider
                 foreach (var discordRoleId in rolesToRemove)
                 {
                     var roleDisplayName = selectedGames.Single(r => r.PrimaryGameDiscordRoleId == discordRoleId).DisplayName;
-                    var success = await DiscordAccess.TryRevokeGameRoleAsync(userId, discordRoleId);
+                    var success = await DiscordAccess.TryRevokeRoleAsync(userId, discordRoleId);
                     sb.AppendLine(success
                                       ? $"Successfully revoked the game role **{roleDisplayName}**."
                                       : $"Failed to revoke the game role **{roleDisplayName}**.");

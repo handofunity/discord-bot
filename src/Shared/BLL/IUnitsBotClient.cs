@@ -98,4 +98,8 @@ public interface IUnitsBotClient
         long deliveryId,
         ulong threadId,
         ulong userToNotify);
+
+    Task ReceiveUpdateDiscordRolesByCharacterClassesMessageAsync(Uri baseAddress, 
+        ulong discordUserId,
+        string[] userClasses);
 }

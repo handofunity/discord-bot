@@ -809,8 +809,8 @@ public class DiscordAccess : IDiscordAccess
                                false);
     }
 
-    async Task<bool> IDiscordAccess.TryRevokeGameRoleAsync(DiscordUserId userId,
-                                                      DiscordRoleId roleId)
+    async Task<bool> IDiscordAccess.TryRevokeRoleAsync(DiscordUserId userId,
+        DiscordRoleId roleId)
     {
         // Get role
         var g = GetGuild();
