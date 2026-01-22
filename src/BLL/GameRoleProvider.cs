@@ -114,16 +114,18 @@ public class GameRoleProvider : IGameRoleProvider
 
     (int GameMembers, Dictionary<string, int> RoleDistribution) IGameRoleProvider.GetGameRoleDistribution(AvailableGame game)
     {
-        DiscordAccess.EnsureDisplayNamesAreSet(new[] { game });
+        DiscordAccess.EnsureDisplayNamesAreSet([game]);
         DiscordAccess.EnsureDisplayNamesAreSet(game.AvailableRoles);
         var distribution = new Dictionary<string, int>();
         foreach (var role in game.AvailableRoles)
         {
-            var count = DiscordAccess.CountGuildMembersWithRoles(new[] { role.DiscordRoleId });
-            distribution.Add(role.DisplayName!, count);
+            var count = DiscordAccess.CountGuildMembersWithRoles([role.DiscordRoleId]);
+            distribution[role.DisplayName!] = distribution.TryGetValue(role.DisplayName!, out var currentCount)
+                ? currentCount + count
+                : count;
         }
 
-        var gameMembers = DiscordAccess.CountGuildMembersWithRoles(new[] { game.PrimaryGameDiscordRoleId });
+        var gameMembers = DiscordAccess.CountGuildMembersWithRoles([game.PrimaryGameDiscordRoleId]);
 
         return (gameMembers, distribution);
     }
